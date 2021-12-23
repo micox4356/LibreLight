@@ -47,9 +47,28 @@ def artnet_loop():
         artnet.next()
         time.sleep(0.01)
 
-thread.start_new_thread(artnet_loop,())
-def CB(data):
-    print("CB",data)
+class Main():
+    def __init__(self):
+        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=12)
+        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=0)
+        #artnet = ANN.ArtNetNode(to="2.0.0.255",univ=0)
+        #artnet = ANN.ArtNetNode(to="10.10.10.255",univ=1)
+        self.artnet = ANN.ArtNetNode(to="10.10.10.255",univ=0)
+        self.fx = {} # key is dmx address
+    def loop(self):
+        #dmx[205] = 255 #205 BLUE
+        self.artnet.dmx= dmx #[0]*512
+        self.artnet.send()
+        while 1:
+            #artnet._test_frame()
+            self.artnet.next()
+            time.sleep(0.01)
+
+main = Main()
+#thread.start_new_thread(artnet_loop,())
+thread.start_new_thread(main.loop,())
+
+def split_cmd(data):
     if "cmd" in data:
         cmd = data["cmd"]
         print("cmd",cmd)
@@ -57,24 +76,31 @@ def CB(data):
             cmds = cmd.split(",")
         else:
             cmds = [cmd]
-        
-        for xcmd in cmds:
-            if xcmd.startswith("d"):
-                xxcmd=xcmd[1:].split(":")
-                print("DMX:",xxcmd)
-                l = xxcmd
-                try:
-                    k=int(l[0])-1
-                    v=int(l[1])
-                    if v > 255:
-                        v = 255
-
-                    if len(dmx) > k:
-                        dmx[k] = v
-                except Exception as e:
-                    print("EXCEPTION IN DMX",e)
+    return cmds
 
 
-chat.cmd(CB)
+
+def CB(data):
+    print("CB",data)
+
+    cmds = split_cmd(data)
+    
+    for xcmd in cmds:
+        if xcmd.startswith("d"):
+            xxcmd=xcmd[1:].split(":")
+            print("DMX:",xxcmd)
+            l = xxcmd
+            try:
+                k=int(l[0])-1
+                v=int(l[1])
+                if v > 255:
+                    v = 255
+
+                if len(dmx) > k:
+                    dmx[k] = v
+            except Exception as e:
+                print("EXCEPTION IN DMX",e)
+
+chat.cmd(CB) # server listener
 
 input("END")

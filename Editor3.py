@@ -45,6 +45,9 @@ root.option_add("*Font", Font)
 
 from collections import OrderedDict
 
+show_name = "GloryCamp2021"
+show_name = "GloryCamp2021"
+
 
 CUES    = OrderedDict()
 groups  = OrderedDict()
@@ -415,18 +418,15 @@ class Master():
         self.elem_commands = {}
         self.val_commands = {}
 
-        self.presets = OrderedDict()
         self.elem_presets = {}
-        self.val_presets = OrderedDict()
-        self.label_presets = OrderedDict()
-        x=self.load_presets()
+        self.load_presets()
         
         for i in range(8*6):
-            if i not in self.presets:
+            if i not in self.val_presets:
                 name = "Preset:"+str(i+1)+":\nXYZ"
-                self.presets[i] = [i]
+                #self.presets[i] = [i]
                 self.val_presets[i] = OrderedDict()
-                self.label_presets[i] = ""
+                self.label_presets[i] = "-"
         
     def load(self):
         fixture = OrderedDict()
@@ -491,22 +491,22 @@ class Master():
 
         fi = copy.deepcopy(fix3)
         fi["DMX"] = 330
-        fixture["2001"] = fi
+        #fixture["2001"] = fi
         fi = copy.deepcopy(fix3)
         fi["DMX"] = 335
-        fixture["2002"] = fi
+        #fixture["2002"] = fi
         fi = copy.deepcopy(fix3)
         fi["DMX"] = 240
-        fixture["2003"] = fi
+        #fixture["2003"] = fi
         fi = copy.deepcopy(fix3)
         fi["DMX"] = 245
-        fixture["2004"] = fi
+        #fixture["2004"] = fi
         fi = copy.deepcopy(fix3)
         fi["DMX"] = 250
-        fixture["2005"] = fi
+        #fixture["2005"] = fi
         fi = copy.deepcopy(fix3)
         fi["DMX"] = 355
-        fixture["2006"] = fi
+        #fixture["2006"] = fi
 
 
         
@@ -524,11 +524,11 @@ class Master():
 
         fi = copy.deepcopy(fixTMH)
         fi["DMX"] = 241
-        #fixture["2001"] = fi
+        fixture["3001"] = fi
 
         fi = copy.deepcopy(fixTMH)
         fi["DMX"] = 461
-        #fixture["2002"] = fi
+        fixture["3002"] = fi
 
          
         DATA = OrderedDict()
@@ -554,58 +554,76 @@ class Master():
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 220
-        fixture["702"] = fi
+        #fixture["702"] = fi
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 239
-        fixture["703"] = fi
+        #fixture["703"] = fi
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 258
-        fixture["704"] = fi
+        #fixture["704"] = fi
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 277
-        fixture["705"] = fi
+        #fixture["705"] = fi
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 296
-        fixture["706"] = fi
+        #fixture["706"] = fi
         
 
         
        
         self.fixtures = fixture
-
+        
+        
     def load_presets(self):
-        print("load_presets")
-        f = open("preset.sav","r")
+        filename="presets"
+        d,l = self._load(filename)
+        self.val_presets = d
+        self.label_presets = l
+        
+    def _load(self,filename):
+        xfname = "show/"+show_name+"/"+str(filename)+".sav"
+        print("load",xfname)
+        f = open(xfname,"r")
         lines = f.readlines()
         f.close()    
-        self.val_presets = OrderedDict()
-        self.presets = OrderedDict()
+        data   = OrderedDict()
+        labels = OrderedDict()
+        
         for line in lines:
-            
-            key,label,data = line.split("\t",2)
+            key,label,rdata = line.split("\t",2)
             key = int(key)
-            print("load_presets",key)
-            data = json.loads(data)
-            self.val_presets[key] = data
-            self.label_presets[key] = label
-            self.presets[key] = 0
-        return self.val_presets
+            print(xfname,"load",key,label)
+            jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
+            
+            data[key] = jdata
+            labels[key] = label
+            
+        return data,labels
         
     def backup_presets(self):
-        print("backup_presets")
-        f = open("preset.sav","w")
-        for key in self.val_presets:
-            preset = self.val_presets[key]
-            label = ""#"Name-"+str(key)
-            if key in self.label_presets:
-                label = self.label_presets[key]
+        filename = "presets"
+        data   = self.val_presets
+        labels = self.label_presets
+        self._backup(filename,data,labels)
+        
+    def _backup(self,filename,data,labels):
+        #fixture
+        xfname = "show/"+show_name+"/"+str(filename)+".sav"
+        print("backup",xfname)
+        f = open(xfname,"w")
+        for key in data:
+            line = data[key]
+            label = "label" 
+            if key in labels:
+                label = labels[key]
             if label == "Name-"+str(key):
                 label = ""
-            f.write(str(key)+"\t"+label+"\t"+json.dumps(preset)+"\n")
+            print(xfname,"load",key,label,len(line))
+            f.write(str(key)+"\t"+label+"\t"+json.dumps(line)+"\n")
         f.close()
             
     def draw_dim(self,fix,data,c=0,r=0,frame=None):
@@ -761,12 +779,12 @@ class Master():
         #b.bind("<Button>",Xevent(elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         r+=1      
-        for k in self.presets:
+        for k in self.val_presets:
             v=0
             label = ""
             if k in self.label_presets:
                 label = self.label_presets[k]
-                print(label)
+                print([label])
             b = tk.Button(frame,bg="grey", text="Preset:"+str(k)+"\n"+str(len(self.val_presets[k]))+":"+label,width=8,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             

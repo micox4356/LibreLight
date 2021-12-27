@@ -1,7 +1,10 @@
-import chat
+
+
+
+import lib.chat as chat
 import time
 
-import motion 
+import lib.motion as motion 
 
 def inp():
     c = chat.tcp_sender()

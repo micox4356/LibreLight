@@ -26,14 +26,15 @@ import time
 
 
 class tcp_sender(object):
-    def __init__(self):
+    def __init__(self,port=50000):
+        self.port = port
         self.connect()
         
     def connect(self,client_name="unkown"):
         self.xip = "127.0.0.1" #raw_input("IP-Adresse: ")
         self.xs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.xs.connect((self.xip, 50000))
+            self.xs.connect((self.xip, self.port)) #50000))
         except ConnectionRefusedError as e:
             print("ConnectionRefusedError: ", "ERR: {0} ".format(e.args) ,end="")
             print("Server nicht ereichbar/unterbrochen")
@@ -56,7 +57,7 @@ def dummyCB(msg):
     print("dummy_CB",msg)
 
 
-def cmd(cb=dummyCB):
+def cmd(cb=dummyCB,port=50000):
     import socket
     import select
 
@@ -64,7 +65,7 @@ def cmd(cb=dummyCB):
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     #self.xs.getsockopt(socket.AF_INET, socket.SO_REUSEADDR )
 
-    server.bind(("", 50000))
+    server.bind(("", port))
     server.listen(1)
 
     clients = []

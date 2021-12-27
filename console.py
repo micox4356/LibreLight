@@ -26,7 +26,7 @@ import struct
 import random
  
 import lib.chat as chat
-import ArtNetNode as ANN
+import lib.ArtNetNode as ANN
 import _thread as thread  
 #thread.start_new_thread
 

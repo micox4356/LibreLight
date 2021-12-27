@@ -47,6 +47,7 @@ CUES    = OrderedDict()
 groups  = OrderedDict()
 
 BLIND = 0
+STORE = 0
 POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
@@ -140,31 +141,55 @@ class Xevent():
             
             change = 0
             if self.mode == "COMMAND":
-                
+                global STORE
+                global BLIND
                 if self.attr == "CLEAR":
                     if event.num == 1:
-                        for fix in self.data.fixtures:
-                            print( "clr",fix)
-                            data = self.data.fixtures[fix]
-                            #print("elm",self.data.elem_attr[fix])
-                            for attr in data["ATTRIBUT"]:
-                                if attr.endswith("-FINE"):
-                                    continue
-                                self.data.elem_attr[fix][attr]["bg"] = "grey"
-                                data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                            #print(data["ATTRIBUT"])
+
+                        if STORE:
+                            self.data.val_commands["STORE"] = 0
+                            STORE = 0
+                            self.data.elem_commands["STORE"]["bg"] = "white"
+
+                        else: 
+                            for fix in self.data.fixtures:
+                                print( "clr",fix)
+                                data = self.data.fixtures[fix]
+                                #print("elm",self.data.elem_attr[fix])
+                                for attr in data["ATTRIBUT"]:
+                                    if attr.endswith("-FINE"):
+                                        continue
+                                    self.data.elem_attr[fix][attr]["bg"] = "grey"
+                                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                                #print(data["ATTRIBUT"])
+
+                        
                 if self.attr == "BLIND":
-                    global BLIND
+                    
                     if event.num == 1:
                         
                         if self.data.val_commands[self.attr]:
                             self.data.val_commands[self.attr] = 0
                             BLIND = 0
-                            self.data.elem_command[self.attr]["bg"] = "green"
+                            self.data.elem_commands[self.attr]["bg"] = "white"
                         else:
                             self.data.val_commands[self.attr] = 1
                             BLIND = 1
-                            self.data.elem_command[self.attr]["bg"] = "red"
+                            self.data.elem_commands[self.attr]["bg"] = "red"
+                        print("BLIND",self.data.val_commands)
+
+                if self.attr == "STORE":
+                    
+                    if event.num == 1:
+                        
+                        if self.data.val_commands[self.attr]:
+                            self.data.val_commands[self.attr] = 0
+                            STORE = 0
+                            self.data.elem_commands[self.attr]["bg"] = "white"
+                        else:
+                            self.data.val_commands[self.attr] = 1
+                            STORE = 1
+                            self.data.elem_commands[self.attr]["bg"] = "red"
                         print("BLIND",self.data.val_commands)
                         
                 return 0
@@ -233,9 +258,15 @@ class Master():
         self.load()
         self.all_attr =[]
         self.elem_attr = {}
+        
         self.commands =["BLIND","CLEAR","STORE"]
-        self.elem_command = {}
+        self.elem_commands = {}
         self.val_commands = {}
+
+        self.presets = OrderedDict()
+        self.elem_presets = {}
+        for i in range(8*6):
+            self.presets["Preset"+str(i)] = [1]
         
     def load(self):
         fixture = OrderedDict()
@@ -252,7 +283,7 @@ class Master():
         DATA["RED"]   = {"NR": 2, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
         DATA["GREEN"] = {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
         DATA["BLUE"]  = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        fix3 = {"DMX": 20, "UNIVERS": 2, "NAME": "VRGB", "ATTRIBUT": DATA}
+        fix3 = {"DMX": 20, "UNIVERS": 2, "NAME": "V+RGB", "ATTRIBUT": DATA}
 
         DATA = OrderedDict()
         DATA["DIM-FINE"]  = {"NR": 8, "MASTER": "", "MODE": "F", "VALUE": 5.0,"ACTIVE":0}
@@ -397,8 +428,8 @@ class Master():
             v=0
             
             b = tk.Button(frame,bg="white", text=str(comm),width=10)
-            if comm not in self.elem_command:
-                self.elem_command[comm] = b
+            if comm not in self.elem_commands:
+                self.elem_commands[comm] = b
                 self.val_commands[comm] = 0
             b.bind("<Button>",Xevent(elem=b,attr=comm,data=self,mode="COMMAND").cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -424,9 +455,9 @@ class Master():
         #b.bind("<Button>",Xevent(elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         r+=1      
-        for k in self.commands:
+        for k in self.presets:
             v=0
-            b = tk.Button(frame,bg="white", text=str(k))
+            b = tk.Button(frame,bg="white", text=str(k),height=2)
             b.bind("<Button>",Xevent(elem=b,attr=k,data=self,mode="COMMAND").cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -440,6 +471,7 @@ class Master():
             self.draw_fix(fix,data)
         self.draw_enc()
         self.draw_command()
+        self.draw_preset()
 
 master =Master()
 master.render()
@@ -448,81 +480,3 @@ master.render()
 root.mainloop()
 
     
-sys.exit()
-
-cmd = ["BLIND",]
-frame = tk.Frame(root,bg="black")
-frame.pack(fill=tk.X, side=tk.TOP)
-data = []
-i=0
-for r in range(3):
-    frame.columnconfigure(r, weight=1)
-    cd = []
-    for c in range(8):
-        i+=1
-        frame.columnconfigure(c, weight=1)
-        b = tk.Button(frame,bg="red", text='MH'+str(i)+' r:'+str(r+1)+' c:'+str(c+1))
-        b.bind("<Button>",Xevent(o=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        cd.append(b)
-
-
-
-
-#fixture.append(fix)
-frame = tk.Frame(root,bg="black")
-frame.pack(fill=tk.X, side=tk.TOP)
-data = []
-i=0
-for r in range(3):
-    frame.columnconfigure(r, weight=1)
-    cd = []
-    for c in range(8):
-        i+=1
-        frame.columnconfigure(c, weight=1)
-        b = tk.Button(frame,bg="red", text='MH'+str(i)+' r:'+str(r+1)+' c:'+str(c+1))
-        b.bind("<Button>",wheel)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        cd.append(b)
-
-frame = tk.Frame(root,bg="black")
-frame.pack(fill=tk.X, side=tk.TOP)
-data = []
-i=0
-for c in range(8):
-    frame.columnconfigure(c, weight=1)
-    cd = []
-    for r in range(3):
-        i+=1
-        frame.columnconfigure(r, weight=1)
-        b = tk.Button(frame,bg="green", text='PAN'+str(i)+' r:'+str(r+1)+' c:'+str(c+1))
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        cd.append(b)
-
-
-frame = tk.Frame(root,bg="black")
-frame.pack(fill=tk.X, side=tk.TOP)
-data = []
-for c in range(10):
-    frame.columnconfigure(c, weight=1)
-    cd = []
-    for r in range(10):
-        frame.columnconfigure(r, weight=1)
-        b = tk.Button(frame, text='r:'+str(r+1)+' c:'+str(c+1))
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        cd.append(b)
-
-
-frame = tk.Frame(root,bg="black")
-frame.pack(fill=tk.X, side=tk.TOP)
-data = []
-for c in range(3):
-    frame.columnconfigure(c, weight=1)
-    cd = []
-    for r in range(3):
-        frame.columnconfigure(r, weight=1)
-        b = tk.Button(frame,bg="grey", text='r:'+str(r+1)+' c:'+str(c+1))
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        cd.append(b)        
-
-root.mainloop()

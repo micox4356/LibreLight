@@ -67,6 +67,10 @@ cli = None
 import socket, struct
 
 
+c = chat.tcp_sender()
+def send(msg):
+    c.send(msg)
+
 
 
 def main():

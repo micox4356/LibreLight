@@ -20,24 +20,27 @@ along with librelight.  If not, see <http://www.gnu.org/licenses/>.
 (c) 2012 micha.rathfelder@gmail.com
 """
 
+import json
 import time
-import tkinter 
 import sys
 import _thread as thread
-import tkinter as tk
 
+import tkinter
+import tkinter as tk
 from tkinter import font
 
 
 import lib.chat as chat
+import lib.motion as motion
 
 root = tk.Tk()
-root["bg"] = "red"
-
+root["bg"] = "grey" #white
+root.title( __file__)
 #default_font = font.Font(family='Helvetica', size=12, weight='bold')
-default_font = font.Font(family='Helvetica', size=10, weight='normal')
+Font = font.Font(family='Helvetica', size=10, weight='normal')
+FontBold = font.Font(family='Helvetica', size=10, weight='bold')
 #default_font.configure(size=9)
-root.option_add("*Font", default_font)
+root.option_add("*Font", Font)
 
 
 from collections import OrderedDict
@@ -54,13 +57,108 @@ BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
 
+def update_dmx(attr,data):
+    global BLIND
+    dmx = data["DMX"]
+    val = None
+    if attr == "VDIM":
+        for attr in data["ATTRIBUT"]:
+            dmx = data["DMX"]
+            if data["ATTRIBUT"][attr]["NR"] < 0:
+                continue
+            dmx += data["ATTRIBUT"][attr]["NR"]
+            #print(attr)
+            val = data["ATTRIBUT"][attr]["VALUE"]
+            if data["ATTRIBUT"][attr]["MASTER"]:
+                val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
+            if val is not None:            
+                cmd = "d{}:{}".format(dmx,int(val))
+                #print("cmd",cmd)
+                if not BLIND:
+                    client.send(cmd )
+                else:
+                    pass#print("BLIND ! cmd",cmd)
+                
+        
+    elif data["ATTRIBUT"][attr]["NR"] >= 0:
+        dmx += data["ATTRIBUT"][attr]["NR"]
+        val = data["ATTRIBUT"][attr]["VALUE"]
+        if data["ATTRIBUT"][attr]["MASTER"]:
+            if "VDIM" in data["ATTRIBUT"]:
+                val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
+        if val is not None:            
+            cmd = "d{}:{}".format(dmx,int(val))
+            #print("cmd",cmd)
+            if not BLIND:
+                client.send(cmd )
+            else:
+                pass#print("BLIND ! cmd",cmd)
+
+
+            
+class Worker():
+    def __init__(self):
+        self.fade = OrderedDict()
+        self.timer = time.time()
+    def loop(self):
+        while 1:
+            self.next()
+            
+    def next(self):
+        if self.timer+(1/30.) < time.time():
+            try:
+                lock.acquire()
+                #if self.timer+1 < time.time():
+                self.timer = time.time()
+                #print("next")
+                for fix in self.fade:
+                    for attr in self.fade[fix]:
+                        if 1:#len(self.fade[])>=2:
+                            fd=self.fade[fix][attr][0]
+                            x=fd.next()
+                            if x:
+                                x=fd.value
+                                #print("fade",x)
+                                data=self.fade[fix][attr][1]
+                                try:   
+                                    data["ATTRIBUT"][attr]["VALUE"] = x                       
+                                    update_dmx(attr,data)                            
+                                except Exception as e:
+                                    print("next EXCEPTION",e)
+            finally:
+                #lock.acquire()
+                lock.release()               
+                            
+        else:
+            time.sleep(0.1)
+    
+    def fade_dmx(self,fix,attr,data,v,v2,ft=None):
+        if ft is None:
+            ft = 4
+        #print("fade_dmx",fix,attr,v,v2)
+        try:
+            lock.acquire()
+            if fix not in self.fade:
+                self.fade[fix] = OrderedDict()
+            if attr not in self.fade[fix]:
+                self.fade[fix][attr] = OrderedDict()
+            self.fade[fix][attr] = [motion.FadeFast(v,v2,ft),data]
+        finally:
+            #lock.acquire()
+            lock.release()
+        
+
+worker = Worker()
+lock = thread.allocate_lock()
+thread.start_new_thread(worker.loop,())
+
 class Xevent():
-    def __init__(self,elem,attr=None,data=None,mode=None):
+    def __init__(self,fix,elem,attr=None,data=None,mode=None):
         self.data=data
         self.attr = attr
         self.elem = elem
         self.mode = mode
-    def encoder(self,attr,data,elem,action=""):
+    def encoder(self,fix,attr,data,elem,action=""):
         if action == "click":
             if self.data["ATTRIBUT"][attr]["ACTIVE"]:
                 self.data["ATTRIBUT"][attr]["ACTIVE"] = 0
@@ -89,47 +187,15 @@ class Xevent():
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
             elem["bg"] = "yellow"
-            data["ATTRIBUT"][attr]["VALUE"] = v
-            elem["text"] = str(attr)+' '+str(round(v,2))
-            self.update_dmx(attr=attr,data=data)
-            
-            
-    def update_dmx(self,attr,data):
-        global BLIND
-        dmx = data["DMX"]
-        val = None
-        if attr == "VDIM":
-            for attr in data["ATTRIBUT"]:
-                dmx = data["DMX"]
-                if data["ATTRIBUT"][attr]["NR"] < 0:
-                    continue
-                dmx += data["ATTRIBUT"][attr]["NR"]
-                #print(attr)
-                val = data["ATTRIBUT"][attr]["VALUE"]
-                if data["ATTRIBUT"][attr]["MASTER"]:
-                    val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
-                if val is not None:            
-                    cmd = "d{}:{}".format(dmx,int(val))
-                    #print("cmd",cmd)
-                    if not BLIND:
-                        client.send(cmd )
-                    else:
-                        pass#print("BLIND ! cmd",cmd)
-                    
-            
-        elif data["ATTRIBUT"][attr]["NR"] >= 0:
-            dmx += data["ATTRIBUT"][attr]["NR"]
-            val = data["ATTRIBUT"][attr]["VALUE"]
-            if data["ATTRIBUT"][attr]["MASTER"]:
-                if "VDIM" in data["ATTRIBUT"]:
-                    val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
-            if val is not None:            
-                cmd = "d{}:{}".format(dmx,int(val))
-                #print("cmd",cmd)
-                if not BLIND:
-                    client.send(cmd )
-                else:
-                    pass#print("BLIND ! cmd",cmd)
+            v2 = v
+            v = data["ATTRIBUT"][attr]["VALUE"]
+            data["ATTRIBUT"][attr]["VALUE"] = v2
+            elem["text"] = str(attr)+' '+str(round(v2,2))
+            worker.fade_dmx(fix,attr,data,v,v2,ft=0)
+            #update_dmx(attr=attr,data=data)
+
+        
+
 
             
     def cb(self,event):
@@ -138,18 +204,19 @@ class Xevent():
         #print(self.obj.keys())
         try:
             #v = self.data["ATTRIBUT"][self.attr]
-            
+            global STORE
+            global BLIND
             change = 0
+            
             if self.mode == "COMMAND":
-                global STORE
-                global BLIND
+                
                 if self.attr == "CLEAR":
                     if event.num == 1:
 
                         if STORE:
                             self.data.val_commands["STORE"] = 0
                             STORE = 0
-                            self.data.elem_commands["STORE"]["bg"] = "white"
+                            self.data.elem_commands["STORE"]["bg"] = "lightgrey"
 
                         else: 
                             for fix in self.data.fixtures:
@@ -164,37 +231,113 @@ class Xevent():
                                 #print(data["ATTRIBUT"])
 
                         
-                if self.attr == "BLIND":
+                elif self.attr == "BLIND":
                     
                     if event.num == 1:
                         
                         if self.data.val_commands[self.attr]:
                             self.data.val_commands[self.attr] = 0
                             BLIND = 0
-                            self.data.elem_commands[self.attr]["bg"] = "white"
+                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
                         else:
                             self.data.val_commands[self.attr] = 1
                             BLIND = 1
                             self.data.elem_commands[self.attr]["bg"] = "red"
                         print("BLIND",self.data.val_commands)
-
-                if self.attr == "STORE":
+                
+                elif self.attr == "STORE":
                     
                     if event.num == 1:
                         
                         if self.data.val_commands[self.attr]:
                             self.data.val_commands[self.attr] = 0
                             STORE = 0
-                            self.data.elem_commands[self.attr]["bg"] = "white"
+                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
                         else:
                             self.data.val_commands[self.attr] = 1
                             STORE = 1
                             self.data.elem_commands[self.attr]["bg"] = "red"
                         print("BLIND",self.data.val_commands)
+                elif self.attr == "BACKUP":
+                    self.data.backup_presets()
+                return 0
+            elif self.mode == "PRESET":
+                nr = self.attr #int(self.attr.split(":")[1])-1
+                if event.num == 1:
+                    if STORE:
+                        print("STORE PRESET")
+                        sdata = {}
+                        for fix in self.data.fixtures:                            
+                            data = self.data.fixtures[fix]
+                            for attr in data["ATTRIBUT"]:
+                                if data["ATTRIBUT"][attr]["ACTIVE"]:
+                                    if fix not in sdata:
+                                        sdata[fix] = {}
+                                    if attr not in sdata[fix]:
+                                        sdata[fix][attr] = data["ATTRIBUT"][attr]["VALUE"]
+                    
+                        print(sdata)
+                        
+                        self.data.val_presets[nr] = sdata
+                        self.data.elem_presets[nr]["bg"] = "yellow"
+                        #self.data.elem_presets[nr].option_add("*Font", FontBold)
+                        self.data.elem_presets[nr]["text"] = "Preset:"+str(nr)+":\n"+str(len(sdata))
+                        print(self.data.val_presets)
+                           
+                        self.data.val_commands["STORE"] = 0
+                        STORE = 0
+                        self.data.elem_commands["STORE"]["bg"] = "lightgrey"
+                    else:
+                        print("GO PRESET")
+                        if nr not in self.data.val_presets:
+                            self.data.val_presets[nr] = OrderedDict()
+                        sdata = self.data.val_presets[nr]
+                        for fix in sdata:
+                            for attr in sdata[fix]:
+                                v2 = sdata[fix][attr]
+                                #print(fix,attr,v)
+                                if fix in self.data.fixtures:
+                                    #print("==",self.data.fixtures[fix]["ATTRIBUT"])
+                                    if attr in self.data.fixtures[fix]["ATTRIBUT"]:
+                                        data = self.data.fixtures[fix]
+                                        v=self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
+                                        
+                                        self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
+                                        self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
+                                        #update_dmx(attr,data)
+                                        worker.fade_dmx(fix,attr,data,v,v2)
+                                  
+                                        
+                                
+                        
+                        print(sdata)
+                if event.num == 3:
+                    if not STORE:
+                        print("GO PRESET 3")
+                        if nr not in self.data.val_presets:
+                            self.data.val_presets[nr] = OrderedDict()
+                        sdata = self.data.val_presets[nr]
+                        for fix in sdata:
+                            for attr in sdata[fix]:
+                                v2 = sdata[fix][attr]
+                                #print(fix,attr,v)
+                                if fix in self.data.fixtures:
+                                    #print("==",self.data.fixtures[fix]["ATTRIBUT"])
+                                    if attr in self.data.fixtures[fix]["ATTRIBUT"]:
+                                        data = self.data.fixtures[fix]
+                                        v=self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
+                                        #self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v
+                                        #print(str(attr)+' '+str(round(v,2)))
+                                        #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
+                                        #update_dmx(attr,data)
+                                        print("go",fix,attr,v,v2)
+                                        worker.fade_dmx(fix,attr,data,v,v2,ft=0)
+                                        
+                                
                         
                 return 0
-
-            
+            elif self.mode == "INPUT":
+                return 0
             if self.mode == "ENCODER":
                 #if self.attr == "VDIM":
                 #    self.attr = "DIM"
@@ -217,11 +360,11 @@ class Xevent():
                             continue
                         
                         if event.num == 4:
-                            self.encoder(attr=attr,data=data,elem=elem,action="+")
+                            self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
                             #if attr == "DIM":
                             #    self.encoder(attr="VDIM",data=data,elem=elem,action="+")
                         elif event.num == 5:
-                            self.encoder(attr=attr,data=data,elem=elem,action="-")
+                            self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="-")
                             #if attr == "DIM":
                             #     self.encoder(attr="VDIM",data=data,elem=elem,action="-")
                 return 0
@@ -230,12 +373,12 @@ class Xevent():
 
                 
             if event.num == 1:
-                self.encoder(attr=self.attr,data=self.data,elem=self.elem,action="click")
+                self.encoder(fix=fix,attr=self.attr,data=self.data,elem=self.elem,action="click")
 
             elif event.num == 4:
-                self.encoder(attr=self.attr,data=self.data,elem=self.elem,action="+")
+                self.encoder(fix=fix,attr=self.attr,data=self.data,elem=self.elem,action="+")
             elif event.num == 5:
-                self.encoder(attr=self.attr,data=self.data,elem=self.elem,action="-")
+                self.encoder(fix=fix,attr=self.attr,data=self.data,elem=self.elem,action="-")
             
 
                 
@@ -256,17 +399,23 @@ import copy
 class Master():
     def __init__(self):
         self.load()
-        self.all_attr =[]
+        self.all_attr =["DIM","VDIM","PAN","TILT"]
         self.elem_attr = {}
         
-        self.commands =["BLIND","CLEAR","STORE"]
+        self.commands =["BLIND","CLEAR","STORE","EDIT","","","","BACKUP","SET","","SELECT","ACTIVATE","","","",]
         self.elem_commands = {}
         self.val_commands = {}
 
         self.presets = OrderedDict()
         self.elem_presets = {}
+        self.val_presets = OrderedDict()
+        x=self.load_presets()
+        
         for i in range(8*6):
-            self.presets["Preset"+str(i)] = [1]
+            if i not in self.presets:
+                name = "Preset:"+str(i+1)+":\nXYZ"
+                self.presets[i] = [i]
+                self.val_presets[i] = OrderedDict()
         
     def load(self):
         fixture = OrderedDict()
@@ -330,16 +479,31 @@ class Master():
         fixture["1003"] = fi
         
         self.fixtures = fixture
-        self.preset = OrderedDict()
-        #["IRIS   OPEN", {"74": {"IRIS": 0.0, "_activ": 1, "_selection_nr": 1}}],
-        for i in range(60):
-            self.preset["NAME"] = "PRESET "+str(i+1)
-            DATA = OrderedDict()
-            DATA["2001"] = {"VDIM":200,"RED":2}
-            DATA["2002"] = {"VDIM":100,"RED":2}
-            DATA["2003"] = {"VDIM":50,"RED":2}
+
+    def load_presets(self):
+        print("load_presets")
+        f = open("preset.px","r")
+        lines = f.readlines()
+        f.close()    
+        self.val_presets = OrderedDict()
+        self.presets = OrderedDict()
+        for line in lines:
             
-            self.preset["DATA"] = DATA
+            key,data = line.split("\t",1)
+            key = int(key)
+            print("load_presets",key)
+            data = json.loads(data)
+            self.val_presets[key] = data
+            self.presets[key] = 0
+        return self.val_presets
+        
+    def backup_presets(self):
+        print("backup_presets")
+        f = open("preset.px","w")
+        for key in self.val_presets:
+            preset = self.val_presets[key]
+            f.write(str(key)+"\t"+json.dumps(preset)+"\n")
+        f.close()
             
             
     def draw_fix(self,fix,data):
@@ -350,7 +514,7 @@ class Master():
         frame.pack(fill=tk.X, side=tk.TOP)
 
         b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
-        b.bind("<Button>",Xevent(elem=b).cb)
+        b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
         #r+=1
@@ -369,7 +533,7 @@ class Master():
             
             b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=10)
             self.elem_attr[fix][attr] = b
-            b.bind("<Button>",Xevent(elem=b,attr=attr,data=data).cb)
+            b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
@@ -391,16 +555,17 @@ class Master():
         frame.pack(fill=tk.X, side=tk.TOP)
 
         
-        b = tk.Button(frame,bg="lightblue", text="ENCODER")
-        #b.bind("<Button>",Xevent(elem=b).cb)
+        b = tk.Button(frame,bg="lightblue", text="ENCODER",width=10)
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r+=1      
+        #r+=1
+        c+=1
         for attr in self.all_attr:
             if attr.endswith("-FINE"):
                 continue
             v=0
             b = tk.Button(frame,bg="orange", text=str(attr)+'',width=10)
-            b.bind("<Button>",Xevent(elem=b,attr=attr,data=self,mode="ENCODER").cb)
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=self,mode="ENCODER").cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
@@ -420,19 +585,22 @@ class Master():
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
        
-        b = tk.Button(frame,bg="lightblue", text="COMMANDS")
-        #b.bind("<Button>",Xevent(elem=b).cb)
+        b = tk.Button(frame,bg="lightblue", text="COMMANDS",width=10)
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r+=1      
+        #r+=1
+        c+=1
         for comm in self.commands:
             v=0
             
-            b = tk.Button(frame,bg="white", text=str(comm),width=10)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=10)
             if comm not in self.elem_commands:
                 self.elem_commands[comm] = b
                 self.val_commands[comm] = 0
-            b.bind("<Button>",Xevent(elem=b,attr=comm,data=self,mode="COMMAND").cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
+            if comm:
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
                 c=0
@@ -444,7 +612,7 @@ class Master():
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
 
-        b = tk.Label(frame, text="--------------------------------------- ---------------------------------------")
+        b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         r=0
         
@@ -457,13 +625,40 @@ class Master():
         r+=1      
         for k in self.presets:
             v=0
-            b = tk.Button(frame,bg="white", text=str(k),height=2)
-            b.bind("<Button>",Xevent(elem=b,attr=k,data=self,mode="COMMAND").cb)
+            b = tk.Button(frame,bg="grey", text="Preset:"+str(k),width=8,height=2)
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+            
+            if k in self.val_presets and len(self.val_presets[k]) :
+                b["bg"] = "yellow"
+            if k not in self.elem_presets:
+                self.elem_presets[k] = b
+                #self.val_presets[preset] = 0
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
                 c=0
                 r+=1
+    def draw_input(self):
+        i=0
+        c=0
+        r=0
+        frame = tk.Frame(root,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+
+        b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        r=0
+        
+        frame = tk.Frame(root,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+        
+        b = tk.Label(frame, text="send:")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Entry(frame,bg="grey", text="",width=39)
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
+        b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
     def render(self):
         for fix in self.fixtures:
             data = self.fixtures[fix]
@@ -471,7 +666,10 @@ class Master():
             self.draw_fix(fix,data)
         self.draw_enc()
         self.draw_command()
+        self.draw_input()
         self.draw_preset()
+        
+        
 
 master =Master()
 master.render()

@@ -246,13 +246,15 @@ class FadeFast(object):
             self.__start_time = start_time
         else:
             self.__start_time = time.time()
-        self.fakt = 1000.
+        self.fakt = 1. #1000.
         #feine aufloesung
         start = int(start*self.fakt)
         target = int(target*self.fakt)
         if not fadetime:
             start = target
         self.__start = start
+        self.value = start
+        self.old_ret = start
         self.__current = start
         self.__target = target
         self.__fadetime = fadetime
@@ -303,11 +305,15 @@ class FadeFast(object):
             step = 0
         #print(self.__class__.__name__,"fade",self.__fadetime,"jetzt",jetzt,"start_t", self.__start_time,"start",self.__start,"step", step,"step_t",self.__step_time)
         if self.__start < self.__target:
-            return int(self.__start + step)/self.fakt
+            ret = int(self.__start + step)/self.fakt
         else:
-            return int(self.__start - step)/self.fakt
-
-
+            ret = int(self.__start - step)/self.fakt
+        self.value = ret
+        if self.old_ret != ret:
+            self.old_ret = ret
+            return 1
+        #return ret
+        return 0
 
 
 class Fade(object):

@@ -37,8 +37,8 @@ root = tk.Tk()
 root["bg"] = "grey" #white
 root.title( __file__)
 #default_font = font.Font(family='Helvetica', size=12, weight='bold')
-Font = font.Font(family='Helvetica', size=10, weight='normal')
-FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+Font = font.Font(family='Helvetica', size=9, weight='normal')
+FontBold = font.Font(family='Helvetica', size=9, weight='bold')
 #default_font.configure(size=9)
 root.option_add("*Font", Font)
 
@@ -135,6 +135,8 @@ class Worker():
     def fade_dmx(self,fix,attr,data,v,v2,ft=None):
         if ft is None:
             ft = 4
+        if data["ATTRIBUT"][attr]["MODE"] == "S":
+            ft=0
         #print("fade_dmx",fix,attr,v,v2)
         try:
             lock.acquire()
@@ -281,6 +283,8 @@ class Xevent():
                         self.data.val_presets[nr] = sdata
                         if len(sdata):
                             self.data.elem_presets[nr]["bg"] = "yellow"
+                        else:
+                            self.data.elem_presets[nr]["bg"] = "grey"
                         #self.data.elem_presets[nr].option_add("*Font", FontBold)
                         label = ""
                         if nr in self.data.label_presets:
@@ -426,6 +430,35 @@ class Master():
         
     def load(self):
         fixture = OrderedDict()
+
+        DATA = OrderedDict()
+        DATA["DIM"]   = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
+        fix = {"DMX": 20, "UNIVERS": 2, "NAME": "D", "ATTRIBUT": DATA}
+
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 1
+        fi["NAME"] = "F1"
+        fixture["1"] = fi
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 2
+        fi["NAME"] = "F2"
+        fixture["2"] = fi
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 3
+        fi["NAME"] = "F3"        
+        fixture["3"] = fi
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 4
+        fi["NAME"] = "F4"        
+        fixture["4"] = fi
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 11
+        fi["NAME"] = "FL"
+        fixture["11"] = fi
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 24
+        fi["NAME"] = "P"
+        fixture["24"] = fi
         
         DATA = OrderedDict()
         DATA["DIM"]   = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
@@ -434,6 +467,20 @@ class Master():
         DATA["BLUE"]  = {"NR": 5, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
         fix = {"DMX": 20, "UNIVERS": 2, "NAME": "IRGB", "ATTRIBUT": DATA}
 
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 401
+        #fixture["1001"] = fi
+        
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 421
+        fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
+        #fixture["1002"] = fi
+
+        fi = copy.deepcopy(fix)
+        fi["DMX"] = 441
+        fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
+        #fixture["1003"] = fi
+        
         DATA = OrderedDict()
         DATA["VDIM"]  = {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
         DATA["RED"]   = {"NR": 2, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
@@ -441,6 +488,28 @@ class Master():
         DATA["BLUE"]  = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
         fix3 = {"DMX": 20, "UNIVERS": 2, "NAME": "V+RGB", "ATTRIBUT": DATA}
 
+
+        fi = copy.deepcopy(fix3)
+        fi["DMX"] = 330
+        fixture["2001"] = fi
+        fi = copy.deepcopy(fix3)
+        fi["DMX"] = 335
+        fixture["2002"] = fi
+        fi = copy.deepcopy(fix3)
+        fi["DMX"] = 240
+        fixture["2003"] = fi
+        fi = copy.deepcopy(fix3)
+        fi["DMX"] = 245
+        fixture["2004"] = fi
+        fi = copy.deepcopy(fix3)
+        fi["DMX"] = 250
+        fixture["2005"] = fi
+        fi = copy.deepcopy(fix3)
+        fi["DMX"] = 355
+        fixture["2006"] = fi
+
+
+        
         DATA = OrderedDict()
         DATA["DIM-FINE"]  = {"NR": 8, "MASTER": "", "MODE": "F", "VALUE": 5.0,"ACTIVE":0}
         DATA["VDIM"]  = {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
@@ -455,36 +524,57 @@ class Master():
 
         fi = copy.deepcopy(fixTMH)
         fi["DMX"] = 241
-        fixture["2001"] = fi
+        #fixture["2001"] = fi
 
         fi = copy.deepcopy(fixTMH)
         fi["DMX"] = 461
-        fixture["2002"] = fi
+        #fixture["2002"] = fi
 
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 441
-        fixture["2003"] = fi
+         
+        DATA = OrderedDict()
+        DATA["DIM"]  = {"NR": 17, "MASTER": "1", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
+        DATA["PAN"]   = {"NR": 0, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
+        DATA["PAN-FINE"]   = {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
+        DATA["TILT"]  = {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
+        DATA["TILT-FINE"]  = {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
+        DATA["COLOR"]   = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
+        DATA["GOBO"] = {"NR": 9, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
+        DATA["G-ROT"]  = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 192.0,"ACTIVE":0}
+        DATA["PRINSMA"] = {"NR": 10, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
+        DATA["P-ROT"] = {"NR": 11, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
+        DATA["FOCUS"] = {"NR": 14, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
+        DATA["ZOOM"] = {"NR": 13, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
+        DATA["FROST"] = {"NR": 15, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
+        DATA["CONTROL"]  = {"NR": 5, "MASTER": "", "MODE": "S", "VALUE": 5.0,"ACTIVE":0}
+        fixREUSH = {"DMX": 300, "UNIVERS": 2, "NAME": "RUSH-BEAM", "ATTRIBUT": DATA}
 
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 461
-        fixture["2005"] = fi
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 201
+        fixture["701"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 220
+        fixture["702"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 239
+        fixture["703"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 258
+        fixture["704"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 277
+        fixture["705"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 296
+        fixture["706"] = fi
         
 
         
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 401
-        fixture["1001"] = fi
-        
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 421
-        fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
-        fixture["1002"] = fi
-
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 441
-        fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
-        fixture["1003"] = fi
-        
+       
         self.fixtures = fixture
 
     def load_presets(self):
@@ -518,7 +608,42 @@ class Master():
             f.write(str(key)+"\t"+label+"\t"+json.dumps(preset)+"\n")
         f.close()
             
+    def draw_dim(self,fix,data,c=0,r=0,frame=None):
+        i=0
+        if frame is None:
+            frame = tk.Frame(root,bg="black")
+            frame.pack(fill=tk.X, side=tk.TOP)
+
+        #b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        #c+=1
+        #r+=1
+        if fix not in self.elem_attr:
+            self.elem_attr[fix] = {}
             
+        for attr in data["ATTRIBUT"]:
+            
+            if attr not in self.all_attr:
+                self.all_attr.append(attr)
+            if attr not in self.elem_attr[fix]:
+                self.elem_attr[fix][attr] = []
+            if attr.endswith("-FINE"):
+                continue
+            v= data["ATTRIBUT"][attr]["VALUE"]
+            b = tk.Button(frame,bg="lightblue", text=""+str(fix)+" "+data["NAME"],width=4)
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=6)
+            self.elem_attr[fix][attr] = b
+            b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            if c >=12:
+                c=0
+                r+=1
+        return c,r
     def draw_fix(self,fix,data):
         i=0
         c=0
@@ -544,25 +669,25 @@ class Master():
                 continue
             v= data["ATTRIBUT"][attr]["VALUE"]
             
-            b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=10)
+            b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
             self.elem_attr[fix][attr] = b
             b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=8:
-                c=0
+            if c >=14:
+                c=1
                 r+=1
                 
     def draw_enc(self):
         i=0
         c=0
         r=0
-        frame = tk.Frame(root,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
+        #frame = tk.Frame(root,bg="black")
+        #frame.pack(fill=tk.X, side=tk.TOP)
 
-        b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r=0
+        #b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
+        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        #r=0
         
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
@@ -581,19 +706,19 @@ class Master():
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=self,mode="ENCODER").cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=8:
+            if c >=10:
                 c=0
                 r+=1
     def draw_command(self):
         i=0
         c=0
         r=0
-        frame = tk.Frame(root,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
+        #frame = tk.Frame(root,bg="black")
+        #frame.pack(fill=tk.X, side=tk.TOP)
 
-        b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r=0
+        #b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
+        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        #r=0
         
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
@@ -677,10 +802,18 @@ class Master():
         b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
     def render(self):
+        r=0
+        c=0
+        dim_frame = tk.Frame(root,bg="black")
+        dim_frame.pack(fill=tk.X, side=tk.TOP)
         for fix in self.fixtures:
             data = self.fixtures[fix]
-            print( fix)
-            self.draw_fix(fix,data)
+            print( fix )
+            
+            if(len(data["ATTRIBUT"].keys()) <= 1):
+                c,r=self.draw_dim(fix,data,c=c,r=r,frame=dim_frame)
+            else:
+                self.draw_fix(fix,data)
         self.draw_enc()
         self.draw_command()
         self.draw_input()

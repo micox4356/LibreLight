@@ -115,10 +115,10 @@ class Worker():
                     for attr in self.fade[fix]:
                         if 1:#len(self.fade[])>=2:
                             fd=self.fade[fix][attr][0]
-                            x=fd.next()
-                            if x:
+                            xx=fd.next()
+                            if xx:
                                 x=fd.value
-                                #print("fade",x)
+                                #print("fade",xx,xx)
                                 data=self.fade[fix][attr][1]
                                 try:   
                                     data["ATTRIBUT"][attr]["VALUE"] = x                       

@@ -1,42 +1,42 @@
 0	Front	{"1": {"DIM": {"VALUE": 78.09, "FX": ""}}, "2": {"DIM": {"VALUE": 78.09, "FX": ""}}, "3": {"DIM": {"VALUE": 78.09, "FX": ""}}, "4": {"DIM": {"VALUE": 78.09, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-1	strobo	{"3001": {"SHUTTER": {"VALUE": 206.39000000000024, "FADE": 5, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 206.39000000000024, "FADE": 5, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
+1	strobo	{"3001": {"SHUTTER": {"VALUE": 206.39000000000024, "FADE": 5, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 206.39000000000024, "FADE": 5, "FX": ""}}, "CFG": {"BUTTON": "FL", "FADE": 4, "DELAY": 0}}
 2		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 3		{"3001": {"PAN": {"VALUE": 243.66999999999996, "FADE": 5, "FX": ""}, "TILT": {"VALUE": 69.46000000000001, "FADE": 5, "FX": ""}}, "3002": {"PAN": {"VALUE": 243.66999999999996, "FADE": 5, "FX": ""}, "TILT": {"VALUE": 69.46000000000001, "FADE": 5, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-4		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-5		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-6	test	{"3001": {"PAN": {"VALUE": 94.12000000000002, "FX": "sinus:40:100:10"}, "TILT": {"VALUE": 98.23, "FX": "cosinus:40:100:10"}}, "3002": {"PAN": {"VALUE": 94.12000000000002, "FX": "sinus:40:100:10"}, "TILT": {"VALUE": 98.23, "FX": "cosinus:40:100:10"}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-7		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"TILT": {"VALUE": null, "FX": "sinus:40:100:10"}}, "3002": {"TILT": {"VALUE": null, "FX": "sinus:40:100:10"}}}
+4	LOWLIGHT	{"CFG": {"FADE": 1.1969602468458167, "DEALY": 0, "BUTTON": "FL", "DELAY": 0}, "3001": {"VDIM": {"VALUE": 0, "FX": ""}}, "3002": {"VDIM": {"VALUE": 0, "FX": ""}}}
+5		{"CFG": {"FADE": 1.1969602468458167, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": null, "FX": "cosinus:42:104:1548"}, "TILT": {"VALUE": null, "FX": "sinus:42:104:1548"}}, "3002": {"PAN": {"VALUE": null, "FX": "cosinus:42:104:1806"}, "TILT": {"VALUE": null, "FX": "sinus:42:104:1806"}}}
+6	test	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+7	HOME	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"SHUTTER": {"VALUE": 9.11, "FX": ""}, "VDIM": {"VALUE": 256, "FX": ""}, "PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 209.20000000000027, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 9.11, "FX": ""}, "VDIM": {"VALUE": 256, "FX": ""}, "PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 209.20000000000027, "FX": ""}}}
 8	Front Off	{"1": {"DIM": {"VALUE": 0.0, "FX": ""}}, "2": {"DIM": {"VALUE": 0.0, "FX": ""}}, "3": {"DIM": {"VALUE": 0, "FX": ""}}, "4": {"DIM": {"VALUE": 0, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 9		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 10		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 11		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 12		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-13		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
+13	test	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 180.43000000000018, "FX": ""}, "TILT": {"VALUE": 127.0, "FX": ""}}, "3002": {"PAN": {"VALUE": 180.43000000000018, "FX": ""}, "TILT": {"VALUE": 127.0, "FX": ""}}}
 14		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
 15		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "XX", "DELAY": 0}}
 16		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 17		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-18		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-19		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-20		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-21		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": ""}}, "3002": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": ""}}}
-22		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": "cosinus:40:100:10"}}, "3002": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": "cosinus:40:100:10"}}}
-23		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": ""}}, "3002": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": ""}}}
-24		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
+18		{"CFG": {"FADE": 1.1969602468458167, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+19		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+20		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+21		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 180.43000000000018, "FX": ""}, "TILT": {"VALUE": 176.32000000000016, "FX": ""}}, "3002": {"PAN": {"VALUE": 180.43000000000018, "FX": ""}, "TILT": {"VALUE": 85.9, "FX": ""}}}
+22		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+23		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": ""}}, "3002": {"PAN": {"VALUE": 118.78, "FX": ""}, "TILT": {"VALUE": 122.89, "FX": ""}}}
+24	CircleOFS	{"CFG": {"FADE": 1.1969602468458167, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": null, "FX": "cosinus:42:104:1548"}, "TILT": {"VALUE": null, "FX": "sinus:42:104:1548"}}, "3002": {"PAN": {"VALUE": null, "FX": "cosinus:42:104:1806"}, "TILT": {"VALUE": null, "FX": "sinus:42:104:1806"}}}
 25		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 26		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 27		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 28		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-29		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": null, "FX": ""}, "TILT": {"VALUE": null, "FX": ""}}, "3002": {"PAN": {"VALUE": null, "FX": ""}, "TILT": {"VALUE": null, "FX": ""}}}
-30		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": null, "FX": ""}, "TILT": {"VALUE": null, "FX": "cosinus:40:100:10"}}, "3002": {"PAN": {"VALUE": null, "FX": ""}, "TILT": {"VALUE": null, "FX": "cosinus:40:100:10"}}}
-31		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": 135.22000000000003, "FX": ""}, "TILT": {"VALUE": 106.45, "FX": ""}}, "3002": {"PAN": {"VALUE": 135.22000000000003, "FX": ""}, "TILT": {"VALUE": 106.45, "FX": ""}}}
+29		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+30		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+31		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 135.22000000000003, "FX": ""}, "TILT": {"VALUE": 106.45, "FX": ""}}, "3002": {"PAN": {"VALUE": 135.22000000000003, "FX": ""}, "TILT": {"VALUE": 106.45, "FX": ""}}}
 32	Circle	{"3001": {"PAN": {"VALUE": null, "FX": "sinus:40:100:10"}, "TILT": {"VALUE": null, "FX": "cosinus:40:100:10"}}, "3002": {"PAN": {"VALUE": null, "FX": "sinus:40:100:10"}, "TILT": {"VALUE": null, "FX": "cosinus:40:100:10"}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 33		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 34		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 35	Links	{"3001": {"PAN": {"VALUE": 143.44000000000005, "FX": ""}, "TILT": {"VALUE": 40.69000000000001, "FX": ""}}, "3002": {"PAN": {"VALUE": 143.44000000000005, "FX": ""}, "TILT": {"VALUE": 40.69000000000001, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-36	Türe	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 205.09000000000026, "FX": "sinus:40:100:10"}}, "3002": {"PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 205.09000000000026, "FX": "sinus:40:100:10"}}}
-37		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 205.09000000000026, "FX": "sinus:40:100:10"}}, "3002": {"PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 205.09000000000026, "FX": "sinus:40:100:10"}}}
-38		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
+36	Türe	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 209.20000000000027, "FX": ""}}, "3002": {"PAN": {"VALUE": 159.8800000000001, "FX": ""}, "TILT": {"VALUE": 209.20000000000027, "FX": ""}}}
+37		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
+38		{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
 39		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 40		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 41		{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
@@ -53,7 +53,7 @@
 52	Blue	{"3001": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "3002": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 53	Mag	{"3001": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "3002": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 54	-	{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
-55	TMH ON	{"3001": {"SHUTTER": {"VALUE": 9.11, "FX": ""}, "VDIM": {"VALUE": 256, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 9.11, "FX": ""}, "VDIM": {"VALUE": 256, "FX": ""}}, "CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
+55	TMH ON	{"3001": {"SHUTTER": {"VALUE": 9.11, "FX": ""}, "VDIM": {"VALUE": 256, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 9.11, "FX": ""}, "VDIM": {"VALUE": 256, "FX": ""}}, "CFG": {"BUTTON": null, "FADE": 4, "DELAY": 0}}
 56	-	{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 57	-	{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}
 58	-	{"CFG": {"BUTTON": "GO", "FADE": 4, "DELAY": 0}}

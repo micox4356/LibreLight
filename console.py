@@ -200,7 +200,11 @@ class DMXCH(object):
         self._last_val = 0
     def fade(self,target,time=0,clock=0,delay=0):
         if target != self._base_value:
-            self._fade = Fade(self._base_value,target,time=time,clock=clock,delay=delay)
+            try:
+                target = float(target)
+                self._fade = Fade(self._base_value,target,time=time,clock=clock,delay=delay)
+            except Exception as e:
+                print( "Except:",e)
     def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
@@ -211,8 +215,12 @@ class DMXCH(object):
     def flush(self,target,time=0,clock=0,delay=0):
         if str(target).lower() == "off":
             self._flush = None
-        elif target != self._base_value:
-            self._flush = Fade(self._last_value,target,time=time,clock=clock,delay=delay)
+        else:#elif target != self._base_value:
+            try:
+                target = float(target)
+                self._flush = Fade(self._last_val,target,time=time,clock=clock,delay=delay)
+            except Exception as e:
+                print( "Except:",e)
     def flush_fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
@@ -235,6 +243,7 @@ class DMXCH(object):
 
         if self._flush is not None:
             value = self._flush.next(clock)
+            fx_value = 0
         elif self._fade is not None:#is Fade:# is Fade:
             self._base_value = self._fade.next(clock)
             value = self._base_value
@@ -242,7 +251,7 @@ class DMXCH(object):
         
         if self._flush_fx is not None:# is FX:
             fx_value = self._flush_fx.next(clock)
-        elif self._fx is not None:# is FX:
+        elif self._fx is not None and self._flush is None:# is FX:
             self._fx_value = self._fx.next(clock)
             fx_value = self._fx_value
 
@@ -279,15 +288,18 @@ def CB(data):
             #print("DMX:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
-                    i.flush(xtype="off",clock=c)
+                    if i is not None:
+                        i.flush(target="off",clock=c)
+                continue
             l = xxcmd
             try:
                 k=int(l[0])-1
-                v=float(l[1])
+                v=l[1]
+                
                 if len(l) >= 3:
                     time=float(l[2])
-                if v > 255:
-                    v = 255
+                #if v > 255:
+                #    v = 255
                 if len(l) >= 3:
                     try:time=float(l[2])
                     except:pass
@@ -306,11 +318,11 @@ def CB(data):
             l = xxcmd
             try:
                 k=int(l[0])-1
-                v=float(l[1])
+                v=l[1]
                 if len(l) >= 3:
                     time=float(l[2])
-                if v > 255:
-                    v = 255
+                #if v > 255:
+                #    v = 255
                 if len(l) >= 3:
                     try:time=float(l[2])
                     except:pass
@@ -328,7 +340,8 @@ def CB(data):
             print("fxf:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
-                    i.flush_fx(xtype="off",clock=c)
+                    if i is not None:
+                        i.flush_fx(xtype="off",clock=c)
             l = xxcmd
             try:
                 xtype=""

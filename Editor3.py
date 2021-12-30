@@ -33,14 +33,21 @@ from tkinter import font
 import lib.chat as chat
 import lib.motion as motion
 
-root = tk.Tk()
-root["bg"] = "grey" #white
-root.title( __file__)
+Xroot = tk.Tk()
+Xroot["bg"] = "grey" #white
+Xroot.title( __file__)
+
+
+root = tk.Frame(Xroot,bg="black",width="100px")
+root.pack(fill=tk.BOTH, side=tk.LEFT)
+root2 = tk.Frame(Xroot,bg="blue",width="100px")
+root2.pack(fill=tk.BOTH, side=tk.LEFT)
+
 #default_font = font.Font(family='Helvetica', size=12, weight='bold')
 Font = font.Font(family='Helvetica', size=9, weight='normal')
 FontBold = font.Font(family='Helvetica', size=9, weight='bold')
 #default_font.configure(size=9)
-root.option_add("*Font", Font)
+Xroot.option_add("*Font", Font)
 
 
 from collections import OrderedDict
@@ -54,30 +61,38 @@ groups  = OrderedDict()
 
 BLIND = 0
 STORE = 0
+FLUSH = 0
 POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
 
-fade = 1
-def build_cmd(dmx,val,args=[fade]):
+fade = 1.13
+def build_cmd(dmx,val,args=[fade],flush=0):
     cmd=""
-    if type(val) is float or type(val) is int:
-        cmd += ",d{}:{:0.4f}".format(dmx,val)
+    if flush:
+        pfx ="df"
     else:
-        cmd += ",d{}:{}".format(dmx,val)
-    
-    for val in args:
-        if type(val) is float or type(val) is int:
-            cmd += ":{:0.4f}".format(val)
-        else:
-            cmd += ":{}".format(val)
+        pfx ="d"
+    if type(val) is float or type(val) is int:
+        cmd += ",{}{}:{:0.4f}".format(pfx,dmx,val)
+    else:
+        cmd += ",{}{}:{}".format(pfx,dmx,val)
+   
+    if FLUSH:
+        cmd += ":0:0"#.format(val)
+    else:
+        for val in args:
+            if type(val) is float or type(val) is int:
+                cmd += ":{:0.4f}".format(val)
+            else:
+                cmd += ":{}".format(val)
 
     return cmd
 
 
-def update_dmx(attr,data):
+def update_dmx(attr,data,value=None,flush=0):
     global BLIND
     dmx = data["DMX"]
     val = None
@@ -95,7 +110,9 @@ def update_dmx(attr,data):
             if val is not None:            
                 
                 #cmd += ",d{}:{:0.4f}".format(dmx,int(val))
-                cmd += build_cmd(dmx,val)
+                if value is not None:
+                    val = value
+                cmd += build_cmd(dmx,val,flush=flush)
                 #print("cmd",cmd)
                 
         
@@ -107,7 +124,9 @@ def update_dmx(attr,data):
                 val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
         if val is not None:            
             #cmd += ",d{}:{}".format(dmx,int(val))
-            cmd += build_cmd(dmx,val)
+            if value is not None:
+                val = value
+            cmd += build_cmd(dmx,val,flush=flush)
             #print("cmd",cmd)
 
     if not BLIND:
@@ -159,7 +178,7 @@ class Xevent():
             #v2 = v
             #v = data["ATTRIBUT"][attr]["VALUE"]
             data["ATTRIBUT"][attr]["VALUE"] = v2
-            elem["text"] = "{} {:0.4f}".format(attr,v2)
+            elem["text"] = "{} {:0.2f}".format(attr,v2)
             #worker.fade_dmx(fix,attr,data,v,v2,ft=0)
             
             cmd=update_dmx(attr=attr,data=data)
@@ -173,11 +192,12 @@ class Xevent():
     def cb(self,event):
         #print("cb",self,event,data)
         print("cb",self.attr,self.mode,event)
-        #print(self.obj.keys())
+        print(dir(event),[str(event.type)])#.keys())
         try:
             #v = self.data["ATTRIBUT"][self.attr]
             global STORE
             global BLIND
+            global FLUSH
             change = 0
             
             if self.mode == "COMMAND":
@@ -203,6 +223,19 @@ class Xevent():
                                 #print(data["ATTRIBUT"])
 
                         
+                elif self.attr == "FX OFF":
+                    if event.num == 1:
+                        client.send("fx0:alloff:,fxf:alloff:")
+                        self.data.elem_commands[self.attr]["bg"] = "magenta"
+
+                elif self.attr == "FLUSH":
+                    if event.num == 1:
+                        if FLUSH:
+                            FLUSH = 0
+                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                        else:
+                            FLUSH = 1
+                            self.data.elem_commands[self.attr]["bg"] = "green"
                 elif self.attr == "BLIND":
                     
                     if event.num == 1:
@@ -309,10 +342,15 @@ class Xevent():
                                         
                                         self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
-                                        cmd+=update_dmx(attr,data)
+                                        if str(event.type) == "ButtonRelease":
+                                            if FLUSH :
+                                                cmd+=update_dmx(attr,data,value="off",flush=FLUSH)
+                                        else:
+                                            cmd+=update_dmx(attr,data,flush=FLUSH)
                                         #worker.fade_dmx(fix,attr,data,v,v2)
                                   
-                        client.send(cmd )
+                        if cmd:
+                            client.send(cmd )
                                         
                                 
                         
@@ -403,13 +441,16 @@ def wheel(event,d=None):
     
 import copy
 
+frame_fix = tk.Frame(root,bg="lightblue",width="100px")
+frame_fix.pack(fill=tk.BOTH, side=tk.TOP)
+
 class Master():
     def __init__(self):
         self.load()
         self.all_attr =["DIM","VDIM","PAN","TILT"]
         self.elem_attr = {}
         
-        self.commands =["BLIND","CLEAR","STORE","EDIT","","","","BACKUP","SET","","SELECT","ACTIVATE","","","",]
+        self.commands =["BLIND","CLEAR","STORE","EDIT","","FX OFF","","BACKUP","SET","","SELECT","ACTIVATE","FLUSH","","",]
         self.elem_commands = {}
         self.val_commands = {}
 
@@ -506,7 +547,7 @@ class Master():
 
         
         DATA = OrderedDict()
-        DATA["DIM-FINE"]  = {"NR": 8, "MASTER": "", "MODE": "F", "VALUE": 5.0,"ACTIVE":0}
+        DATA["SHUTTER"]  = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 5.0,"ACTIVE":0}
         DATA["VDIM"]  = {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
         DATA["PAN"]   = {"NR": 0, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
         DATA["PAN-FINE"]   = {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
@@ -661,7 +702,7 @@ class Master():
         i=0
         c=0
         r=0
-        frame = tk.Frame(root,bg="black")
+        frame = tk.Frame(frame_fix,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
 
         b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
@@ -750,6 +791,8 @@ class Master():
                 self.elem_commands[comm] = b
                 self.val_commands[comm] = 0
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
+            if comm == "FX OFF":
+                b["bg"] = "magenta"
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -782,6 +825,7 @@ class Master():
                 print([label])
             b = tk.Button(frame,bg="grey", text="Preset:"+str(k)+"\n"+str(len(self.val_presets[k]))+":"+label,width=8,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+            b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             
             if k in self.val_presets and len(self.val_presets[k]) :
                 b["bg"] = "yellow"
@@ -833,7 +877,7 @@ class Master():
     def render(self):
         r=0
         c=0
-        dim_frame = tk.Frame(root,bg="black")
+        dim_frame = tk.Frame(frame_fix,bg="black")
         dim_frame.pack(fill=tk.X, side=tk.TOP)
         for fix in self.fixtures:
             data = self.fixtures[fix]

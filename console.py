@@ -68,7 +68,7 @@ class Main():
             for i,dmxch in enumerate(Bdmx):
                 v = dmxch.next(t)
                 if i == 0:
-                    if xx[i] != v:
+                    if xx[i]+1 < v or xx[i]-1 > v :
                         #print("----v",x[i],v,t)
                         print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
                 xx[i] = int(v)
@@ -105,17 +105,18 @@ thread.start_new_thread(clock.loop,())
 
 class Fade():
     def __init__(self,start,target,time,clock):
-        print("init Fade",start,target,time,clock)
+        #print("init Fade ",start,target,time,clock)
         self.__clock = clock
         self.__clock_curr = clock
         self.__time = time
         self.__start = start
         self.__last = start
         self.__target = target
+        print("INIT", str(self) )
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return " Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} Clock:{:0.2f} ".format( 
+        return "<Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} Clock:{:0.2f}>".format( 
                     self.next(), self.__start,self.__target,self.__clock_curr )
     def next(self,clock=None):
         if self.__time <= 0:
@@ -151,6 +152,7 @@ class DMXCH(object):
         self._value = 1
         self._fade  = None
         self._fx    = None
+
     def fade(self,target,time=0,clock=0):
         if target != self._value:
             self._fade = Fade(self._value,target,time=time,clock=clock)
@@ -179,7 +181,7 @@ for i in range(512):
 def split_cmd(data):
     if "cmd" in data:
         cmd = data["cmd"]
-        print("cmd",cmd)
+        #print("cmd",cmd)
         if "," in cmd:
             cmds = cmd.split(",")
         else:
@@ -192,23 +194,23 @@ def CB(data):
     print("CB",data)
 
     cmds = split_cmd(data)
-    t = clock.time() 
+    c = clock.time() 
     for xcmd in cmds:
         if xcmd.startswith("d"):
             xxcmd=xcmd[1:].split(":")
-            print("DMX:",xxcmd)
+            #print("DMX:",xxcmd)
             l = xxcmd
+            t = 2
             try:
                 k=int(l[0])-1
-                v=int(l[1])
+                v=float(l[1])
+                if len(l) >= 3:
+                    t=float(l[2])
                 if v > 255:
                     v = 255
 
                 if len(Bdmx) > k:
-                    print( Bdmx[k])
-                    #if dmx[k] is int:
-                    #dmx[k] = v
-                    Bdmx[k].fade(target=v,clock=t ,time=2)#clock.time())
+                    Bdmx[k].fade(target=v,time=t, clock=c)
             except Exception as e:
                 print("EXCEPTION IN DMX",e)
 

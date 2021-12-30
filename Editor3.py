@@ -60,10 +60,28 @@ BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
 
+fade = 10
+def build_cmd(dmx,val,args=[fade]):
+    cmd=""
+    if type(val) is float or type(val) is int:
+        cmd += ",d{}:{:0.4f}".format(dmx,val)
+    else:
+        cmd += ",d{}:{}".format(dmx,val)
+    
+    for val in args:
+        if type(val) is float or type(val) is int:
+            cmd += ":{:0.4f}".format(val)
+        else:
+            cmd += ":{}".format(val)
+
+    return cmd
+
+
 def update_dmx(attr,data):
     global BLIND
     dmx = data["DMX"]
     val = None
+    cmd=""
     if attr == "VDIM":
         for attr in data["ATTRIBUT"]:
             dmx = data["DMX"]
@@ -75,12 +93,10 @@ def update_dmx(attr,data):
             if data["ATTRIBUT"][attr]["MASTER"]:
                 val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
             if val is not None:            
-                cmd = "d{}:{}".format(dmx,int(val))
+                
+                #cmd += ",d{}:{:0.4f}".format(dmx,int(val))
+                cmd += build_cmd(dmx,val)
                 #print("cmd",cmd)
-                if not BLIND:
-                    client.send(cmd )
-                else:
-                    pass#print("BLIND ! cmd",cmd)
                 
         
     elif data["ATTRIBUT"][attr]["NR"] >= 0:
@@ -90,72 +106,17 @@ def update_dmx(attr,data):
             if "VDIM" in data["ATTRIBUT"]:
                 val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
         if val is not None:            
-            cmd = "d{}:{}".format(dmx,int(val))
+            #cmd += ",d{}:{}".format(dmx,int(val))
+            cmd += build_cmd(dmx,val)
             #print("cmd",cmd)
-            if not BLIND:
-                client.send(cmd )
-            else:
-                pass#print("BLIND ! cmd",cmd)
 
+    if not BLIND:
+        #client.send(cmd )
+        pass
+    else:
+        cmd=""
+    return cmd
 
-            
-class Worker():
-    def __init__(self):
-        self.fade = OrderedDict()
-        self.timer = time.time()
-    def loop(self):
-        while 1:
-            self.next()
-            
-    def next(self):
-        if self.timer+(1/30.) < time.time():
-            try:
-                lock.acquire()
-                #if self.timer+1 < time.time():
-                self.timer = time.time()
-                #print("next")
-                for fix in self.fade:
-                    for attr in self.fade[fix]:
-                        if 1:#len(self.fade[])>=2:
-                            fd=self.fade[fix][attr][0]
-                            xx=fd.next()
-                            if xx:
-                                x=fd.value
-                                #print("fade",xx,xx)
-                                data=self.fade[fix][attr][1]
-                                try:   
-                                    data["ATTRIBUT"][attr]["VALUE"] = x                       
-                                    update_dmx(attr,data)                            
-                                except Exception as e:
-                                    print("next EXCEPTION",e)
-            finally:
-                #lock.acquire()
-                lock.release()               
-                            
-        else:
-            time.sleep(0.1)
-    
-    def fade_dmx(self,fix,attr,data,v,v2,ft=None):
-        if ft is None:
-            ft = 4
-        if data["ATTRIBUT"][attr]["MODE"] == "S":
-            ft=0
-        #print("fade_dmx",fix,attr,v,v2)
-        try:
-            lock.acquire()
-            if fix not in self.fade:
-                self.fade[fix] = OrderedDict()
-            if attr not in self.fade[fix]:
-                self.fade[fix][attr] = OrderedDict()
-            self.fade[fix][attr] = [motion.FadeFast(v,v2,ft),data]
-        finally:
-            #lock.acquire()
-            lock.release()
-        
-
-worker = Worker()
-lock = thread.allocate_lock()
-thread.start_new_thread(worker.loop,())
 
 class Xevent():
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
@@ -174,30 +135,36 @@ class Xevent():
             return 1
 
     
-        v=data["ATTRIBUT"][attr]["VALUE"]
+        v2=data["ATTRIBUT"][attr]["VALUE"]
         change=0
+        increment = 4.11
         if action == "+":
-            v+= 4.11
+            v2+= increment
+            v = "+{:0.4f}".format( increment ) #) #4.11"
             change=1
         elif action == "-":
-            v-= 4.11
+            v2-= 4.11
+            v = "-{:0.4f}".format( increment ) #) #4.11"
             change=1
 
             
-        if v < 0:
-            v=0
-        elif v > 256:
-            v=256
+        if v2 < 0:
+            v2=0
+        elif v2 > 256:
+            v2=256
             
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
             elem["bg"] = "yellow"
-            v2 = v
-            v = data["ATTRIBUT"][attr]["VALUE"]
+            #v2 = v
+            #v = data["ATTRIBUT"][attr]["VALUE"]
             data["ATTRIBUT"][attr]["VALUE"] = v2
-            elem["text"] = str(attr)+' '+str(round(v2,2))
-            worker.fade_dmx(fix,attr,data,v,v2,ft=0)
-            #update_dmx(attr=attr,data=data)
+            elem["text"] = "{} {:0.4f}".format(attr,v2)
+            #worker.fade_dmx(fix,attr,data,v,v2,ft=0)
+            
+            cmd=update_dmx(attr=attr,data=data)
+            #data["ATTRIBUT"][attr]["VALUE"] = v2
+            client.send(cmd)
 
         
 
@@ -304,6 +271,7 @@ class Xevent():
                         if nr not in self.data.val_presets:
                             self.data.val_presets[nr] = OrderedDict()
                         sdata = self.data.val_presets[nr]
+                        cmd = ""
                         for fix in sdata:
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]
@@ -316,9 +284,10 @@ class Xevent():
                                         
                                         self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
-                                        #update_dmx(attr,data)
-                                        worker.fade_dmx(fix,attr,data,v,v2)
+                                        cmd+=update_dmx(attr,data)
+                                        #worker.fade_dmx(fix,attr,data,v,v2)
                                   
+                        client.send(cmd )
                                         
                                 
                         
@@ -329,6 +298,7 @@ class Xevent():
                         if nr not in self.data.val_presets:
                             self.data.val_presets[nr] = OrderedDict()
                         sdata = self.data.val_presets[nr]
+                        cmd=""
                         for fix in sdata:
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]
@@ -341,9 +311,10 @@ class Xevent():
                                         #self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v
                                         #print(str(attr)+' '+str(round(v,2)))
                                         #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
-                                        #update_dmx(attr,data)
+                                        cmd+=update_dmx(attr,data)
                                         print("go",fix,attr,v,v2)
-                                        worker.fade_dmx(fix,attr,data,v,v2,ft=0)
+                                        #worker.fade_dmx(fix,attr,data,v,v2,ft=0)
+                        client.send(cmd )
                                         
                                 
                         
@@ -363,7 +334,7 @@ class Xevent():
                         if self.attr != attr:
                             continue
                         if event.num == 1:
-                            #self.encoder(attr=attr,data=data,elem=elem,action="click")
+                            #self#encoder(attr=attr,data=data,elem=elem,action="click")
                             data["ATTRIBUT"][attr]["ACTIVE"] = 1
                             elem["bg"] = "yellow"
                             
@@ -395,10 +366,10 @@ class Xevent():
 
                 
 
-        
-        except Exception as e:
-            print("== cb EXCEPT",e)
-            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        finally:pass
+        #except Exception as e:
+        #    print("== cb EXCEPT",e)
+        #    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         #print(self.elem["text"],self.attr,self.data)
         
                                             

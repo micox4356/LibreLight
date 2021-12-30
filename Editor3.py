@@ -60,7 +60,7 @@ BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
 
-fade = 10
+fade = 1
 def build_cmd(dmx,val,args=[fade]):
     cmd=""
     if type(val) is float or type(val) is int:
@@ -233,6 +233,15 @@ class Xevent():
                 elif self.attr == "BACKUP":
                     self.data.backup_presets()
                 return 0
+            elif self.mode == "INPUT":
+                print(self.data.entry.get())
+                if event.keycode == 36:
+                    x=self.data.entry.get()
+                    client.send(x)
+                    #self.data.entry.clean()
+
+                #self.data
+                #chat.send("")
             elif self.mode == "PRESET":
                 nr = self.attr #int(self.attr.split(":")[1])-1
                 if event.num == 1:
@@ -366,10 +375,9 @@ class Xevent():
 
                 
 
-        finally:pass
-        #except Exception as e:
-        #    print("== cb EXCEPT",e)
-        #    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        except Exception as e:
+            print("== cb EXCEPT",e)
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         #print(self.elem["text"],self.attr,self.data)
         
                                             
@@ -498,7 +506,7 @@ class Master():
         fixture["3001"] = fi
 
         fi = copy.deepcopy(fixTMH)
-        fi["DMX"] = 461
+        fi["DMX"] = 261
         fixture["3002"] = fi
 
          
@@ -786,10 +794,12 @@ class Master():
         b = tk.Label(frame, text="send:")
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        b = tk.Entry(frame,bg="grey", text="",width=39)
+        b = tk.Entry(frame,bg="grey", text="",width=80)
+        self.entry = b
         b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
         b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
     def render(self):
         r=0
         c=0

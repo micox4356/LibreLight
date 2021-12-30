@@ -242,6 +242,22 @@ class Xevent():
 
                 #self.data
                 #chat.send("")
+            elif self.mode == "INPUT2":
+                print(self.data.entry2.get())
+                if event.keycode == 36:
+                    x=self.data.entry2.get()
+                    client.send(x)
+                    #self.data.entry.clean()
+
+            elif self.mode == "INPUT3":
+                print(self.data.entry3.get())
+                if event.keycode == 36:
+                    x=self.data.entry3.get()
+                    client.send(x)
+                    #self.data.entry.clean()
+
+                #self.data
+                #chat.send("")
             elif self.mode == "PRESET":
                 nr = self.attr #int(self.attr.split(":")[1])-1
                 if event.num == 1:
@@ -800,6 +816,20 @@ class Master():
         b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
+        r+=1
+        b = tk.Entry(frame,bg="grey", text="",width=20)
+        self.entry2 = b
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT2").cb)
+        b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT2").cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.insert("end","d1:0:4")
+        c+=1
+        b = tk.Entry(frame,bg="grey", text="",width=20)
+        self.entry3 = b
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
+        b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.insert("end","fx:alloff:::")
     def render(self):
         r=0
         c=0

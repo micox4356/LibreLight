@@ -74,6 +74,9 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
 
 fade = 5 #2 #0.1 #1.13
+fade_on = 1
+fx_prm = {"SIZE":20,"SPEED":100,"OFFSET":50}
+
 def build_cmd(dmx,val,args=[fade],flash=0,xpfx="",attr=""):
     cmd=""
     if xpfx:
@@ -232,7 +235,7 @@ class Xevent():
                         if STORE:
                             self.data.val_commands["STORE"] = 0
                             STORE = 0
-                            self.data.elem_commands["STORE"]["bg"] = "lightgrey"
+                            self.data.elem_commands["STORE"]["bg"] = "grey"
 
                         else: 
                             for fix in self.data.fixtures:
@@ -247,9 +250,71 @@ class Xevent():
                                 #print(data["ATTRIBUT"])
 
                         
+                if self.attr.startswith("SZ:"):#SIN":
+                    #global fx_prm
+                    k = "SIZE"
+                    if event.num == 1:
+                        pass
+                    elif event.num == 2:
+                        pass
+                    elif event.num == 4:
+                        if fx_prm[k] <= 0:
+                            fx_prm[k] = 1
+                        fx_prm[k] *=1.2
+                    elif event.num == 5:
+                        fx_prm[k] /=1.2
+                    #fx_prm[k] =int(fx_prm[k])
+                    
+                    if fx_prm[k] > 4000:
+                        fx_prm[k] = 4000
+                    if fx_prm[k] < 0:
+                        fx_prm[k] =0
+                    self.data.elem_commands[self.attr]["text"] = "SZ:{:0.0f}".format(fx_prm[k])
+                if self.attr.startswith("SP:"):#SIN":
+                    #global fx_prm
+                    k = "SPEED"
+                    if event.num == 1:
+                        pass
+                    elif event.num == 2:
+                        pass
+                    elif event.num == 4:
+                        if fx_prm[k] <= 0:
+                            fx_prm[k] = 1
+                        fx_prm[k] *=1.2
+                    elif event.num == 5:
+                        fx_prm[k] /=1.2
+                    #fx_prm[k] =int(fx_prm[k])
+                    
+                    if fx_prm[k] > 4000:
+                        fx_prm[k] = 4000
+                    if fx_prm[k] < 0:
+                        fx_prm[k] =0
+                    self.data.elem_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
+                if self.attr.startswith("OF:"):#SIN":
+                    #global fx_prm
+                    k = "OFFSET"
+                    if event.num == 1:
+                        pass
+                    elif event.num == 2:
+                        pass
+                    elif event.num == 4:
+                        if fx_prm[k] <= 0:
+                            fx_prm[k] = 1
+                        fx_prm[k] *=1.2
+                    elif event.num == 5:
+                        fx_prm[k] /=1.2
+                    #fx_prm[k] =int(fx_prm[k])
+                    
+                    if fx_prm[k] > 1024:
+                        fx_prm[k] = 1024
+                    if fx_prm[k] < 0:
+                        fx_prm[k] =0
+
+                    self.data.elem_commands[self.attr]["text"] = "OF:{:0.0f}".format(fx_prm[k])
                 if self.attr.startswith("FX:"):#SIN":
                     if event.num == 1:
                         cmd = ""
+                        offset = 0
                         for fix in self.data.fixtures:
                             data = self.data.fixtures[fix]
                             #print( "ADD FX",fix)
@@ -259,9 +324,14 @@ class Xevent():
 
                                 fx=""
                                 if "SIN" in self.attr:
-                                    fx = "sinus:40:100:10"
+                                    fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
                                 elif "COS" in self.attr:
-                                    fx = "cosinus:40:100:10"
+                                    fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                elif "CIR" in self.attr:
+                                    if attr == "PAN":
+                                        fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                    if attr == "TILT":
+                                        fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
 
                                 if "FX" not in data["ATTRIBUT"][attr]:
                                     data["ATTRIBUT"][attr]["FX"] =""
@@ -271,6 +341,7 @@ class Xevent():
                                     data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
                                 
                                     cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
+                            offset += fx_prm["OFFSET"]
                         if cmd and not BLIND:
                             client.send(cmd)
 
@@ -287,7 +358,7 @@ class Xevent():
                     if event.num == 1:
                         if FLASH:
                             FLASH = 0
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                            self.data.elem_commands[self.attr]["bg"] = "grey"
                         else:
                             FLASH = 1
                             self.data.elem_commands[self.attr]["bg"] = "green"
@@ -298,13 +369,46 @@ class Xevent():
                         if self.data.val_commands[self.attr]:
                             self.data.val_commands[self.attr] = 0
                             BLIND = 0
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                            self.data.elem_commands[self.attr]["bg"] = "grey"
                         else:
                             self.data.val_commands[self.attr] = 1
                             BLIND = 1
                             self.data.elem_commands[self.attr]["bg"] = "red"
                         print("BLIND",self.data.val_commands)
                 
+                elif self.attr == "FADE":
+                    global fade
+                    global fade_on
+                    if fade < 0.01:
+                        fade = 0.01
+                    elif fade > 100.0:
+                        fade = 100
+                    if event.num == 4:
+                        fade *= 1.1
+                    elif event.num == 5:
+                        fade /= 1.1
+                    elif event.num == 1:
+                        if fade_on:
+                            fade_on = 0
+                            self.data.elem_commands[self.attr]["bg"] = "grey"
+                        else:
+                            fade_on = 1
+                            self.data.elem_commands[self.attr]["bg"] = "green"
+                    elif event.num == 2:
+                        if fade > 1 and fade < 4:
+                            fade = 4
+                        elif fade > 3 and fade < 6:
+                            fade = 6
+                        elif fade > 5 and fade < 7:
+                            fade = 8
+                        elif fade > 7 and fade < 9:
+                            fade = 10
+                        elif fade > 9:
+                            fade = 0.01
+                        elif fade < 1:
+                            fade = 1.1
+
+                    self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
                 elif self.attr == "CFG-BTN":
                     global CFG_BTN
                     if event.num == 1:
@@ -327,7 +431,7 @@ class Xevent():
                     if event.num == 1:
                         if STONY_FX:
                             STONY_FX = 0
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                            self.data.elem_commands[self.attr]["bg"] = "grey"
                         else:
                             STONY_FX = 1
                             self.data.elem_commands[self.attr]["bg"] = "red"
@@ -420,6 +524,7 @@ class Xevent():
                                         if sdata[fix][attr]["VALUE"] is not None:
                                             val_color = 1
 
+                            self.data.elem_presets[nr]["fg"] = "black"
                             if val_color:
                                 self.data.elem_presets[nr]["bg"] = "yellow"
                                 if fx_color:
@@ -428,6 +533,7 @@ class Xevent():
                                 if fx_color:
                                     self.data.elem_presets[nr]["bg"] = "cyan"
                         else:
+                            self.data.elem_presets[nr]["fg"] = "black"
                             self.data.elem_presets[nr]["bg"] = "grey"
                         #self.data.elem_presets[nr].option_add("*Font", FontBold)
                         label = ""
@@ -513,7 +619,11 @@ class Xevent():
                                                 if v2_fx:
                                                     cmd+=update_dmx(attr,data,pfx="fxf",value="off",flash=xFLASH)#,flash=FLASH)
                                         else:
-                                            cmd+=update_dmx(attr,data,flash=xFLASH)
+                                            if fade_on:
+                                                xfade = fade
+                                            else:
+                                                xfade = 0
+                                            cmd+=update_dmx(attr,data,args=[xfade],flash=xFLASH)
                                             if v2_fx:
                                                 cmd+=update_dmx(attr,data,pfx="fx",value=v2_fx,flash=xFLASH)#,flash=FLASH)
                                         #worker.fade_dmx(fix,attr,data,v,v2)
@@ -586,9 +696,10 @@ class Xevent():
                             elem["bg"] = "yellow"
                             if "FX" in data["ATTRIBUT"][attr]:#["FX"]:# = 1
                                 if data["ATTRIBUT"][attr]["FX"]:# = 1
-                                    elem["fg"] = "cyan"
+                                    elem["fg"] = "blue"
                                 else:
-                                    elem["fg"] = "grey"
+                                    elem["fg"] = "blue"
+                                    elem["fg"] = "black"
                             
 
                         if not data["ATTRIBUT"][attr]["ACTIVE"]:
@@ -640,8 +751,8 @@ class Master():
         self.elem_attr = {}
         
         self.commands =["BLIND","CLEAR","STORE","EDIT","","CFG-BTN","LABEL"
-                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","",
-                "STONY_FX","FX OFF", "FX:SIN","FX:COS",]
+                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE",
+                "STONY_FX","FX OFF", "FX:SIN","FX:COS","FX:CIR","SZ:","SP:","OF:"]
         self.elem_commands = {}
         self.val_commands = {}
 
@@ -996,8 +1107,22 @@ class Master():
                 self.elem_commands[comm] = b
                 self.val_commands[comm] = 0
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
+            if comm == "BLIND":
+                b["bg"] = "grey"
+            if comm == "CLEAR":
+                b["bg"] = "grey"
+            if comm == "STONY_FX":
+                b["bg"] = "grey"
+            if comm == "FADE":
+                b["bg"] = "green"
             if comm == "FX OFF":
                 b["bg"] = "magenta"
+            if comm == "SZ:":
+                b["text"] = "SZ:{:0.0f}".format(fx_prm["SIZE"])
+            if comm == "SP:":
+                b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
+            if comm == "OF:":
+                b["text"] = "OF:{:0.0f}".format(fx_prm["OFFSET"])
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -1057,6 +1182,7 @@ class Master():
                                 if sdata[fix][attr]["VALUE"] is not None:
                                     val_color = 1
 
+                    b["fg"] = "black"
                     if val_color:
                         b["bg"] = "gold"
                         if fx_color:

@@ -109,10 +109,16 @@ clock = CLOCK()
 thread.start_new_thread(clock.loop,())
 
 class Fade():
-    def __init__(self,start,target,time,clock):
+    def __init__(self,start,target,time,clock,delay=0):
         #print("init Fade ",start,target,time,clock)
-        self.__clock = clock
-        self.__clock_curr = clock
+        if delay < 0:
+            delay = 0
+        if time <= 0:
+            time = 0.0001
+        clock += delay
+        self.__delay = delay
+        self.__clock = clock 
+        self.__clock_curr = clock 
         self.__time = time
         self.__start = start
         self.__last = start
@@ -122,10 +128,10 @@ class Fade():
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "<Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} Clock:{:0.2f} run:{}>".format( 
-                    self.__last, self.__start,self.__target,self.__clock_curr,self.run )
+        return "<Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} T{:0.2f} Clock:{:0.2f} run:{} delay:{:0.2f}>".format( 
+                    self.__last, self.__start,self.__target,self.__time,self.__clock_curr,self.run,self.__delay )
     def next(self,clock=None):
-        if self.__time <= 0:
+        if self.__time <= 0 and self.__delay <= 0:
             self.__last = self.__target
             self.run = 0
         
@@ -188,9 +194,9 @@ class DMXCH(object):
         self._fade  = None
         self._fx    = None
         self._last_val = 0
-    def fade(self,target,time=0,clock=0):
+    def fade(self,target,time=0,clock=0,delay=0):
         if target != self._base_value:
-            self._fade = Fade(self._base_value,target,time=time,clock=clock)
+            self._fade = Fade(self._base_value,target,time=time,clock=clock,delay=delay)
     def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
         if xtype.lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
@@ -235,22 +241,30 @@ def CB(data):
 
     cmds = split_cmd(data)
     c = clock.time() 
+    time = 2
+    delay = 0
+
     for xcmd in cmds:
         if xcmd.startswith("d"):
             xxcmd=xcmd[1:].split(":")
             #print("DMX:",xxcmd)
             l = xxcmd
-            t = 2
             try:
                 k=int(l[0])-1
                 v=float(l[1])
                 if len(l) >= 3:
-                    t=float(l[2])
+                    time=float(l[2])
                 if v > 255:
                     v = 255
+                if len(l) >= 3:
+                    try:time=float(l[2])
+                    except:pass
+                if len(l) >= 4:
+                    try:delay=float(l[3])
+                    except:pass
 
                 if len(Bdmx) > k:
-                    Bdmx[k].fade(target=v,time=t, clock=c)
+                    Bdmx[k].fade(target=v,time=time, clock=c,delay=delay)
             except Exception as e:
                 print("EXCEPTION IN FADE",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
@@ -261,7 +275,6 @@ def CB(data):
                 for i in Bdmx:
                     i.fx(xtype="off",clock=c)
             l = xxcmd
-            t = 2
             try:
                 xtype=""
                 size=40

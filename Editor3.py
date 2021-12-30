@@ -66,6 +66,7 @@ STORE = 0
 FLASH = 0
 STONY_FX = 0
 LABEL = 0
+CFG_BTN = 0
 POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
@@ -110,6 +111,9 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
             if data["ATTRIBUT"][attr]["NR"] < 0:
                 continue
             dmx += data["ATTRIBUT"][attr]["NR"]
+            mode = ""
+            if "MODE" in data["ATTRIBUT"][attr]:
+                mode = data["ATTRIBUT"][attr]["MODE"]
             #print(attr)
             val = data["ATTRIBUT"][attr]["VALUE"]
             if data["ATTRIBUT"][attr]["MASTER"]:
@@ -119,13 +123,20 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
                     #cmd += ",d{}:{:0.4f}".format(dmx,int(val))
                     if value is not None:
                         val = value
-                    cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
+                    if mode == "F": #FADE
+                        cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
+                    else:
+                        cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
                     #print("cmd",cmd)
                 
         
     elif data["ATTRIBUT"][attr]["NR"] >= 0:
         dmx += data["ATTRIBUT"][attr]["NR"]
         val = data["ATTRIBUT"][attr]["VALUE"]
+        mode = ""
+        if "MODE" in data["ATTRIBUT"][attr]:
+            mode = data["ATTRIBUT"][attr]["MODE"]
+
         if data["ATTRIBUT"][attr]["MASTER"]:
             if "VDIM" in data["ATTRIBUT"]:
                 val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
@@ -133,7 +144,10 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
             #cmd += ",d{}:{}".format(dmx,int(val))
             if value is not None:
                 val = value
-            cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
+            if mode == "F": #FADE
+                cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
+            else:
+                cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
             #print("cmd",cmd)
 
     if not BLIND:
@@ -207,6 +221,7 @@ class Xevent():
             global FLASH
             global STONY_FX
             global LABEL
+            global CFG_BTN
             change = 0
             
             if self.mode == "COMMAND":
@@ -263,6 +278,10 @@ class Xevent():
                     if event.num == 1:
                         client.send("fx0:alloff:,fxf:alloff:")
                         self.data.elem_commands[self.attr]["bg"] = "magenta"
+                        for fix in self.data.fixtures:
+                            data = self.data.fixtures[fix]
+                            for attr in data["ATTRIBUT"]:
+                                data["ATTRIBUT"][attr]["FX"] = ""
 
                 elif self.attr == "FLASH":
                     if event.num == 1:
@@ -286,6 +305,15 @@ class Xevent():
                             self.data.elem_commands[self.attr]["bg"] = "red"
                         print("BLIND",self.data.val_commands)
                 
+                elif self.attr == "CFG-BTN":
+                    global CFG_BTN
+                    if event.num == 1:
+                        if CFG_BTN:
+                            CFG_BTN = 0
+                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                        else:
+                            CFG_BTN = 1
+                            self.data.elem_commands[self.attr]["bg"] = "red"
                 elif self.attr == "LABEL":
                     global LABEL
                     if event.num == 1:
@@ -351,6 +379,10 @@ class Xevent():
                     if STORE:
                         print("STORE PRESET")
                         sdata = {}
+                        sdata["CFG"] = OrderedDict()
+                        sdata["CFG"]["FADE"] = fade
+                        sdata["CFG"]["DEALY"] = 0
+                        sdata["CFG"]["BUTTON"] = "GO"
                         for fix in self.data.fixtures:                            
                             data = self.data.fixtures[fix]
                             for attr in data["ATTRIBUT"]:
@@ -361,7 +393,7 @@ class Xevent():
                                         sdata[fix][attr] = OrderedDict()
                                         if not STONY_FX:
                                             sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                                            sdata[fix][attr]["FADE"] = fade
+                                            #sdata[fix][attr]["FADE"] = fade
                                         else:
                                             sdata[fix][attr]["VALUE"] = None #data["ATTRIBUT"][attr]["VALUE"]
 
@@ -373,10 +405,12 @@ class Xevent():
                         print(sdata)
                         
                         self.data.val_presets[nr] = sdata
-                        if len(sdata):
+                        if len(sdata) > 1:
                             fx_color = 0
                             val_color = 0
                             for fix in sdata:
+                                if fix == "CFG":
+                                    continue
                                 print( "$$$$",fix,sdata[fix])
                                 for attr in sdata[fix]:
                                     if "FX" in sdata[fix][attr]:
@@ -400,21 +434,49 @@ class Xevent():
                         if nr in self.data.label_presets:
                             #print(dir(self.data))
                             label = self.data.label_presets[nr]
-                        txt = str(nr)+":EXEC:"+str(len(sdata))+"\n"+label 
+
+                        BTN="go"
+                        if "CFG" in sdata:#["BUTTON"] = "GO"
+                            if "BUTTON" in sdata["CFG"]:
+                                BTN = sdata["CFG"]["BUTTON"]
+                        txt = str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label 
                         self.data.elem_presets[nr]["text"] = txt 
                         print(self.data.val_presets)
                            
                         self.data.val_commands["STORE"] = 0
                         STORE = 0
                         self.data.elem_commands["STORE"]["bg"] = "lightgrey"
+                    elif CFG_BTN:
+                        import tkinter.simpledialog
+                        txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr))
+                        if "CFG" not in self.data.val_presets[nr]:
+                            self.data.val_presets[nr]["CFG"] = OrderedDict()
+                        if "BUTTON" not in self.data.val_presets[nr]["CFG"]:
+                            self.data.val_presets[nr]["CFG"]["BUTTON"] = ""
+
+                        self.data.val_presets[nr]["CFG"]["BUTTON"] = txt
+                        sdata=self.data.val_presets[nr]
+                        BTN="go"
+                        if "CFG" in sdata:#["BUTTON"] = "GO"
+                            if "BUTTON" in sdata["CFG"]:
+                                BTN = sdata["CFG"]["BUTTON"]
+                        label = self.data.label_presets[nr] # = label
+                        txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+                        self.data.elem_presets[nr]["text"] = txt
+                        LABEL = 0
+                        self.data.elem_commands["LABEL"]["bg"] = "lightgrey"
                     elif LABEL:#else:
                         label = "lalaal"
                         import tkinter.simpledialog
                         label = tkinter.simpledialog.askstring("LABEL","Preset "+str(nr))
                         self.data.elem_presets[nr]["text"] = label
                         self.data.label_presets[nr] = label
-                        l=self.data.val_presets[nr]
-                        txt=str(nr)+":EXEC:"+str(len(l))+"\n"+label
+                        sdata=self.data.val_presets[nr]
+                        BTN="go"
+                        if "CFG" in sdata:#["BUTTON"] = "GO"
+                            if "BUTTON" in sdata["CFG"]:
+                                BTN = sdata["CFG"]["BUTTON"]
+                        txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
                         #txt = "Preset:"+str(nr)+":\n"+str(len(l))+":"+label
                         self.data.elem_presets[nr]["text"] = txt
                         LABEL = 0
@@ -428,6 +490,8 @@ class Xevent():
                         sdata = self.data.val_presets[nr]
                         cmd = ""
                         for fix in sdata:
+                            if fix == "CFG":
+                                continue
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]["VALUE"]
                                 v2_fx = sdata[fix][attr]["FX"]
@@ -440,15 +504,18 @@ class Xevent():
                                         if v2 is not None:
                                             self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
+                                        xFLASH = 0
+                                        if FLASH or sdata["CFG"]["BUTTON"] == "FL": #FLASH
+                                            xFLASH = 1
                                         if str(event.type) == "ButtonRelease":
-                                            if FLASH :
-                                                cmd+=update_dmx(attr,data,value="off",flash=FLASH)
+                                            if xFLASH:
+                                                cmd+=update_dmx(attr,data,value="off",flash=xFLASH)
                                                 if v2_fx:
-                                                    cmd+=update_dmx(attr,data,pfx="fxf",value="off",flash=FLASH)#,flash=FLASH)
+                                                    cmd+=update_dmx(attr,data,pfx="fxf",value="off",flash=xFLASH)#,flash=FLASH)
                                         else:
-                                            cmd+=update_dmx(attr,data,flash=FLASH)
+                                            cmd+=update_dmx(attr,data,flash=xFLASH)
                                             if v2_fx:
-                                                cmd+=update_dmx(attr,data,pfx="fx",value=v2_fx,flash=FLASH)#,flash=FLASH)
+                                                cmd+=update_dmx(attr,data,pfx="fx",value=v2_fx,flash=xFLASH)#,flash=FLASH)
                                         #worker.fade_dmx(fix,attr,data,v,v2)
                                   
                         if cmd:
@@ -467,6 +534,8 @@ class Xevent():
                         sdata = self.data.val_presets[nr]
                         cmd = ""
                         for fix in sdata:
+                            if fix == "CFG":
+                                continue
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]["VALUE"]
                                 v2_fx = sdata[fix][attr]["FX"]
@@ -570,7 +639,7 @@ class Master():
         self.all_attr =["DIM","VDIM","PAN","TILT"]
         self.elem_attr = {}
         
-        self.commands =["BLIND","CLEAR","STORE","EDIT","","","LABEL"
+        self.commands =["BLIND","CLEAR","STORE","EDIT","","CFG-BTN","LABEL"
                 ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","",
                 "STONY_FX","FX OFF", "FX:SIN","FX:COS",]
         self.elem_commands = {}
@@ -583,9 +652,8 @@ class Master():
             if i not in self.val_presets:
                 name = "Preset:"+str(i+1)+":\nXYZ"
                 #self.presets[i] = [i]
-                self.val_presets[i] = OrderedDict() #attr PAN , TILT, RED
-                #self.val_presets[i]["VALUE"] = 0#OrderedDict()
-                #self.val_presets[i]["FX"] = "" #OrderedDict()
+                self.val_presets[i] = OrderedDict() # FIX 
+                self.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
                 self.label_presets[i] = "-"
         
     def load(self):
@@ -741,6 +809,16 @@ class Master():
     def load_presets(self):
         filename="presets"
         d,l = self._load(filename)
+        for i in d:
+            sdata = d[i]
+            if "CFG" not in sdata:
+                sdata["CFG"] = OrderedDict()
+            if "FADE" not in sdata["CFG"]:
+                sdata["CFG"]["FADE"] = 4
+            if "DELAY" not in sdata["CFG"]:
+                sdata["CFG"]["DELAY"] = 0
+            if "BUTTON" not in sdata["CFG"]:
+                sdata["CFG"]["BUTTON"] = "GO"
         self.val_presets = d
         self.label_presets = l
         
@@ -950,19 +1028,26 @@ class Master():
             if k in self.label_presets:
                 label = self.label_presets[k]
                 print([label])
-            txt=str(k)+":EXEC:"+str(len(self.label_presets[k]))+"\n"+label
+
+            sdata=self.val_presets[k]
+            BTN="go"
+            if "CFG" in sdata:#["BUTTON"] = "GO"
+                if "BUTTON" in sdata["CFG"]:
+                    BTN = sdata["CFG"]["BUTTON"]
+            txt=str(k)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
             b = tk.Button(frame,bg="grey", text=txt,width=8,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             
             if k in self.val_presets and len(self.val_presets[k]) :
                 b["bg"] = "yellow"
-
                 sdata = self.val_presets[k]
-                if len(sdata):
+                if len(sdata) > 1:
                     fx_color = 0
                     val_color = 0
                     for fix in sdata:
+                        if fix == "CFG":
+                            continue
                         print( "$$$$",fix,sdata[fix])
                         for attr in sdata[fix]:
                             if "FX" in sdata[fix][attr]:

@@ -23,7 +23,10 @@ along with grandPA.  If not, see <http://www.gnu.org/licenses/>.
 import time
 import socket
 import struct
+import sys
 import random
+import math
+
 from collections import OrderedDict
  
 import lib.chat as chat
@@ -68,9 +71,11 @@ class Main():
             for i,dmxch in enumerate(Bdmx):
                 v = dmxch.next(t)
                 if i == 0:
-                    if xx[i]+1 < v or xx[i]-1 > v :
+                    if int(xx[i]*100) != int( v*100):
                         #print("----v",x[i],v,t)
-                        print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
+                        pass
+                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
+                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
                 xx[i] = int(v)
             #artnet._test_frame()
             self.artnet.next()
@@ -112,29 +117,38 @@ class Fade():
         self.__start = start
         self.__last = start
         self.__target = target
+        self.run = 1
         print("INIT", str(self) )
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "<Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} Clock:{:0.2f}>".format( 
-                    self.next(), self.__start,self.__target,self.__clock_curr )
+        return "<Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} Clock:{:0.2f} run:{}>".format( 
+                    self.__last, self.__start,self.__target,self.__clock_curr,self.run )
     def next(self,clock=None):
         if self.__time <= 0:
             self.__last = self.__target
+            self.run = 0
         
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
 
         if self.__target > self.__start:
             if self.__last >= self.__target:
+                self.run = 0
                 return self.__target
         else:
             if self.__last <= self.__target:
+                self.run = 0
                 return self.__target
             
         current = (self.__clock - self.__clock_curr) / self.__time
         length = self.__start - self.__target
         self.__last = self.__start+ length*current 
+        #if self.__last < 0:
+        #    self.__last = 0
+        #if self.__last > 255:
+        #    self.__last = 255
+        self.run = 1
         return self.__last
 
     def ctl(self,cmd="",value=None): # if x-fade cmd="%" value=50
@@ -142,37 +156,63 @@ class Fade():
         pass
 
 class FX():
-    def __init__(self,type="sinus",size=10,speed=10,offset=0):
-        pass
-    def next(self):
-        pass
+    def __init__(self,xtype="sinus",size=10,speed=10,offset=0,clock=0):
+        self.__xtype=xtype
+        self.__size  = size
+        self.__speed = speed
+        self.__offset = offset
+        self.__clock = clock
+        self.__clock_curr = clock
+        self.run = 1
+    def __str__(self):
+        return self.__repr__()
+    def __repr__(self):
+        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} Clock:{:0.2f} run:{}>".format( 
+                    self.next(),self.__xtype, self.__size,self.__speed,self.__clock_curr,self.run )
+    def next(self,clock=None):
+        if type(clock) is float or type(clock) is int:#not None:
+            self.__clock_curr = clock
+        t = self.__clock_curr * self.__speed / 255
+        t += self.__offset / 255
+        if self.__xtype == "sinus":
+            return math.sin( t ) * self.__size
+        elif self.__xtype == "cosinus":
+            return math.cos( t ) * self.__size
+        else:
+            return 0
 
 class DMXCH(object):
     def __init__(self):
-        self._value = 1
+        self._base_value = 0
+        self._fx_value = 0
         self._fade  = None
         self._fx    = None
-
+        self._last_val = 0
     def fade(self,target,time=0,clock=0):
-        if target != self._value:
-            self._fade = Fade(self._value,target,time=time,clock=clock)
-    def fx(self,type="sinus",size=20,speed=20,offset=0):
-        pass
+        if target != self._base_value:
+            self._fade = Fade(self._base_value,target,time=time,clock=clock)
+    def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
+        if xtype.lower() == "off":
+            #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
+            self._fx = None
+            self._fx_value = 0 
+        else:
+            self._fx = FX(xtype=xtype,size=size,speed=speed,offset=offset,clock=clock)
     def fx_ctl(self,cmd=""):#start,stop,off
         pass
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        try:
-            return " DMXCH {:0.2f} {:0.2f}".format( self._value,self._fade)
-        except:
-            return " DMXCH {:0.2f} {}".format( self._value,self._fade)
+        return "< DMXCH {:0.2f} > \n{}\n {}".format( self._last_val,self._fx,self._fade)
     def fade_ctl(self,cmd=""):#start,stop,backw,fwd,bounce
         pass
     def next(self,clock=0):
         if type(self._fade) is Fade:# is Fade:
-            self._value = self._fade.next(clock)
-        return self._value
+            self._base_value = self._fade.next(clock)
+        if type(self._fx) is FX:
+            self._fx_value = self._fx.next(clock)
+        self._last_val = self._base_value+self._fx_value
+        return self._last_val
 Bdmx = []
 for i in range(512):
     Bdmx.append( DMXCH() )
@@ -212,7 +252,41 @@ def CB(data):
                 if len(Bdmx) > k:
                     Bdmx[k].fade(target=v,time=t, clock=c)
             except Exception as e:
-                print("EXCEPTION IN DMX",e)
+                print("EXCEPTION IN FADE",e)
+                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        elif xcmd.startswith("fx"):
+            xxcmd=xcmd[2:].split(":")
+            #print("DMX:",xxcmd)
+            if "alloff" == xxcmd[1].lower():
+                for i in Bdmx:
+                    i.fx(xtype="off",clock=c)
+            l = xxcmd
+            t = 2
+            try:
+                xtype=""
+                size=40
+                speed=100
+                offset=0
+
+                k=int(l[0])-1
+                xtype=l[1]
+                if len(l) >= 3:
+                    try:size=int(l[2])
+                    except:pass
+                if len(l) >= 4:
+                    try:speed=int(l[3])
+                    except:pass
+                if len(l) >= 5:
+                    try:offset=int(l[4])
+                    except:pass
+                
+                if len(Bdmx) > k:
+                    #Bdmx[k].fade(target=v,time=t, clock=c)
+                    Bdmx[k].fx(xtype=xtype,size=size,speed=speed,offset=offset,clock=c)
+            except Exception as e:
+                print("EXCEPTION IN FX",e)
+                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+
 
 chat.cmd(CB) # server listener
 

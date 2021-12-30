@@ -56,9 +56,11 @@ class ArtNetNode():
 
         dmx_count = 0
         for v in dmx:
-            if type(v) is not int:
+            if not (type(v) is int or type(v) is float):
                 v=0
-            elif v > 255: # max dmx value 255
+                
+            v = int(v)
+            if v > 255: # max dmx value 255
                 v = 255
             elif v < 0: # min dmx value 0
                 v = 0

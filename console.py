@@ -190,20 +190,37 @@ class FX():
 class DMXCH(object):
     def __init__(self):
         self._base_value = 0
-        self._fx_value = 0
         self._fade  = None
         self._fx    = None
+        self._fx_value = 0
+
+        self._flush    = None
+        self._flush_fx = None
+        self._flush_fx_value = 0
         self._last_val = 0
     def fade(self,target,time=0,clock=0,delay=0):
         if target != self._base_value:
             self._fade = Fade(self._base_value,target,time=time,clock=clock,delay=delay)
     def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
-        if xtype.lower() == "off":
+        if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
             self._fx = None
             self._fx_value = 0 
         else:
             self._fx = FX(xtype=xtype,size=size,speed=speed,offset=offset,clock=clock)
+    def flush(self,target,time=0,clock=0,delay=0):
+        if str(target).lower() == "off":
+            self._flush = None
+        elif target != self._base_value:
+            self._flush = Fade(self._last_value,target,time=time,clock=clock,delay=delay)
+    def flush_fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
+        if str(xtype).lower() == "off":
+            #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
+            self._flush_fx = None
+            self._flush_fx_value = 0 
+        else:
+            self._flush_fx = FX(xtype=xtype,size=size,speed=speed,offset=offset,clock=clock)
+
     def fx_ctl(self,cmd=""):#start,stop,off
         pass
     def __str__(self):
@@ -213,11 +230,23 @@ class DMXCH(object):
     def fade_ctl(self,cmd=""):#start,stop,backw,fwd,bounce
         pass
     def next(self,clock=0):
-        if type(self._fade) is Fade:# is Fade:
+        value = self._base_value
+        fx_value = self._fx_value
+
+        if self._flush is not None:
+            value = self._flush.next(clock)
+        elif self._fade is not None:#is Fade:# is Fade:
             self._base_value = self._fade.next(clock)
-        if type(self._fx) is FX:
+            value = self._base_value
+
+        
+        if self._flush_fx is not None:# is FX:
+            fx_value = self._flush_fx.next(clock)
+        elif self._fx is not None:# is FX:
             self._fx_value = self._fx.next(clock)
-        self._last_val = self._base_value+self._fx_value
+            fx_value = self._fx_value
+
+        self._last_val = value+fx_value
         return self._last_val
 Bdmx = []
 for i in range(512):
@@ -245,7 +274,33 @@ def CB(data):
     delay = 0
 
     for xcmd in cmds:
-        if xcmd.startswith("d"):
+        if xcmd.startswith("df"):
+            xxcmd=xcmd[2:].split(":")
+            #print("DMX:",xxcmd)
+            if "alloff" == xxcmd[1].lower():
+                for i in Bdmx:
+                    i.flush(xtype="off",clock=c)
+            l = xxcmd
+            try:
+                k=int(l[0])-1
+                v=float(l[1])
+                if len(l) >= 3:
+                    time=float(l[2])
+                if v > 255:
+                    v = 255
+                if len(l) >= 3:
+                    try:time=float(l[2])
+                    except:pass
+                if len(l) >= 4:
+                    try:delay=float(l[3])
+                    except:pass
+
+                if len(Bdmx) > k:
+                    Bdmx[k].flush(target=v,time=time, clock=c,delay=delay)
+            except Exception as e:
+                print("EXCEPTION IN FADE",e)
+                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        elif xcmd.startswith("d"):
             xxcmd=xcmd[1:].split(":")
             #print("DMX:",xxcmd)
             l = xxcmd
@@ -267,6 +322,37 @@ def CB(data):
                     Bdmx[k].fade(target=v,time=time, clock=c,delay=delay)
             except Exception as e:
                 print("EXCEPTION IN FADE",e)
+                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        elif xcmd.startswith("fxf"):
+            xxcmd=xcmd[3:].split(":")
+            print("fxf:",xxcmd)
+            if "alloff" == xxcmd[1].lower():
+                for i in Bdmx:
+                    i.flush_fx(xtype="off",clock=c)
+            l = xxcmd
+            try:
+                xtype=""
+                size=40
+                speed=100
+                offset=0
+
+                k=int(l[0])-1
+                xtype=l[1]
+                if len(l) >= 3:
+                    try:size=int(l[2])
+                    except:pass
+                if len(l) >= 4:
+                    try:speed=int(l[3])
+                    except:pass
+                if len(l) >= 5:
+                    try:offset=int(l[4])
+                    except:pass
+                
+                if len(Bdmx) > k:
+                    #Bdmx[k].fade(target=v,time=t, clock=c)
+                    Bdmx[k].flush_fx(xtype=xtype,size=size,speed=speed,offset=offset,clock=c)
+            except Exception as e:
+                print("EXCEPTION IN FX",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         elif xcmd.startswith("fx"):
             xxcmd=xcmd[2:].split(":")

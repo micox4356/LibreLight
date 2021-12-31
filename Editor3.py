@@ -2,23 +2,28 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of librelight.
+This file is part of LibreLight.
 
-librelight is free software: you can redistribute it and/or modify
+LibreLight is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-librelight is distributed in the hope that it will be useful,
+LibreLight is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with librelight.  If not, see <http://www.gnu.org/licenses/>.
+along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 
 (c) 2012 micha.rathfelder@gmail.com
 """
+import sys
+if "__file__" in dir():
+    sys.stdout.write("\x1b]2;"+str(__file__)+"\x07") # terminal title
+else:
+    sys.stdout.write("\x1b]2;"+str("__file__")+"\x07") # terminal title
 
 import json
 import time
@@ -420,6 +425,7 @@ class Xevent():
                             self.data.elem_commands[self.attr]["bg"] = "red"
                 elif self.attr == "LABEL":
                     global LABEL
+                    #global CFG_BTN
                     if event.num == 1:
                         if LABEL:
                             LABEL = 0
@@ -569,8 +575,8 @@ class Xevent():
                         label = self.data.label_presets[nr] # = label
                         txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
                         self.data.elem_presets[nr]["text"] = txt
-                        LABEL = 0
-                        self.data.elem_commands["LABEL"]["bg"] = "lightgrey"
+                        CFG_BTN = 0
+                        self.data.elem_commands["CFG-BTN"]["bg"] = "grey"
                     elif LABEL:#else:
                         label = "lalaal"
                         import tkinter.simpledialog
@@ -812,12 +818,12 @@ class Master():
         
         fi = copy.deepcopy(fix)
         fi["DMX"] = 421
-        fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
+        #fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
         #fixture["1002"] = fi
 
         fi = copy.deepcopy(fix)
         fi["DMX"] = 441
-        fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
+        #fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
         #fixture["1003"] = fi
         
         DATA = OrderedDict()
@@ -879,37 +885,38 @@ class Master():
         DATA["COLOR"]   = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
         DATA["GOBO"] = {"NR": 9, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
         DATA["G-ROT"]  = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 192.0,"ACTIVE":0}
-        DATA["PRINSMA"] = {"NR": 10, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
+        DATA["PRISMA"] = {"NR": 10, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
         DATA["P-ROT"] = {"NR": 11, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
         DATA["FOCUS"] = {"NR": 14, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
         DATA["ZOOM"] = {"NR": 13, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
         DATA["FROST"] = {"NR": 15, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
+        DATA["SHUTTER"] = {"NR": 16, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
         DATA["CONTROL"]  = {"NR": 5, "MASTER": "", "MODE": "S", "VALUE": 5.0,"ACTIVE":0}
         fixREUSH = {"DMX": 300, "UNIVERS": 2, "NAME": "RUSH-BEAM", "ATTRIBUT": DATA}
 
         fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 201
+        fi["DMX"] = 220
         fixture["701"] = fi
 
         fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 220
-        #fixture["702"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 239
-        #fixture["703"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 258
-        #fixture["704"] = fi
+        fi["DMX"] = 201
+        fixture["702"] = fi
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 277
-        #fixture["705"] = fi
+        fixture["703"] = fi
 
         fi = copy.deepcopy(fixREUSH)
         fi["DMX"] = 296
-        #fixture["706"] = fi
+        fixture["704"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 239
+        fixture["705"] = fi
+
+        fi = copy.deepcopy(fixREUSH)
+        fi["DMX"] = 258
+        fixture["706"] = fi
         
 
         

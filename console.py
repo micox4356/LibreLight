@@ -2,23 +2,28 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of grandPA.
+This file is part of LibreLight.
 
-grandPA is free software: you can redistribute it and/or modify
+LibreLight is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-grandPA is distributed in the hope that it will be useful,
+LibreLight is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with grandPA.  If not, see <http://www.gnu.org/licenses/>.
+along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 
 (c) 2012 micha.rathfelder@gmail.com
 """
+import sys
+if "__file__" in dir():
+    sys.stdout.write("\x1b]2;"+str(__file__)+"\x07") # terminal title
+else:
+    sys.stdout.write("\x1b]2;"+str("__file__")+"\x07") # terminal title
 
 import time
 import socket
@@ -112,7 +117,7 @@ class Fade():
     def __init__(self,start,target,time,clock,delay=0):
         #print("init Fade ",start,target,time,clock)
         if delay < 0:
-            delay = 0
+            delay = 0.0001
         if time <= 0:
             time = 0.0001
         clock += delay
@@ -197,12 +202,14 @@ class DMXCH(object):
         self._flush    = None
         self._flush_fx = None
         self._flush_fx_value = 0
-        self._last_val = 0
+        self._last_val = None
     def fade(self,target,time=0,clock=0,delay=0):
         if target != self._base_value:
             try:
                 target = float(target)
                 self._fade = Fade(self._base_value,target,time=time,clock=clock,delay=delay)
+                #self._fade.next()
+                #self._fade.next()
             except Exception as e:
                 print( "Except:",e)
     def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
@@ -239,12 +246,18 @@ class DMXCH(object):
         pass
     def next(self,clock=0):
         value = self._base_value
+        if self._last_val is None:
+            self._last_val = value
         fx_value = self._fx_value
 
         if self._flush is not None:
             value = self._flush.next(clock)
+            #flicker bug ?!
+            value = self._flush.next(clock)
             fx_value = 0
         elif self._fade is not None:#is Fade:# is Fade:
+            self._base_value = self._fade.next(clock)
+            #flicker bug ?!
             self._base_value = self._fade.next(clock)
             value = self._base_value
 

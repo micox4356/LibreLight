@@ -1,0 +1,1 @@
+1001	1001	{"DMX": 401, "UNIVERS": 2, "NAME": "RGB", "ATTRIBUT": {"VDIM": {"NR": -1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}, "RED": {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "GREEN": {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "BLUE": {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}}}

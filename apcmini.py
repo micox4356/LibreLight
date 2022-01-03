@@ -48,7 +48,8 @@ else: # if linux
     #  4 MB RAM
     #from simplemidi_wraper import simplemidi
     from lib.simplemidi_wraper import simplemidi
-    midi = simplemidi("/dev/snd/midiC1D0") #,inp="/dev/midi1")
+    #midi = simplemidi("/dev/snd/midiC1D0") #,inp="/dev/midi1")
+    midi = simplemidi("/dev/snd/midiC2D0") #,inp="/dev/midi1")
 
 
 nr = 0
@@ -69,6 +70,7 @@ import socket, struct
 
 c = chat.tcp_sender()
 def send(msg):
+    print("send",msg)
     c.send(msg)
 
 
@@ -126,22 +128,28 @@ def main():
                     fader_value[fader_id] = value
                     print("FADER:",fader_id+1,value)
                     if fader_id == 0:
-                        msg = "group 33 level "+str(int(value))
+                        #msg = "group 33 level "+str(int(value))
+                        msg = "d{}:{}:0".format(fader_id+1,value)
                         send(msg)
                     elif fader_id == 1:
                         msg = "group 34 level "+str(int(value))
+                        msg = "d{}:{}:0".format(fader_id+1,value)
                         send(msg)
                     elif fader_id == 2:
                         msg = "group 35 level "+str(int(value))
+                        msg = "d{}:{}:0".format(fader_id+1,value)
                         send(msg)
                     elif fader_id == 3:
                         msg = "group 36 level "+str(int(value))
+                        msg = "d{}:{}:0".format(fader_id+1,value)
                         send(msg)
                     elif fader_id == 4:
                         msg = "group 37 level "+str(int(value))
+                        msg = "d{}:{}:0".format(fader_id+1,value)
                         send(msg)
                     elif fader_id == 5:
                         msg = "group 38 level "+str(int(value))
+                        msg = "d{}:{}:0".format(fader_id+1,value)
                         send(msg)
 
                     elif fader_id == 6:
@@ -208,21 +216,29 @@ def main():
                     pass#msg = "sel 3"
                     pass#send(msg)
                 elif midi_date[1] == 64:
-                    pass#msg = "group 1 sel 1 "
-                    pass#send(msg)
+                    msg = "df{}:255:0".format(midi_date[1]-64+1)
+                    send(msg)
                 elif midi_date[1] == 65:
+                    msg = "df{}:255:0".format(midi_date[1]-64+1)
+                    send(msg)
                     pass#msg = "group 25 sel 1 "
                     pass#send(msg)
                 elif midi_date[1] == 66:
+                    msg = "df{}:255:0".format(midi_date[1]-64+1)
+                    send(msg)
                     pass#msg = "group 17 sel 1 "
                     pass#send(msg)
                 elif midi_date[1] == 86:
+                    msg = "df{}:255:0".format(midi_date[1]-64+1)
+                    send(msg)
                     #msg = "group 25 sel 1 "
                     #send(msg)
                     #ipc = cli.ipc_write({"SDL-GUI":"VIEW:programmer"})
                     pass
 
                 elif midi_date[1] == 85:
+                    msg = "df{}:255:0".format(midi_date[1]-64)
+                    send(msg)
                     pass
                     #msg = "group 25 sel 1 "
                     #send(msg)
@@ -257,9 +273,24 @@ def main():
             if midi_date[0] == 128:
                 midi_date[2] = 0
                 midi_date[0] = 144
-                print("release")
+                #print("release")
                 release = 1
 
+                if midi_date[1] == 64:
+                    msg = "df{}:off:0".format(midi_date[1]-64+1)
+                    send(msg)
+                if midi_date[1] == 65:
+                    msg = "df{}:off:0".format(midi_date[1]-64+1)
+                    send(msg)
+                if midi_date[1] == 66:
+                    msg = "df{}:off:0".format(midi_date[1]-64+1)
+                    send(msg)
+                if midi_date[1] == 67:
+                    msg = "df{}:off:0".format(midi_date[1]-64+1)
+                    send(msg)
+                if midi_date[1] == 68:
+                    msg = "df{}:off:0".format(midi_date[1]-64+1)
+                    send(msg)
 
 
             else:

@@ -116,9 +116,9 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
     if attr == "VDIM":
         for attr in data["ATTRIBUT"]:
             dmx = data["DMX"]
-            if data["ATTRIBUT"][attr]["NR"] < 0:
+            if data["ATTRIBUT"][attr]["NR"] < 0: #virtual channels
                 continue
-            dmx += data["ATTRIBUT"][attr]["NR"]
+            dmx += data["ATTRIBUT"][attr]["NR"]-1
             mode = ""
             if "MODE" in data["ATTRIBUT"][attr]:
                 mode = data["ATTRIBUT"][attr]["MODE"]
@@ -138,8 +138,8 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
                     #print("cmd",cmd)
                 
         
-    elif data["ATTRIBUT"][attr]["NR"] >= 0:
-        dmx += data["ATTRIBUT"][attr]["NR"]
+    elif data["ATTRIBUT"][attr]["NR"] > 0: 
+        dmx += data["ATTRIBUT"][attr]["NR"]-1
         val = data["ATTRIBUT"][attr]["VALUE"]
         mode = ""
         if "MODE" in data["ATTRIBUT"][attr]:
@@ -457,6 +457,7 @@ class Xevent():
                         print("BLIND",self.data.val_commands)
                 elif self.attr == "BACKUP":
                     self.data.backup_presets()
+                    self.data.backup_patch()
                 return 0
             elif self.mode == "INPUT":
                 print(self.data.entry.get())
@@ -734,10 +735,11 @@ class Xevent():
             
 
                 
-
-        except Exception as e:
-            print("== cb EXCEPT",e)
-            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        finally:
+            pass
+        #except Exception as e:
+        #    print("== cb EXCEPT",e)
+        #    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         #print(self.elem["text"],self.attr,self.data)
         
                                             
@@ -764,6 +766,7 @@ class Master():
 
         self.elem_presets = {}
         self.load_presets()
+        self.load_patch()
         
         for i in range(8*8):
             if i not in self.val_presets:
@@ -772,7 +775,13 @@ class Master():
                 self.val_presets[i] = OrderedDict() # FIX 
                 self.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
                 self.label_presets[i] = "-"
-        
+  
+    def __del__(self):
+        print("__del__",self)
+        self.backup_presets()
+        print("********************************************************")
+        self.backup_patch()
+        print("********************************************************")
     def load(self):
         fixture = OrderedDict()
 
@@ -814,7 +823,7 @@ class Master():
 
         fi = copy.deepcopy(fix)
         fi["DMX"] = 401
-        #fixture["1001"] = fi
+        fixture["1001"] = fi
         
         fi = copy.deepcopy(fix)
         fi["DMX"] = 421
@@ -924,6 +933,17 @@ class Master():
         self.fixtures = fixture
         
         
+    def load_patch(self):
+        filename="patch"
+        d,l = self._load(filename)
+        for i in d:
+            sdata = d[i]
+            print("load",filename,sdata)
+            #if "CFG" not in sdata:
+            #    sdata["CFG"] = OrderedDict()
+        self.fixtures = d
+        #self.label_presets = l
+        
     def load_presets(self):
         filename="presets"
         d,l = self._load(filename)
@@ -956,12 +976,35 @@ class Master():
             #print(xfname,"load",key,label)
             #print(line)
             jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
-            
+            nrnull = 0
+            if "ATTRIBUT" in jdata:  # translate old fixtures start with 0 to 1          
+                for attr in jdata["ATTRIBUT"]:
+                    if "NR" in jdata["ATTRIBUT"][attr]:
+                        nr = jdata["ATTRIBUT"][attr]["NR"]
+                        if nr == 0:
+                            nrnull = 1
+                            break
+
+                if nrnull:
+                    print("DMX NR IS NULL",attr,"CHANGE +1")
+                    for attr in jdata["ATTRIBUT"]:
+                        if "NR" in jdata["ATTRIBUT"][attr]:
+                            nr = jdata["ATTRIBUT"][attr]["NR"]
+                            if nr >= 0:
+                                jdata["ATTRIBUT"][attr]["NR"] +=1
+
             data[key] = jdata
             labels[key] = label
             
         return data,labels
         
+    def backup_patch(self):
+        filename = "patch"
+        data  = self.fixtures
+        labels = {}
+        for k in data:
+            labels[k] = k
+        self._backup(filename,data,labels)
     def backup_presets(self):
         filename = "presets"
         data   = self.val_presets
@@ -982,7 +1025,7 @@ class Master():
             if label == "Name-"+str(key):
                 label = ""
             print(xfname,"load",key,label,len(line))
-            f.write(str(key)+"\t"+label+"\t"+json.dumps(line)+"\n")
+            f.write( "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) )
         f.close()
             
     def draw_dim(self,fix,data,c=0,r=0,frame=None):

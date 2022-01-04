@@ -61,7 +61,7 @@ from collections import OrderedDict
 
 show_name = "GloryCamp2021"
 show_name = "GloryCamp2021"
-show_name = "Dimmer"
+##show_name = "Dimmer"
 
 
 CUES    = OrderedDict()

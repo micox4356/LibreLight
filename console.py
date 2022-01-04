@@ -129,7 +129,7 @@ class Fade():
         self.__last = start
         self.__target = target
         self.run = 1
-        print("INIT", str(self) )
+        #print("INIT", str(self) )
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
@@ -211,7 +211,7 @@ class DMXCH(object):
                 #self._fade.next()
                 #self._fade.next()
             except Exception as e:
-                print( "Except:",e)
+                print( "Except:fade",e,target,time,clock)
     def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
@@ -227,7 +227,7 @@ class DMXCH(object):
                 target = float(target)
                 self._flush = Fade(self._last_val,target,time=time,clock=clock,delay=delay)
             except Exception as e:
-                print( "Except:",e)
+                print( "Except:flush",target,time,clock,__name__,e,)
     def flush_fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
@@ -288,17 +288,21 @@ def split_cmd(data):
 
 
 def CB(data):
-    print("CB",data)
+    #print("CB",data)
 
     cmds = split_cmd(data)
     c = clock.time() 
-    time = 2
+    c = float(c)
+    time = 0
     delay = 0
 
     for xcmd in cmds:
         if xcmd.startswith("df"):
             xxcmd=xcmd[2:].split(":")
             #print("DMX:",xxcmd)
+            if len(xxcmd) < 2:
+                print("cmd err df",xcmd)
+                continue
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
                     if i is not None:
@@ -315,10 +319,10 @@ def CB(data):
                 #    v = 255
                 if len(l) >= 3:
                     try:time=float(l[2])
-                    except:pass
+                    except:print("ERR","time",xcmd)
                 if len(l) >= 4:
                     try:delay=float(l[3])
-                    except:pass
+                    except:print("ERR","delay",xcmd)
 
                 if len(Bdmx) > k:
                     Bdmx[k].flush(target=v,time=time, clock=c,delay=delay)
@@ -350,7 +354,7 @@ def CB(data):
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         elif xcmd.startswith("fxf"):
             xxcmd=xcmd[3:].split(":")
-            print("fxf:",xxcmd)
+            #print("fxf:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
                     if i is not None:
@@ -383,6 +387,9 @@ def CB(data):
         elif xcmd.startswith("fx"):
             xxcmd=xcmd[2:].split(":")
             #print("DMX:",xxcmd)
+            if len(xxcmd) < 2:
+                print("xxcmd err",xxcmd,xcmd)
+                continue  
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
                     i.fx(xtype="off",clock=c)
@@ -409,7 +416,7 @@ def CB(data):
                     #Bdmx[k].fade(target=v,time=t, clock=c)
                     Bdmx[k].fx(xtype=xtype,size=size,speed=speed,offset=offset,clock=c)
             except Exception as e:
-                print("EXCEPTION IN FX",e)
+                print("EXCEPTION IN FX",xcdm,e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 

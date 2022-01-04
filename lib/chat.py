@@ -91,16 +91,16 @@ def cmd(cb=dummyCB,port=50000):
                             clients2[client_nr] = nachrichten
                     if sock in clients:
                         client_nr = clients.index(sock)
-                        print(clients2[client_nr])
+                        #print(clients2[client_nr])
                     ip = sock.getpeername()[0]
                     #print(">>>", ip, nachrichten.split(";"))
                     if nachrichten:
                         tstamp = time.strftime("%H:%M:%S")
 
-                        print("from:",client_nr,">>>", tstamp , ip, nachrichten.split(";"))
+                        #print("from:",client_nr,">>>", tstamp , ip, nachrichten.split(";"))
                         for xx,nachricht in enumerate(nachrichten.split(";")):
                             cmd = nachricht #.split(" ")
-                            print(xx,cmd)
+                            #print(xx,cmd)
                             cb({"c":client_nr,"cmd":cmd})
 
 

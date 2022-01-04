@@ -61,7 +61,7 @@ from collections import OrderedDict
 
 show_name = "GloryCamp2021"
 show_name = "GloryCamp2021"
-##show_name = "Dimmer"
+#show_name = "Dimmer"
 
 
 CUES    = OrderedDict()
@@ -351,7 +351,9 @@ class Xevent():
                                     data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
                                 
                                     cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
-                            offset += fx_prm["OFFSET"]
+                            if fx_prm["OFFSET"] > 0.5:  
+                                offset += fx_prm["OFFSET"] # add offset on next fixture
+                            #print("offset",offset)
                         if cmd and not BLIND:
                             client.send(cmd)
 

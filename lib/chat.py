@@ -65,7 +65,17 @@ def cmd(cb=dummyCB,port=50000):
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     #self.xs.getsockopt(socket.AF_INET, socket.SO_REUSEADDR )
 
-    server.bind(("", port))
+    while 1:
+        try:
+            server.bind(("", port))
+            break
+        except Exception as e:
+            print("except",e)
+            print( "bind error")
+            time.sleep(1)
+
+    
+    
     server.listen(1)
 
     clients = []
@@ -78,12 +88,33 @@ def cmd(cb=dummyCB,port=50000):
             for sock in lesen:
                 if sock is server:
                     client, addr = server.accept()
+                    client.setblocking(0)
                     clients.append(client)
                     print("+++ Client %s verbunden" % addr[0])
                     #sock.send("hi du")
                 else:
-                    nachricht = sock.recv(1024)
+                    msg=b''
+                    try:
+                        xmsg = sock.recv(1024)#5120)
+                    except BlockingIOError as e:
+                        pass#print( "exception",e)
+                    try:
+                        while xmsg: 
+                            msg += xmsg
+                            xmsg = sock.recv(1024)#5120)
+                            xmsg = xmsg.replace(b";",b"")
+                        #print(msg)
+                    except BlockingIOError as e:
+                        pass#print( "exception",e)
+
+                    if not msg:
+                        continue
+
+                        
+                    nachricht = msg
+                    #print(msg)
                     nachricht = str(nachricht,"utf-8")
+                    nachricht = nachricht.replace(";","")
                     nachrichten = nachricht.strip().replace("EOB","")
                     if "client_name:" in nachrichten:
                         if sock in clients:

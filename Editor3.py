@@ -61,6 +61,7 @@ from collections import OrderedDict
 
 show_name = "GloryCamp2021"
 show_name = "GloryCamp2021"
+show_name = "Dimmer"
 
 
 CUES    = OrderedDict()
@@ -78,7 +79,7 @@ BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
 
-fade = 5 #2 #0.1 #1.13
+fade = 2 #2 #0.1 #1.13
 fade_on = 1
 fx_prm = {"SIZE":20,"SPEED":100,"OFFSET":50}
 
@@ -165,7 +166,10 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
         cmd=""
     return cmd
 
-
+class dummy_event():
+    def __init__(self):
+        self.num =0
+    
 class Xevent():
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
         self.data=data
@@ -253,6 +257,7 @@ class Xevent():
                                     self.data.elem_attr[fix][attr]["bg"] = "grey"
                                     data["ATTRIBUT"][attr]["ACTIVE"] = 0
                                 #print(data["ATTRIBUT"])
+                            print( "CB CLEAR" )
 
                         
                 if self.attr.startswith("SZ:"):#SIN":
@@ -598,7 +603,7 @@ class Xevent():
                         print("GO PRESET")
                         if nr not in self.data.val_presets:
                             self.data.val_presets[nr] = OrderedDict()
-                            self.data.val_presets[nr]["VALUE"] = None
+                            self.data.val_presets[nr]["VALUE"] = 0
                             self.data.val_presets[nr]["FX"] = ""
                         sdata = self.data.val_presets[nr]
                         cmd = ""
@@ -608,10 +613,12 @@ class Xevent():
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]["VALUE"]
                                 v2_fx = sdata[fix][attr]["FX"]
-                                #print(fix,attr,v)
+                                #print(fix,attr,v2, fix in self.data.fixtures,self.data.fixtures.keys(),2)
                                 if fix in self.data.fixtures:
                                     #print("==",self.data.fixtures[fix]["ATTRIBUT"])
+                                    #print( "==", attr, self.data.fixtures[fix], self.data.fixtures.keys(),4 )
                                     if attr in self.data.fixtures[fix]["ATTRIBUT"]:
+                                        #print( attr)
                                         data = self.data.fixtures[fix]
                                         v=self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
                                         if v2 is not None:
@@ -634,7 +641,7 @@ class Xevent():
                                             if v2_fx:
                                                 cmd+=update_dmx(attr,data,pfx="fx",value=v2_fx,flash=xFLASH)#,flash=FLASH)
                                         #worker.fade_dmx(fix,attr,data,v,v2)
-                                  
+                        print("cmd",cmd) 
                         if cmd:
                             client.send(cmd )
                                         
@@ -735,11 +742,11 @@ class Xevent():
             
 
                 
-        finally:
-            pass
-        #except Exception as e:
-        #    print("== cb EXCEPT",e)
-        #    print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            #finally:
+            #    pass
+        except Exception as e:
+            print("== cb EXCEPT",e)
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         #print(self.elem["text"],self.attr,self.data)
         
                                             
@@ -775,13 +782,14 @@ class Master():
                 self.val_presets[i] = OrderedDict() # FIX 
                 self.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
                 self.label_presets[i] = "-"
+
   
-    def __del__(self):
+    def exit(self):
         print("__del__",self)
         self.backup_presets()
         print("********************************************************")
         self.backup_patch()
-        print("********************************************************")
+        print("*********del",self,"***********************************************")
     def load(self):
         fixture = OrderedDict()
 
@@ -930,18 +938,21 @@ class Master():
 
         
        
-        self.fixtures = fixture
+        #self.fixtures = fixture
         
         
     def load_patch(self):
         filename="patch"
         d,l = self._load(filename)
-        for i in d:
+        self.fixtures = OrderedDict()
+        for i in l:
             sdata = d[i]
+            for attr in sdata["ATTRIBUT"]:
+                sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
             print("load",filename,sdata)
             #if "CFG" not in sdata:
             #    sdata["CFG"] = OrderedDict()
-        self.fixtures = d
+            self.fixtures[str(i)] = sdata
         #self.label_presets = l
         
     def load_presets(self):
@@ -1306,12 +1317,12 @@ class Master():
         self.draw_input()
         self.draw_preset()
         
-        
+try:
+    master =Master()
+    master.render()
 
-master =Master()
-master.render()
-
-
-root.mainloop()
-sys.exit()
+    root.mainloop()
     
+finally:
+    master.exit()
+

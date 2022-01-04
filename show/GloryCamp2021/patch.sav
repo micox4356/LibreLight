@@ -1,9 +1,93 @@
-1	1	{"DMX": 1, "UNIVERS": 2, "NAME": "F1", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}}}
-2	2	{"DMX": 2, "UNIVERS": 2, "NAME": "F2", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}}}
-3	3	{"DMX": 3, "UNIVERS": 2, "NAME": "F3", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}}}
-4	4	{"DMX": 4, "UNIVERS": 2, "NAME": "F4", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}}}
-11	11	{"DMX": 11, "UNIVERS": 2, "NAME": "FL", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}}}
-24	24	{"DMX": 24, "UNIVERS": 2, "NAME": "P", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}}}
-1001	1001	{"DMX": 401, "UNIVERS": 2, "NAME": "IRGB", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}, "RED": {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "GREEN": {"NR": 5, "MASTER": "", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "BLUE": {"NR": 6, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}}}
-3001	3001	{"DMX": 241, "UNIVERS": 2, "NAME": "MH-BEAM", "ATTRIBUT": {"SHUTTER": {"NR": 6, "MASTER": "", "MODE": "S", "VALUE": 217.8300000000003, "ACTIVE": 0}, "VDIM": {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}, "PAN": {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 168.51000000000013, "ACTIVE": 0}, "PAN-FINE": {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}, "TILT": {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 77.68000000000002, "ACTIVE": 0}, "TILT-FINE": {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}, "RED": {"NR": 7, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "GREEN": {"NR": 8, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "BLUE": {"NR": 9, "MASTER": "1", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}}}
-3002	3002	{"DMX": 261, "UNIVERS": 2, "NAME": "MH-BEAM", "ATTRIBUT": {"SHUTTER": {"NR": 6, "MASTER": "", "MODE": "S", "VALUE": 217.8300000000003, "ACTIVE": 0}, "VDIM": {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0}, "PAN": {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 168.51000000000013, "ACTIVE": 0}, "PAN-FINE": {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}, "TILT": {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 77.68000000000002, "ACTIVE": 0}, "TILT-FINE": {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}, "RED": {"NR": 7, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "GREEN": {"NR": 8, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0}, "BLUE": {"NR": 9, "MASTER": "1", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0}}}
+1	1	{"DMX": 1, "UNIVERS": 2, "NAME": "F1", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": ""}}}
+2	2	{"DMX": 2, "UNIVERS": 2, "NAME": "F2", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": ""}}}
+3	3	{"DMX": 3, "UNIVERS": 2, "NAME": "F3", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": ""}}}
+4	4	{"DMX": 4, "UNIVERS": 2, "NAME": "F4", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": ""}}}
+11	11	{"DMX": 11, "UNIVERS": 2, "NAME": "FL", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": ""}}}
+24	24	{"DMX": 24, "UNIVERS": 2, "NAME": "P", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": ""}}}
+43	43	{"DMX": 43, "UNIVERS": 2, "NAME": "D43", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+44	44	{"DMX": 44, "UNIVERS": 2, "NAME": "D44", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+45	45	{"DMX": 45, "UNIVERS": 2, "NAME": "D45", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+46	46	{"DMX": 46, "UNIVERS": 2, "NAME": "D46", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+47	47	{"DMX": 47, "UNIVERS": 2, "NAME": "D47", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+48	48	{"DMX": 48, "UNIVERS": 2, "NAME": "D48", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+49	49	{"DMX": 49, "UNIVERS": 2, "NAME": "D49", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+50	50	{"DMX": 50, "UNIVERS": 2, "NAME": "D50", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+51	51	{"DMX": 51, "UNIVERS": 2, "NAME": "D51", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+52	52	{"DMX": 52, "UNIVERS": 2, "NAME": "D52", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+53	53	{"DMX": 53, "UNIVERS": 2, "NAME": "D53", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+54	54	{"DMX": 54, "UNIVERS": 2, "NAME": "D54", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+55	55	{"DMX": 55, "UNIVERS": 2, "NAME": "D55", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+56	56	{"DMX": 56, "UNIVERS": 2, "NAME": "D56", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+57	57	{"DMX": 57, "UNIVERS": 2, "NAME": "D57", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+58	58	{"DMX": 58, "UNIVERS": 2, "NAME": "D58", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+59	59	{"DMX": 59, "UNIVERS": 2, "NAME": "D59", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+60	60	{"DMX": 60, "UNIVERS": 2, "NAME": "D60", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+61	61	{"DMX": 61, "UNIVERS": 2, "NAME": "D61", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+62	62	{"DMX": 62, "UNIVERS": 2, "NAME": "D62", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+63	63	{"DMX": 63, "UNIVERS": 2, "NAME": "D63", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+64	64	{"DMX": 64, "UNIVERS": 2, "NAME": "D64", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+65	65	{"DMX": 65, "UNIVERS": 2, "NAME": "D65", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+66	66	{"DMX": 66, "UNIVERS": 2, "NAME": "D66", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+67	67	{"DMX": 67, "UNIVERS": 2, "NAME": "D67", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+68	68	{"DMX": 68, "UNIVERS": 2, "NAME": "D68", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+69	69	{"DMX": 69, "UNIVERS": 2, "NAME": "D69", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+70	70	{"DMX": 70, "UNIVERS": 2, "NAME": "D70", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+71	71	{"DMX": 71, "UNIVERS": 2, "NAME": "D71", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+72	72	{"DMX": 72, "UNIVERS": 2, "NAME": "D72", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+73	73	{"DMX": 73, "UNIVERS": 2, "NAME": "D73", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+74	74	{"DMX": 74, "UNIVERS": 2, "NAME": "D74", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+75	75	{"DMX": 75, "UNIVERS": 2, "NAME": "D75", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+76	76	{"DMX": 76, "UNIVERS": 2, "NAME": "D76", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+77	77	{"DMX": 77, "UNIVERS": 2, "NAME": "D77", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+78	78	{"DMX": 78, "UNIVERS": 2, "NAME": "D78", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+79	79	{"DMX": 79, "UNIVERS": 2, "NAME": "D79", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+80	80	{"DMX": 80, "UNIVERS": 2, "NAME": "D80", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+81	81	{"DMX": 81, "UNIVERS": 2, "NAME": "D81", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+82	82	{"DMX": 82, "UNIVERS": 2, "NAME": "D82", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+83	83	{"DMX": 83, "UNIVERS": 2, "NAME": "D83", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+84	84	{"DMX": 84, "UNIVERS": 2, "NAME": "D84", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+85	85	{"DMX": 85, "UNIVERS": 2, "NAME": "D85", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+86	86	{"DMX": 86, "UNIVERS": 2, "NAME": "D86", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+87	87	{"DMX": 87, "UNIVERS": 2, "NAME": "D87", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+88	88	{"DMX": 88, "UNIVERS": 2, "NAME": "D88", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+89	89	{"DMX": 89, "UNIVERS": 2, "NAME": "D89", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+90	90	{"DMX": 90, "UNIVERS": 2, "NAME": "D90", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+91	91	{"DMX": 91, "UNIVERS": 2, "NAME": "D91", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+92	92	{"DMX": 92, "UNIVERS": 2, "NAME": "D92", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+93	93	{"DMX": 93, "UNIVERS": 2, "NAME": "D93", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+94	94	{"DMX": 94, "UNIVERS": 2, "NAME": "D94", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+95	95	{"DMX": 95, "UNIVERS": 2, "NAME": "D95", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+96	96	{"DMX": 96, "UNIVERS": 2, "NAME": "D96", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+97	97	{"DMX": 97, "UNIVERS": 2, "NAME": "D97", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+98	98	{"DMX": 98, "UNIVERS": 2, "NAME": "D98", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+99	99	{"DMX": 99, "UNIVERS": 2, "NAME": "D99", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+100	100	{"DMX": 100, "UNIVERS": 2, "NAME": "D100", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+101	101	{"DMX": 101, "UNIVERS": 2, "NAME": "D101", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+102	102	{"DMX": 102, "UNIVERS": 2, "NAME": "D102", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+103	103	{"DMX": 103, "UNIVERS": 2, "NAME": "D103", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+104	104	{"DMX": 104, "UNIVERS": 2, "NAME": "D104", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+105	105	{"DMX": 105, "UNIVERS": 2, "NAME": "D105", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+106	106	{"DMX": 106, "UNIVERS": 2, "NAME": "D106", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+107	107	{"DMX": 107, "UNIVERS": 2, "NAME": "D107", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+108	108	{"DMX": 108, "UNIVERS": 2, "NAME": "D108", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+109	109	{"DMX": 109, "UNIVERS": 2, "NAME": "D109", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+110	110	{"DMX": 110, "UNIVERS": 2, "NAME": "D110", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+111	111	{"DMX": 111, "UNIVERS": 2, "NAME": "D111", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+112	112	{"DMX": 112, "UNIVERS": 2, "NAME": "D112", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+113	113	{"DMX": 113, "UNIVERS": 2, "NAME": "D113", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+114	114	{"DMX": 114, "UNIVERS": 2, "NAME": "D114", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+115	115	{"DMX": 115, "UNIVERS": 2, "NAME": "D115", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+116	116	{"DMX": 116, "UNIVERS": 2, "NAME": "D116", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+117	117	{"DMX": 117, "UNIVERS": 2, "NAME": "D117", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+118	118	{"DMX": 118, "UNIVERS": 2, "NAME": "D118", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+119	119	{"DMX": 119, "UNIVERS": 2, "NAME": "D119", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+120	120	{"DMX": 120, "UNIVERS": 2, "NAME": "D120", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+121	121	{"DMX": 121, "UNIVERS": 2, "NAME": "D121", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+122	122	{"DMX": 122, "UNIVERS": 2, "NAME": "D122", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+123	123	{"DMX": 123, "UNIVERS": 2, "NAME": "D123", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+124	124	{"DMX": 124, "UNIVERS": 2, "NAME": "D124", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+125	125	{"DMX": 125, "UNIVERS": 2, "NAME": "D125", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+126	126	{"DMX": 126, "UNIVERS": 2, "NAME": "D126", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}}}
+1001	1001	{"DMX": 401, "UNIVERS": 2, "NAME": "IRGB", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 45.21, "ACTIVE": 0, "FX": ""}, "RED": {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0, "FX": ""}, "GREEN": {"NR": 5, "MASTER": "", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0, "FX": ""}, "BLUE": {"NR": 6, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}}}
+3001	3001	{"DMX": 241, "UNIVERS": 2, "NAME": "MH-BEAM", "ATTRIBUT": {"SHUTTER": {"NR": 6, "MASTER": "", "MODE": "S", "VALUE": 217.8300000000003, "ACTIVE": 0, "FX": ""}, "VDIM": {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0, "FX": ""}, "PAN": {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 168.51000000000013, "ACTIVE": 0, "FX": ""}, "PAN-FINE": {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}, "TILT": {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 77.68000000000002, "ACTIVE": 0, "FX": ""}, "TILT-FINE": {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}, "RED": {"NR": 7, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0, "FX": ""}, "GREEN": {"NR": 8, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0, "FX": ""}, "BLUE": {"NR": 9, "MASTER": "1", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}}}
+3002	3002	{"DMX": 261, "UNIVERS": 2, "NAME": "MH-BEAM", "ATTRIBUT": {"SHUTTER": {"NR": 6, "MASTER": "", "MODE": "S", "VALUE": 217.8300000000003, "ACTIVE": 0, "FX": ""}, "VDIM": {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0, "ACTIVE": 0, "FX": ""}, "PAN": {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 168.51000000000013, "ACTIVE": 0, "FX": ""}, "PAN-FINE": {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}, "TILT": {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 77.68000000000002, "ACTIVE": 0, "FX": ""}, "TILT-FINE": {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}, "RED": {"NR": 7, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0, "FX": ""}, "GREEN": {"NR": 8, "MASTER": "1", "MODE": "F", "VALUE": 255.0, "ACTIVE": 0, "FX": ""}, "BLUE": {"NR": 9, "MASTER": "1", "MODE": "F", "VALUE": 127.0, "ACTIVE": 0, "FX": ""}}}

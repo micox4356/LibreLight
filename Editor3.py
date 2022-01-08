@@ -118,13 +118,21 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
 
     for row in data:
         if fx:
-            xcmd = row["FX"]
+            if value is not None: 
+                xcmd = str(value)+":"+row["FX"].split(":",1)[-1]
+            else:
+                xcmd = row["FX"]
         else:
             if row["VALUE"] is None:
                 xcmd = ""
             else:
-                    
-                xcmd = "{:0.4f}".format(row["VALUE"])
+                if value is not None: 
+                    if type(value) is float:
+                        xcmd = "{:0.4f}".format(value)
+                    else:
+                        xcmd = "{}".format(value)
+                else:
+                    xcmd = "{:0.4f}".format(row["VALUE"])
 
                 for arg in args:
                     if type(arg) is float:
@@ -132,6 +140,7 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
                     else:
                         xcmd += ":{:0.4f}".format(arg)
                 print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
+        xcmd += ":{}".format(row["ATTR"])
         cmd.append( xcmd)
     
     return cmd
@@ -144,7 +153,7 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
 
     try:
         if attr == "DIM" and data["ATTRIBUT"][attr]["NR"] < 0: #VDIM
-            print( "VDIM")
+            #print( "VDIM")
             for attr in data["ATTRIBUT"]:
                 dmx = data["DMX"]
                 if data["ATTRIBUT"][attr]["NR"] < 0: #virtual channels
@@ -692,11 +701,25 @@ class Xevent():
                         fcmd  = self.data.FIXTURES.update_raw(rdata)
                         #virtcmd  = self.data.FIXTURES.get_virtual(rdata)
 
-                        vvcmd = update_raw_dmx( rdata ) 
-                        fxcmd = update_raw_dmx( rdata ,fx=1) 
+
+                        xFLASH = 0
+                        value=None
+                        #global FADE
+                        #fade = FADE
+                        if FLASH or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
+                            xFLASH = 1
+                            fade = 0
+                            if str(event.type) == "ButtonRelease":
+                                if xFLASH:
+                                    value = "off"
+
+                        vvcmd = update_raw_dmx( rdata ,value,[fade] ) 
+                        fxcmd = update_raw_dmx( rdata ,value,[fade],fx=1) 
 
                         cmd = []
                         for vcmd,d in [[vvcmd,"d"],[fxcmd,"fx"]]:
+                            if xFLASH:
+                                d+="f"
                             for i,v in enumerate(fcmd):
                                 DMX = fcmd[i]["DMX"]
                                 if DMX and vcmd[i]:
@@ -1003,7 +1026,7 @@ class Fixtures(Base):
         cmd = []
         for i,d in enumerate(rdata):
             xcmd = {"DMX":""}
-            print(i,d)
+            #print("fix:",i,d)
             fix   = d["FIX"]
             attr  = d["ATTR"]
             v2    = d["VALUE"]
@@ -1095,13 +1118,11 @@ class Presets(Base):
         for fix in sdata:
             if fix == "CFG":
                 print("CFG",nr,sdata[fix])
-                #if "DMX" in sdata[fix]["DMX"]
-                print("CFG",nr,sdata[fix])
                 continue
 
             for attr in sdata[fix]:
                 x = {}
-                print("RAW",attr)
+                #print("RAW",attr)
                 x["FIX"]   = fix
                 x["ATTR"]  = attr
 

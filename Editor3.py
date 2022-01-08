@@ -495,6 +495,13 @@ class Xevent():
                     self.data.backup_presets()
                     self.data.backup_patch()
                 return 0
+            elif self.mode == "ROOT":
+                if event.keysym=="Escape":
+                    print("CLEAR")
+                    pass
+                    #STORE = 0
+                    #LABEL = 0
+
             elif self.mode == "INPUT":
                 print(self.data.entry.get())
                 if event.keycode == 36:
@@ -640,7 +647,7 @@ class Xevent():
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]["VALUE"]
                                 v2_fx = sdata[fix][attr]["FX"]
-                                print( self.data.elem_attr)
+                                #print( self.data.elem_attr)
                                 elem = self.data.elem_attr[fix][attr]
                                 #self#encoder(attr=attr,data=data,elem=elem,action="click")
                                 self.data.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
@@ -670,7 +677,22 @@ class Xevent():
                                         if v2 is not None:
                                             self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
-                                        if FLASH or sdata["CFG"]["BUTTON"] == "SEL": #FLASH
+                                        if sdata["CFG"]["BUTTON"] == "SEL": #FLASH
+
+                                            pdata = self.data.val_presets[nr]
+                                            cmd = ""
+                                            for fix in pdata:
+                                                if fix == "CFG":
+                                                    continue
+                                                for attr in pdata[fix]:
+                                                    v2 = pdata[fix][attr]["VALUE"]
+                                                    v2_fx = pdata[fix][attr]["FX"]
+                                                    #print( self.data.elem_attr)
+                                                    elem = self.data.elem_attr[fix][attr]
+                                                    #self#encoder(attr=attr,data=data,elem=elem,action="click")
+                                                    self.data.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                                                    elem["bg"] = "yellow"
+
 
                                         xFLASH = 0
                                         if FLASH or sdata["CFG"]["BUTTON"] == "FL": #FLASH
@@ -1351,6 +1373,7 @@ class Master():
     def render(self):
         r=0
         c=0
+        Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
         dim_frame = tk.Frame(frame_fix,bg="black")
         dim_frame.pack(fill=tk.X, side=tk.TOP)
         for fix in self.fixtures:

@@ -115,57 +115,63 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
     dmx = data["DMX"]
     val = None
     cmd=""
-    if attr == "VDIM":
-        for attr in data["ATTRIBUT"]:
-            dmx = data["DMX"]
-            if data["ATTRIBUT"][attr]["NR"] < 0: #virtual channels
-                continue
+
+    try:
+        if attr == "DIM" and data["ATTRIBUT"][attr]["NR"] < 0: #VDIM
+            print( "VDIM")
+            for attr in data["ATTRIBUT"]:
+                dmx = data["DMX"]
+                if data["ATTRIBUT"][attr]["NR"] < 0: #virtual channels
+                    continue
+                dmx += data["ATTRIBUT"][attr]["NR"]-1
+                mode = ""
+                if "MODE" in data["ATTRIBUT"][attr]:
+                    mode = data["ATTRIBUT"][attr]["MODE"]
+                #print(attr)
+                val = data["ATTRIBUT"][attr]["VALUE"]
+                if data["ATTRIBUT"][attr]["MASTER"]:
+                    val = val * (data["ATTRIBUT"]["DIM"]["VALUE"] / 255.)
+                    if val is not None:            
+                     
+                        #cmd += ",d{}:{:0.4f}".format(dmx,int(val))
+                        if value is not None:
+                            val = value
+                        if mode == "F": #FADE
+                            cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
+                        else:
+                            cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
+                        #print("cmd",cmd)
+                    
+            
+        elif data["ATTRIBUT"][attr]["NR"] > 0: 
             dmx += data["ATTRIBUT"][attr]["NR"]-1
+            val = data["ATTRIBUT"][attr]["VALUE"]
             mode = ""
             if "MODE" in data["ATTRIBUT"][attr]:
                 mode = data["ATTRIBUT"][attr]["MODE"]
-            #print(attr)
-            val = data["ATTRIBUT"][attr]["VALUE"]
+
             if data["ATTRIBUT"][attr]["MASTER"]:
-                val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
-                if val is not None:            
-                 
-                    #cmd += ",d{}:{:0.4f}".format(dmx,int(val))
-                    if value is not None:
-                        val = value
-                    if mode == "F": #FADE
-                        cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
-                    else:
-                        cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
-                    #print("cmd",cmd)
-                
-        
-    elif data["ATTRIBUT"][attr]["NR"] > 0: 
-        dmx += data["ATTRIBUT"][attr]["NR"]-1
-        val = data["ATTRIBUT"][attr]["VALUE"]
-        mode = ""
-        if "MODE" in data["ATTRIBUT"][attr]:
-            mode = data["ATTRIBUT"][attr]["MODE"]
+                #if "VDIM" in data["ATTRIBUT"]:
+                if "DIM" in data["ATTRIBUT"] and data["ATTRIBUT"]["DIM"]["NR"] < 0: #VDIM
+                    val = val * (data["ATTRIBUT"]["DIM"]["VALUE"] / 255.)
+            if val is not None:            
+                #cmd += ",d{}:{}".format(dmx,int(val))
+                if value is not None:
+                    val = value
+                if mode == "F": #FADE
+                    cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
+                else:
+                    cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
+                #print("cmd",cmd)
 
-        if data["ATTRIBUT"][attr]["MASTER"]:
-            if "VDIM" in data["ATTRIBUT"]:
-                val = val * (data["ATTRIBUT"]["VDIM"]["VALUE"] / 255.)
-        if val is not None:            
-            #cmd += ",d{}:{}".format(dmx,int(val))
-            if value is not None:
-                val = value
-            if mode == "F": #FADE
-                cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
-            else:
-                cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
-            #print("cmd",cmd)
+        if BLIND:
+            cmd=""
 
-    if not BLIND:
-        #client.send(cmd )
-        pass
-    else:
-        cmd=""
-    return cmd
+        return cmd
+    except Exception as e:
+        print("== cb EXCEPT",e)
+        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        raise e
 
 class dummy_event():
     def __init__(self):
@@ -497,7 +503,7 @@ class Xevent():
                 return 0
             elif self.mode == "ROOT":
                 if event.keysym=="Escape":
-                    print("CLEAR")
+                    
                     pass
                     #STORE = 0
                     #LABEL = 0

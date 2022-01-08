@@ -255,9 +255,9 @@ class Xevent():
                             self.data.elem_commands["STORE"]["bg"] = "grey"
 
                         else: 
-                            for fix in self.data.fixtures:
+                            for fix in self.data.FIXTURES.fixtures:
                                 print( "clr",fix)
-                                data = self.data.fixtures[fix]
+                                data = self.data.FIXTURES.fixtures[fix]
                                 #print("elm",self.data.elem_attr[fix])
                                 for attr in data["ATTRIBUT"]:
                                     if attr.endswith("-FINE"):
@@ -333,8 +333,8 @@ class Xevent():
                     if event.num == 1:
                         cmd = ""
                         offset = 0
-                        for fix in self.data.fixtures:
-                            data = self.data.fixtures[fix]
+                        for fix in self.data.FIXTURES.fixtures:
+                            data = self.data.FIXTURES.fixtures[fix]
                             #print( "ADD FX",fix)
                             for attr in data["ATTRIBUT"]:
                                 if attr.endswith("-FINE"):
@@ -386,8 +386,8 @@ class Xevent():
                     if event.num == 1:
                         client.send("fx0:alloff:,fxf:alloff:")
                         self.data.elem_commands[self.attr]["bg"] = "magenta"
-                        for fix in self.data.fixtures:
-                            data = self.data.fixtures[fix]
+                        for fix in self.data.FIXTURES.fixtures:
+                            data = self.data.FIXTURES.fixtures[fix]
                             for attr in data["ATTRIBUT"]:
                                 data["ATTRIBUT"][attr]["FX"] = ""
 
@@ -498,8 +498,8 @@ class Xevent():
                             self.data.elem_commands[self.attr]["bg"] = "red"
                         print("BLIND",self.data.val_commands)
                 elif self.attr == "BACKUP":
-                    self.data.backup_presets()
-                    self.data.backup_patch()
+                    self.data.PRESETS.backup_presets()
+                    self.data.FIXTURES.backup_patch()
                 return 0
             elif self.mode == "ROOT":
                 if event.keysym=="Escape":
@@ -543,8 +543,8 @@ class Xevent():
                         sdata["CFG"]["FADE"] = fade
                         sdata["CFG"]["DEALY"] = 0
                         sdata["CFG"]["BUTTON"] = "GO"
-                        for fix in self.data.fixtures:                            
-                            data = self.data.fixtures[fix]
+                        for fix in self.data.FIXTURES.fixtures:                            
+                            data = self.data.FIXTURES.fixtures[fix]
                             for attr in data["ATTRIBUT"]:
                                 if data["ATTRIBUT"][attr]["ACTIVE"]:
                                     if fix not in sdata:
@@ -564,7 +564,7 @@ class Xevent():
                     
                         print(sdata)
                         
-                        self.data.val_presets[nr] = sdata
+                        self.data.PRESETS.val_presets[nr] = sdata
                         if len(sdata) > 1:
                             fx_color = 0
                             val_color = 0
@@ -593,9 +593,9 @@ class Xevent():
                             self.data.elem_presets[nr]["bg"] = "grey"
                         #self.data.elem_presets[nr].option_add("*Font", FontBold)
                         label = ""
-                        if nr in self.data.label_presets:
+                        if nr in self.data.PRESETS.label_presets:
                             #print(dir(self.data))
-                            label = self.data.label_presets[nr]
+                            label = self.data.PRESETS.label_presets[nr]
 
                         BTN="go"
                         if "CFG" in sdata:#["BUTTON"] = "GO"
@@ -603,7 +603,7 @@ class Xevent():
                                 BTN = sdata["CFG"]["BUTTON"]
                         txt = str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label 
                         self.data.elem_presets[nr]["text"] = txt 
-                        print(self.data.val_presets)
+                        print(self.data.PRESETS.val_presets)
                            
                         self.data.val_commands["STORE"] = 0
                         STORE = 0
@@ -611,18 +611,18 @@ class Xevent():
                     elif CFG_BTN:
                         import tkinter.simpledialog
                         txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr))
-                        if "CFG" not in self.data.val_presets[nr]:
-                            self.data.val_presets[nr]["CFG"] = OrderedDict()
-                        if "BUTTON" not in self.data.val_presets[nr]["CFG"]:
-                            self.data.val_presets[nr]["CFG"]["BUTTON"] = ""
+                        if "CFG" not in self.data.PRESETS.val_presets[nr]:
+                            self.data.PRESETS.val_presets[nr]["CFG"] = OrderedDict()
+                        if "BUTTON" not in self.data.PRESETS.val_presets[nr]["CFG"]:
+                            self.data.PRESETS.val_presets[nr]["CFG"]["BUTTON"] = ""
 
-                        self.data.val_presets[nr]["CFG"]["BUTTON"] = txt
-                        sdata=self.data.val_presets[nr]
+                        self.data.PRESETS.val_presets[nr]["CFG"]["BUTTON"] = txt
+                        sdata=self.data.PRESETS.val_presets[nr]
                         BTN="go"
                         if "CFG" in sdata:#["BUTTON"] = "GO"
                             if "BUTTON" in sdata["CFG"]:
                                 BTN = sdata["CFG"]["BUTTON"]
-                        label = self.data.label_presets[nr] # = label
+                        label = self.data.PRESETS.label_presets[nr] # = label
                         txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
                         self.data.elem_presets[nr]["text"] = txt
                         CFG_BTN = 0
@@ -632,8 +632,8 @@ class Xevent():
                         import tkinter.simpledialog
                         label = tkinter.simpledialog.askstring("LABEL","Preset "+str(nr))
                         self.data.elem_presets[nr]["text"] = label
-                        self.data.label_presets[nr] = label
-                        sdata=self.data.val_presets[nr]
+                        self.data.PRESETS.label_presets[nr] = label
+                        sdata=self.data.PRESETS.val_presets[nr]
                         BTN="go"
                         if "CFG" in sdata:#["BUTTON"] = "GO"
                             if "BUTTON" in sdata["CFG"]:
@@ -645,7 +645,7 @@ class Xevent():
                         self.data.elem_commands["LABEL"]["bg"] = "lightgrey"
                     elif SELECT:
                         print("SELECT PRESET")
-                        sdata = self.data.val_presets[nr]
+                        sdata = self.data.PRESETS.val_presets[nr]
                         cmd = ""
                         for fix in sdata:
                             if fix == "CFG":
@@ -656,15 +656,15 @@ class Xevent():
                                 #print( self.data.elem_attr)
                                 elem = self.data.elem_attr[fix][attr]
                                 #self#encoder(attr=attr,data=data,elem=elem,action="click")
-                                self.data.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                                self.data.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                                 elem["bg"] = "yellow"
                     else:
                         print("GO PRESET")
-                        if nr not in self.data.val_presets:
-                            self.data.val_presets[nr] = OrderedDict()
-                            self.data.val_presets[nr]["VALUE"] = 0
-                            self.data.val_presets[nr]["FX"] = ""
-                        sdata = self.data.val_presets[nr]
+                        if nr not in self.data.PRESETS.val_presets:
+                            self.data.PRESETS.val_presets[nr] = OrderedDict()
+                            self.data.PRESETS.val_presets[nr]["VALUE"] = 0
+                            self.data.PRESETS.val_presets[nr]["FX"] = ""
+                        sdata = self.data.PRESETS.val_presets[nr]
                         cmd = ""
                         for fix in sdata:
                             if fix == "CFG":
@@ -672,20 +672,20 @@ class Xevent():
                             for attr in sdata[fix]:
                                 v2 = sdata[fix][attr]["VALUE"]
                                 v2_fx = sdata[fix][attr]["FX"]
-                                #print(fix,attr,v2, fix in self.data.fixtures,self.data.fixtures.keys(),2)
-                                if fix in self.data.fixtures:
-                                    #print("==",self.data.fixtures[fix]["ATTRIBUT"])
-                                    #print( "==", attr, self.data.fixtures[fix], self.data.fixtures.keys(),4 )
-                                    if attr in self.data.fixtures[fix]["ATTRIBUT"]:
+                                #print(fix,attr,v2, fix in self.data.FIXTURES.fixtures,self.data.FIXTURES.fixtures.keys(),2)
+                                if fix in self.data.FIXTURES.fixtures:
+                                    #print("==",self.data.FIXTURES.fixtures[fix]["ATTRIBUT"])
+                                    #print( "==", attr, self.data.FIXTURES.fixtures[fix], self.data.FIXTURES.fixtures.keys(),4 )
+                                    if attr in self.data.FIXTURES.fixtures[fix]["ATTRIBUT"]:
                                         #print( attr)
-                                        data = self.data.fixtures[fix]
-                                        v=self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
+                                        data = self.data.FIXTURES.fixtures[fix]
+                                        v=self.data.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
                                         if v2 is not None:
-                                            self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
+                                            self.data.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
                                         if sdata["CFG"]["BUTTON"] == "SEL": #FLASH
 
-                                            pdata = self.data.val_presets[nr]
+                                            pdata = self.data.PRESETS.val_presets[nr]
                                             cmd = ""
                                             for fix in pdata:
                                                 if fix == "CFG":
@@ -696,7 +696,7 @@ class Xevent():
                                                     #print( self.data.elem_attr)
                                                     elem = self.data.elem_attr[fix][attr]
                                                     #self#encoder(attr=attr,data=data,elem=elem,action="click")
-                                                    self.data.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                                                    self.data.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                                                     elem["bg"] = "yellow"
 
 
@@ -727,11 +727,11 @@ class Xevent():
                 if event.num == 3:
                     if not STORE:
                         print("GO PRESET")
-                        if nr not in self.data.val_presets:
-                            self.data.val_presets[nr] = OrderedDict()
-                            self.data.val_presets[nr]["VALUE"] = None
-                            self.data.val_presets[nr]["FX"] = ""
-                        sdata = self.data.val_presets[nr]
+                        if nr not in self.data.PRESETS.val_presets:
+                            self.data.PRESETS.val_presets[nr] = OrderedDict()
+                            self.data.PRESETS.val_presets[nr]["VALUE"] = None
+                            self.data.PRESETS.val_presets[nr]["FX"] = ""
+                        sdata = self.data.PRESETS.val_presets[nr]
                         cmd = ""
                         for fix in sdata:
                             if fix == "CFG":
@@ -740,13 +740,13 @@ class Xevent():
                                 v2 = sdata[fix][attr]["VALUE"]
                                 v2_fx = sdata[fix][attr]["FX"]
                                 #print(fix,attr,v)
-                                if fix in self.data.fixtures:
-                                    #print("==",self.data.fixtures[fix]["ATTRIBUT"])
-                                    if attr in self.data.fixtures[fix]["ATTRIBUT"]:
-                                        data = self.data.fixtures[fix]
-                                        v=self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
+                                if fix in self.data.FIXTURES.fixtures:
+                                    #print("==",self.data.FIXTURES.fixtures[fix]["ATTRIBUT"])
+                                    if attr in self.data.FIXTURES.fixtures[fix]["ATTRIBUT"]:
+                                        data = self.data.FIXTURES.fixtures[fix]
+                                        v=self.data.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["VALUE"]
                                         if v2 is not None:
-                                            self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
+                                            self.data.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
                                         if str(event.type) == "ButtonRelease":
                                             if FLASH :
@@ -771,8 +771,8 @@ class Xevent():
             if self.mode == "ENCODER":
                 #if self.attr == "VDIM":
                 #    self.attr = "DIM"
-                for fix in self.data.fixtures:
-                    data = self.data.fixtures[fix]
+                for fix in self.data.FIXTURES.fixtures:
+                    data = self.data.FIXTURES.fixtures[fix]
                     
                     for attr in data["ATTRIBUT"]:
                         if attr.endswith("-FINE"):
@@ -835,219 +835,18 @@ import copy
 frame_fix = tk.Frame(root,bg="lightblue",width="100px")
 frame_fix.pack(fill=tk.BOTH, side=tk.TOP)
 
-class Master():
+
+
+class Element():
     def __init__(self):
-        self.load()
-        self.all_attr =["DIM","VDIM","PAN","TILT"]
-        self.elem_attr = {}
-        
-        self.commands =["BLIND","CLEAR","STORE","EDIT","","CFG-BTN","LABEL","SELECT"
-                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE"
-                ,"STONY_FX","FX OFF", "FX:SIN","FX:COS","FX:CIR","SZ:","SP:","OF:"
-                ,"FX:BUM","FX:BUM-","FX:FD","FX:ON","FX:ON-","FX:ON2","FX:ON2-" ]
-        self.elem_commands = {}
-        self.val_commands = {}
-
-        self.elem_presets = {}
-        self.load_presets()
-        self.load_patch()
-        
-        for i in range(8*8):
-            if i not in self.val_presets:
-                name = "Preset:"+str(i+1)+":\nXYZ"
-                #self.presets[i] = [i]
-                self.val_presets[i] = OrderedDict() # FIX 
-                self.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
-                self.label_presets[i] = "-"
-
-  
-    def exit(self):
-        print("__del__",self)
-        self.backup_presets()
-        print("********************************************************")
-        self.backup_patch()
-        print("*********del",self,"***********************************************")
-    def load(self):
-        fixture = OrderedDict()
-
-        DATA = OrderedDict()
-        DATA["DIM"]   = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        fix = {"DMX": 20, "UNIVERS": 2, "NAME": "D", "ATTRIBUT": DATA}
-
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 1
-        fi["NAME"] = "F1"
-        fixture["1"] = fi
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 2
-        fi["NAME"] = "F2"
-        fixture["2"] = fi
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 3
-        fi["NAME"] = "F3"        
-        fixture["3"] = fi
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 4
-        fi["NAME"] = "F4"        
-        fixture["4"] = fi
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 11
-        fi["NAME"] = "FL"
-        fixture["11"] = fi
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 24
-        fi["NAME"] = "P"
-        fixture["24"] = fi
-        
-        DATA = OrderedDict()
-        DATA["DIM"]   = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["RED"]   = {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
-        DATA["GREEN"] = {"NR": 4, "MASTER": "", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
-        DATA["BLUE"]  = {"NR": 5, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        fix = {"DMX": 20, "UNIVERS": 2, "NAME": "IRGB", "ATTRIBUT": DATA}
-
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 401
-        fixture["1001"] = fi
-        
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 421
-        #fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
-        #fixture["1002"] = fi
-
-        fi = copy.deepcopy(fix)
-        fi["DMX"] = 441
-        #fi["ATTRIBUT"]["BLUE"]["VALUE"] = 22
-        #fixture["1003"] = fi
-        
-        DATA = OrderedDict()
-        DATA["VDIM"]  = {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["RED"]   = {"NR": 2, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
-        DATA["GREEN"] = {"NR": 1, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
-        DATA["BLUE"]  = {"NR": 0, "MASTER": "1", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        fix3 = {"DMX": 20, "UNIVERS": 2, "NAME": "V+RGB", "ATTRIBUT": DATA}
-
-
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 330
-        #fixture["2001"] = fi
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 335
-        #fixture["2002"] = fi
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 240
-        #fixture["2003"] = fi
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 245
-        #fixture["2004"] = fi
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 250
-        #fixture["2005"] = fi
-        fi = copy.deepcopy(fix3)
-        fi["DMX"] = 355
-        #fixture["2006"] = fi
-
+        self.__data = {}
+    def set(self,key,val):
+        self.__data[key] = val
 
         
-        DATA = OrderedDict()
-        DATA["SHUTTER"]  = {"NR": 5,  "MASTER": "", "MODE": "S", "VALUE": 5.0,"ACTIVE":0}
-        DATA["VDIM"]     = {"NR": -1, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["PAN"]      = {"NR": 0, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["PAN-FINE"] = {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["TILT"]     = {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["TILT-FINE"]= {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["RED"]      = {"NR": 6, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
-        DATA["GREEN"]    = {"NR": 7, "MASTER": "1", "MODE": "F", "VALUE": 255.0,"ACTIVE":0}
-        DATA["BLUE"]     = {"NR": 8, "MASTER": "1", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        fixTMH = {"DMX": 20, "UNIVERS": 2, "NAME": "MH-BEAM", "ATTRIBUT": DATA}
-
-        fi = copy.deepcopy(fixTMH)
-        fi["DMX"] = 241
-        fixture["3001"] = fi
-
-        fi = copy.deepcopy(fixTMH)
-        fi["DMX"] = 261
-        fixture["3002"] = fi
-
-         
-        DATA = OrderedDict()
-        DATA["DIM"]  = {"NR": 17, "MASTER": "1", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["PAN"]   = {"NR": 0, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["PAN-FINE"]   = {"NR": 1, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["TILT"]  = {"NR": 2, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["TILT-FINE"]  = {"NR": 3, "MASTER": "", "MODE": "F", "VALUE": 127.0,"ACTIVE":0}
-        DATA["COLOR"]   = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
-        DATA["GOBO"] = {"NR": 9, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
-        DATA["G-ROT"]  = {"NR": 8, "MASTER": "", "MODE": "S", "VALUE": 192.0,"ACTIVE":0}
-        DATA["PRISMA"] = {"NR": 10, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
-        DATA["P-ROT"] = {"NR": 11, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
-        DATA["FOCUS"] = {"NR": 14, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["ZOOM"] = {"NR": 13, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["FROST"] = {"NR": 15, "MASTER": "", "MODE": "F", "VALUE": 0.0,"ACTIVE":0}
-        DATA["SHUTTER"] = {"NR": 16, "MASTER": "", "MODE": "S", "VALUE": 0.0,"ACTIVE":0}
-        DATA["CONTROL"]  = {"NR": 5, "MASTER": "", "MODE": "S", "VALUE": 5.0,"ACTIVE":0}
-        fixREUSH = {"DMX": 300, "UNIVERS": 2, "NAME": "RUSH-BEAM", "ATTRIBUT": DATA}
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 220
-        fixture["701"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 201
-        fixture["702"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 277
-        fixture["703"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 296
-        fixture["704"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 239
-        fixture["705"] = fi
-
-        fi = copy.deepcopy(fixREUSH)
-        fi["DMX"] = 258
-        fixture["706"] = fi
-        
-
-        
-       
-        #self.fixtures = fixture
-        
-        
-    def load_patch(self):
-        filename="patch"
-        d,l = self._load(filename)
-        self.fixtures = OrderedDict()
-        for i in l:
-            sdata = d[i]
-            for attr in sdata["ATTRIBUT"]:
-                sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
-            print("load",filename,sdata)
-            #if "CFG" not in sdata:
-            #    sdata["CFG"] = OrderedDict()
-            self.fixtures[str(i)] = sdata
-        #self.label_presets = l
-        
-    def load_presets(self):
-        filename="presets"
-        d,l = self._load(filename)
-        for i in d:
-            sdata = d[i]
-            if "CFG" not in sdata:
-                sdata["CFG"] = OrderedDict()
-            if "FADE" not in sdata["CFG"]:
-                sdata["CFG"]["FADE"] = 4
-            if "DELAY" not in sdata["CFG"]:
-                sdata["CFG"]["DELAY"] = 0
-            if "BUTTON" not in sdata["CFG"]:
-                sdata["CFG"]["BUTTON"] = "GO"
-        self.val_presets = d
-        self.label_presets = l
-        
+class Base():
+    def __init__(self):
+        pass
     def _load(self,filename):
         xfname = "show/"+show_name+"/"+str(filename)+".sav"
         print("load",xfname)
@@ -1065,7 +864,7 @@ class Master():
             #print(line)
             jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
             nrnull = 0
-            if "ATTRIBUT" in jdata:  # translate old fixtures start with 0 to 1          
+            if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
                 for attr in jdata["ATTRIBUT"]:
                     if "NR" in jdata["ATTRIBUT"][attr]:
                         nr = jdata["ATTRIBUT"][attr]["NR"]
@@ -1085,20 +884,7 @@ class Master():
             labels[key] = label
             
         return data,labels
-        
-    def backup_patch(self):
-        filename = "patch"
-        data  = self.fixtures
-        labels = {}
-        for k in data:
-            labels[k] = k
-        self._backup(filename,data,labels)
-    def backup_presets(self):
-        filename = "presets"
-        data   = self.val_presets
-        labels = self.label_presets
-        self._backup(filename,data,labels)
-        
+
     def _backup(self,filename,data,labels):
         #fixture
         xfname = "show/"+show_name+"/"+str(filename)+".sav"
@@ -1116,6 +902,108 @@ class Master():
             f.write( "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) )
         f.close()
             
+
+class Fixtures(Base):
+    def __init__(self):
+        super().__init__() 
+        #self.load()
+        self.fixtures = OrderedDict()
+
+        
+    def load_patch(self):
+        filename="patch"
+        d,l = self._load(filename)
+        self.fixtures = OrderedDict()
+        for i in l:
+            sdata = d[i]
+            for attr in sdata["ATTRIBUT"]:
+                sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
+            print("load",filename,sdata)
+            #if "CFG" not in sdata:
+            #    sdata["CFG"] = OrderedDict()
+            self.fixtures[str(i)] = sdata
+        #self.PRESETS.label_presets = l
+
+    def backup_patch(self):
+        filename = "patch"
+        data  = self.fixtures
+        labels = {}
+        for k in data:
+            labels[k] = k
+        self._backup(filename,data,labels)
+
+
+class Presets(Base):
+    def __init__(self):
+        super().__init__() 
+        #self.load()
+        self.fixtures = OrderedDict()
+
+    def load_presets(self):
+        filename="presets"
+        d,l = self._load(filename)
+        for i in d:
+            sdata = d[i]
+            if "CFG" not in sdata:
+                sdata["CFG"] = OrderedDict()
+            if "FADE" not in sdata["CFG"]:
+                sdata["CFG"]["FADE"] = 4
+            if "DELAY" not in sdata["CFG"]:
+                sdata["CFG"]["DELAY"] = 0
+            if "BUTTON" not in sdata["CFG"]:
+                sdata["CFG"]["BUTTON"] = "GO"
+        self.val_presets = d
+        self.label_presets = l
+        
+        
+    def backup_presets(self):
+        filename = "presets"
+        data   = self.val_presets
+        labels = self.label_presets
+        self._backup(filename,data,labels)
+        
+
+
+
+class GUI(Base):
+    def __init__(self):
+        super().__init__() 
+        self.load()
+
+        self.all_attr =["DIM","VDIM","PAN","TILT"]
+        self.elem_attr = {}
+        
+        self.commands =["BLIND","CLEAR","STORE","EDIT","","CFG-BTN","LABEL","SELECT"
+                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE"
+                ,"STONY_FX","FX OFF", "FX:SIN","FX:COS","FX:CIR","SZ:","SP:","OF:"
+                ,"FX:BUM","FX:BUM-","FX:FD","FX:ON","FX:ON-","FX:ON2","FX:ON2-" ]
+        self.elem_commands = {}
+        self.val_commands = {}
+
+        self.elem_presets = {}
+        self.PRESETS = Presets()
+        self.PRESETS.load_presets()
+        self.FIXTURES = Fixtures()
+        self.FIXTURES.load_patch()
+        
+        for i in range(8*8):
+            if i not in self.PRESETS.val_presets:
+                name = "Preset:"+str(i+1)+":\nXYZ"
+                #self.presets[i] = [i]
+                self.PRESETS.val_presets[i] = OrderedDict() # FIX 
+                self.PRESETS.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
+                self.PRESETS.label_presets[i] = "-"
+
+  
+    def load(self,fname=""):
+        pass
+    def exit(self):
+        print("__del__",self)
+        self.PRESETS.backup_presets()
+        print("********************************************************")
+        self.FIXTURES.backup_patch()
+        print("*********del",self,"***********************************************")
+        
     def draw_dim(self,fix,data,c=0,r=0,frame=None):
         i=0
         if frame is None:
@@ -1285,14 +1173,14 @@ class Master():
         #b.bind("<Button>",Xevent(elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         r+=1      
-        for k in self.val_presets:
+        for k in self.PRESETS.val_presets:
             v=0
             label = ""
-            if k in self.label_presets:
-                label = self.label_presets[k]
+            if k in self.PRESETS.label_presets:
+                label = self.PRESETS.label_presets[k]
                 print([label])
 
-            sdata=self.val_presets[k]
+            sdata=self.PRESETS.val_presets[k]
             BTN="go"
             if "CFG" in sdata:#["BUTTON"] = "GO"
                 if "BUTTON" in sdata["CFG"]:
@@ -1302,9 +1190,9 @@ class Master():
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             
-            if k in self.val_presets and len(self.val_presets[k]) :
+            if k in self.PRESETS.val_presets and len(self.PRESETS.val_presets[k]) :
                 b["bg"] = "yellow"
-                sdata = self.val_presets[k]
+                sdata = self.PRESETS.val_presets[k]
                 if len(sdata) > 1:
                     fx_color = 0
                     val_color = 0
@@ -1333,7 +1221,7 @@ class Master():
             
             if k not in self.elem_presets:
                 self.elem_presets[k] = b
-                #self.val_presets[preset] = 0
+                #self.PRESETS.val_presets[preset] = 0
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
@@ -1382,8 +1270,8 @@ class Master():
         Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
         dim_frame = tk.Frame(frame_fix,bg="black")
         dim_frame.pack(fill=tk.X, side=tk.TOP)
-        for fix in self.fixtures:
-            data = self.fixtures[fix]
+        for fix in self.FIXTURES.fixtures:
+            data = self.FIXTURES.fixtures[fix]
             print( fix )
             
             if(len(data["ATTRIBUT"].keys()) <= 1):
@@ -1396,7 +1284,7 @@ class Master():
         self.draw_preset()
         
 try:
-    master =Master()
+    master =GUI()
     master.render()
 
     root.mainloop()

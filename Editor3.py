@@ -119,6 +119,7 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
     for row in data:
         if fx:
             if value is not None: 
+                # z.b. flush off
                 xcmd = str(value)+":"+row["FX"].split(":",1)[-1]
             else:
                 xcmd = row["FX"]
@@ -139,8 +140,8 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
                         xcmd += ":{}".format(arg)
                     else:
                         xcmd += ":{:0.4f}".format(arg)
-                print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
-        xcmd += ":{}".format(row["ATTR"])
+                #print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
+        #xcmd += ":{}".format(row["ATTR"])
         cmd.append( xcmd)
     
     return cmd
@@ -544,7 +545,7 @@ class Xevent():
                     #LABEL = 0
 
             elif self.mode == "INPUT":
-                print(self.data.entry.get())
+                print("INP",self.data.entry.get())
                 if event.keycode == 36:
                     x=self.data.entry.get()
                     client.send(x)
@@ -553,14 +554,14 @@ class Xevent():
                 #self.data
                 #chat.send("")
             elif self.mode == "INPUT2":
-                print(self.data.entry2.get())
+                print("INP2",self.data.entry2.get())
                 if event.keycode == 36:
                     x=self.data.entry2.get()
                     client.send(x)
                     #self.data.entry.clean()
 
             elif self.mode == "INPUT3":
-                print(self.data.entry3.get())
+                print("INP3",self.data.entry3.get())
                 if event.keycode == 36:
                     x=self.data.entry3.get()
                     client.send(x)
@@ -597,7 +598,7 @@ class Xevent():
                                         
                                         sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
                     
-                        print(sdata)
+                        print("sdata",sdata)
                         
                         self.data.PRESETS.val_presets[nr] = sdata
                         if len(sdata) > 1:
@@ -638,7 +639,7 @@ class Xevent():
                                 BTN = sdata["CFG"]["BUTTON"]
                         txt = str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label 
                         self.data.elem_presets[nr]["text"] = txt 
-                        print(self.data.PRESETS.val_presets)
+                        print("GO CFG ",self.data.PRESETS.val_presets)
                            
                         self.data.val_commands["STORE"] = 0
                         STORE = 0
@@ -704,17 +705,16 @@ class Xevent():
 
                         xFLASH = 0
                         value=None
-                        #global FADE
-                        #fade = FADE
+                        xfade = fade
                         if FLASH or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
                             xFLASH = 1
-                            fade = 0
+                            xfade = 0
                             if str(event.type) == "ButtonRelease":
                                 if xFLASH:
                                     value = "off"
 
-                        vvcmd = update_raw_dmx( rdata ,value,[fade] ) 
-                        fxcmd = update_raw_dmx( rdata ,value,[fade],fx=1) 
+                        vvcmd = update_raw_dmx( rdata ,value,[xfade] ) 
+                        fxcmd = update_raw_dmx( rdata ,value,[xfade],fx=1) 
 
                         cmd = []
                         for vcmd,d in [[vvcmd,"d"],[fxcmd,"fx"]]:
@@ -776,7 +776,7 @@ class Xevent():
                         rdata = self.data.PRESETS.get_raw_map(nr) 
                         cmd = ""
                         for i,d in enumerate(rdata):
-                            print(i,d)
+                            print("i,d",i,d)
                             fix   = d["FIX"]
                             attr  = d["ATTR"]
                             v2    = d["VALUE"]
@@ -989,7 +989,7 @@ class GUIHandler():
         #print("GUIHandler",fix,attr,args)
         for i,k in enumerate(args):
             v = args[k] 
-            print( i,k,v)
+            #print("GUI-H", i,k,v)
             
 class Fixtures(Base):
     def __init__(self):
@@ -1053,7 +1053,7 @@ class Fixtures(Base):
                     for a in ATTR:
                         if ATTR[a]["MASTER"]:
                             xcmd["VIRTUAL"][a] = sDMX+ATTR[a]["NR"]-1
-                    print( "VIRTUAL",xcmd)
+                    #print( "VIRTUAL",xcmd)
 
 
             cmd.append(xcmd)
@@ -1117,7 +1117,7 @@ class Presets(Base):
         dmx=-1
         for fix in sdata:
             if fix == "CFG":
-                print("CFG",nr,sdata[fix])
+                #print("CFG",nr,sdata[fix])
                 continue
 
             for attr in sdata[fix]:

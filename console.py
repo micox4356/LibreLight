@@ -175,20 +175,53 @@ class FX():
         self.__clock = clock
         self.__clock_curr = clock
         self.run = 1
+        self.__angel = self.__clock_curr*360%360
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} Clock:{:0.2f} run:{}>".format( 
-                    self.next(),self.__xtype, self.__size,self.__speed,self.__clock_curr,self.run )
+        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} Clock:{:0.2f} run:{}>".format( 
+                    self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__clock_curr,self.run )
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
-        t = self.__clock_curr * self.__speed / 255
-        t += self.__offset / 255
+        t = self.__clock_curr  * self.__speed / 255
+        t += self.__offset / 1024 #255
+        self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
+        #t = self.__angel * self.__speed / 255 #a255
+        #t += self.__offset / 255
+        rad = math.radians(self.__angel)
+        #print("{:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(self.__angel ,self.__clock_curr,self.__angel ,math.sin(rad) ) )
         if self.__xtype == "sinus":
-            return math.sin( t ) * self.__size
+            return math.sin( rad ) * self.__size 
         elif self.__xtype == "cosinus":
-            return math.cos( t ) * self.__size
+            return math.cos( rad ) * self.__size
+        elif self.__xtype == "on2-":
+            if self.__angel > 0 and self.__angel <=180:
+                return 0
+            return self.__size*-1
+        elif self.__xtype == "on-":
+            if self.__angel > 0 and self.__angel <=180:
+                return self.__size*-1
+            return 0
+        elif self.__xtype == "on2":
+            if self.__angel > 0 and self.__angel <=180:
+                return 0
+            return self.__size
+        elif self.__xtype == "on":
+            if self.__angel > 0 and self.__angel <=180:
+                return self.__size
+            return 0
+        elif self.__xtype == "bump":
+            return t%1 * self.__size
+        elif self.__xtype == "bump-":
+            #if int(t)/2 %1: # t gerade
+            return t*-1%1 * self.__size
+            #return 0
+        elif self.__xtype == "fade":
+            if int(t)/2 %1: # t gerade
+                return t%1 * self.__size 
+            else:
+                return t*-1%1 * self.__size 
         else:
             return 0
 
@@ -416,7 +449,7 @@ def CB(data):
                     #Bdmx[k].fade(target=v,time=t, clock=c)
                     Bdmx[k].fx(xtype=xtype,size=size,speed=speed,offset=offset,clock=c)
             except Exception as e:
-                print("EXCEPTION IN FX",xcdm,e)
+                print("EXCEPTION IN FX",xcmd,e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 

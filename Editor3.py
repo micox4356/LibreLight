@@ -72,6 +72,7 @@ STORE = 0
 FLASH = 0
 STONY_FX = 0
 LABEL = 0
+SELECT = 0
 CFG_BTN = 0
 POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
@@ -233,6 +234,7 @@ class Xevent():
             global FLASH
             global STONY_FX
             global LABEL
+            global SELECT
             global CFG_BTN
             change = 0
             
@@ -334,14 +336,31 @@ class Xevent():
 
                                 fx=""
                                 if "SIN" in self.attr:
-                                    fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                    fx = "sinus"
+                                elif "FD" in self.attr:
+                                    fx = "fade"
+                                elif "ON2-" in self.attr:
+                                    fx = "on2-"
+                                elif "ON-" in self.attr:
+                                    fx = "on-"
+                                elif "ON2" in self.attr:
+                                    fx = "on2"
+                                elif "ON" in self.attr:
+                                    fx = "on"
+                                elif "BUM-" in self.attr:
+                                    fx = "bump-"
+                                elif "BUM" in self.attr:
+                                    fx = "bump"
                                 elif "COS" in self.attr:
-                                    fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
-                                elif "CIR" in self.attr:
-                                    if attr == "PAN":
-                                        fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
-                                    if attr == "TILT":
-                                        fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                    fx = "cosinus"
+                                if fx:
+                                    fx += ":{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                else:
+                                    if "CIR" in self.attr:
+                                        if attr == "PAN":
+                                            fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                        if attr == "TILT":
+                                           fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
 
                                 if "FX" not in data["ATTRIBUT"][attr]:
                                     data["ATTRIBUT"][attr]["FX"] =""
@@ -429,6 +448,16 @@ class Xevent():
                             self.data.elem_commands[self.attr]["bg"] = "lightgrey"
                         else:
                             CFG_BTN = 1
+                            self.data.elem_commands[self.attr]["bg"] = "red"
+                elif self.attr == "SELECT":
+                    global SELECT
+                    #global CFG_BTN
+                    if event.num == 1:
+                        if SELECT:
+                            SELECT = 0
+                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                        else:
+                            SELECT = 1
                             self.data.elem_commands[self.attr]["bg"] = "red"
                 elif self.attr == "LABEL":
                     global LABEL
@@ -601,6 +630,21 @@ class Xevent():
                         self.data.elem_presets[nr]["text"] = txt
                         LABEL = 0
                         self.data.elem_commands["LABEL"]["bg"] = "lightgrey"
+                    elif SELECT:
+                        print("SELECT PRESET")
+                        sdata = self.data.val_presets[nr]
+                        cmd = ""
+                        for fix in sdata:
+                            if fix == "CFG":
+                                continue
+                            for attr in sdata[fix]:
+                                v2 = sdata[fix][attr]["VALUE"]
+                                v2_fx = sdata[fix][attr]["FX"]
+                                print( self.data.elem_attr)
+                                elem = self.data.elem_attr[fix][attr]
+                                #self#encoder(attr=attr,data=data,elem=elem,action="click")
+                                self.data.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                                elem["bg"] = "yellow"
                     else:
                         print("GO PRESET")
                         if nr not in self.data.val_presets:
@@ -626,6 +670,8 @@ class Xevent():
                                         if v2 is not None:
                                             self.data.fixtures[fix]["ATTRIBUT"][attr]["VALUE"] = v2
                                         self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
+                                        if FLASH or sdata["CFG"]["BUTTON"] == "SEL": #FLASH
+
                                         xFLASH = 0
                                         if FLASH or sdata["CFG"]["BUTTON"] == "FL": #FLASH
                                             xFLASH = 1
@@ -767,9 +813,10 @@ class Master():
         self.all_attr =["DIM","VDIM","PAN","TILT"]
         self.elem_attr = {}
         
-        self.commands =["BLIND","CLEAR","STORE","EDIT","","CFG-BTN","LABEL"
-                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE",
-                "STONY_FX","FX OFF", "FX:SIN","FX:COS","FX:CIR","SZ:","SP:","OF:"]
+        self.commands =["BLIND","CLEAR","STORE","EDIT","","CFG-BTN","LABEL","SELECT"
+                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE"
+                ,"STONY_FX","FX OFF", "FX:SIN","FX:COS","FX:CIR","SZ:","SP:","OF:"
+                ,"FX:BUM","FX:BUM-","FX:FD","FX:ON","FX:ON-","FX:ON2","FX:ON2-" ]
         self.elem_commands = {}
         self.val_commands = {}
 

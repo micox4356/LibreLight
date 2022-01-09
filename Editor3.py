@@ -19,15 +19,23 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 
 (c) 2012 micha.rathfelder@gmail.com
 """
+import random
+rnd_id = random.randint(1000,9000)
+try:
+    xtitle = __file__
+except:
+    xtitle = "__file__"
+
+if "/" in xtitle:
+    xtitle = xtitle.split("/")[-1]
 import sys
-if "__file__" in dir():
-    sys.stdout.write("\x1b]2;"+str(__file__)+"\x07") # terminal title
-else:
-    sys.stdout.write("\x1b]2;"+str("__file__")+"\x07") # terminal title
+
+sys.stdout.write("\x1b]2;"+str(xtitle)+" "+str(rnd_id)+"\x07") # terminal title
 
 import json
 import time
 import sys
+
 import _thread as thread
 import traceback
 
@@ -38,25 +46,6 @@ from tkinter import font
 
 import lib.chat as chat
 import lib.motion as motion
-
-Xroot = tk.Tk()
-Xroot["bg"] = "black" #white
-Xroot.title( __file__)
-
-
-root = tk.Frame(Xroot,bg="black",width="100px")
-root.pack(fill=tk.BOTH, side=tk.LEFT)
-root3 = tk.Frame(Xroot,bg="black",width="20px")
-root3.pack(fill=tk.BOTH, side=tk.LEFT)
-root2 = tk.Frame(Xroot,bg="black",width="1px")
-root2.pack(fill=tk.BOTH, side=tk.LEFT)
-
-#default_font = font.Font(family='Helvetica', size=12, weight='bold')
-Font = font.Font(family='Helvetica', size=9, weight='normal')
-FontBold = font.Font(family='Helvetica', size=10, weight='bold')
-#default_font.configure(size=9)
-Xroot.option_add("*Font", FontBold)
-
 
 from collections import OrderedDict
 
@@ -260,7 +249,8 @@ class Xevent():
             
             cmd=update_dmx(attr=attr,data=data,args=[0])
             #data["ATTRIBUT"][attr]["VALUE"] = v2
-            client.send(cmd)
+            if cmd and not BLIND:
+                client.send(cmd)
 
         
 
@@ -703,9 +693,6 @@ def wheel(event,d=None):
     
 import copy
 
-frame_fix = tk.Frame(root,bg="lightblue",width="100px")
-frame_fix.pack(fill=tk.BOTH, side=tk.TOP)
-
 
 
 class Element():
@@ -864,7 +851,6 @@ class Presets(Base):
     def __init__(self):
         super().__init__() 
         #self.load()
-        self.fixtures = OrderedDict()
 
     def load_presets(self):
         filename="presets"
@@ -924,8 +910,163 @@ class Presets(Base):
 
                 out.append(x)
         return out
-                
 
+class GUI_grid():
+    def __init__(self,root,data,title="tilte",width=800):
+
+        self.data = data
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        r=0
+        c=0
+        i=1
+        for row in data:
+
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=4)
+            #self.b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            c+=1
+            if c % 8 == 0:
+                r+=1
+                c=0
+            i+=1
+        self.frame.pack()
+
+class BEvent():
+    def __init__(self,data,cb):
+        self._data = data
+        self._cb = cb
+    def cb(self,event):
+        #print(self,event)
+        self._cb(event,self._data)
+
+class GUI_menu():
+    def __init__(self,root,data,title="tilte",width=800):
+        global tk
+        self.data = data
+
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        r=0
+        c=0
+        i=1
+        self.b = tk.Label(self.frame,bg="blue", text="MAIN:MENU",width=11,height=1)
+        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        r+=1
+        for row in data:
+            #print(i)
+            #row = data[i]
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=3)
+            self.b.bind("<Button>",BEvent({"NR":i},self.callback).cb)
+            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            r+=1
+            i+=1
+        self.frame.pack()
+    def callback(self,event,data={}):
+        print(self,event,data)
+        window_manager.top(data["NR"])# = WindowManager()
+
+
+class GUIWindow():
+    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
+        if master: 
+            self.tk = tkinter.Tk() #Toplevel()
+        else:
+            self.tk = tkinter.Toplevel()
+
+        self.tk.title(""+str(title)+" "+str(rnd_id))
+        #self.tk.geometry("270x600+0+65")
+        geo ="{}x{}".format(width,height)
+        if left is not None:
+            geo += "+{}".format(left)
+            if top is not None:
+                geo += "+{}".format(top)
+
+        self.tk.geometry(geo)
+    def show(self):
+        pass
+        #self.frame.pack()
+    def mainloop(self):
+        self.tk.mainloop()
+    def callback(self,event,data={}):
+        print(self,event,data)
+        
+class WindowManager():
+    def __init__(self):
+        self.windows = []
+    def new(self,w):
+        #w = GUIWindow(name)
+        self.windows.append(w)
+        #w.show()
+    def mainloop(self):
+        self.windows[0].mainloop()
+    def top(self,nr):
+        nr += 1
+        if len(self.windows) > nr:
+            self.windows[nr].tk.attributes('-topmost',True)
+            self.windows[nr].tk.attributes('-topmost',False)
+
+window_manager = WindowManager()
+
+w = GUIWindow("MAIN",master=1,width=135,height=500,left=0,top=65)
+data = []
+data.append({"text":"Command"})
+data.append({"text":"Executer"})
+data.append({"text":"Dimmer"})
+data.append({"text":"Fixtures"})
+data.append({"text":"Preset"})
+f = GUI_menu(w.tk,data)
+window_manager.new(w)
+
+w = GUIWindow("GRID",master=0,width=1000,height=200,left=232,top=65)
+data = []
+for i in range(10):
+    data.append({"text":"P {:02}".format(i+1)})
+w = GUI_grid(w.tk,data)
+window_manager.new(w)
+
+w = GUIWindow("COMMAND",master=0,width=800,height=140,left=140,top=610)
+frame_cmd = w.tk
+window_manager.new(w)
+
+w = GUIWindow("EXEC",master=0,width=800,height=550,left=140,top=65)
+frame_exe = w.tk
+window_manager.new(w)
+
+w = GUIWindow("DIMMER",master=0,width=800,height=550,left=140,top=65)
+frame_dim = w.tk
+window_manager.new(w)
+
+w = GUIWindow("FIXTURS",master=0,width=800,height=550,left=140,top=65)
+frame_fix = w.tk
+window_manager.new(w)
+
+#Xroot = tk.Tk()
+#Xroot["bg"] = "black" #white
+#Xroot.title( xtitle+" "+str(rnd_id) )
+#Xroot.geometry("1024x800+130+65")
+
+
+ww = GUIWindow("OLD",master=0,width=600,height=200,left=135,top=75)
+Xroot = ww.tk
+w = None
+root = tk.Frame(Xroot,bg="black",width="10px")
+root.pack(fill=tk.BOTH, side=tk.LEFT)
+root3 = tk.Frame(Xroot,bg="black",width="20px")
+root3.pack(fill=tk.BOTH, side=tk.LEFT)
+root2 = tk.Frame(Xroot,bg="black",width="1px")
+root2.pack(fill=tk.BOTH, side=tk.LEFT)
+
+#default_font = font.Font(family='Helvetica', size=12, weight='bold')
+Font = font.Font(family='Helvetica', size=9, weight='normal')
+FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+#default_font.configure(size=9)
+Xroot.option_add("*Font", FontBold)
+
+
+
+#w = frame_fix #GUIWindow("OLD",master=0,width=800,height=500,left=130,top=65)
+window_manager.new(w)
 
 class GUI(Base):
     def __init__(self):
@@ -988,11 +1129,14 @@ class GUI(Base):
         STORE = 0
         self.elem_commands["STORE"]["bg"] = "lightgrey"
 
+        CFG = OrderedDict()
+        if "CFG" in self.PRESETS.val_presets[nr]: #["CFG"] 
+            CFG = self.PRESETS.val_presets[nr]["CFG"] 
         sdata = {}
-        sdata["CFG"] = OrderedDict()
+        sdata["CFG"] = CFG # OrderedDict()
         sdata["CFG"]["FADE"] = fade
         sdata["CFG"]["DEALY"] = 0
-        sdata["CFG"]["BUTTON"] = "GO"
+        #sdata["CFG"]["BUTTON"] = "GO"
         for fix in self.FIXTURES.fixtures:                            
             data = self.FIXTURES.fixtures[fix]
             for attr in data["ATTRIBUT"]:
@@ -1084,7 +1228,10 @@ class GUI(Base):
         xFLASH = 0
         value=None
         #xfade = fade
-        if FLASH or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
+        if FLASH or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL"): #FLASH
+            self.preset_select(nr)
+            return 0
+        elif FLASH or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
             xFLASH = 1
             xfade = 0
             if event:
@@ -1114,7 +1261,7 @@ class GUI(Base):
 
         cmd = "".join(cmd)
         print("cmd",cmd) 
-        if cmd:
+        if cmd and not BLIND:
             client.send(cmd )
         
         self.refresh_gui()
@@ -1156,38 +1303,56 @@ class GUI(Base):
                 c=0
                 r+=1
         return c,r
-    def draw_fix(self,fix,data):
+    def draw_fix(self):
+        r=0
+        c=0
+        root = frame_dim
+        dim_frame = tk.Frame(root,bg="black")
+        dim_frame.pack(fill=tk.X, side=tk.TOP)
+        root = frame_fix
+        fix_frame = tk.Frame(root,bg="black")
+        fix_frame.pack(fill=tk.X, side=tk.TOP)
         i=0
         c=0
         r=0
-        frame = tk.Frame(frame_fix,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-
-        b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
-        b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        #r+=1
-        if fix not in self.elem_attr:
-            self.elem_attr[fix] = {}
+        for fix in self.FIXTURES.fixtures:
+            i+=1
+            data = self.FIXTURES.fixtures[fix]
+            print( fix ,data )
             
-        for attr in data["ATTRIBUT"]:
+            if(len(data["ATTRIBUT"].keys()) <= 1):
+                c,r=self.draw_dim(fix,data,c=c,r=r,frame=dim_frame)
+            else:
+                #self._draw_fix(fix,data,root=fix_frame)
+                frame = fix_frame
             
-            if attr not in self.all_attr:
-                self.all_attr.append(attr)
-            if attr not in self.elem_attr[fix]:
-                self.elem_attr[fix][attr] = []
-            if attr.endswith("-FINE"):
-                continue
-            v= data["ATTRIBUT"][attr]["VALUE"]
-            
-            b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
-            self.elem_attr[fix][attr] = b
-            b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=8:
-                c=1
+                b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
+                b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                #r+=1
+                if fix not in self.elem_attr:
+                    self.elem_attr[fix] = {}
+                    
+                for attr in data["ATTRIBUT"]:
+                    
+                    if attr not in self.all_attr:
+                        self.all_attr.append(attr)
+                    if attr not in self.elem_attr[fix]:
+                        self.elem_attr[fix][attr] = []
+                    if attr.endswith("-FINE"):
+                        continue
+                    v= data["ATTRIBUT"][attr]["VALUE"]
+                    
+                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                    self.elem_attr[fix][attr] = b
+                    b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                    c+=1
+                    if c >=8:
+                        c=1
+                        r+=1
+                c=0
                 r+=1
                 
     def draw_enc(self):
@@ -1197,7 +1362,7 @@ class GUI(Base):
         #frame = tk.Frame(root,bg="black")
         #frame.pack(fill=tk.X, side=tk.TOP)
 
-        #b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
+        #b = tk.Label(frame,bg="black", text="--------------------------------- ---------------------------------------")
         #b.grid(row=r, column=c, sticky=tk.W+tk.E)
         #r=0
         
@@ -1228,11 +1393,12 @@ class GUI(Base):
         #frame = tk.Frame(root,bg="black")
         #frame.pack(fill=tk.X, side=tk.TOP)
 
-        #b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
+        #b = tk.Label(frame,bg="black", text="------------------------------ ---------------------------------------")
         #b.grid(row=r, column=c, sticky=tk.W+tk.E)
         #r=0
         
-        frame = tk.Frame(root2,bg="black")
+        #frame = tk.Frame(root2,bg="black")
+        frame = tk.Frame(frame_cmd,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
        
         b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
@@ -1244,7 +1410,7 @@ class GUI(Base):
         for comm in self.commands:
             v=0
             
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
             if comm not in self.elem_commands:
                 self.elem_commands[comm] = b
                 self.val_commands[comm] = 0
@@ -1268,19 +1434,14 @@ class GUI(Base):
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=6:
+            if c >=12:
                 c=0
                 r+=1
     def draw_preset(self):
         i=0
         c=0
         r=0
-        frame = tk.Frame(root,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-
-        b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r=0
+        root = frame_exe
         
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
@@ -1350,7 +1511,7 @@ class GUI(Base):
         frame = tk.Frame(root2,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
 
-        b = tk.Label(frame,bg="black", text="--------------------------------------- ---------------------------------------")
+        b = tk.Label(frame,bg="black", text="------------------------ ---------------------------------------")
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         r=0
         
@@ -1381,19 +1542,9 @@ class GUI(Base):
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         b.insert("end","fx:alloff:::")
     def render(self):
-        r=0
-        c=0
         Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
-        dim_frame = tk.Frame(frame_fix,bg="black")
-        dim_frame.pack(fill=tk.X, side=tk.TOP)
-        for fix in self.FIXTURES.fixtures:
-            data = self.FIXTURES.fixtures[fix]
-            print( fix )
-            
-            if(len(data["ATTRIBUT"].keys()) <= 1):
-                c,r=self.draw_dim(fix,data,c=c,r=r,frame=dim_frame)
-            else:
-                self.draw_fix(fix,data)
+        self.draw_fix()
+        #input()
         self.draw_enc()
         self.draw_command()
         self.draw_input()
@@ -1403,7 +1554,10 @@ try:
     master =GUI()
     master.render()
 
-    root.mainloop()
+    #root.mainloop()
+    #tk.mainloop()
+
+    window_manager.mainloop()
     
 finally:
     master.exit()

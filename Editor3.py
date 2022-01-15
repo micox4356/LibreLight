@@ -386,6 +386,27 @@ class Xevent():
                         self.data.elem_fx_commands[self.attr]["text"] = "SP:off".format(fx_prm[k])
                     else:
                         self.data.elem_fx_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
+                if self.attr.startswith("ST:"):#SIN":
+                    #global fx_prm
+                    k = "START"
+                    if event.num == 1:
+                        pass
+                    elif event.num == 2:
+                        pass
+                    elif event.num == 4:
+                        if fx_prm[k] <= 0:
+                            fx_prm[k] = 1
+                        fx_prm[k] *=1.2
+                    elif event.num == 5:
+                        fx_prm[k] /=1.2
+                    #fx_prm[k] =int(fx_prm[k])
+                    
+                    if fx_prm[k] > 4000:
+                        fx_prm[k] = 4000
+                    if fx_prm[k] < 0:
+                        fx_prm[k] =0
+
+                    self.data.elem_fx_commands[self.attr]["text"] = "ST:{:0.0f}".format(fx_prm[k])
                 if self.attr.startswith("OF:"):#SIN":
                     #global fx_prm
                     k = "OFFSET"
@@ -422,6 +443,7 @@ class Xevent():
                     if event.num == 1:
                         cmd = ""
                         offset = 0
+                        offset_flag=0
                         start = fx_prm["START"]
                         base  = fx_prm["BASE"]
 
@@ -492,6 +514,7 @@ class Xevent():
                                                 fx = "sinus"
                                 if fx:
                                     fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
+                                    offset_flag=1
 
                                 if "FX" not in data["ATTRIBUT"][attr]:
                                     data["ATTRIBUT"][attr]["FX"] =""
@@ -501,7 +524,8 @@ class Xevent():
                                     data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
                                 
                                     cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
-                            if fx_prm["OFFSET"] > 0.5:  
+                            if fx_prm["OFFSET"] > 0.5 and offset_flag:  
+                                offset_flag=0
                                 offset += fx_prm["OFFSET"] # add offset on next fixture
                             #print("offset",offset)
                         if cmd and not modes.val("BLIND"):
@@ -1199,7 +1223,7 @@ class GUI(Base):
         
         self.fx_commands =["STONY_FX","FX OFF","\n"
                 ,"FX:CIR","FX:PAN","FX:TILT","FX:DIM","\n"
-                ,"SZ:","SP:","OF:","BS:-","\n"
+                ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
         self.commands =["BLIND","CLEAR","STORE","EDIT","MOVE","\n","CFG-BTN","LABEL"
                 ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE"

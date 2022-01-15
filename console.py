@@ -167,9 +167,11 @@ class Fade():
         pass
 
 class FX():
-    def __init__(self,xtype="sinus",size=10,speed=10,offset=0,clock=0):
+    def __init__(self,xtype="sinus",size=10,speed=10,start=0,offset=0,base="",clock=0):
         self.__xtype=xtype
         self.__size  = size
+        self.__start = start
+        self.__base = base
         self.__speed = speed
         self.__offset = offset
         self.__clock = clock
@@ -179,49 +181,75 @@ class FX():
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} Clock:{:0.2f} run:{}>".format( 
-                    self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__clock_curr,self.run )
+        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} base:{} Clock:{:0.2f} run:{}>".format( 
+                    self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run )
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
         t = self.__clock_curr  * self.__speed / 255
         t += self.__offset / 1024 #255
+        t += self.__start / 1024 #255
         self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
-        #t = self.__angel * self.__speed / 255 #a255
-        #t += self.__offset / 255
+        t = t%1
         rad = math.radians(self.__angel)
+
+        base = 0
+        if self.__base == "+": # add
+            base = self.__size
+        elif self.__base == "-": # sub
+            base = self.__size*-1
+
+        # todo start angle 20°
+        # todo width angle 90°
+
         #print("{:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(self.__angel ,self.__clock_curr,self.__angel ,math.sin(rad) ) )
         if self.__xtype == "sinus":
-            return math.sin( rad ) * self.__size 
+            return math.sin( rad ) * self.__size/2 + base/2
         elif self.__xtype == "cosinus":
-            return math.cos( rad ) * self.__size
-        elif self.__xtype == "on2-":
-            if self.__angel > 0 and self.__angel <=180:
-                return 0
-            return self.__size*-1
-        elif self.__xtype == "on-":
-            if self.__angel > 0 and self.__angel <=180:
-                return self.__size*-1
-            return 0
+            return math.cos( rad ) * self.__size/2 + base/2
         elif self.__xtype == "on2":
-            if self.__angel > 0 and self.__angel <=180:
-                return 0
-            return self.__size
+            out = self.__size/2
+            if self.__angel > 90 and self.__angel <=270:
+                out *=-1
+            out += base/2
+            print("ON {:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(out,t,0,self.__angel, base))
+            return out 
         elif self.__xtype == "on":
-            if self.__angel > 0 and self.__angel <=180:
-                return self.__size
-            return 0
-        elif self.__xtype == "bump":
-            return t%1 * self.__size
-        elif self.__xtype == "bump-":
-            #if int(t)/2 %1: # t gerade
-            return t*-1%1 * self.__size
-            #return 0
-        elif self.__xtype == "fade":
-            if int(t)/2 %1: # t gerade
-                return t%1 * self.__size 
+            out = self.__size/2
+            if self.__angel > 90 and self.__angel <=270:
+                pass
             else:
-                return t*-1%1 * self.__size 
+                out *=-1
+            out += base/2
+            return out 
+        elif self.__xtype == "bump":
+            out = 0 
+            if self.__base == "-": # sub
+                out = (t%1-1) * self.__size 
+            elif self.__base == "+": # sub
+                out = (t%1) * self.__size 
+            else:
+                out = (t%1-0.5) * self.__size 
+            #print("bump",out)
+            return out
+        elif self.__xtype == "bump2":
+            out = 0 
+            if self.__base == "+": # sub
+                out = (t%1-1) * (self.__size *-1) 
+            elif self.__base == "-": # sub
+                out = (t%1) * (self.__size *-1)
+            else:
+                out = (t%1-0.5) * (self.__size *-1)
+            #print("bump",out)
+            return out
+        elif self.__xtype == "fade":
+            x = t * 2 
+            if x > 1:
+                x = 2-x 
+            x -= 0.5
+            out = x * self.__size + base/2
+            #print("FADE {:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(out,t,x,self.__angel, base))
+            return out
         else:
             return 0
 
@@ -245,13 +273,13 @@ class DMXCH(object):
                 #self._fade.next()
             except Exception as e:
                 print( "Except:fade",e,target,time,clock)
-    def fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
+    def fx(self,xtype="sinus",size=40,speed=40,start=0,offset=0,base="", clock=0):
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
             self._fx = None
             self._fx_value = 0 
         else:
-            self._fx = FX(xtype=xtype,size=size,speed=speed,offset=offset,clock=clock)
+            self._fx = FX(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=clock)
     def flush(self,target,time=0,clock=0,delay=0):
         if str(target).lower() == "off":
             self._flush = None
@@ -261,13 +289,13 @@ class DMXCH(object):
                 self._flush = Fade(self._last_val,target,time=time,clock=clock,delay=delay)
             except Exception as e:
                 print( "Except:flush",target,time,clock,__name__,e,)
-    def flush_fx(self,xtype="sinus",size=40,speed=40,offset=0,clock=0):
+    def flush_fx(self,xtype="sinus",size=40,speed=40,start=0,offset=0,base="",clock=0):
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,time=2,clock=clock) 
             self._flush_fx = None
             self._flush_fx_value = 0 
         else:
-            self._flush_fx = FX(xtype=xtype,size=size,speed=speed,offset=offset,clock=clock)
+            self._flush_fx = FX(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=clock)
 
     def fx_ctl(self,cmd=""):#start,stop,off
         pass
@@ -386,7 +414,6 @@ def CB(data):
                 print("EXCEPTION IN FADE",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         elif xcmd.startswith("fxf"):
-            xxcmd=xcmd[3:].split(":")
             #print("fxf:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
@@ -397,8 +424,9 @@ def CB(data):
                 xtype=""
                 size=40
                 speed=100
+                start=0
                 offset=0
-
+                base=""
                 k=int(l[0])-1
                 xtype=l[1]
                 if len(l) >= 3:
@@ -408,18 +436,24 @@ def CB(data):
                     try:speed=int(l[3])
                     except:pass
                 if len(l) >= 5:
-                    try:offset=int(l[4])
+                    try:start=int(l[4])
+                    except:pass
+                if len(l) >= 6:
+                    try:offset=int(l[5])
+                    except:pass
+                if len(l) >= 7:
+                    try:base=l[6]
                     except:pass
                 
                 if len(Bdmx) > k:
                     #Bdmx[k].fade(target=v,time=t, clock=c)
-                    Bdmx[k].flush_fx(xtype=xtype,size=size,speed=speed,offset=offset,clock=c)
+                    Bdmx[k].flush_fx(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=c)
             except Exception as e:
                 print("EXCEPTION IN FX",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         elif xcmd.startswith("fx"):
             xxcmd=xcmd[2:].split(":")
-            #print("DMX:",xxcmd)
+            print("DMX:",xxcmd)
             if len(xxcmd) < 2:
                 print("xxcmd err",xxcmd,xcmd)
                 continue  
@@ -431,7 +465,9 @@ def CB(data):
                 xtype=""
                 size=40
                 speed=100
+                start=0
                 offset=0
+                base=""
 
                 k=int(l[0])-1
                 xtype=l[1]
@@ -442,12 +478,18 @@ def CB(data):
                     try:speed=int(l[3])
                     except:pass
                 if len(l) >= 5:
-                    try:offset=int(l[4])
+                    try:start=int(l[4])
+                    except:pass
+                if len(l) >= 6:
+                    try:offset=int(l[5])
+                    except:pass
+                if len(l) >= 7:
+                    try:base=l[6]
                     except:pass
                 
                 if len(Bdmx) > k:
                     #Bdmx[k].fade(target=v,time=t, clock=c)
-                    Bdmx[k].fx(xtype=xtype,size=size,speed=speed,offset=offset,clock=c)
+                    Bdmx[k].fx(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=c)
             except Exception as e:
                 print("EXCEPTION IN FX",xcmd,e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))

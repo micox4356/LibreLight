@@ -259,6 +259,8 @@ class Xevent():
     def cb(self,event):
         #print("cb",self,event,data)
         print("cb",self.attr,self.mode,event)
+        print(["type",event.type,"num",event.num])
+        #print(dir(event.type))
         #print(dir(event),[str(event.type)])#.keys())
         try:
             #v = self.data["ATTRIBUT"][self.attr]
@@ -335,7 +337,11 @@ class Xevent():
                         fx_prm[k] = 4000
                     if fx_prm[k] < 0:
                         fx_prm[k] =0
-                    self.data.elem_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
+
+                    if fx_prm[k] < 0.1:
+                        self.data.elem_commands[self.attr]["text"] = "SP:off".format(fx_prm[k])
+                    else:
+                        self.data.elem_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
                 if self.attr.startswith("OF:"):#SIN":
                     #global fx_prm
                     k = "OFFSET"
@@ -388,13 +394,24 @@ class Xevent():
                                 elif "COS" in self.attr:
                                     fx = "cosinus"
                                 if fx:
-                                    fx += ":{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                    if fx_prm["SPEED"] < 0.1:
+                                        fx = "off"
+                                        fx += ":{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                    else:
+                                        fx += ":{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
                                 else:
                                     if "CIR" in self.attr:
                                         if attr == "PAN":
-                                            fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                            if fx_prm["SPEED"] < 0.1:
+                                                fx = "off:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                            else:
+
+                                                fx = "cosinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
                                         if attr == "TILT":
-                                           fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                            if fx_prm["SPEED"] < 0.1:
+                                                fx = "off:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
+                                            else:
+                                                fx = "sinus:{:0.0f}:{:0.0f}:{:0.0f}".format(fx_prm["SIZE"],fx_prm["SPEED"],offset)#fx_prm["OFFSET"])
 
                                 if "FX" not in data["ATTRIBUT"][attr]:
                                     data["ATTRIBUT"][attr]["FX"] =""
@@ -1029,15 +1046,15 @@ w = GUIWindow("COMMAND",master=0,width=800,height=140,left=140,top=610)
 frame_cmd = w.tk
 window_manager.new(w)
 
-w = GUIWindow("EXEC",master=0,width=800,height=550,left=140,top=65)
+w = GUIWindow("EXEC",master=0,width=800,height=500,left=140,top=65)
 frame_exe = w.tk
 window_manager.new(w)
 
-w = GUIWindow("DIMMER",master=0,width=800,height=550,left=140,top=65)
+w = GUIWindow("DIMMER",master=0,width=800,height=500,left=140,top=65)
 frame_dim = w.tk
 window_manager.new(w)
 
-w = GUIWindow("FIXTURS",master=0,width=800,height=550,left=140,top=65)
+w = GUIWindow("FIXTURS",master=0,width=800,height=500,left=140,top=65)
 frame_fix = w.tk
 window_manager.new(w)
 
@@ -1047,7 +1064,7 @@ window_manager.new(w)
 #Xroot.geometry("1024x800+130+65")
 
 
-ww = GUIWindow("OLD",master=0,width=600,height=200,left=135,top=75)
+ww = GUIWindow("OLD",master=0,width=550,height=150,left=135,top=75)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
@@ -1235,7 +1252,8 @@ class GUI(Base):
             xFLASH = 1
             xfade = 0
             if event:
-                if str(event.type) == "ButtonRelease":
+                if str(event.type) == "ButtonRelease" or event.type == '5' :
+                    # 4 fix vor ThinkPad / Debian 11
                     if xFLASH:
                         value = "off"
 

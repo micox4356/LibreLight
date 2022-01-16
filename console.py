@@ -50,7 +50,7 @@ def artnet_loop():
     artnet = ANN.ArtNetNode(to="10.10.10.255",univ=0)
     #artnet = ANN.ArtNetNode(to="2.0.0.255",univ=0)
     #artnet = ANN.ArtNetNode(to="10.10.10.255",univ=1)
-    dmx[205] = 255 #205 BLUE
+    #dmx[205] = 255 #205 BLUE
     artnet.dmx= dmx #[0]*512
     artnet.send()
     while 1:
@@ -64,16 +64,39 @@ class Main():
         #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=0)
         #artnet = ANN.ArtNetNode(to="2.0.0.255",univ=0)
         #artnet = ANN.ArtNetNode(to="10.10.10.255",univ=1)
-        self.artnet = ANN.ArtNetNode(to="10.10.10.255",univ=0)
+        self.artnet = {}
+        #self.artnet["0"] = ANN.ArtNetNode(to="10.10.10.255",univ=0)
+        #self.artnet["0"].dmx[512-1] = 10
+        #self.artnet["1"] = ANN.ArtNetNode(to="10.10.10.255",univ=1)
+        #self.artnet["1"].dmx[512-1] = 11
         self.fx = {} # key is dmx address
     def loop(self):
         #dmx[205] = 255 #205 BLUE
-        self.artnet.send()
+        #self.artnet.send()
         xx = [0]*512
-        self.artnet.dmx = xx# [:] #dmx #[0]*512
+        #artnet = self.artnet["0"]
+        #artnet.dmx = xx# [:] #dmx #[0]*512
+        old_univ = -1
         while 1:
             t = clock.time()
-            for i,dmxch in enumerate(Bdmx):
+            ii = 0
+            for ii,dmxch in enumerate(Bdmx):
+                i = ii%512
+                univ = ii//512
+                if str(univ) not in self.artnet:
+                    print("add uiv",univ)
+                    self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
+                    self.artnet[str(univ)].dmx[512-1] = 100+univ
+
+                if univ != old_univ:
+                    old_univ = univ
+                    #print("UNIV",ii/512)
+                    try:
+                        artnet.next()
+                    except:pass
+                    artnet = self.artnet[str(univ)]
+                    artnet.dmx = xx
+
                 v = dmxch.next(t)
                 if i == 0:
                     if int(xx[i]*100) != int( v*100):
@@ -82,9 +105,9 @@ class Main():
                         #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
                         #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
                 xx[i] = int(v)
-            #artnet._test_frame()
-            self.artnet.next()
-            #self.artnet.send()
+            try:    
+                artnet.next()
+            except:pass
             time.sleep(0.01)
 
 main = Main()
@@ -331,8 +354,9 @@ class DMXCH(object):
 
         self._last_val = value+fx_value
         return self._last_val
+
 Bdmx = []
-for i in range(512):
+for i in range(512*6):
     Bdmx.append( DMXCH() )
     #print(type(dmx[i]))
 
@@ -358,6 +382,10 @@ def CB(data):
     delay = 0
 
     for xcmd in cmds:
+        if xcmd:
+            print("CB",xcmd)
+        else:
+            continue
         if xcmd.startswith("df"):
             xxcmd=xcmd[2:].split(":")
             #print("DMX:",xxcmd)
@@ -414,6 +442,7 @@ def CB(data):
                 print("EXCEPTION IN FADE",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         elif xcmd.startswith("fxf"):
+            xxcmd=xcmd[1:].split(":")
             #print("fxf:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:

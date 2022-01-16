@@ -893,7 +893,43 @@ class Base():
 
             f.write( "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) )
         f.close()
-            
+
+
+class Event():
+    def __init__(self,name):
+        self.name=name
+        print("init",self)
+    def event(self,event):
+        print(self.name,event)
+class scroll():
+    def __init__(self,canvas):
+        self.canvas=canvas
+    def config(self,event):
+        canvas = self.canvas
+        canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
+
+def ScrollFrame(root,width=50,height=100,bd=1):
+    print("ScrollFrame init",width,height)
+    aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
+    #aframe.place(x=0,y=0)
+    aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
+
+    canvas=tk.Canvas(aframe,width=width-24,height=height)
+    canvas["bg"] = "black" #"green"
+    bframe=tk.Frame(canvas)#,width=width,height=height)
+    bframe["bg"] = "blue"
+    scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    scrollbar.pack(side="right",fill="y")
+    canvas.pack(side="left",expand=1,fill="both")
+    canvas.create_window((0,0),window=bframe,anchor='nw')
+    bframe.bind("<Configure>",scroll(canvas).config)
+    canvas.bind("<Button>",Event("XXX").event)
+    canvas.bind("<Key>",Event("XXX").event)
+    return bframe
+#frame = ScrollFrame(root)
+
 class GUIHandler():
     def __init__(self):
         pass
@@ -1085,13 +1121,13 @@ class GUI_menu():
         r=0
         c=0
         i=1
-        self.b = tk.Label(self.frame,bg="blue", text="MAIN:MENU",width=11,height=1)
+        self.b = tk.Label(self.frame,bg="blue", text="MAIN:MENU",width=13,height=1)
         self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
         r+=1
         for row in data:
             #print(i)
             #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=3)
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=15,height=3)
             self.b.bind("<Button>",BEvent({"NR":i},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             r+=1
@@ -1168,27 +1204,34 @@ w = GUIWindow("GRID",master=0,width=1000,height=200,left=232,top=65)
 data = []
 for i in range(10):
     data.append({"text":"P {:02}".format(i+1)})
-w = GUI_grid(w.tk,data)
-window_manager.new(w)
+#w = GUI_grid(w.tk,data)
+#window_manager.new(w)
 
-w = GUIWindow("COMMAND",master=0,width=800,height=140,left=140,top=610)
+w = GUIWindow("COMMAND",master=0,width=800,height=100,left=100,top=610)
 frame_cmd = w.tk
 window_manager.new(w)
 
 
-w = GUIWindow("EXEC",master=0,width=800,height=500,left=140,top=65)
+w = GUIWindow("EXEC",master=0,width=800,height=400,left=140,top=65)
 frame_exe = w.tk
 window_manager.new(w)
 
-w = GUIWindow("DIMMER",master=0,width=800,height=500,left=140,top=65)
-frame_dim = w.tk
+w = GUIWindow("DIMMER",master=0,width=800,height=400,left=140,top=65)
+w = ScrollFrame(w.tk,width=800,height=400)
+frame_dim = w # w.tk
 window_manager.new(w)
 
-w = GUIWindow("FIXTURS",master=0,width=800,height=500,left=140,top=65)
-frame_fix = w.tk
+w = GUIWindow("FIXTURS",master=0,width=800,height=400,left=140,top=65)
+w = ScrollFrame(w.tk,width=800,height=400)
+frame_fix = w #w.tk
 window_manager.new(w)
 
-w = GUIWindow("FX",master=0,width=800,height=140,left=150,top=610)
+w = GUIWindow("PATCH",master=0,width=800,height=400,left=140,top=65)
+w = ScrollFrame(w.tk,width=800,height=400)
+frame_patch = w #w.tk
+window_manager.new(w)
+
+w = GUIWindow("FX",master=0,width=800,height=200,left=200,top=610)
 frame_fx = w.tk
 window_manager.new(w)
 
@@ -1198,15 +1241,15 @@ window_manager.new(w)
 #Xroot.geometry("1024x800+130+65")
 
 
-ww = GUIWindow("ENCODER",master=0,width=550,height=150,left=135,top=75)
+ww = GUIWindow("ENCODER",master=0,width=800,height=150,left=135,top=600)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
-root.pack(fill=tk.BOTH, side=tk.LEFT)
+root.pack(fill=tk.BOTH,expand=1, side=tk.LEFT)
 root3 = tk.Frame(Xroot,bg="black",width="20px")
-root3.pack(fill=tk.BOTH, side=tk.LEFT)
+root3.pack(fill=tk.BOTH,expand=1, side=tk.LEFT)
 root2 = tk.Frame(Xroot,bg="black",width="1px")
-root2.pack(fill=tk.BOTH, side=tk.LEFT)
+root2.pack(fill=tk.BOTH,expand=1, side=tk.LEFT)
 
 #default_font = font.Font(family='Helvetica', size=12, weight='bold')
 Font = font.Font(family='Helvetica', size=9, weight='normal')
@@ -1460,6 +1503,100 @@ class GUI(Base):
                 c=0
                 r+=1
         return c,r
+    def draw_patch(self):
+        r=0
+        c=0
+        root = frame_dim
+        dim_frame = tk.Frame(root,bg="black")
+        dim_frame.pack(fill=tk.X, side=tk.TOP)
+        root = frame_patch
+
+        
+        fix_frame = tk.Frame(root,bg="black")
+        canvas = tk.Canvas(root)
+        def yview(event):
+            print("yevent",event)
+            print(dir(canvas))
+            #yview_moveto', 'yview_scroll'
+            yyy=20.1
+            
+            fix_frame.yview_moveto(yyy)
+            #canvas.yview_moveto(yyy)
+            #yyy=20
+            #canvas.yview_scroll(yyy,"units")
+        #def sconfig(event):
+        #    global canvas
+        #    canvas.configure(scrollregion=canvas.bbox("all"),width=400,height=200)
+        #fix_frame.bind("<Configure>",sconfig)
+        #myscrollbar=tk.Scrollbar(root,orient="vertical",command=canvas.yview)
+        #myscrollbar=tk.Scrollbar(root,orient="vertical",command=yview)
+        #myscrollbar.pack(side="right",fill="y") 
+        #canvas.create_window((0, 0), window=fix_frame, anchor="nw")
+        #canvas.pack(fill=tk.X, side=tk.TOP)
+
+        fix_frame = tk.Frame(root,bg="black")
+        fix_frame.pack(fill=tk.X, side=tk.TOP)
+        #fix_frame = canvas
+
+        #fix_frame.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
+        #canvas.configure(yscrollcommand=myscrollbar.set)
+        i=0
+        c=0
+        r=0
+        for fix in self.FIXTURES.fixtures:
+            i+=1
+            data = self.FIXTURES.fixtures[fix]
+            print( fix ,data )
+            
+            #if(len(data["ATTRIBUT"].keys()) <= 1):
+            #    c,r=self.draw_dim(fix,data,c=c,r=r,frame=dim_frame)
+            #else:
+            if 1:
+                #self._draw_fix(fix,data,root=fix_frame)
+                frame = fix_frame
+                
+                b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
+                b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                #r+=1
+                if fix not in self.elem_attr:
+                    self.elem_attr[fix] = {}
+                    
+                patch = ["DMX","UNIVERS"]
+                for k in patch:
+                    v=data[k]
+                    b = tk.Button(frame,bg="grey", text=str(k)+' '+str(v),width=8)
+                    #self.elem_attr[fix][attr] = b
+                    #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                    c+=1
+                    if c >=8:
+                        c=1
+                        r+=1
+                for attr in data["ATTRIBUT"]:
+                    
+                    if attr not in self.all_attr:
+                        self.all_attr.append(attr)
+                    if attr not in self.elem_attr[fix]:
+                        self.elem_attr[fix][attr] = []
+                    if attr.endswith("-FINE"):
+                        continue
+                    v= data["ATTRIBUT"][attr]["VALUE"]
+                    
+                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                    self.elem_attr[fix][attr] = b
+                    #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                    c+=1
+                    if c >=8:
+                        c=1
+                        r+=1
+                c=0
+                r+=1
+                
+        #fix_frame
+        #canvas.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
     def draw_fix(self):
         r=0
         c=0
@@ -1524,7 +1661,7 @@ class GUI(Base):
         #r=0
         
         frame = tk.Frame(root2,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
+        frame.pack( side=tk.TOP,expand=1,fill="both")
 
         
         b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
@@ -1540,7 +1677,7 @@ class GUI(Base):
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=self,mode="ENCODER").cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=7:
+            if c >=8:
                 c=0
                 r+=1
     def draw_fx(self):
@@ -1774,6 +1911,7 @@ class GUI(Base):
         b.insert("end","fx:alloff:::")
     def render(self):
         Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
+        self.draw_patch()
         self.draw_fix()
         #input()
         self.draw_enc()

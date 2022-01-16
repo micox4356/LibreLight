@@ -181,7 +181,9 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
 
 def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
     #global modes #BLIND
+    #print("update_dmx",data)
     dmx = data["DMX"]
+    dmx = (data["UNIVERS"]*512)+data["DMX"]
     val = None
     cmd=""
 
@@ -189,6 +191,7 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
         if attr == "DIM" and data["ATTRIBUT"][attr]["NR"] < 0: #VDIM
             #print( "VDIM")
             for attr in data["ATTRIBUT"]:
+                dmx = (data["UNIVERS"]*512) + data["DMX"]
                 dmx = data["DMX"]
                 if data["ATTRIBUT"][attr]["NR"] < 0: #virtual channels
                     continue
@@ -701,6 +704,7 @@ class Xevent():
                         #if str(event.type) == "ButtonRelease" or event.type == '5':
                         if modes.val("STORE"):
                             self.data.preset_store(nr)
+                            modes.val("STORE",0)
                         elif modes.val("CFG_BTN"):
                             import tkinter.simpledialog
                             txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr))
@@ -947,7 +951,9 @@ class Fixtures(Base):
 
             sDMX = 0
             if  sdata["DMX"] > 0:
-                sDMX = sdata["DMX"]  
+                print( sdata)
+                sDMX = (sdata["UNIVERS"]*512)+sdata["DMX"]  
+                #sDMX =sdata["DMX"]  
 
             if attr not in ATTR:
                 continue

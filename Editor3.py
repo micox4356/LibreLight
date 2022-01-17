@@ -1128,14 +1128,14 @@ class GUI_menu():
             #print(i)
             #row = data[i]
             self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=15,height=3)
-            self.b.bind("<Button>",BEvent({"NR":i},self.callback).cb)
+            self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             r+=1
             i+=1
         self.frame.pack()
     def callback(self,event,data={}):
         print(self,event,data)
-        window_manager.top(data["NR"])# = WindowManager()
+        window_manager.top(data["text"])# = WindowManager()
 
 lf_nr = 0
 class GUIWindow():
@@ -1171,77 +1171,95 @@ class GUIWindow():
         
 class WindowManager():
     def __init__(self):
-        self.windows = []
+        self.windows = {}
         self.nr= 0
-    def new(self,w):
-        #w = GUIWindow(name)
-        #t=w.title()
-        #w.title(t+" "+str(self.nr))
-        #self.nr+=1
-        self.windows.append(w)
+        self.first=""
+    def new(self,w,name=""):
+        if not self.first:
+            if name:
+                self.first = name
+            else:
+                self.first = str(self.nr)
+            w.tk.attributes('-topmost',True)
+
+
+        if name:
+            self.windows[str(name)] = w
+        else:
+            self.windows[str(self.nr)] = w
+            self.nr+=1
         #w.show()
     def mainloop(self):
-        self.windows[0].mainloop()
-    def top(self,nr):
-        nr += 1
-        if len(self.windows) > nr:
-            self.windows[nr].tk.attributes('-topmost',True)
-            self.windows[nr].tk.attributes('-topmost',False)
+        self.windows[self.first].mainloop()
+    def top(self,name):
+        name = str(name)
+        if name in self.windows:
+            self.windows[name].tk.attributes('-topmost',True)
+            self.windows[name].tk.attributes('-topmost',False)
+        else:
+            print(name,"not in self.windows",self.windows.keys())
 
 window_manager = WindowManager()
 
 w = GUIWindow("MAIN",master=1,width=135,height=500,left=0,top=65)
 data = []
-data.append({"text":"Command"})
-data.append({"text":"Executer"})
-data.append({"text":"Dimmer"})
-data.append({"text":"Fixtures"})
-data.append({"text":"Preset"})
+data.append({"text":"COMMAND"})
+data.append({"text":"EXEC"})
+data.append({"text":"DIMMER"})
+data.append({"text":"FIXTURES"})
+#data.append({"text":"PRESET"})
+data.append({"text":"PATCH"})
+data.append({"text":"ENCODER"})
 f = GUI_menu(w.tk,data)
 window_manager.new(w)
 
-w = GUIWindow("GRID",master=0,width=1000,height=200,left=232,top=65)
-data = []
-for i in range(10):
-    data.append({"text":"P {:02}".format(i+1)})
+#w = GUIWindow("GRID",master=0,width=1000,height=200,left=232,top=65)
+#data = []
+#for i in range(10):
+#    data.append({"text":"P {:02}".format(i+1)})
 #w = GUI_grid(w.tk,data)
 #window_manager.new(w)
 
-w = GUIWindow("COMMAND",master=0,width=800,height=100,left=100,top=610)
+name = "COMMAND"
+w = GUIWindow(name,master=0,width=800,height=100,left=100,top=610)
 frame_cmd = w.tk
-window_manager.new(w)
+window_manager.new(w,name)
 
-
-w = GUIWindow("EXEC",master=0,width=800,height=400,left=140,top=65)
+name="EXEC"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
 frame_exe = w.tk
-window_manager.new(w)
+window_manager.new(w,name)
 
-w = GUIWindow("DIMMER",master=0,width=800,height=400,left=140,top=65)
-w = ScrollFrame(w.tk,width=800,height=400)
-frame_dim = w # w.tk
-window_manager.new(w)
+name="DIMMER"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+frame_dim = w1 # w.tk
+window_manager.new(w,name)
 
-w = GUIWindow("FIXTURS",master=0,width=800,height=400,left=140,top=65)
-w = ScrollFrame(w.tk,width=800,height=400)
-frame_fix = w #w.tk
-window_manager.new(w)
+name="FIXTURES"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+frame_fix = w1 #w.tk
+window_manager.new(w,name)
 
-w = GUIWindow("PATCH",master=0,width=800,height=400,left=140,top=65)
-w = ScrollFrame(w.tk,width=800,height=400)
-frame_patch = w #w.tk
-window_manager.new(w)
+name="PATCH"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+frame_patch = w1 #w.tk
+window_manager.new(w,name)
 
-w = GUIWindow("FX",master=0,width=800,height=200,left=200,top=610)
+name="FX"
+w = GUIWindow(name,master=0,width=800,height=200,left=200,top=610)
 frame_fx = w.tk
-window_manager.new(w)
+window_manager.new(w,name)
 
 #Xroot = tk.Tk()
 #Xroot["bg"] = "black" #white
 #Xroot.title( xtitle+" "+str(rnd_id) )
 #Xroot.geometry("1024x800+130+65")
 
-
-ww = GUIWindow("ENCODER",master=0,width=800,height=150,left=135,top=600)
+name="ENCODER"
+ww = GUIWindow(name,master=0,width=800,height=150,left=135,top=600)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
@@ -1260,7 +1278,7 @@ Xroot.option_add("*Font", FontBold)
 
 
 #w = frame_fix #GUIWindow("OLD",master=0,width=800,height=500,left=130,top=65)
-window_manager.new(w)
+window_manager.new(w,name)
 
 class GUI(Base):
     def __init__(self):

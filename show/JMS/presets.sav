@@ -1,0 +1,64 @@
+0	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+1	Front	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "SEL", "DEALY": 0}, "1": {"DIM": {"VALUE": 256, "FX": ""}}, "2": {"DIM": {"VALUE": 256, "FX": ""}}, "3": {"DIM": {"VALUE": 256, "FX": ""}}, "4": {"DIM": {"VALUE": 256, "FX": ""}}}
+2	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+3	-	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256.0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "102": {"DIM": {"VALUE": 168.51000000000013, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256.0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "103": {"DIM": {"VALUE": 160.2900000000001, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256.0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "104": {"DIM": {"VALUE": 180.84000000000017, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256.0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}}
+4	LED ON	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "102": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "103": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "104": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}}
+5	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+6	LED-NEU	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "SEL", "DELAY": 0}, "201": {"DIM": {"VALUE": 0, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256.0, "FX": ""}}, "202": {"DIM": {"VALUE": 0, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256.0, "FX": ""}}, "203": {"DIM": {"VALUE": 0, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256.0, "FX": ""}}, "204": {"DIM": {"VALUE": 0, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256.0, "FX": ""}}, "205": {"DIM": {"VALUE": 0, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256.0, "FX": ""}}, "206": {"DIM": {"VALUE": 0, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256.0, "FX": ""}}}
+7	LED	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "SEL", "DELAY": 0}, "101": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "102": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "103": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "104": {"DIM": {"VALUE": 256, "FX": ""}, "RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}}
+8	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+9	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+10	HAZE 30%	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "90": {"DIM": {"VALUE": 98.64, "FX": ""}}}
+11	FAN 30%	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "91": {"DIM": {"VALUE": 82.2, "FX": ""}}}
+12	-	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"RED": {"VALUE": 235.44999999999993, "FX": ""}, "GREEN": {"VALUE": 235.44999999999993, "FX": ""}, "BLUE": {"VALUE": 157.35999999999967, "FX": ""}}, "102": {"RED": {"VALUE": 235.44999999999993, "FX": ""}, "GREEN": {"VALUE": 235.44999999999993, "FX": ""}, "BLUE": {"VALUE": 157.35999999999967, "FX": ""}}, "103": {"RED": {"VALUE": 235.44999999999993, "FX": ""}, "GREEN": {"VALUE": 235.44999999999993, "FX": ""}, "BLUE": {"VALUE": 157.35999999999967, "FX": ""}}, "104": {"RED": {"VALUE": 235.44999999999993, "FX": ""}, "GREEN": {"VALUE": 235.44999999999993, "FX": ""}, "BLUE": {"VALUE": 157.35999999999967, "FX": ""}}}
+13	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+14	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+15	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+16	Front ON	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "1": {"DIM": {"VALUE": 256, "FX": ""}}, "2": {"DIM": {"VALUE": 256, "FX": ""}}, "3": {"DIM": {"VALUE": 256, "FX": ""}}, "4": {"DIM": {"VALUE": 256, "FX": ""}}}
+17	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+18	HAZE ON	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "90": {"DIM": {"VALUE": 256, "FX": ""}}}
+19	FAN 100%	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "91": {"DIM": {"VALUE": 256, "FX": ""}}}
+20	-	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}}
+21	RED	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "102": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "103": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "104": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}}
+22	Magenta	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "102": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "103": {"RED": {"VALUE": 256, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}, "104": {"RED": {"VALUE": 235.44999999999993, "FX": ""}, "GREEN": {"VALUE": 0, "FX": ""}, "BLUE": {"VALUE": 256, "FX": ""}}}
+23	LED ON	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "101": {"DIM": {"VALUE": 256, "FX": ""}}, "102": {"DIM": {"VALUE": 256, "FX": ""}}, "103": {"DIM": {"VALUE": 256, "FX": ""}}, "104": {"DIM": {"VALUE": 256, "FX": ""}}}
+24	Front Off	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "1": {"DIM": {"VALUE": 0, "FX": ""}}, "2": {"DIM": {"VALUE": 0, "FX": ""}}, "3": {"DIM": {"VALUE": 0, "FX": ""}}, "4": {"DIM": {"VALUE": 0, "FX": ""}}}
+25	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+26	HAZE OFF	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "90": {"DIM": {"VALUE": 0, "FX": ""}}}
+27	FAN OFF?	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "91": {"DIM": {"VALUE": 0, "FX": ""}}}
+28	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+29	GREEN	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "102": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "103": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "104": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 256, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}}
+30	-	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}}
+31	LED OFF	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "101": {"DIM": {"VALUE": 0, "FX": ""}}, "102": {"DIM": {"VALUE": 0, "FX": ""}}, "103": {"DIM": {"VALUE": 0, "FX": ""}}, "104": {"DIM": {"VALUE": 0, "FX": ""}}}
+32	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+33	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+34	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+35	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+36	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+37	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+38	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+39	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+40	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+41	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+42	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+43	DIm	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"DIM": {"VALUE": null, "FX": "sinus:532:207:0:829:-:"}}, "102": {"DIM": {"VALUE": null, "FX": "sinus:532:207:0:933:-:"}}, "103": {"DIM": {"VALUE": null, "FX": "sinus:532:207:0:1037:-:"}}, "104": {"DIM": {"VALUE": null, "FX": "sinus:532:207:0:1140:-:"}}}
+44	FARB	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "101": {"RED": {"VALUE": null, "FX": "sinus:532:207:0:829:-:"}}, "102": {"RED": {"VALUE": null, "FX": "sinus:532:207:0:933:-:"}}, "103": {"RED": {"VALUE": null, "FX": "sinus:532:207:0:1037:-:"}}, "104": {"RED": {"VALUE": null, "FX": "sinus:532:207:0:1140:-:"}}}
+45	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+46	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+47	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+48	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+49	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+50	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+51	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+52	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+53	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+54	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+55	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+56	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+57	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+58	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+59	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+60	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+61	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+62	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+63	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}

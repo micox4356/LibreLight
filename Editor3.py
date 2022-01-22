@@ -20,7 +20,8 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 (c) 2012 micha.rathfelder@gmail.com
 """
 import random
-rnd_id = random.randint(1000,9000)
+rnd_id = str(random.randint(1000,9000))
+rnd_id += " Beta 22.01"
 try:
     xtitle = __file__
 except:
@@ -50,7 +51,7 @@ import lib.motion as motion
 from collections import OrderedDict
 
 show_name = "GloryCamp2021"
-show_name = "GloryCamp2021"
+show_name = "JMS"
 #show_name = "Dimmer"
 
 
@@ -955,7 +956,7 @@ class Fixtures(Base):
             sdata = d[i]
             for attr in sdata["ATTRIBUT"]:
                 sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
-            print("load",filename,sdata)
+            #print("load",filename,sdata)
             #if "CFG" not in sdata:
             #    sdata["CFG"] = OrderedDict()
             self.fixtures[str(i)] = sdata
@@ -1127,7 +1128,7 @@ class GUI_menu():
         for row in data:
             #print(i)
             #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=15,height=3)
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=13,height=3)
             self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             r+=1
@@ -1145,8 +1146,10 @@ class GUIWindow():
             self.tk = tkinter.Tk() #Toplevel()
         else:
             self.tk = tkinter.Toplevel()
-
-        self.tk.title(""+str(title)+" "+str(rnd_id)+":"+str(lf_nr))
+        self.tk["bg"] = "black"
+        self.tk.bind("<Button>",self.callback)
+        self.tk.bind("<Key>",self.callback)
+        self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
         lf_nr+=1
         #self.tk.geometry("270x600+0+65")
         geo ="{}x{}".format(width,height)
@@ -1167,7 +1170,7 @@ class GUIWindow():
     def mainloop(self):
         self.tk.mainloop()
     def callback(self,event,data={}):
-        print(self,event,data)
+        print("<GUI>",self,event,data)
         
 class WindowManager():
     def __init__(self):
@@ -1201,15 +1204,15 @@ class WindowManager():
 
 window_manager = WindowManager()
 
-w = GUIWindow("MAIN",master=1,width=135,height=500,left=0,top=65)
+w = GUIWindow("MAIN",master=1,width=130,height=450,left=0,top=65)
 data = []
-data.append({"text":"COMMAND"})
+#data.append({"text":"COMMAND"})
 data.append({"text":"EXEC"})
 data.append({"text":"DIMMER"})
 data.append({"text":"FIXTURES"})
 #data.append({"text":"PRESET"})
-data.append({"text":"PATCH"})
-data.append({"text":"ENCODER"})
+#data.append({"text":"PATCH"})
+#data.append({"text":"ENCODER"})
 f = GUI_menu(w.tk,data)
 window_manager.new(w)
 
@@ -1221,7 +1224,7 @@ window_manager.new(w)
 #window_manager.new(w)
 
 name = "COMMAND"
-w = GUIWindow(name,master=0,width=800,height=100,left=100,top=610)
+w = GUIWindow(name,master=0,width=350,height=200,left=950,top=65)
 frame_cmd = w.tk
 window_manager.new(w,name)
 
@@ -1249,7 +1252,7 @@ frame_patch = w1 #w.tk
 window_manager.new(w,name)
 
 name="FX"
-w = GUIWindow(name,master=0,width=800,height=200,left=200,top=610)
+w = GUIWindow(name,master=0,width=350,height=250,left=950,top=305)
 frame_fx = w.tk
 window_manager.new(w,name)
 
@@ -1259,15 +1262,15 @@ window_manager.new(w,name)
 #Xroot.geometry("1024x800+130+65")
 
 name="ENCODER"
-ww = GUIWindow(name,master=0,width=800,height=150,left=135,top=600)
+ww = GUIWindow(name,master=0,width=800,height=50,left=140,top=500)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
-root.pack(fill=tk.BOTH,expand=1, side=tk.LEFT)
+root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 root3 = tk.Frame(Xroot,bg="black",width="20px")
-root3.pack(fill=tk.BOTH,expand=1, side=tk.LEFT)
+root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 root2 = tk.Frame(Xroot,bg="black",width="1px")
-root2.pack(fill=tk.BOTH,expand=1, side=tk.LEFT)
+root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 
 #default_font = font.Font(family='Helvetica', size=12, weight='bold')
 Font = font.Font(family='Helvetica', size=9, weight='normal')
@@ -1292,7 +1295,7 @@ class GUI(Base):
                 ,"FX:CIR","FX:PAN","FX:TILT","FX:DIM","\n"
                 ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
-        self.commands =["BLIND","CLEAR","STORE","EDIT","MOVE","\n","CFG-BTN","LABEL"
+        self.commands =["\n","BLIND","CLEAR","STORE","EDIT","MOVE","\n","CFG-BTN","LABEL"
                 ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE"
                 ]
         self.elem_fx_commands = {}
@@ -1627,6 +1630,7 @@ class GUI(Base):
         i=0
         c=0
         r=0
+        dim_end=0
         for fix in self.FIXTURES.fixtures:
             i+=1
             data = self.FIXTURES.fixtures[fix]
@@ -1635,6 +1639,10 @@ class GUI(Base):
             if(len(data["ATTRIBUT"].keys()) <= 1):
                 c,r=self.draw_dim(fix,data,c=c,r=r,frame=dim_frame)
             else:
+                if not dim_end:
+                    dim_end=1
+                    c=0
+                    r=0
                 #self._draw_fix(fix,data,root=fix_frame)
                 frame = fix_frame
             
@@ -1754,7 +1762,7 @@ class GUI(Base):
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=12:
+            if c >=5:
                 c=0
                 r+=1
     def draw_command(self):
@@ -1804,6 +1812,8 @@ class GUI(Base):
                 b["text"] = "SZ:{:0.0f}".format(fx_prm["SIZE"])
             if comm == "SP:":
                 b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
+            if comm == "FADE":
+                b["text"] = "FADE:{:0.02f}".format(fade)
             if comm == "ST:":
                 b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
             if comm == "OF:":
@@ -1813,7 +1823,7 @@ class GUI(Base):
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=12:
+            if c >=5:
                 c=0
                 r+=1
     def draw_preset(self):

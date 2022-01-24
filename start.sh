@@ -1,10 +1,12 @@
-killall screen
-
-cd /opt/ASP/
-screen -d -m -S ASP sh /opt/ASP/start_ASP.sh 
-cd /opt/Xdesk/
-screen -d -m -S console python3 /opt/Xdesk/console.py 
-screen -d -m -S Editor python3 /opt/Xdesk/Editor.py 
+set -e
+killall screen | echo  ""
+killall SCREEN | echo  ""
+path="/opt/LibreLight"
+cd "$path"
+screen -d -m -S ASP sh $path/ASP/start_ASP.sh 
+cd $path/Xdesk/
+screen -d -m -S console python3 $path/Xdesk/console.py 
+screen -d -m -S Editor python3 $path/Xdesk/LibreLightDesk.py 
 
 sleep 2
 screen -ls

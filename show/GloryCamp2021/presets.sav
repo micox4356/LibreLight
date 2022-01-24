@@ -32,15 +32,15 @@
 31	gerade	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 184.5400000000002, "FX": ""}, "TILT": {"VALUE": 57.130000000000024, "FX": ""}}, "3002": {"PAN": {"VALUE": 184.5400000000002, "FX": ""}, "TILT": {"VALUE": 57.130000000000024, "FX": ""}}}
 32	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 33	Walk2	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}, "3001": {"DIM": {"VALUE": null, "FX": "on:370:58:646:33807:-:"}, "PAN": {"VALUE": null, "FX": "off:0:0:775:33807:0:"}, "TILT": {"VALUE": null, "FX": "bump2:103:58:775:33807:0:"}}, "3002": {"DIM": {"VALUE": null, "FX": "on:370:58:646:34178:-:"}, "PAN": {"VALUE": null, "FX": "off:0:0:775:34178:0:"}, "TILT": {"VALUE": null, "FX": "bump2:103:58:775:34178:0:"}}}
-34	-	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}}
+34	strobe	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "3001": {"SHUTTER": {"VALUE": 217.8300000000003, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 213.72000000000028, "FX": ""}}}
 35	-	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "FL"}, "83": {"DIM": {"VALUE": 172.62000000000015, "FX": ""}}, "89": {"DIM": {"VALUE": 172.62000000000015, "FX": ""}}, "101": {"DIM": {"VALUE": 172.62000000000015, "FX": ""}}, "107": {"DIM": {"VALUE": 172.62000000000015, "FX": ""}}, "113": {"DIM": {"VALUE": 172.62000000000015, "FX": ""}}, "119": {"DIM": {"VALUE": 172.62000000000015, "FX": ""}}}
 36	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 37	-	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
 38	-	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
-39	open	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"SHUTTER": {"VALUE": 8.220000000000002, "FX": ""}, "DIM": {"VALUE": 256, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 8.220000000000002, "FX": ""}, "DIM": {"VALUE": 256, "FX": ""}}}
+39	open	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"SHUTTER": {"VALUE": 8.220000000000002, "FX": "off:103:0:0:13586:-:"}, "DIM": {"VALUE": 256, "FX": "off:103:0:0:13586:-:"}}, "3002": {"SHUTTER": {"VALUE": 8.220000000000002, "FX": "off:103:0:0:13736:-:"}, "DIM": {"VALUE": 256, "FX": "off:103:0:0:13736:-:"}}}
 40	-	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
 41	-	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}}
-42	BLINK ALL	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "FL", "DELAY": 0}, "3001": {"SHUTTER": {"VALUE": 214.89999999999986, "FX": ""}, "DIM": {"VALUE": 256, "FX": ""}, "PAN": {"VALUE": 115.08, "FX": ""}, "TILT": {"VALUE": 49.32000000000002, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 213.72000000000028, "FX": ""}, "DIM": {"VALUE": 256, "FX": ""}, "PAN": {"VALUE": 123.3, "FX": ""}, "TILT": {"VALUE": 57.54000000000002, "FX": ""}}}
+42	BLINK ALL	{"CFG": {"FADE": 2, "DEALY": 0, "BUTTON": "FL", "DELAY": 0}, "3001": {"SHUTTER": {"VALUE": 214.89999999999986, "FX": ""}, "PAN": {"VALUE": 139.74000000000004, "FX": ""}, "TILT": {"VALUE": 53.43000000000002, "FX": ""}}, "3002": {"SHUTTER": {"VALUE": 213.72000000000028, "FX": ""}, "PAN": {"VALUE": 147.96000000000006, "FX": ""}, "TILT": {"VALUE": 36.99000000000002, "FX": ""}}}
 43	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 44	links	{"CFG": {"FADE": 5, "DEALY": 0, "BUTTON": "GO", "DELAY": 0}, "3001": {"PAN": {"VALUE": 168.10000000000014, "FX": ""}, "TILT": {"VALUE": 61.24000000000002, "FX": ""}}, "3002": {"PAN": {"VALUE": 168.10000000000014, "FX": ""}, "TILT": {"VALUE": 61.24000000000002, "FX": ""}}}
 45	-	{"CFG": {"FADE": 2, "DELAY": 0, "BUTTON": "GO", "DEALY": 0}}

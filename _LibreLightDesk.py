@@ -51,7 +51,7 @@ import lib.motion as motion
 from collections import OrderedDict
 
 show_name = "GloryCamp2021"
-show_name = "JMS"
+#show_name = "JMS"
 #show_name = "Dimmer"
 
 

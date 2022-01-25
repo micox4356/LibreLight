@@ -23,9 +23,16 @@ def r():
 def hex_to_rgb(hex):
   return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) 
 
+def _cb(event,data={}):
+    print("dummy cb",event)
+
 class cb():
-    def __init__(self,win):
+    def __init__(self,win,cb=None):
         self.win = win
+        if cb:
+            self.cb = cb
+        else:
+            self.cb = _cb 
     def _callback(self,event):
         clobj=event.widget
         ## undermouse=find_withtag(master.CURRENT)
@@ -41,15 +48,18 @@ class cb():
         cnv.itemconfig("all", width=1)#filla="green")
         cnv.itemconfig(item, width=3)#filla="green")
         print(color)
-        print( hex_to_rgb(color[1:]))
+        int_color= hex_to_rgb(color[1:])
+        print(int_color)
+        self.cb(event,{"canvas":cnv,"color":int_color})
 
 
-def colorpicker(xframe,width=600,height=100):
+def colorpicker(xframe,width=600,height=100,xcb=None):
     canvas=tk.Canvas(xframe,width=width,height=height)
     canvas["bg"] = "grey" #"green"
-    callback = cb(canvas)
+    _callback = cb(canvas,xcb)
+
     #canvas.bind("<Key>", key)
-    canvas.bind("<Button-1>", callback.callback)
+    canvas.bind("<Button-1>", _callback.callback)
     canvas.pack()
 
     x=2

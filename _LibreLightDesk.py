@@ -249,6 +249,7 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
 class dummy_event():
     def __init__(self):
         self.num =0
+        self.type = 4 #press 5 release
     
 class Xevent():
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
@@ -299,7 +300,349 @@ class Xevent():
             if cmd and not modes.val("BLIND"):
                 client.send(cmd)
 
-        
+    def command(self,event):       
+        if self.mode == "COMMAND":
+            
+            if self.attr == "CLEAR":
+                if event.num == 1:
+
+                    if modes.val("STORE"):
+                        self.data.val_commands["STORE"] = 0
+                        modes.val("STORE",0)# = 0
+                        self.data.elem_commands["STORE"]["bg"] = "grey"
+
+                    else: 
+                        for fix in self.data.FIXTURES.fixtures:
+                            print( "clr",fix)
+                            data = self.data.FIXTURES.fixtures[fix]
+                            #print("elm",self.data.elem_attr[fix])
+                            for attr in data["ATTRIBUT"]:
+                                if attr.endswith("-FINE"):
+                                    continue
+                                self.data.elem_attr[fix][attr]["bg"] = "grey"
+                                data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                            #print(data["ATTRIBUT"])
+                        print( "CB CLEAR" )
+
+                    
+            if self.attr.startswith("SZ:"):#SIN":
+                #global fx_prm
+                k = "SIZE"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    if fx_prm[k] <= 0:
+                        fx_prm[k] = 1
+                    fx_prm[k] *=1.2
+                elif event.num == 5:
+                    fx_prm[k] /=1.2
+                #fx_prm[k] =int(fx_prm[k])
+                
+                if fx_prm[k] > 4000:
+                    fx_prm[k] = 4000
+                if fx_prm[k] < 0:
+                    fx_prm[k] =0
+                self.data.elem_fx_commands[self.attr]["text"] = "SZ:{:0.0f}".format(fx_prm[k])
+            if self.attr.startswith("SP:"):#SIN":
+                #global fx_prm
+                k = "SPEED"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    if fx_prm[k] <= 0:
+                        fx_prm[k] = 1
+                    fx_prm[k] *=1.2
+                elif event.num == 5:
+                    fx_prm[k] /=1.2
+                #fx_prm[k] =int(fx_prm[k])
+                
+                if fx_prm[k] > 4000:
+                    fx_prm[k] = 4000
+                if fx_prm[k] < 0:
+                    fx_prm[k] =0
+
+                if fx_prm[k] < 0.1:
+                    self.data.elem_fx_commands[self.attr]["text"] = "SP:off".format(fx_prm[k])
+                else:
+                    self.data.elem_fx_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
+            if self.attr.startswith("ST:"):#SIN":
+                #global fx_prm
+                k = "START"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    if fx_prm[k] <= 0:
+                        fx_prm[k] = 1
+                    fx_prm[k] *=1.2
+                elif event.num == 5:
+                    fx_prm[k] /=1.2
+                #fx_prm[k] =int(fx_prm[k])
+                
+                if fx_prm[k] > 4000:
+                    fx_prm[k] = 4000
+                if fx_prm[k] < 0:
+                    fx_prm[k] =0
+
+                self.data.elem_fx_commands[self.attr]["text"] = "ST:{:0.0f}".format(fx_prm[k])
+            if self.attr.startswith("OF:"):#SIN":
+                #global fx_prm
+                k = "OFFSET"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    if fx_prm[k] <= 0:
+                        fx_prm[k] = 1
+                    fx_prm[k] *=1.2
+                elif event.num == 5:
+                    fx_prm[k] /=1.2
+                #fx_prm[k] =int(fx_prm[k])
+                
+                if fx_prm[k] > 1024:
+                    fx_prm[k] = 1024
+                if fx_prm[k] < 0:
+                    fx_prm[k] =0
+
+                self.data.elem_fx_commands[self.attr]["text"] = "OF:{:0.0f}".format(fx_prm[k])
+            if self.attr.startswith("BS:"):
+                k = "BASE"
+                if event.num == 1:
+                    fx_prm[k] = "0"
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    fx_prm[k] = "+"
+                elif event.num == 5:
+                    fx_prm[k] = "-"
+                self.data.elem_fx_commands[self.attr]["text"] = "BS:{}".format(fx_prm[k])
+            if self.attr.startswith("FX:"):#SIN":
+                if event.num == 1:
+                    cmd = ""
+                    offset = 0
+                    offset_flag=0
+                    start = fx_prm["START"]
+                    base  = fx_prm["BASE"]
+
+                    for fix in self.data.FIXTURES.fixtures:
+                        data = self.data.FIXTURES.fixtures[fix]
+                        #print( "ADD FX",fix)
+                        for attr in data["ATTRIBUT"]:
+                            if attr.endswith("-FINE"):
+                                continue
+
+                            fx=""
+                            if "SIN" in self.attr:
+                                fx = "sinus"
+                            elif "FD" in self.attr:
+                                fx = "fade"
+                            elif "ON2" in self.attr:
+                                fx = "on2"
+                            elif "ON" in self.attr:
+                                fx = "on"
+                            elif "BUM2" in self.attr:
+                                fx = "bump2"
+                            elif "BUM" in self.attr:
+                                fx = "bump"
+                            elif "COS" in self.attr:
+                                fx = "cosinus"
+
+                            if fx:
+                                if fx_prm["SPEED"] < 0.1:
+                                    fx = "off"
+                            else:
+                                if "DIM" in self.attr:
+                                    base=""
+                                    if attr == "DIM":
+                                        if fx_prm["SPEED"] < 0.1:
+                                            fx = "off"
+                                        else:
+                                            fx = "fade"
+                                elif "TILT" in self.attr:
+                                    base=""
+                                    if attr == "PAN":
+                                        fx = "off"
+                                    if attr == "TILT":
+                                        if fx_prm["SPEED"] < 0.1:
+                                            fx = "off"
+                                        else:
+                                            fx = "sinus"
+                                elif "PAN" in self.attr:
+                                    base=""
+                                    if attr == "PAN":
+                                        if fx_prm["SPEED"] < 0.1:
+                                            fx = "off"
+                                        else:
+                                            fx = "cosinus" 
+                                    if attr == "TILT":
+                                       fx = "off"
+                                elif "CIR" in self.attr:
+                                    base=""
+                                    if attr == "PAN":
+                                        if fx_prm["SPEED"] < 0.1:
+                                            fx = "off"
+                                        else:
+
+                                            fx = "cosinus" 
+                                    if attr == "TILT":
+                                        if fx_prm["SPEED"] < 0.1:
+                                            fx = "off"
+                                        else:
+                                            fx = "sinus"
+                            if fx:
+                                fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
+                                offset_flag=1
+
+                            if "FX" not in data["ATTRIBUT"][attr]:
+                                data["ATTRIBUT"][attr]["FX"] =""
+                            print("ADD FX",fix,attr,fx,data["ATTRIBUT"][attr]["ACTIVE"])
+                            if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
+                                print("++ADD FX",fix,attr,fx)
+                                data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
+                            
+                                cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
+                        if fx_prm["OFFSET"] > 0.5 and offset_flag:  
+                            offset_flag=0
+                            offset += fx_prm["OFFSET"] # add offset on next fixture
+                        #print("offset",offset)
+                    if cmd and not modes.val("BLIND"):
+                        client.send(cmd)
+
+            elif self.attr == "FX OFF":
+                if event.num == 1:
+                    client.send("fx0:alloff:,fxf:alloff:")
+                    self.data.elem_fx_commands[self.attr]["bg"] = "magenta"
+                    for fix in self.data.FIXTURES.fixtures:
+                        data = self.data.FIXTURES.fixtures[fix]
+                        for attr in data["ATTRIBUT"]:
+                            data["ATTRIBUT"][attr]["FX"] = ""
+
+            elif self.attr == "FLASH":
+                if event.num == 1:
+                    if modes.val("FLASH"):
+                        modes.val("FLASH",0)# = 0
+                        self.data.elem_commands[self.attr]["bg"] = "grey"
+                    else:
+                        modes.val("FLASH",1)# = 1
+                        self.data.elem_commands[self.attr]["bg"] = "green"
+            elif self.attr == "BLIND":
+                
+                if event.num == 1:
+                    
+                    if self.data.val_commands[self.attr]:
+                        self.data.val_commands[self.attr] = 0
+                        modes.val("BLIND",0)# = 0
+                        self.data.elem_commands[self.attr]["bg"] = "grey"
+                    else:
+                        self.data.val_commands[self.attr] = 1
+                        modes.val("BLIND",1)# = 1
+                        self.data.elem_commands[self.attr]["bg"] = "red"
+                    print("BLIND",self.data.val_commands)
+            
+            elif self.attr == "FADE":
+                global fade
+                global fade_on
+                if fade < 0.01:
+                    fade = 0.01
+                elif fade > 100.0:
+                    fade = 100
+                if event.num == 4:
+                    fade *= 1.1
+                elif event.num == 5:
+                    fade /= 1.1
+                elif event.num == 1:
+                    if fade_on:
+                        fade_on = 0
+                        self.data.elem_commands[self.attr]["bg"] = "grey"
+                    else:
+                        fade_on = 1
+                        self.data.elem_commands[self.attr]["bg"] = "green"
+                elif event.num == 2:
+                    if fade > 1 and fade < 4:
+                        fade = 4
+                    elif fade > 3 and fade < 6:
+                        fade = 6
+                    elif fade > 5 and fade < 7:
+                        fade = 8
+                    elif fade > 7 and fade < 9:
+                        fade = 10
+                    elif fade > 9:
+                        fade = 0.01
+                    elif fade < 1:
+                        fade = 1.1
+
+                self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
+            elif self.attr == "CFG-BTN":
+                #global modes #CFG_BTN
+                if event.num == 1:
+                    if modes.val("CFG_BTN"):
+                        modes.val("CFG_BTN",0)# = 0
+                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                    else:
+                        modes.val("CFG_BTN",1)# = 1
+                        self.data.elem_commands[self.attr]["bg"] = "red"
+            elif self.attr == "ACTIVATE": 
+                #global modes# ACTIVATE
+                if event.num == 1:
+                    if modes.val("ACTIVATE"):
+                        modes.val("ACTIVATE",0)# = 0
+                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                    else:
+                        modes.val("ACTIVATE",1)# = 1
+                        self.data.elem_commands[self.attr]["bg"] = "red"
+                
+            elif self.attr == "SELECT":
+                #global modes# SELECT
+                #global CFG_BTN
+                if event.num == 1:
+                    if modes.val("SELECT"):
+                        modes.val("SELECT",0)# = 0
+                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                    else:
+                        modes.val("SELECT",1)# = 1
+                        self.data.elem_commands[self.attr]["bg"] = "red"
+            elif self.attr == "LABEL":
+                #global modes #LABEL
+                #global CFG_BTN
+                if event.num == 1:
+                    if modes.val("LABEL"):
+                        modes.val("LABEL", 0)
+                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                    else:
+                        modes.val("LABEL", 1)
+                        self.data.elem_commands[self.attr]["bg"] = "red"
+            elif self.attr == "STONY_FX":
+                if event.num == 1:
+                    if modes.val("STONY_FX"):
+                        modes.val("STONY_FX", 0)
+                        self.data.elem_fx_commands[self.attr]["bg"] = "grey"
+                    else:
+                        modes.val("STONY_FX", 1)
+                        self.data.elem_fx_commands[self.attr]["bg"] = "red"
+
+            elif self.attr == "STORE":
+                
+                if event.num == 1:
+                    
+                    if self.data.val_commands[self.attr]:
+                        self.data.val_commands[self.attr] = 0
+                        modes.val("STORE",0)
+                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                    else:
+                        self.data.val_commands[self.attr] = 1
+                        modes.val("STORE", 1)
+                        self.data.elem_commands[self.attr]["bg"] = "red"
+                    print("BLIND",self.data.val_commands)
+            elif self.attr == "BACKUP":
+                self.data.PRESETS.backup_presets()
+                self.data.FIXTURES.backup_patch()
+            return 0
 
 
             
@@ -321,349 +664,8 @@ class Xevent():
             #global ACTIVATE 
             #global CFG_BTN
             change = 0
-            
             if self.mode == "COMMAND":
-                
-                if self.attr == "CLEAR":
-                    if event.num == 1:
-
-                        if modes.val("STORE"):
-                            self.data.val_commands["STORE"] = 0
-                            modes.val("STORE",0)# = 0
-                            self.data.elem_commands["STORE"]["bg"] = "grey"
-
-                        else: 
-                            for fix in self.data.FIXTURES.fixtures:
-                                print( "clr",fix)
-                                data = self.data.FIXTURES.fixtures[fix]
-                                #print("elm",self.data.elem_attr[fix])
-                                for attr in data["ATTRIBUT"]:
-                                    if attr.endswith("-FINE"):
-                                        continue
-                                    self.data.elem_attr[fix][attr]["bg"] = "grey"
-                                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                                #print(data["ATTRIBUT"])
-                            print( "CB CLEAR" )
-
-                        
-                if self.attr.startswith("SZ:"):#SIN":
-                    #global fx_prm
-                    k = "SIZE"
-                    if event.num == 1:
-                        pass
-                    elif event.num == 2:
-                        pass
-                    elif event.num == 4:
-                        if fx_prm[k] <= 0:
-                            fx_prm[k] = 1
-                        fx_prm[k] *=1.2
-                    elif event.num == 5:
-                        fx_prm[k] /=1.2
-                    #fx_prm[k] =int(fx_prm[k])
-                    
-                    if fx_prm[k] > 4000:
-                        fx_prm[k] = 4000
-                    if fx_prm[k] < 0:
-                        fx_prm[k] =0
-                    self.data.elem_fx_commands[self.attr]["text"] = "SZ:{:0.0f}".format(fx_prm[k])
-                if self.attr.startswith("SP:"):#SIN":
-                    #global fx_prm
-                    k = "SPEED"
-                    if event.num == 1:
-                        pass
-                    elif event.num == 2:
-                        pass
-                    elif event.num == 4:
-                        if fx_prm[k] <= 0:
-                            fx_prm[k] = 1
-                        fx_prm[k] *=1.2
-                    elif event.num == 5:
-                        fx_prm[k] /=1.2
-                    #fx_prm[k] =int(fx_prm[k])
-                    
-                    if fx_prm[k] > 4000:
-                        fx_prm[k] = 4000
-                    if fx_prm[k] < 0:
-                        fx_prm[k] =0
-
-                    if fx_prm[k] < 0.1:
-                        self.data.elem_fx_commands[self.attr]["text"] = "SP:off".format(fx_prm[k])
-                    else:
-                        self.data.elem_fx_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
-                if self.attr.startswith("ST:"):#SIN":
-                    #global fx_prm
-                    k = "START"
-                    if event.num == 1:
-                        pass
-                    elif event.num == 2:
-                        pass
-                    elif event.num == 4:
-                        if fx_prm[k] <= 0:
-                            fx_prm[k] = 1
-                        fx_prm[k] *=1.2
-                    elif event.num == 5:
-                        fx_prm[k] /=1.2
-                    #fx_prm[k] =int(fx_prm[k])
-                    
-                    if fx_prm[k] > 4000:
-                        fx_prm[k] = 4000
-                    if fx_prm[k] < 0:
-                        fx_prm[k] =0
-
-                    self.data.elem_fx_commands[self.attr]["text"] = "ST:{:0.0f}".format(fx_prm[k])
-                if self.attr.startswith("OF:"):#SIN":
-                    #global fx_prm
-                    k = "OFFSET"
-                    if event.num == 1:
-                        pass
-                    elif event.num == 2:
-                        pass
-                    elif event.num == 4:
-                        if fx_prm[k] <= 0:
-                            fx_prm[k] = 1
-                        fx_prm[k] *=1.2
-                    elif event.num == 5:
-                        fx_prm[k] /=1.2
-                    #fx_prm[k] =int(fx_prm[k])
-                    
-                    if fx_prm[k] > 1024:
-                        fx_prm[k] = 1024
-                    if fx_prm[k] < 0:
-                        fx_prm[k] =0
-
-                    self.data.elem_fx_commands[self.attr]["text"] = "OF:{:0.0f}".format(fx_prm[k])
-                if self.attr.startswith("BS:"):
-                    k = "BASE"
-                    if event.num == 1:
-                        fx_prm[k] = "0"
-                    elif event.num == 2:
-                        pass
-                    elif event.num == 4:
-                        fx_prm[k] = "+"
-                    elif event.num == 5:
-                        fx_prm[k] = "-"
-                    self.data.elem_fx_commands[self.attr]["text"] = "BS:{}".format(fx_prm[k])
-                if self.attr.startswith("FX:"):#SIN":
-                    if event.num == 1:
-                        cmd = ""
-                        offset = 0
-                        offset_flag=0
-                        start = fx_prm["START"]
-                        base  = fx_prm["BASE"]
-
-                        for fix in self.data.FIXTURES.fixtures:
-                            data = self.data.FIXTURES.fixtures[fix]
-                            #print( "ADD FX",fix)
-                            for attr in data["ATTRIBUT"]:
-                                if attr.endswith("-FINE"):
-                                    continue
-
-                                fx=""
-                                if "SIN" in self.attr:
-                                    fx = "sinus"
-                                elif "FD" in self.attr:
-                                    fx = "fade"
-                                elif "ON2" in self.attr:
-                                    fx = "on2"
-                                elif "ON" in self.attr:
-                                    fx = "on"
-                                elif "BUM2" in self.attr:
-                                    fx = "bump2"
-                                elif "BUM" in self.attr:
-                                    fx = "bump"
-                                elif "COS" in self.attr:
-                                    fx = "cosinus"
-
-                                if fx:
-                                    if fx_prm["SPEED"] < 0.1:
-                                        fx = "off"
-                                else:
-                                    if "DIM" in self.attr:
-                                        base=""
-                                        if attr == "DIM":
-                                            if fx_prm["SPEED"] < 0.1:
-                                                fx = "off"
-                                            else:
-                                                fx = "fade"
-                                    elif "TILT" in self.attr:
-                                        base=""
-                                        if attr == "PAN":
-                                            fx = "off"
-                                        if attr == "TILT":
-                                            if fx_prm["SPEED"] < 0.1:
-                                                fx = "off"
-                                            else:
-                                                fx = "sinus"
-                                    elif "PAN" in self.attr:
-                                        base=""
-                                        if attr == "PAN":
-                                            if fx_prm["SPEED"] < 0.1:
-                                                fx = "off"
-                                            else:
-                                                fx = "cosinus" 
-                                        if attr == "TILT":
-                                           fx = "off"
-                                    elif "CIR" in self.attr:
-                                        base=""
-                                        if attr == "PAN":
-                                            if fx_prm["SPEED"] < 0.1:
-                                                fx = "off"
-                                            else:
-
-                                                fx = "cosinus" 
-                                        if attr == "TILT":
-                                            if fx_prm["SPEED"] < 0.1:
-                                                fx = "off"
-                                            else:
-                                                fx = "sinus"
-                                if fx:
-                                    fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
-                                    offset_flag=1
-
-                                if "FX" not in data["ATTRIBUT"][attr]:
-                                    data["ATTRIBUT"][attr]["FX"] =""
-                                print("ADD FX",fix,attr,fx,data["ATTRIBUT"][attr]["ACTIVE"])
-                                if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
-                                    print("++ADD FX",fix,attr,fx)
-                                    data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
-                                
-                                    cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
-                            if fx_prm["OFFSET"] > 0.5 and offset_flag:  
-                                offset_flag=0
-                                offset += fx_prm["OFFSET"] # add offset on next fixture
-                            #print("offset",offset)
-                        if cmd and not modes.val("BLIND"):
-                            client.send(cmd)
-
-                elif self.attr == "FX OFF":
-                    if event.num == 1:
-                        client.send("fx0:alloff:,fxf:alloff:")
-                        self.data.elem_fx_commands[self.attr]["bg"] = "magenta"
-                        for fix in self.data.FIXTURES.fixtures:
-                            data = self.data.FIXTURES.fixtures[fix]
-                            for attr in data["ATTRIBUT"]:
-                                data["ATTRIBUT"][attr]["FX"] = ""
-
-                elif self.attr == "FLASH":
-                    if event.num == 1:
-                        if modes.val("FLASH"):
-                            modes.val("FLASH",0)# = 0
-                            self.data.elem_commands[self.attr]["bg"] = "grey"
-                        else:
-                            modes.val("FLASH",1)# = 1
-                            self.data.elem_commands[self.attr]["bg"] = "green"
-                elif self.attr == "BLIND":
-                    
-                    if event.num == 1:
-                        
-                        if self.data.val_commands[self.attr]:
-                            self.data.val_commands[self.attr] = 0
-                            modes.val("BLIND",0)# = 0
-                            self.data.elem_commands[self.attr]["bg"] = "grey"
-                        else:
-                            self.data.val_commands[self.attr] = 1
-                            modes.val("BLIND",1)# = 1
-                            self.data.elem_commands[self.attr]["bg"] = "red"
-                        print("BLIND",self.data.val_commands)
-                
-                elif self.attr == "FADE":
-                    global fade
-                    global fade_on
-                    if fade < 0.01:
-                        fade = 0.01
-                    elif fade > 100.0:
-                        fade = 100
-                    if event.num == 4:
-                        fade *= 1.1
-                    elif event.num == 5:
-                        fade /= 1.1
-                    elif event.num == 1:
-                        if fade_on:
-                            fade_on = 0
-                            self.data.elem_commands[self.attr]["bg"] = "grey"
-                        else:
-                            fade_on = 1
-                            self.data.elem_commands[self.attr]["bg"] = "green"
-                    elif event.num == 2:
-                        if fade > 1 and fade < 4:
-                            fade = 4
-                        elif fade > 3 and fade < 6:
-                            fade = 6
-                        elif fade > 5 and fade < 7:
-                            fade = 8
-                        elif fade > 7 and fade < 9:
-                            fade = 10
-                        elif fade > 9:
-                            fade = 0.01
-                        elif fade < 1:
-                            fade = 1.1
-
-                    self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
-                elif self.attr == "CFG-BTN":
-                    #global modes #CFG_BTN
-                    if event.num == 1:
-                        if modes.val("CFG_BTN"):
-                            modes.val("CFG_BTN",0)# = 0
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                        else:
-                            modes.val("CFG_BTN",1)# = 1
-                            self.data.elem_commands[self.attr]["bg"] = "red"
-                elif self.attr == "ACTIVATE": 
-                    #global modes# ACTIVATE
-                    if event.num == 1:
-                        if modes.val("ACTIVATE"):
-                            modes.val("ACTIVATE",0)# = 0
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                        else:
-                            modes.val("ACTIVATE",1)# = 1
-                            self.data.elem_commands[self.attr]["bg"] = "red"
-                    
-                elif self.attr == "SELECT":
-                    #global modes# SELECT
-                    #global CFG_BTN
-                    if event.num == 1:
-                        if modes.val("SELECT"):
-                            modes.val("SELECT",0)# = 0
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                        else:
-                            modes.val("SELECT",1)# = 1
-                            self.data.elem_commands[self.attr]["bg"] = "red"
-                elif self.attr == "LABEL":
-                    #global modes #LABEL
-                    #global CFG_BTN
-                    if event.num == 1:
-                        if modes.val("LABEL"):
-                            modes.val("LABEL", 0)
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                        else:
-                            modes.val("LABEL", 1)
-                            self.data.elem_commands[self.attr]["bg"] = "red"
-                elif self.attr == "STONY_FX":
-                    if event.num == 1:
-                        if modes.val("STONY_FX"):
-                            modes.val("STONY_FX", 0)
-                            self.data.elem_fx_commands[self.attr]["bg"] = "grey"
-                        else:
-                            modes.val("STONY_FX", 1)
-                            self.data.elem_fx_commands[self.attr]["bg"] = "red"
-
-                elif self.attr == "STORE":
-                    
-                    if event.num == 1:
-                        
-                        if self.data.val_commands[self.attr]:
-                            self.data.val_commands[self.attr] = 0
-                            modes.val("STORE",0)
-                            self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                        else:
-                            self.data.val_commands[self.attr] = 1
-                            modes.val("STORE", 1)
-                            self.data.elem_commands[self.attr]["bg"] = "red"
-                        print("BLIND",self.data.val_commands)
-                elif self.attr == "BACKUP":
-                    self.data.PRESETS.backup_presets()
-                    self.data.FIXTURES.backup_patch()
-                return 0
+                self.command(event)
             elif self.mode == "ROOT":
                 if event.keysym=="Escape":
                     
@@ -909,6 +911,31 @@ class scroll():
         canvas = self.canvas
         canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
 
+
+def hex_to_rgb(hex):
+  return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) 
+
+class cb():
+    def __init__(self,win):
+        self.win = win
+    def _callback(self,event):
+        clobj=event.widget
+        ## undermouse=find_withtag(master.CURRENT)
+        undermouse=self.win.find_closest(self.win.CURRENT)
+        print( repr(undermouse))
+    def callback(self,event):
+        print(__file__,self,"callback",event)
+        cnv = self.win
+        item = cnv.find_closest(cnv.canvasx(event.x), cnv.canvasy(event.y))[0]
+        tags = cnv.gettags(item)
+        #cnv.itemconfigure(self.tag, text=tags[0])
+        print(tags,item)
+        color = cnv.itemcget(item, "fill")
+        cnv.itemconfig("all", width=1)#filla="green")
+        cnv.itemconfig(item, width=3)#filla="green")
+        print(color)
+        print( hex_to_rgb(color[1:]))
+
 class GUI(Base):
     def __init__(self):
         super().__init__() 
@@ -1115,6 +1142,8 @@ class GUI(Base):
 
         
     def draw_dim(self,fix,data,c=0,r=0,frame=None):
+        Font = font.Font(family='Helvetica', size=9, weight='normal')
+        FontBold = font.Font(family='Helvetica', size=10, weight='bold')
         i=0
         if frame is None:
             frame = tk.Frame(root,bg="black")
@@ -1137,11 +1166,11 @@ class GUI(Base):
             if attr.endswith("-FINE"):
                 continue
             v= data["ATTRIBUT"][attr]["VALUE"]
-            b = tk.Button(frame,bg="lightblue", text=""+str(fix)+" "+data["NAME"],width=4)
+            b = tk.Button(frame,bg="lightblue",font=FontBold, text=""+str(fix)+" "+data["NAME"],width=4)
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=6)
+            b = tk.Button(frame,bg="grey",font=FontBold, text=str(attr)+' '+str(round(v,2)),width=6)
             self.elem_attr[fix][attr] = b
             b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -1150,9 +1179,10 @@ class GUI(Base):
                 c=0
                 r+=1
         return c,r
-    def draw_patch(self):
+    def draw_patch(self,xframe):
         r=0
         c=0
+        frame_dim = xframe
         root = frame_dim
         dim_frame = tk.Frame(root,bg="black")
         dim_frame.pack(fill=tk.X, side=tk.TOP)
@@ -1244,15 +1274,23 @@ class GUI(Base):
                 
         #fix_frame
         #canvas.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
-    def draw_fix(self):
+    def draw_fix(self,xframe):
         r=0
         c=0
+        frame_dim=xframe
+        frame_fix=xframe
         root = frame_dim
         dim_frame = tk.Frame(root,bg="black")
         dim_frame.pack(fill=tk.X, side=tk.TOP)
         root = frame_fix
         fix_frame = tk.Frame(root,bg="black")
         fix_frame.pack(fill=tk.X, side=tk.TOP)
+        Font = font.Font(family='Helvetica', size=9, weight='normal')
+        FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+        #self.tk.default_font.configure(size=9)
+        #self.tk.option_add("*Font", FontBold)
+        #dim_frame.configure(font=Font)
+        #fix_frame.configure(font=Font)
         i=0
         c=0
         r=0
@@ -1272,7 +1310,7 @@ class GUI(Base):
                 #self._draw_fix(fix,data,root=fix_frame)
                 frame = fix_frame
             
-                b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
+                b = tk.Button(frame,bg="lightblue",font=FontBold, text="FIX:"+str(fix)+" "+data["NAME"],width=20)
                 b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
@@ -1290,7 +1328,7 @@ class GUI(Base):
                         continue
                     v= data["ATTRIBUT"][attr]["VALUE"]
                     
-                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                    b = tk.Button(frame,bg="grey",font=FontBold, text=str(attr)+' '+str(round(v,2)),width=8)
                     self.elem_attr[fix][attr] = b
                     b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
                     b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -1570,7 +1608,21 @@ class GUI(Base):
     def draw_colorpicker(self,xframe):
         import lib.colorpicker as colp
 
-        colp.colorpicker(xframe,width=600,height=100)
+        #colp.colorpicker(xframe,width=600,height=100, xcb=Xevent(fix=0,elem=None,attr="COLORPICKER",data=self,mode="INPUT").cb)
+        #xcb = cb
+        e = dummy_event()
+        r = Xevent(fix=0,elem=None,attr="RED",data=self,mode="ENCODER") #.cb
+        g = Xevent(fix=0,elem=None,attr="GREEN",data=self,mode="ENCODER") #.cb
+        b = Xevent(fix=0,elem=None,attr="BLUE",data=self,mode="ENCODER") #.cb
+        def _cb(event,data):
+            print("PPPPPPPOOOOOORRR",event,data)
+            if "color" in data:
+                e.num=5
+                r.cb(e)
+                 
+                print("PICK COLOR:",data["color"])
+                #self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
+        colp.colorpicker(xframe,width=600,height=100, xcb=_cb)
         return 0
 
         canvas=tk.Canvas(xframe,width=600,height=100)
@@ -1594,8 +1646,8 @@ class GUI(Base):
 
     def render(self):
         Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
-        self.draw_patch()
-        self.draw_fix()
+        #self.draw_patch()
+        #self.draw_fix()
         #input()
         #self.draw_enc()
         #self.draw_command()
@@ -1837,7 +1889,13 @@ class GUIWindow():
     def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
         global lf_nr
         if master: 
-            self.tk = tkinter.Tk() #Toplevel()
+            #Font = font.Font(family='Helvetica', size=9, weight='normal')
+            self.tk = tkinter.Tk()#font=Font) #Toplevel()
+            #Font = font.Font(family='Helvetica', size=9, weight='normal')
+            #FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+            #self.tk.default_font.configure(size=9)
+            #self.tk.option_add("*Font", FontBold)
+            #self.tk.configure(font=Font)
         else:
             self.tk = tkinter.Toplevel()
         self.tk["bg"] = "black"
@@ -1915,13 +1973,15 @@ window_manager.new(w)
 name="DIMMER"
 w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
-frame_dim = w1 # w.tk
+#frame_dim = w1 # w.tk
+#master.draw_dim(w1.tk)
 window_manager.new(w,name)
 
 name="FIXTURES"
 w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
-frame_fix = w1 #w.tk
+#frame_fix = w1 #w.tk
+master.draw_fix(w1)#.tk)
 window_manager.new(w,name)
 
 

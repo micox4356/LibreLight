@@ -909,380 +909,6 @@ class scroll():
         canvas = self.canvas
         canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
 
-def ScrollFrame(root,width=50,height=100,bd=1):
-    print("ScrollFrame init",width,height)
-    aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
-    #aframe.place(x=0,y=0)
-    aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
-
-    canvas=tk.Canvas(aframe,width=width-24,height=height)
-    canvas["bg"] = "black" #"green"
-    bframe=tk.Frame(canvas)#,width=width,height=height)
-    bframe["bg"] = "blue"
-    scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    scrollbar.pack(side="right",fill="y")
-    canvas.pack(side="left",expand=1,fill="both")
-    canvas.create_window((0,0),window=bframe,anchor='nw')
-    bframe.bind("<Configure>",scroll(canvas).config)
-    canvas.bind("<Button>",Event("XXX").event)
-    canvas.bind("<Key>",Event("XXX").event)
-    return bframe
-#frame = ScrollFrame(root)
-
-class GUIHandler():
-    def __init__(self):
-        pass
-    def update(self,fix,attr,args={}):
-        #print("GUIHandler",fix,attr,args)
-        for i,k in enumerate(args):
-            v = args[k] 
-            #print("GUI-H", i,k,v)
-            
-class Fixtures(Base):
-    def __init__(self):
-        super().__init__() 
-        #self.load()
-        self.fixtures = OrderedDict()
-        self.gui = GUIHandler()
-
-        
-    def load_patch(self):
-        filename="patch"
-        d,l = self._load(filename)
-        self.fixtures = OrderedDict()
-        for i in l:
-            sdata = d[i]
-            for attr in sdata["ATTRIBUT"]:
-                sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
-            #print("load",filename,sdata)
-            #if "CFG" not in sdata:
-            #    sdata["CFG"] = OrderedDict()
-            self.fixtures[str(i)] = sdata
-        #self.PRESETS.label_presets = l
-
-    def backup_patch(self):
-        filename = "patch"
-        data  = self.fixtures
-        labels = {}
-        for k in data:
-            labels[k] = k
-        self._backup(filename,data,labels)
-
-    def update_raw(self,rdata):
-        #print("update_raw",rdata)
-        cmd = []
-        for i,d in enumerate(rdata):
-            xcmd = {"DMX":""}
-            #print("fix:",i,d)
-            fix   = d["FIX"]
-            attr  = d["ATTR"]
-            v2    = d["VALUE"]
-            v2_fx = d["FX"]
-
-            if fix not in self.fixtures:
-                continue 
-            sdata = self.fixtures[fix] #shortcat
-            ATTR  = sdata["ATTRIBUT"] 
-
-            sDMX = 0
-            if  sdata["DMX"] > 0:
-                print( sdata)
-                sDMX = (sdata["UNIVERS"]*512)+sdata["DMX"]  
-                #sDMX =sdata["DMX"]  
-
-            if attr not in ATTR:
-                continue
-        
-            if ATTR[attr]["NR"] >= 0:
-                DMX = sDMX+ATTR[attr]["NR"]-1
-                xcmd["DMX"] = str(DMX)
-            else:
-                if attr == "DIM" and ATTR[attr]["NR"] < 0:
-                    xcmd["VIRTUAL"] = {}
-                    for a in ATTR:
-                        if ATTR[a]["MASTER"]:
-                            xcmd["VIRTUAL"][a] = sDMX+ATTR[a]["NR"]-1
-                    #print( "VIRTUAL",xcmd)
-
-
-            cmd.append(xcmd)
-
-            v=ATTR[attr]["VALUE"]
-            if v2 is not None:
-                ATTR[attr]["VALUE"] = v2
-
-            #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
-            text = str(attr)+' '+str(round(v,2))
-            self.gui.update(fix,attr,args={"text":text})
-        return cmd
-
-
-class Presets(Base):
-    def __init__(self):
-        super().__init__() 
-        #self.load()
-
-    def load_presets(self):
-        filename="presets"
-        d,l = self._load(filename)
-        for i in d:
-            sdata = d[i]
-            if "CFG" not in sdata:
-                sdata["CFG"] = OrderedDict()
-            if "FADE" not in sdata["CFG"]:
-                sdata["CFG"]["FADE"] = 4
-            if "DELAY" not in sdata["CFG"]:
-                sdata["CFG"]["DELAY"] = 0
-            if "BUTTON" not in sdata["CFG"]:
-                sdata["CFG"]["BUTTON"] = "GO"
-        self.val_presets = d
-        self.label_presets = l
-        
-        
-    def backup_presets(self):
-        filename = "presets"
-        data   = self.val_presets
-        labels = self.label_presets
-        self._backup(filename,data,labels)
-        
-
-    def get_cfg(self,nr):
-        if nr not in self.val_presets:
-            print(self,"error get_cfg no nr:",nr)
-            return {}
-        if "CFG" in self.val_presets[nr]:
-            return self.val_presets[nr]["CFG"]
-
-    def get_raw_map(self,nr):
-        print("get_raw_map",nr)
-        if nr not in self.val_presets:
-            self.val_presets[nr] = OrderedDict()
-            self.val_presets[nr]["VALUE"] = 0
-            self.val_presets[nr]["FX"] = ""
-        sdata = self.val_presets[nr]
-        cmd = ""
-        out = []
-        dmx=-1
-        for fix in sdata:
-            if fix == "CFG":
-                #print("CFG",nr,sdata[fix])
-                continue
-
-            for attr in sdata[fix]:
-                x = {}
-                #print("RAW",attr)
-                x["FIX"]   = fix
-                x["ATTR"]  = attr
-
-                x["VALUE"] = sdata[fix][attr]["VALUE"]
-                x["FX"]    = sdata[fix][attr]["FX"]
-                #x["DMX"]  = sdata[fix][attr]["NR"] 
-
-                out.append(x)
-        return out
-
-class GUI_grid():
-    def __init__(self,root,data,title="tilte",width=800):
-
-        self.data = data
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
-        r=0
-        c=0
-        i=1
-        for row in data:
-
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=4)
-            #self.b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-            c+=1
-            if c % 8 == 0:
-                r+=1
-                c=0
-            i+=1
-        self.frame.pack()
-
-class BEvent():
-    def __init__(self,data,cb):
-        self._data = data
-        self._cb = cb
-    def cb(self,event):
-        #print(self,event)
-        self._cb(event,self._data)
-
-class GUI_menu():
-    def __init__(self,root,data,title="tilte",width=800):
-        global tk
-        self.data = data
-
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
-        r=0
-        c=0
-        i=1
-        self.b = tk.Label(self.frame,bg="blue", text="MAIN:MENU",width=13,height=1)
-        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        r+=1
-        for row in data:
-            #print(i)
-            #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=13,height=3)
-            self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
-            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-            r+=1
-            i+=1
-        self.frame.pack()
-    def callback(self,event,data={}):
-        print(self,event,data)
-        window_manager.top(data["text"])# = WindowManager()
-
-lf_nr = 0
-class GUIWindow():
-    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
-        global lf_nr
-        if master: 
-            self.tk = tkinter.Tk() #Toplevel()
-        else:
-            self.tk = tkinter.Toplevel()
-        self.tk["bg"] = "black"
-        self.tk.bind("<Button>",self.callback)
-        self.tk.bind("<Key>",self.callback)
-        self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
-        lf_nr+=1
-        #self.tk.geometry("270x600+0+65")
-        geo ="{}x{}".format(width,height)
-        if left is not None:
-            geo += "+{}".format(left)
-            if top is not None:
-                geo += "+{}".format(top)
-
-        self.tk.geometry(geo)
-    def title(self,title=None):
-        if title is None:
-            return self.tk.title()
-        else:
-            return self.tk.title(title)
-    def show(self):
-        pass
-        #self.frame.pack()
-    def mainloop(self):
-        self.tk.mainloop()
-    def callback(self,event,data={}):
-        print("<GUI>",self,event,data)
-        
-class WindowManager():
-    def __init__(self):
-        self.windows = {}
-        self.nr= 0
-        self.first=""
-    def new(self,w,name=""):
-        if not self.first:
-            if name:
-                self.first = name
-            else:
-                self.first = str(self.nr)
-            w.tk.attributes('-topmost',True)
-
-
-        if name:
-            self.windows[str(name)] = w
-        else:
-            self.windows[str(self.nr)] = w
-            self.nr+=1
-        #w.show()
-    def mainloop(self):
-        self.windows[self.first].mainloop()
-    def top(self,name):
-        name = str(name)
-        if name in self.windows:
-            self.windows[name].tk.attributes('-topmost',True)
-            self.windows[name].tk.attributes('-topmost',False)
-        else:
-            print(name,"not in self.windows",self.windows.keys())
-
-window_manager = WindowManager()
-
-w = GUIWindow("MAIN",master=1,width=130,height=450,left=0,top=65)
-data = []
-#data.append({"text":"COMMAND"})
-data.append({"text":"EXEC"})
-data.append({"text":"DIMMER"})
-data.append({"text":"FIXTURES"})
-#data.append({"text":"PRESET"})
-#data.append({"text":"PATCH"})
-#data.append({"text":"ENCODER"})
-f = GUI_menu(w.tk,data)
-window_manager.new(w)
-
-#w = GUIWindow("GRID",master=0,width=1000,height=200,left=232,top=65)
-#data = []
-#for i in range(10):
-#    data.append({"text":"P {:02}".format(i+1)})
-#w = GUI_grid(w.tk,data)
-#window_manager.new(w)
-
-name = "COMMAND"
-w = GUIWindow(name,master=0,width=350,height=200,left=950,top=65)
-frame_cmd = w.tk
-window_manager.new(w,name)
-
-name="EXEC"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
-frame_exe = w.tk
-window_manager.new(w,name)
-
-name="DIMMER"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
-frame_dim = w1 # w.tk
-window_manager.new(w,name)
-
-name="FIXTURES"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
-frame_fix = w1 #w.tk
-window_manager.new(w,name)
-
-name="PATCH"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
-frame_patch = w1 #w.tk
-window_manager.new(w,name)
-
-name="FX"
-w = GUIWindow(name,master=0,width=350,height=250,left=950,top=305)
-frame_fx = w.tk
-window_manager.new(w,name)
-
-#Xroot = tk.Tk()
-#Xroot["bg"] = "black" #white
-#Xroot.title( xtitle+" "+str(rnd_id) )
-#Xroot.geometry("1024x800+130+65")
-
-name="ENCODER"
-ww = GUIWindow(name,master=0,width=800,height=50,left=140,top=500)
-Xroot = ww.tk
-w = None
-root = tk.Frame(Xroot,bg="black",width="10px")
-root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-root3 = tk.Frame(Xroot,bg="black",width="20px")
-root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-root2 = tk.Frame(Xroot,bg="black",width="1px")
-root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-
-#default_font = font.Font(family='Helvetica', size=12, weight='bold')
-Font = font.Font(family='Helvetica', size=9, weight='normal')
-FontBold = font.Font(family='Helvetica', size=10, weight='bold')
-#default_font.configure(size=9)
-Xroot.option_add("*Font", FontBold)
-
-
-
-#w = frame_fix #GUIWindow("OLD",master=0,width=800,height=500,left=130,top=65)
-window_manager.new(w,name)
-
 class GUI(Base):
     def __init__(self):
         super().__init__() 
@@ -1675,7 +1301,8 @@ class GUI(Base):
                 c=0
                 r+=1
                 
-    def draw_enc(self):
+    def draw_enc(self,xframe):
+        root2 = xframe
         i=0
         c=0
         r=0
@@ -1706,7 +1333,8 @@ class GUI(Base):
             if c >=8:
                 c=0
                 r+=1
-    def draw_fx(self):
+    def draw_fx(self,xframe):
+        frame_fx=xframe
         i=0
         c=0
         r=0
@@ -1765,7 +1393,8 @@ class GUI(Base):
             if c >=5:
                 c=0
                 r+=1
-    def draw_command(self):
+    def draw_command(self,xframe):
+        frame_cmd=xframe
         i=0
         c=0
         r=0
@@ -1826,11 +1455,12 @@ class GUI(Base):
             if c >=5:
                 c=0
                 r+=1
-    def draw_preset(self):
+    def draw_preset(self,xframe):
+
         i=0
         c=0
         r=0
-        root = frame_exe
+        root = xframe
         
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
@@ -1937,20 +1567,431 @@ class GUI(Base):
         b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         b.insert("end","fx:alloff:::")
+    def draw_colorpicker(self,xframe):
+        import lib.colorpicker as colp
+
+        colp.colorpicker(xframe,width=600,height=100)
+        return 0
+
+        canvas=tk.Canvas(xframe,width=600,height=100)
+        canvas["bg"] = "yellow" #"green"
+        canvas.pack()
+        # RGB
+        x=0
+        y=0
+        j=0
+        d = 20
+        for i in range(0,d+1):
+            fi = int(i*255/d)
+            f = 255-fi
+            if i > d/2: 
+                pass#break
+            color = '#%02x%02x%02x' % (f, fi, fi)
+            print( "farbe", i*10, j, f,fi,fi,color)
+            r = canvas.create_rectangle(x, y, x+20, y+20, fill=color)
+            x+=20
+            
+
     def render(self):
         Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
         self.draw_patch()
         self.draw_fix()
         #input()
-        self.draw_enc()
-        self.draw_command()
-        self.draw_fx()
+        #self.draw_enc()
+        #self.draw_command()
+        #self.draw_fx()
         self.draw_input()
-        self.draw_preset()
+        #self.draw_preset()
+
+def ScrollFrame(root,width=50,height=100,bd=1):
+    print("ScrollFrame init",width,height)
+    aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
+    #aframe.place(x=0,y=0)
+    aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
+
+    canvas=tk.Canvas(aframe,width=width-24,height=height)
+    canvas["bg"] = "black" #"green"
+    bframe=tk.Frame(canvas)#,width=width,height=height)
+    bframe["bg"] = "blue"
+    scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    scrollbar.pack(side="right",fill="y")
+    canvas.pack(side="left",expand=1,fill="both")
+    canvas.create_window((0,0),window=bframe,anchor='nw')
+    bframe.bind("<Configure>",scroll(canvas).config)
+    canvas.bind("<Button>",Event("XXX").event)
+    canvas.bind("<Key>",Event("XXX").event)
+    return bframe
+#frame = ScrollFrame(root)
+
+class GUIHandler():
+    def __init__(self):
+        pass
+    def update(self,fix,attr,args={}):
+        #print("GUIHandler",fix,attr,args)
+        for i,k in enumerate(args):
+            v = args[k] 
+            #print("GUI-H", i,k,v)
+            
+class Fixtures(Base):
+    def __init__(self):
+        super().__init__() 
+        #self.load()
+        self.fixtures = OrderedDict()
+        self.gui = GUIHandler()
+
+        
+    def load_patch(self):
+        filename="patch"
+        d,l = self._load(filename)
+        self.fixtures = OrderedDict()
+        for i in l:
+            sdata = d[i]
+            for attr in sdata["ATTRIBUT"]:
+                sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
+            #print("load",filename,sdata)
+            #if "CFG" not in sdata:
+            #    sdata["CFG"] = OrderedDict()
+            self.fixtures[str(i)] = sdata
+        #self.PRESETS.label_presets = l
+
+    def backup_patch(self):
+        filename = "patch"
+        data  = self.fixtures
+        labels = {}
+        for k in data:
+            labels[k] = k
+        self._backup(filename,data,labels)
+
+    def update_raw(self,rdata):
+        #print("update_raw",rdata)
+        cmd = []
+        for i,d in enumerate(rdata):
+            xcmd = {"DMX":""}
+            #print("fix:",i,d)
+            fix   = d["FIX"]
+            attr  = d["ATTR"]
+            v2    = d["VALUE"]
+            v2_fx = d["FX"]
+
+            if fix not in self.fixtures:
+                continue 
+            sdata = self.fixtures[fix] #shortcat
+            ATTR  = sdata["ATTRIBUT"] 
+
+            sDMX = 0
+            if  sdata["DMX"] > 0:
+                print( sdata)
+                sDMX = (sdata["UNIVERS"]*512)+sdata["DMX"]  
+                #sDMX =sdata["DMX"]  
+
+            if attr not in ATTR:
+                continue
+        
+            if ATTR[attr]["NR"] >= 0:
+                DMX = sDMX+ATTR[attr]["NR"]-1
+                xcmd["DMX"] = str(DMX)
+            else:
+                if attr == "DIM" and ATTR[attr]["NR"] < 0:
+                    xcmd["VIRTUAL"] = {}
+                    for a in ATTR:
+                        if ATTR[a]["MASTER"]:
+                            xcmd["VIRTUAL"][a] = sDMX+ATTR[a]["NR"]-1
+                    #print( "VIRTUAL",xcmd)
+
+
+            cmd.append(xcmd)
+
+            v=ATTR[attr]["VALUE"]
+            if v2 is not None:
+                ATTR[attr]["VALUE"] = v2
+
+            #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
+            text = str(attr)+' '+str(round(v,2))
+            self.gui.update(fix,attr,args={"text":text})
+        return cmd
+
+
+class Presets(Base):
+    def __init__(self):
+        super().__init__() 
+        #self.load()
+
+    def load_presets(self):
+        filename="presets"
+        d,l = self._load(filename)
+        for i in d:
+            sdata = d[i]
+            if "CFG" not in sdata:
+                sdata["CFG"] = OrderedDict()
+            if "FADE" not in sdata["CFG"]:
+                sdata["CFG"]["FADE"] = 4
+            if "DELAY" not in sdata["CFG"]:
+                sdata["CFG"]["DELAY"] = 0
+            if "BUTTON" not in sdata["CFG"]:
+                sdata["CFG"]["BUTTON"] = "GO"
+        self.val_presets = d
+        self.label_presets = l
+        
+        
+    def backup_presets(self):
+        filename = "presets"
+        data   = self.val_presets
+        labels = self.label_presets
+        self._backup(filename,data,labels)
+        
+
+    def get_cfg(self,nr):
+        if nr not in self.val_presets:
+            print(self,"error get_cfg no nr:",nr)
+            return {}
+        if "CFG" in self.val_presets[nr]:
+            return self.val_presets[nr]["CFG"]
+
+    def get_raw_map(self,nr):
+        print("get_raw_map",nr)
+        if nr not in self.val_presets:
+            self.val_presets[nr] = OrderedDict()
+            self.val_presets[nr]["VALUE"] = 0
+            self.val_presets[nr]["FX"] = ""
+        sdata = self.val_presets[nr]
+        cmd = ""
+        out = []
+        dmx=-1
+        for fix in sdata:
+            if fix == "CFG":
+                #print("CFG",nr,sdata[fix])
+                continue
+
+            for attr in sdata[fix]:
+                x = {}
+                #print("RAW",attr)
+                x["FIX"]   = fix
+                x["ATTR"]  = attr
+
+                x["VALUE"] = sdata[fix][attr]["VALUE"]
+                x["FX"]    = sdata[fix][attr]["FX"]
+                #x["DMX"]  = sdata[fix][attr]["NR"] 
+
+                out.append(x)
+        return out
+
+class GUI_grid():
+    def __init__(self,root,data,title="tilte",width=800):
+
+        self.data = data
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        r=0
+        c=0
+        i=1
+        for row in data:
+
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=4)
+            #self.b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            c+=1
+            if c % 8 == 0:
+                r+=1
+                c=0
+            i+=1
+        self.frame.pack()
+
+class BEvent():
+    def __init__(self,data,cb):
+        self._data = data
+        self._cb = cb
+    def cb(self,event):
+        #print(self,event)
+        self._cb(event,self._data)
+
+class GUI_menu():
+    def __init__(self,root,data,title="tilte",width=800):
+        global tk
+        self.data = data
+
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        r=0
+        c=0
+        i=1
+        self.b = tk.Label(self.frame,bg="blue", text="MAIN:MENU",width=13,height=1)
+        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        r+=1
+        for row in data:
+            #print(i)
+            #row = data[i]
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=13,height=3)
+            self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
+            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            r+=1
+            i+=1
+        self.frame.pack()
+    def callback(self,event,data={}):
+        print(self,event,data)
+        window_manager.top(data["text"])# = WindowManager()
+
+lf_nr = 0
+class GUIWindow():
+    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
+        global lf_nr
+        if master: 
+            self.tk = tkinter.Tk() #Toplevel()
+        else:
+            self.tk = tkinter.Toplevel()
+        self.tk["bg"] = "black"
+        self.tk.bind("<Button>",self.callback)
+        self.tk.bind("<Key>",self.callback)
+        self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
+        lf_nr+=1
+        #self.tk.geometry("270x600+0+65")
+        geo ="{}x{}".format(width,height)
+        if left is not None:
+            geo += "+{}".format(left)
+            if top is not None:
+                geo += "+{}".format(top)
+
+        self.tk.geometry(geo)
+    def title(self,title=None):
+        if title is None:
+            return self.tk.title()
+        else:
+            return self.tk.title(title)
+    def show(self):
+        pass
+        #self.frame.pack()
+    def mainloop(self):
+        self.tk.mainloop()
+    def callback(self,event,data={}):
+        print("<GUI>",self,event,data)
+        
+class WindowManager():
+    def __init__(self):
+        self.windows = {}
+        self.nr= 0
+        self.first=""
+    def new(self,w,name=""):
+        if not self.first:
+            if name:
+                self.first = name
+            else:
+                self.first = str(self.nr)
+            w.tk.attributes('-topmost',True)
+
+
+        if name:
+            self.windows[str(name)] = w
+        else:
+            self.windows[str(self.nr)] = w
+            self.nr+=1
+        #w.show()
+    def mainloop(self):
+        self.windows[self.first].mainloop()
+    def top(self,name):
+        name = str(name)
+        if name in self.windows:
+            self.windows[name].tk.attributes('-topmost',True)
+            self.windows[name].tk.attributes('-topmost',False)
+        else:
+            print(name,"not in self.windows",self.windows.keys())
+
+window_manager = WindowManager()
+
+master =GUI()
+
+w = GUIWindow("MAIN",master=1,width=130,height=450,left=0,top=65)
+data = []
+#data.append({"text":"COMMAND"})
+data.append({"text":"EXEC"})
+data.append({"text":"DIMMER"})
+data.append({"text":"FIXTURES"})
+#data.append({"text":"PRESET"})
+#data.append({"text":"PATCH"})
+#data.append({"text":"ENCODER"})
+f = GUI_menu(w.tk,data)
+window_manager.new(w)
+
+name="DIMMER"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+frame_dim = w1 # w.tk
+window_manager.new(w,name)
+
+name="FIXTURES"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+frame_fix = w1 #w.tk
+window_manager.new(w,name)
+
+
+name="ENCODER"
+ww = GUIWindow(name,master=0,width=800,height=50,left=140,top=500)
+Xroot = ww.tk
+#default_font = font.Font(family='Helvetica', size=12, weight='bold')
+Font = font.Font(family='Helvetica', size=9, weight='normal')
+FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+#default_font.configure(size=9)
+Xroot.option_add("*Font", FontBold)
+w = None
+root = tk.Frame(Xroot,bg="black",width="10px")
+root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+root3 = tk.Frame(Xroot,bg="black",width="20px")
+root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+root2 = tk.Frame(Xroot,bg="black",width="1px")
+master.draw_enc(root2)
+root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+
+
+#w = GUIWindow("GRID",master=0,width=1000,height=200,left=232,top=65)
+#data = []
+#for i in range(10):
+#    data.append({"text":"P {:02}".format(i+1)})
+#w = GUI_grid(w.tk,data)
+#window_manager.new(w)
+
+name = "COMMAND"
+w = GUIWindow(name,master=0,width=350,height=200,left=950,top=65)
+master.draw_command(w.tk)
+window_manager.new(w,name)
+
+name="EXEC"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+#frame_exe = w.tk
+master.draw_preset(w.tk)
+window_manager.new(w,name)
+
+name="PATCH"
+w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+frame_patch = w1 #w.tk
+window_manager.new(w,name)
+
+name="FX"
+w = GUIWindow(name,master=0,width=350,height=250,left=950,top=305)
+#frame_fx = w.tk
+master.draw_fx(w.tk)
+window_manager.new(w,name)
+
+#LibreLightDesk
+name="COLERPICKER"
+w = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
+master.draw_colorpicker(w.tk)
+window_manager.new(w,name)
+
+
+#Xroot = tk.Tk()
+#Xroot["bg"] = "black" #white
+#Xroot.title( xtitle+" "+str(rnd_id) )
+#Xroot.geometry("1024x800+130+65")
+
+
+master.render()
+
+#w = frame_fix #GUIWindow("OLD",master=0,width=800,height=500,left=130,top=65)
+window_manager.new(w,name)
         
 try:
-    master =GUI()
-    master.render()
 
     #root.mainloop()
     #tk.mainloop()

@@ -250,6 +250,7 @@ class dummy_event():
     def __init__(self):
         self.num =0
         self.type = 4 #press 5 release
+        self.set_value=-1
     
 class Xevent():
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
@@ -257,7 +258,7 @@ class Xevent():
         self.attr = attr
         self.elem = elem
         self.mode = mode
-    def encoder(self,fix,attr,data,elem,action=""):
+    def encoder(self,fix,attr,data,elem,action="",xfade=None):
         if action == "click":
             if self.data["ATTRIBUT"][attr]["ACTIVE"]:
                 self.data["ATTRIBUT"][attr]["ACTIVE"] = 0
@@ -276,8 +277,13 @@ class Xevent():
             v = "+{:0.4f}".format( increment ) #) #4.11"
             change=1
         elif action == "-":
-            v2-= 4.11
+            v2-= increment
             v = "-{:0.4f}".format( increment ) #) #4.11"
+            change=1
+        elif type(action) is int or type(action) is float:
+            #v2-= increment
+            #v = "-{:0.4f}".format( increment ) #) #4.11"
+            v2 = action
             change=1
 
             
@@ -294,35 +300,40 @@ class Xevent():
             data["ATTRIBUT"][attr]["VALUE"] = v2
             elem["text"] = "{} {:0.2f}".format(attr,v2)
             #worker.fade_dmx(fix,attr,data,v,v2,ft=0)
-            
-            cmd=update_dmx(attr=attr,data=data,args=[0])
+            if xfade:
+                cmd=update_dmx(attr=attr,data=data)
+            else:
+                cmd=update_dmx(attr=attr,data=data,args=[0])
+
             #data["ATTRIBUT"][attr]["VALUE"] = v2
             if cmd and not modes.val("BLIND"):
                 client.send(cmd)
+    def clear(self,event=None):
+
+        if modes.val("STORE"):
+            self.data.val_commands["STORE"] = 0
+            modes.val("STORE",0)# = 0
+            self.data.elem_commands["STORE"]["bg"] = "grey"
+
+        else: 
+            for fix in self.data.FIXTURES.fixtures:
+                print( "clr",fix)
+                data = self.data.FIXTURES.fixtures[fix]
+                #print("elm",self.data.elem_attr[fix])
+                for attr in data["ATTRIBUT"]:
+                    if attr.endswith("-FINE"):
+                        continue
+                    self.data.elem_attr[fix][attr]["bg"] = "grey"
+                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                #print(data["ATTRIBUT"])
+            print( "CB CLEAR" )
 
     def command(self,event):       
         if self.mode == "COMMAND":
             
             if self.attr == "CLEAR":
                 if event.num == 1:
-
-                    if modes.val("STORE"):
-                        self.data.val_commands["STORE"] = 0
-                        modes.val("STORE",0)# = 0
-                        self.data.elem_commands["STORE"]["bg"] = "grey"
-
-                    else: 
-                        for fix in self.data.FIXTURES.fixtures:
-                            print( "clr",fix)
-                            data = self.data.FIXTURES.fixtures[fix]
-                            #print("elm",self.data.elem_attr[fix])
-                            for attr in data["ATTRIBUT"]:
-                                if attr.endswith("-FINE"):
-                                    continue
-                                self.data.elem_attr[fix][attr]["bg"] = "grey"
-                                data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                            #print(data["ATTRIBUT"])
-                        print( "CB CLEAR" )
+                    self.clear()
 
                     
             if self.attr.startswith("SZ:"):#SIN":
@@ -664,6 +675,12 @@ class Xevent():
             #global ACTIVATE 
             #global CFG_BTN
             change = 0
+            if "keysym" in dir(event):
+                if "Escape" == event.keysym:
+                    self.clear()
+                    #CLEAR
+                    return 0
+
             if self.mode == "COMMAND":
                 self.command(event)
             elif self.mode == "ROOT":
@@ -799,6 +816,14 @@ class Xevent():
                             self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="-")
                             #if attr == "DIM":
                             #     self.encoder(attr="VDIM",data=data,elem=elem,action="-")
+                        if  "set_value" in dir(event)  and event.set_value >=0:
+                            print("ENCODER set_value and set_fade",event)
+                            #print(dir(event))
+                            if "set_fade" in dir(event) and event.set_fade >0:
+                                 print("event.set_fade",event.set_fade)
+                                 self.encoder(fix=fix,attr=attr,data=data,elem=elem,action=event.set_value,xfade=1)
+                            else:
+                                 self.encoder(fix=fix,attr=attr,data=data,elem=elem,action=event.set_value)
                 return 0
                                 
 
@@ -1616,9 +1641,34 @@ class GUI(Base):
         b = Xevent(fix=0,elem=None,attr="BLUE",data=self,mode="ENCODER") #.cb
         def _cb(event,data):
             print("PPPPPPPOOOOOORRR",event,data)
-            if "color" in data:
+            print(event.num)
+            if "color" in data and (event.num == 1 or event.num == 3 or event.num==2):
                 e.num=5
+                e.type=1
+                cr=-1
+                cg=-1
+                cb=-1
+                color = data["color"]
+                if event.num == 1: 
+                    e.set_fade=fade
+                    cr = color[0]
+                    cg = color[1]
+                    cb = color[2]
+                elif event.num == 2: 
+                    e.num=1
+                    e.type=4
+                    e.set_value=-1
+                else:
+                    e.set_fade=-1
+
+                e.set_value=cr#color[0]
                 r.cb(e)
+                e.set_value=cg#color[1]
+                g.cb(e)
+                e.set_value=cb#color[2]
+                b.cb(e)
+                e.set_value=-1
+                e.set_fade=-1
                  
                 print("PICK COLOR:",data["color"])
                 #self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
@@ -1910,6 +1960,7 @@ class GUIWindow():
             if top is not None:
                 geo += "+{}".format(top)
 
+        #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
     def title(self,title=None):
         if title is None:
@@ -1923,6 +1974,11 @@ class GUIWindow():
         self.tk.mainloop()
     def callback(self,event,data={}):
         print("<GUI>",self,event,data)
+        #if "keysym" in dir(event):
+        #    if "Escape" == event.keysym:
+        #        e=dummy_event()
+        #        e.num=1
+        #        self._event_clear(e)
         
 class WindowManager():
     def __init__(self):

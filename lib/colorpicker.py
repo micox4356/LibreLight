@@ -59,7 +59,12 @@ def colorpicker(xframe,width=600,height=100,xcb=None):
     _callback = cb(canvas,xcb)
 
     #canvas.bind("<Key>", key)
+    canvas.bind("<Key>", _callback.callback)
     canvas.bind("<Button-1>", _callback.callback)
+    canvas.bind("<Button-2>", _callback.callback)
+    canvas.bind("<Button-3>", _callback.callback)
+    canvas.bind("<Button-4>", _callback.callback)
+    canvas.bind("<Button-5>", _callback.callback)
     canvas.pack()
 
     x=2

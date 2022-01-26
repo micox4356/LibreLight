@@ -62,7 +62,7 @@ class Modes():
     def __init__(self):
         self.modes = {}
         self.__cfg = {}
-        self.__cd = None
+        self.__cb = None
     def val(self,mode,value=None):
         if value is not None:
             return self.set(mode,value)
@@ -87,27 +87,59 @@ class Modes():
                 return self.__cfg[data]
 
     def set(self,mode,value):
+        protected = ["BLIND","CLEAR"]
         self.__check(mode)
-
+        out = 0
         if mode == "CLEAR":
-            self.modes["STORE"] = 0
-            self.callback("STORE")
-        self.modes[mode] = value
+            return 1
+        elif mode == "ESC":
+            for m in self.modes:
+                print("ESC",m)
+                if m != "BLIND":
+                    self.modes[m] = 0
+                    self.callback(m)
+            out = 1
+            return 1
+        elif value:
+            for m in self.modes:
+                if m not in protected and mode not in protected and m != mode:
+                    if self.modes[m]:
+                        self.modes[m]= 0
+                        self.callback(m)
+            if self.modes[mode]:
+                self.modes[mode] = 0 # value
+            else:
+                self.modes[mode] = 1 #value
+            out = 1
+        else:
+            self.modes[mode] = 0 #value
+        self.callback(mode)
         return value
+    def set_cb(self,cb):
+        if cb:
+            self.__cb = cb
     def callback(self,mode):
         if self.__cb is not None and mode in self.modes:
             value = self.modes[mode]
             self.__cb(mode=mode,value=value)
 
 modes = Modes()
-modes.modes["BLIND"] = 0
-modes.modes["STORE "] = 0
+#modes.val("BLIND", 0)
+#modes.modes["BLIND"] = 0
+modes.modes["ESC"] = 0
+modes.modes["STORE"] = 0
+modes.modes["EDIT"] = 0
+modes.modes["MOVE"] = 0
 modes.modes["FLASH"] = 0
 modes.modes["STONY_FX"] = 0
 modes.modes["SELECT"] = 0
 modes.modes["ACTIVATE"] = 0
-modes.modes["CFG_BTN"] = 0
+modes.modes["CFG-BTN"] = 0
 modes.modes["LABEL"] = 0
+
+def xcb(mode,value=None):
+    print("xcb","MODE CALLBACK",mode,value)
+#modes.set_cb(xcb)
 
 POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
@@ -242,8 +274,9 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
 
         return cmd
     except Exception as e:
-        print("== cb EXCEPT",e)
-        print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+        cprint("== cb EXCEPT",e,color="red")
+        cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+        cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
         raise e
 
 class dummy_event():
@@ -251,7 +284,41 @@ class dummy_event():
         self.num =0
         self.type = 4 #press 5 release
         self.set_value=-1
-    
+
+
+gcolor = 1
+def cprint(*text,color="blue",space=" ",end="\n"):
+    if not gcolor:
+        print(text)
+        return 0
+
+    if color == "green":
+        txt = '\033[92m'
+    elif color == "red":
+        txt = '\033[0;31m\033[1m'
+    elif color == "yellow":
+        txt = '\033[93m\033[1m'
+    elif color == "cyan":
+        txt = '\033[96m'
+    else:
+        txt = '\033[94m'
+    for t in text:
+        txt += str(t ) +" "
+    #HEADER = '\033[95m'
+    #OKBLUE = '\033[94m'
+    #OKCYAN = '\033[96m'
+    #OKGREEN = '\033[92m'
+    #WARNING = '\033[93m'
+    #FAIL = '\033[91m'
+    #ENDC = '\033[0m'
+    #BOLD = '\033[1m'
+    #UNDERLINE = '\033[4m'
+    txt += '\033[0m'
+    print(txt,end=end)
+    #return txt
+
+cprint("________________________________")
+ 
 class Xevent():
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
         self.data=data
@@ -260,12 +327,18 @@ class Xevent():
         self.mode = mode
     def encoder(self,fix,attr,data,elem,action="",xfade=None):
         if action == "click":
-            if self.data["ATTRIBUT"][attr]["ACTIVE"]:
-                self.data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                self.elem["bg"] = "grey"
-            else:
-                self.data["ATTRIBUT"][attr]["ACTIVE"] = 1
-                self.elem["bg"] = "yellow"
+            print("encoder",fix,attr,action,data)
+            cprint(type(self.data))
+            if self.data is dict or self.data is OrderedDict:
+                if "ATTRIBUT" in self.data:
+                    if attr in self.data["ATTRIBUT"]:
+                        if "ACTIVE" in self.data["ATTRIBUT"][attr]:
+                            if self.data["ATTRIBUT"][attr]["ACTIVE"]:
+                                self.data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                                self.elem["bg"] = "grey"
+                            else:
+                                self.data["ATTRIBUT"][attr]["ACTIVE"] = 1
+                                self.elem["bg"] = "yellow"
             return 1
 
     
@@ -308,23 +381,35 @@ class Xevent():
             #data["ATTRIBUT"][attr]["VALUE"] = v2
             if cmd and not modes.val("BLIND"):
                 client.send(cmd)
+
     def clear(self,event=None):
+        ok = self.data.FIXTURES.clear(event)
+        if ok:
+            for fix in self.data.elem_attr:
+                for attr in self.data.elem_attr[fix]:
+                    #print("CLEAR_43", fix,attr) 
+                    #print( self.data.elem_attr ,fix,attr) 
+                    if fix in self.data.elem_attr: 
+                        if attr in self.data.elem_attr[fix]: 
+                            self.data.elem_attr[fix][attr]["bg"] = "grey"
+        return 0
 
         if modes.val("STORE"):
             self.data.val_commands["STORE"] = 0
             modes.val("STORE",0)# = 0
-            self.data.elem_commands["STORE"]["bg"] = "grey"
+            #self.button_refresh("STORE","grey")
+            #self.data.elem_commands["STORE"]["bg"] = "grey"
 
         else: 
             for fix in self.data.FIXTURES.fixtures:
-                print( "clr",fix)
+                #print( "clr",fix)
                 data = self.data.FIXTURES.fixtures[fix]
                 #print("elm",self.data.elem_attr[fix])
                 for attr in data["ATTRIBUT"]:
                     if attr.endswith("-FINE"):
                         continue
                     self.data.elem_attr[fix][attr]["bg"] = "grey"
-                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                    #data["ATTRIBUT"][attr]["ACTIVE"] = 0
                 #print(data["ATTRIBUT"])
             print( "CB CLEAR" )
 
@@ -334,9 +419,13 @@ class Xevent():
             if self.attr == "CLEAR":
                 if event.num == 1:
                     self.clear()
+                    #self.button_refresh("STORE","grey")
+                    #modes.val("STORE",0)
+                    modes.val(self.attr,0)
+                    #modes.val("CLEAR",0)
 
                     
-            if self.attr.startswith("SZ:"):#SIN":
+            elif self.attr.startswith("SZ:"):#SIN":
                 #global fx_prm
                 k = "SIZE"
                 if event.num == 1:
@@ -356,7 +445,7 @@ class Xevent():
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
                 self.data.elem_fx_commands[self.attr]["text"] = "SZ:{:0.0f}".format(fx_prm[k])
-            if self.attr.startswith("SP:"):#SIN":
+            elif self.attr.startswith("SP:"):#SIN":
                 #global fx_prm
                 k = "SPEED"
                 if event.num == 1:
@@ -380,7 +469,7 @@ class Xevent():
                     self.data.elem_fx_commands[self.attr]["text"] = "SP:off".format(fx_prm[k])
                 else:
                     self.data.elem_fx_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
-            if self.attr.startswith("ST:"):#SIN":
+            elif self.attr.startswith("ST:"):#SIN":
                 #global fx_prm
                 k = "START"
                 if event.num == 1:
@@ -401,7 +490,7 @@ class Xevent():
                     fx_prm[k] =0
 
                 self.data.elem_fx_commands[self.attr]["text"] = "ST:{:0.0f}".format(fx_prm[k])
-            if self.attr.startswith("OF:"):#SIN":
+            elif self.attr.startswith("OF:"):#SIN":
                 #global fx_prm
                 k = "OFFSET"
                 if event.num == 1:
@@ -422,7 +511,7 @@ class Xevent():
                     fx_prm[k] =0
 
                 self.data.elem_fx_commands[self.attr]["text"] = "OF:{:0.0f}".format(fx_prm[k])
-            if self.attr.startswith("BS:"):
+            elif self.attr.startswith("BS:"):
                 k = "BASE"
                 if event.num == 1:
                     fx_prm[k] = "0"
@@ -433,7 +522,7 @@ class Xevent():
                 elif event.num == 5:
                     fx_prm[k] = "-"
                 self.data.elem_fx_commands[self.attr]["text"] = "BS:{}".format(fx_prm[k])
-            if self.attr.startswith("FX:"):#SIN":
+            elif self.attr.startswith("FX:"):#SIN":
                 if event.num == 1:
                     cmd = ""
                     offset = 0
@@ -534,27 +623,7 @@ class Xevent():
                         for attr in data["ATTRIBUT"]:
                             data["ATTRIBUT"][attr]["FX"] = ""
 
-            elif self.attr == "FLASH":
-                if event.num == 1:
-                    if modes.val("FLASH"):
-                        modes.val("FLASH",0)# = 0
-                        self.data.elem_commands[self.attr]["bg"] = "grey"
-                    else:
-                        modes.val("FLASH",1)# = 1
-                        self.data.elem_commands[self.attr]["bg"] = "green"
-            elif self.attr == "BLIND":
-                
-                if event.num == 1:
-                    
-                    if self.data.val_commands[self.attr]:
-                        self.data.val_commands[self.attr] = 0
-                        modes.val("BLIND",0)# = 0
-                        self.data.elem_commands[self.attr]["bg"] = "grey"
-                    else:
-                        self.data.val_commands[self.attr] = 1
-                        modes.val("BLIND",1)# = 1
-                        self.data.elem_commands[self.attr]["bg"] = "red"
-                    print("BLIND",self.data.val_commands)
+
             
             elif self.attr == "FADE":
                 global fade
@@ -590,27 +659,27 @@ class Xevent():
 
                 self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
             elif self.attr == "CFG-BTN":
-                #global modes #CFG_BTN
+                #global modes #CFG-BTN
                 if event.num == 1:
-                    if modes.val("CFG_BTN"):
-                        modes.val("CFG_BTN",0)# = 0
-                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                    if modes.val("CFG-BTN"):
+                        modes.val("CFG-BTN",0)# = 0
+                        #self.data.elem_commands[self.attr]["bg"] = "lightgrey"
                     else:
-                        modes.val("CFG_BTN",1)# = 1
-                        self.data.elem_commands[self.attr]["bg"] = "red"
+                        modes.val("CFG-BTN",1)# = 1
+                        #self.data.elem_commands[self.attr]["bg"] = "red"
             elif self.attr == "ACTIVATE": 
                 #global modes# ACTIVATE
                 if event.num == 1:
                     if modes.val("ACTIVATE"):
                         modes.val("ACTIVATE",0)# = 0
-                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
+                        #self.data.elem_commands[self.attr]["bg"] = "lightgrey"
                     else:
                         modes.val("ACTIVATE",1)# = 1
-                        self.data.elem_commands[self.attr]["bg"] = "red"
+                        #self.data.elem_commands[self.attr]["bg"] = "red"
                 
             elif self.attr == "SELECT":
                 #global modes# SELECT
-                #global CFG_BTN
+                #global CFG-BTN
                 if event.num == 1:
                     if modes.val("SELECT"):
                         modes.val("SELECT",0)# = 0
@@ -620,7 +689,7 @@ class Xevent():
                         self.data.elem_commands[self.attr]["bg"] = "red"
             elif self.attr == "LABEL":
                 #global modes #LABEL
-                #global CFG_BTN
+                #global CFG-BTN
                 if event.num == 1:
                     if modes.val("LABEL"):
                         modes.val("LABEL", 0)
@@ -637,29 +706,24 @@ class Xevent():
                         modes.val("STONY_FX", 1)
                         self.data.elem_fx_commands[self.attr]["bg"] = "red"
 
-            elif self.attr == "STORE":
-                
-                if event.num == 1:
-                    
-                    if self.data.val_commands[self.attr]:
-                        self.data.val_commands[self.attr] = 0
-                        modes.val("STORE",0)
-                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                    else:
-                        self.data.val_commands[self.attr] = 1
-                        modes.val("STORE", 1)
-                        self.data.elem_commands[self.attr]["bg"] = "red"
-                    print("BLIND",self.data.val_commands)
             elif self.attr == "BACKUP":
+                modes.val(self.attr,1)
                 self.data.PRESETS.backup_presets()
                 self.data.FIXTURES.backup_patch()
+                #time.sleep(1)
+                modes.val(self.attr,0)
+            else:
+                if event.num == 1:
+                    print("ELSE",self.attr)
+                    modes.val(self.attr,1)
+
             return 0
 
 
             
     def cb(self,event):
         #print("cb",self,event,data)
-        print("cb",self.attr,self.mode,event)
+        cprint("EVENT cb",self.attr,self.mode,event,color='yellow')
         print(["type",event.type,"num",event.num])
         #print(dir(event.type))
         #print(dir(event),[str(event.type)])#.keys())
@@ -673,7 +737,7 @@ class Xevent():
             #global LABEL
             #global SELECT
             #global ACTIVATE 
-            #global CFG_BTN
+            #global CFG-BTN
             change = 0
             if "keysym" in dir(event):
                 if "Escape" == event.keysym:
@@ -725,7 +789,10 @@ class Xevent():
                         if modes.val("STORE"):
                             self.data.preset_store(nr)
                             modes.val("STORE",0)
-                        elif modes.val("CFG_BTN"):
+                            #STORE = 0
+                            #self.button_refresh("STORE","grey")
+                            #self.elem_commands["STORE"]["bg"] = "lightgrey"
+                        elif modes.val("CFG-BTN"):
                             import tkinter.simpledialog
                             txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr))
                             if "CFG" not in self.data.PRESETS.val_presets[nr]:
@@ -742,8 +809,8 @@ class Xevent():
                             label = self.data.PRESETS.label_presets[nr] # = label
                             txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
                             self.data.elem_presets[nr]["text"] = txt
-                            modes.val("CFG_BTN",0)# = 0
-                            self.data.elem_commands["CFG-BTN"]["bg"] = "grey"
+                            modes.val("CFG-BTN",0)# = 0
+                            #self.data.elem_commands["CFG-BTN"]["bg"] = "grey"
                         elif modes.val("LABEL"):#else:
                             label = "lalaal"
                             import tkinter.simpledialog
@@ -842,9 +909,10 @@ class Xevent():
             #finally:
             #    pass
         except Exception as e:
-            print("== cb EXCEPT",e)
-            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-            traceback.print_exc()
+            cprint("== cb EXCEPT",e,color="red")
+            cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+            cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
+            #traceback.print_exc()
         #print(self.elem["text"],self.attr,self.data)
         
                                             
@@ -973,8 +1041,8 @@ class GUI(Base):
                 ,"FX:CIR","FX:PAN","FX:TILT","FX:DIM","\n"
                 ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
-        self.commands =["\n","BLIND","CLEAR","STORE","EDIT","MOVE","\n","CFG-BTN","LABEL"
-                ,"BACKUP","SET","","","SELECT","ACTIVATE","FLASH","FADE"
+        self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","\n","BLIND","CLEAR","STORE","EDIT","MOVE","\n" 
+                ,"SET","\n","SELECT","ACTIVATE","FLASH","FADE"
                 ]
         self.elem_fx_commands = {}
         self.val_fx_commands = {}
@@ -995,7 +1063,26 @@ class GUI(Base):
                 self.PRESETS.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
                 self.PRESETS.label_presets[i] = "-"
 
-  
+        modes.set_cb(self.xcb)
+    def button_refresh(self,name,color,fg=None):
+        cprint("button_refresh",name,color)
+        #self.data.elem_commands["STORE"]["bg"] = "grey"
+        if name in self.elem_commands:
+            self.elem_commands[name]["bg"] = color
+            self.elem_commands[name].config(activebackground=color)
+            if fg:
+                self.elem_commands[name]["fg"] = fg
+                print(dir(self.elem_commands[name]))
+    def xcb(self,mode,value=None):
+        cprint("MODE CALLBACK",mode,value,color="green",end="")
+        #cprint(self,"xcb","MODE CALLBACK",mode,value,color="green")
+        if value:
+            cprint("===== ON  ======",color="red")
+            self.button_refresh(mode,color="red")#,fg="blue")
+        else:
+            cprint("===== OFF ======",color="red")
+            self.button_refresh(mode,color="lightgrey")#,fg="black")
+
     def load(self,fname=""):
         pass
     def exit(self):
@@ -1021,41 +1108,24 @@ class GUI(Base):
                         elem["bg"] = "grey"
 
     def preset_store(self,nr):
-        print("STORE PRESET")
-        self.val_commands["STORE"] = 0
-        global STORE
-        STORE = 0
-        self.elem_commands["STORE"]["bg"] = "lightgrey"
+        #TODO refactor
+        print("------- STORE PRESET")
+        data = self.FIXTURES.get_active()
+        if modes.val("STONY_FX"):
+            self.PRESETS.store(nr,data,"STONY_FX")
+        else:
+            self.PRESETS.store(nr,data)
+            
 
-        CFG = OrderedDict()
-        if "CFG" in self.PRESETS.val_presets[nr]: #["CFG"] 
-            CFG = self.PRESETS.val_presets[nr]["CFG"] 
-        sdata = {}
-        sdata["CFG"] = CFG # OrderedDict()
-        sdata["CFG"]["FADE"] = fade
-        sdata["CFG"]["DEALY"] = 0
-        #sdata["CFG"]["BUTTON"] = "GO"
-        for fix in self.FIXTURES.fixtures:                            
-            data = self.FIXTURES.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-                if data["ATTRIBUT"][attr]["ACTIVE"]:
-                    if fix not in sdata:
-                        sdata[fix] = {}
-                    if attr not in sdata[fix]:
-                        sdata[fix][attr] = OrderedDict()
-                        if not modes.val("STONY_FX"):
-                            sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                            #sdata[fix][attr]["FADE"] = fade
-                        else:
-                            sdata[fix][attr]["VALUE"] = None #data["ATTRIBUT"][attr]["VALUE"]
+        #global STORE
+        #STORE = 0
+        #self.elem_commands["STORE"]["bg"] = "lightgrey"
 
-                        if "FX" not in data["ATTRIBUT"][attr]: 
-                             data["ATTRIBUT"][attr]["FX"] =""
-                        
-                        sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
-    
-        print("sdata",len(sdata))
+        #CFG = OrderedDict()
+        #if "CFG" in self.PRESETS.val_presets[nr]: #["CFG"] 
+        #    CFG = self.PRESETS.val_presets[nr]["CFG"] 
         
+        sdata=data
         self.PRESETS.val_presets[nr] = sdata
         if len(sdata) > 1:
             fx_color = 0
@@ -1814,13 +1884,69 @@ class Fixtures(Base):
             self.gui.update(fix,attr,args={"text":text})
         return cmd
 
+    def get_active(self):
+        print(self,"get_active")
+        CFG = OrderedDict()
+        sdata = OrderedDict()
+        sdata["CFG"] = CFG # OrderedDict()
+        sdata["CFG"]["FADE"] = fade
+        sdata["CFG"]["DEALY"] = 0
+        #sdata["CFG"]["BUTTON"] = "GO"
+        for fix in self.fixtures:                            
+            data = self.fixtures[fix]
+            for attr in data["ATTRIBUT"]:
+                if data["ATTRIBUT"][attr]["ACTIVE"]:
+                    if fix not in sdata:
+                        sdata[fix] = {}
+                    if attr not in sdata[fix]:
+                        sdata[fix][attr] = OrderedDict()
+                        if not modes.val("STONY_FX"):
+                            sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
+                            #sdata[fix][attr]["FADE"] = fade
+                        else:
+                            sdata[fix][attr]["VALUE"] = None #data["ATTRIBUT"][attr]["VALUE"]
+
+                        if "FX" not in data["ATTRIBUT"][attr]: 
+                             data["ATTRIBUT"][attr]["FX"] =""
+                        
+                        sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
+    
+        return sdata
+
+
+    def select(self,fix=None,attr=None):
+        out = 0
+        if fix in self.fixtures:
+            data = self.fixtures[fix]
+            if attr in data["ATTRIBUT"]:
+                data["ATTRIBUT"][attr]["ACTIVE"] = 1
+                out = 1
+        return 1
+
+    def clear(self,event=None):
+        out = 0
+        if 1: 
+            for fix in self.fixtures:
+                #print( "clr",fix)
+                data = self.fixtures[fix]
+                #print("elm",self.data.elem_attr[fix])
+                for attr in data["ATTRIBUT"]:
+                    if attr.endswith("-FINE"):
+                        continue
+                    #self.data.elem_attr[fix][attr]["bg"] = "grey"
+                    if data["ATTRIBUT"][attr]["ACTIVE"]:
+                        out +=1
+                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                #print(data["ATTRIBUT"])
+            print( "CB CLEAR" )
+        return out
 
 class Presets(Base):
     def __init__(self):
         super().__init__() 
         #self.load()
 
-    def load_presets(self):
+    def load_presets(self): 
         filename="presets"
         d,l = self._load(filename)
         for i in d:
@@ -1878,6 +2004,16 @@ class Presets(Base):
 
                 out.append(x)
         return out
+    def store(self,nr,data,arg=""):
+        #TODO implement
+        print(self,"store()",data,arg)
+        self.val_presets[nr] = data
+        if not self.label_presets:
+            self.label_presets = "Neu"
+
+        #return 0
+
+           
 
 class GUI_grid():
     def __init__(self,root,data,title="tilte",width=800):

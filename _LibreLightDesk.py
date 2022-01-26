@@ -1001,7 +1001,7 @@ class GUI(Base):
         self.FIXTURES = Fixtures()
         self.FIXTURES.load_patch()
         
-        for i in range(8*8):
+        for i in range(8*8*8):
             if i not in self.PRESETS.val_presets:
                 name = "Preset:"+str(i+1)+":\nXYZ"
                 #self.presets[i] = [i]
@@ -1544,11 +1544,29 @@ class GUI(Base):
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
        
-        b = tk.Button(frame,bg="lightblue", text="EXEC")
+        #b = tk.Button(frame,bg="lightblue", text="EXEC")
         #b.bind("<Button>",Xevent(elem=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r+=1      
+        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        #r+=1      
+        i=0
         for k in self.PRESETS.val_presets:
+            if i%(8*8)==0 or i ==0:
+                c=0
+                b = tk.Label(frame,bg="black", text="X" )
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                r+=1
+                c=0
+                b = tk.Button(frame,bg="lightblue", text="EXEC " )
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                b = tk.Button(frame,bg="lightblue", text="PAGE " + str(int(i/(8*8))+1) )
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                b = tk.Button(frame,bg="lightblue", text="<NAME>"  )
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                r+=1
+                c=0
+            i+=1
             v=0
             label = ""
             if k in self.PRESETS.label_presets:
@@ -1560,7 +1578,7 @@ class GUI(Base):
             if "CFG" in sdata:#["BUTTON"] = "GO"
                 if "BUTTON" in sdata["CFG"]:
                     BTN = sdata["CFG"]["BUTTON"]
-            txt=str(k)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+            txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
             b = tk.Button(frame,bg="grey", text=txt,width=8,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
@@ -2154,8 +2172,9 @@ window_manager.new(w,name)
 
 name="EXEC"
 w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
 #frame_exe = w.tk
-master.draw_preset(w.tk)
+master.draw_preset(w1)#w.tk)
 window_manager.new(w,name)
 
 name="PATCH"

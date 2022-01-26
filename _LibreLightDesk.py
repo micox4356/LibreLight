@@ -387,8 +387,6 @@ class Xevent():
         if ok:
             for fix in self.data.elem_attr:
                 for attr in self.data.elem_attr[fix]:
-                    #print("CLEAR_43", fix,attr) 
-                    #print( self.data.elem_attr ,fix,attr) 
                     if fix in self.data.elem_attr: 
                         if attr in self.data.elem_attr[fix]: 
                             self.data.elem_attr[fix][attr]["bg"] = "grey"
@@ -397,20 +395,14 @@ class Xevent():
         if modes.val("STORE"):
             self.data.val_commands["STORE"] = 0
             modes.val("STORE",0)# = 0
-            #self.button_refresh("STORE","grey")
-            #self.data.elem_commands["STORE"]["bg"] = "grey"
 
         else: 
             for fix in self.data.FIXTURES.fixtures:
-                #print( "clr",fix)
                 data = self.data.FIXTURES.fixtures[fix]
-                #print("elm",self.data.elem_attr[fix])
                 for attr in data["ATTRIBUT"]:
                     if attr.endswith("-FINE"):
                         continue
                     self.data.elem_attr[fix][attr]["bg"] = "grey"
-                    #data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                #print(data["ATTRIBUT"])
             print( "CB CLEAR" )
 
     def command(self,event):       
@@ -658,53 +650,6 @@ class Xevent():
                         fade = 1.1
 
                 self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
-            elif self.attr == "CFG-BTN":
-                #global modes #CFG-BTN
-                if event.num == 1:
-                    if modes.val("CFG-BTN"):
-                        modes.val("CFG-BTN",0)# = 0
-                        #self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                    else:
-                        modes.val("CFG-BTN",1)# = 1
-                        #self.data.elem_commands[self.attr]["bg"] = "red"
-            elif self.attr == "ACTIVATE": 
-                #global modes# ACTIVATE
-                if event.num == 1:
-                    if modes.val("ACTIVATE"):
-                        modes.val("ACTIVATE",0)# = 0
-                        #self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                    else:
-                        modes.val("ACTIVATE",1)# = 1
-                        #self.data.elem_commands[self.attr]["bg"] = "red"
-                
-            elif self.attr == "SELECT":
-                #global modes# SELECT
-                #global CFG-BTN
-                if event.num == 1:
-                    if modes.val("SELECT"):
-                        modes.val("SELECT",0)# = 0
-                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                    else:
-                        modes.val("SELECT",1)# = 1
-                        self.data.elem_commands[self.attr]["bg"] = "red"
-            elif self.attr == "LABEL":
-                #global modes #LABEL
-                #global CFG-BTN
-                if event.num == 1:
-                    if modes.val("LABEL"):
-                        modes.val("LABEL", 0)
-                        self.data.elem_commands[self.attr]["bg"] = "lightgrey"
-                    else:
-                        modes.val("LABEL", 1)
-                        self.data.elem_commands[self.attr]["bg"] = "red"
-            elif self.attr == "STONY_FX":
-                if event.num == 1:
-                    if modes.val("STONY_FX"):
-                        modes.val("STONY_FX", 0)
-                        self.data.elem_fx_commands[self.attr]["bg"] = "grey"
-                    else:
-                        modes.val("STONY_FX", 1)
-                        self.data.elem_fx_commands[self.attr]["bg"] = "red"
 
             elif self.attr == "BACKUP":
                 modes.val(self.attr,1)
@@ -1041,8 +986,9 @@ class GUI(Base):
                 ,"FX:CIR","FX:PAN","FX:TILT","FX:DIM","\n"
                 ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
-        self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","\n","BLIND","CLEAR","STORE","EDIT","MOVE","\n" 
-                ,"SET","\n","SELECT","ACTIVATE","FLASH","FADE"
+        self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","\n"
+                ,"SET","SELECT","ACTIVATE","FLASH","FADE","\n"
+                ,"BLIND","CLEAR","STORE","EDIT","MOVE","\n" 
                 ]
         self.elem_fx_commands = {}
         self.val_fx_commands = {}
@@ -1933,7 +1879,6 @@ class Fixtures(Base):
                 for attr in data["ATTRIBUT"]:
                     if attr.endswith("-FINE"):
                         continue
-                    #self.data.elem_attr[fix][attr]["bg"] = "grey"
                     if data["ATTRIBUT"][attr]["ACTIVE"]:
                         out +=1
                     data["ATTRIBUT"][attr]["ACTIVE"] = 0

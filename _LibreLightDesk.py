@@ -322,66 +322,21 @@ cprint("________________________________")
  
 class Xevent():
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
+        self.fix = fix
         self.data=data
         self.attr = attr
         self.elem = elem
         self.mode = mode
-    def encoder(self,fix,attr,data,elem,action="",xfade=None):
-        if action == "click":
-            print("encoder",fix,attr,action,data)
-            cprint(type(self.data))
-            if self.data is dict or self.data is OrderedDict:
-                if "ATTRIBUT" in self.data:
-                    if attr in self.data["ATTRIBUT"]:
-                        if "ACTIVE" in self.data["ATTRIBUT"][attr]:
-                            if self.data["ATTRIBUT"][attr]["ACTIVE"]:
-                                self.data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                                self.elem["bg"] = "grey"
-                            else:
-                                self.data["ATTRIBUT"][attr]["ACTIVE"] = 1
-                                self.elem["bg"] = "yellow"
-            return 1
+    def encoder(self,fix,attr,action="",xfade=None):
+        cprint(self.fix,fix,attr,color="red")
+        v = FIXTURES.encoder(fix,attr,action=action,xfade=xfade)
+        if self.fix:
+            self.elem["bg"] = "yellow"
+            self.elem["text"] = "{} {:0.02f}".format(attr,v)
+        else:
+            #refresh_gui(self):
+            pass
 
-    
-        v2=data["ATTRIBUT"][attr]["VALUE"]
-        change=0
-        increment = 4.11
-        if action == "+":
-            v2+= increment
-            v = "+{:0.4f}".format( increment ) #) #4.11"
-            change=1
-        elif action == "-":
-            v2-= increment
-            v = "-{:0.4f}".format( increment ) #) #4.11"
-            change=1
-        elif type(action) is int or type(action) is float:
-            #v2-= increment
-            #v = "-{:0.4f}".format( increment ) #) #4.11"
-            v2 = action
-            change=1
-
-            
-        if v2 < 0:
-            v2=0
-        elif v2 > 256:
-            v2=256
-            
-        if change:
-            data["ATTRIBUT"][attr]["ACTIVE"] = 1
-            elem["bg"] = "yellow"
-            #v2 = v
-            #v = data["ATTRIBUT"][attr]["VALUE"]
-            data["ATTRIBUT"][attr]["VALUE"] = v2
-            elem["text"] = "{} {:0.2f}".format(attr,v2)
-            #worker.fade_dmx(fix,attr,data,v,v2,ft=0)
-            if xfade:
-                cmd=update_dmx(attr=attr,data=data)
-            else:
-                cmd=update_dmx(attr=attr,data=data,args=[0])
-
-            #data["ATTRIBUT"][attr]["VALUE"] = v2
-            if cmd and not modes.val("BLIND"):
-                client.send(cmd)
 
     def clear(self,event=None):
         ok = self.data.FIXTURES.clear(event)
@@ -736,9 +691,6 @@ class Xevent():
                         if modes.val("STORE"):
                             self.data.preset_store(nr)
                             modes.val("STORE",0)
-                            #STORE = 0
-                            #self.button_refresh("STORE","grey")
-                            #self.elem_commands["STORE"]["bg"] = "lightgrey"
                         elif modes.val("CFG-BTN"):
                             _label = self.data.PRESETS.btn_cfg(nr) 
                             txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=_label)
@@ -777,8 +729,8 @@ class Xevent():
             if self.mode == "ENCODER":
                 #if self.attr == "VDIM":
                 #    self.attr = "DIM"
-                for fix in self.data.FIXTURES.fixtures:
-                    data = self.data.FIXTURES.fixtures[fix]
+                for fix in FIXTURES.fixtures:
+                    data = FIXTURES.fixtures[fix]
                     
                     for attr in data["ATTRIBUT"]:
                         if attr.endswith("-FINE"):
@@ -787,7 +739,6 @@ class Xevent():
                         if self.attr != attr:
                             continue
                         if event.num == 1:
-                            #self#encoder(attr=attr,data=data,elem=elem,action="click")
                             data["ATTRIBUT"][attr]["ACTIVE"] = 1
                             elem["bg"] = "yellow"
                             if "FX" in data["ATTRIBUT"][attr]:#["FX"]:# = 1
@@ -802,45 +753,33 @@ class Xevent():
                             continue
                         
                         if event.num == 4:
-                            self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
-                            #if attr == "DIM":
-                            #    self.encoder(attr="VDIM",data=data,elem=elem,action="+")
+                            self.encoder(fix=fix,attr=attr,action="+")
                         elif event.num == 5:
-                            self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="-")
-                            #if attr == "DIM":
-                            #     self.encoder(attr="VDIM",data=data,elem=elem,action="-")
+                            self.encoder(fix=fix,attr=attr,action="-")
                         if  "set_value" in dir(event)  and event.set_value >=0:
                             print("ENCODER set_value and set_fade",event)
-                            #print(dir(event))
                             if "set_fade" in dir(event) and event.set_fade >0:
-                                 print("event.set_fade",event.set_fade)
-                                 self.encoder(fix=fix,attr=attr,data=data,elem=elem,action=event.set_value,xfade=1)
+                                 self.encoder(fix=fix,attr=attr,action=event.set_value,xfade=1)
                             else:
-                                 self.encoder(fix=fix,attr=attr,data=data,elem=elem,action=event.set_value)
+                                 self.encoder(fix=fix,attr=attr,action=event.set_value)
                 return 0
-                                
 
 
-                
+            action=""
             if event.num == 1:
-                self.encoder(fix=0,attr=self.attr,data=self.data,elem=self.elem,action="click")
-
+                action="click"
             elif event.num == 4:
-                self.encoder(fix=0,attr=self.attr,data=self.data,elem=self.elem,action="+")
+                action="+"
             elif event.num == 5:
-                self.encoder(fix=0,attr=self.attr,data=self.data,elem=self.elem,action="-")
-            
+                action="-"
 
-                
-            #finally:
-            #    pass
+            if action:
+                self.encoder(fix=self.fix,attr=self.attr,action=action)
+            
         except Exception as e:
             cprint("== cb EXCEPT",e,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-            #traceback.print_exc()
-        #print(self.elem["text"],self.attr,self.data)
-        
                                             
         
 def wheel(event,d=None):
@@ -978,8 +917,13 @@ class GUI(Base):
 
         self.elem_presets = {}
         self.PRESETS = Presets()
+        global PRESETS
+        PRESETS =self.PRESETS
         self.PRESETS.load_presets()
+
         self.FIXTURES = Fixtures()
+        global FIXTURES
+        FIXTURES = self.FIXTURES
         self.FIXTURES.load_patch()
         
         for i in range(8*8*8):
@@ -993,7 +937,6 @@ class GUI(Base):
         modes.set_cb(self.xcb)
     def button_refresh(self,name,color,fg=None):
         cprint("button_refresh",name,color)
-        #self.data.elem_commands["STORE"]["bg"] = "grey"
         if name in self.elem_commands:
             self.elem_commands[name]["bg"] = color
             self.elem_commands[name].config(activebackground=color)
@@ -1108,15 +1051,14 @@ class GUI(Base):
                 #print( self.data.elem_attr)
                 if fix in self.elem_attr:
                     elem = self.elem_attr[fix][attr]
-                    #self#encoder(attr=attr,data=data,elem=elem,action="click")
-                    self.FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                    FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
     def preset_go(self,nr,xfade=fade,event=None):
         print("GO PRESET FADE",nr)
 
-        rdata = self.PRESETS.get_raw_map(nr)
-        cfg   = self.PRESETS.get_cfg(nr)
-        fcmd  = self.FIXTURES.update_raw(rdata)
+        rdata = PRESETS.get_raw_map(nr)
+        cfg   = PRESETS.get_cfg(nr)
+        fcmd  = FIXTURES.update_raw(rdata)
         #virtcmd  = self.data.FIXTURES.get_virtual(rdata)
 
 
@@ -1216,29 +1158,13 @@ class GUI(Base):
         def yview(event):
             print("yevent",event)
             print(dir(canvas))
-            #yview_moveto', 'yview_scroll'
             yyy=20.1
             
             fix_frame.yview_moveto(yyy)
-            #canvas.yview_moveto(yyy)
-            #yyy=20
-            #canvas.yview_scroll(yyy,"units")
-        #def sconfig(event):
-        #    global canvas
-        #    canvas.configure(scrollregion=canvas.bbox("all"),width=400,height=200)
-        #fix_frame.bind("<Configure>",sconfig)
-        #myscrollbar=tk.Scrollbar(root,orient="vertical",command=canvas.yview)
-        #myscrollbar=tk.Scrollbar(root,orient="vertical",command=yview)
-        #myscrollbar.pack(side="right",fill="y") 
-        #canvas.create_window((0, 0), window=fix_frame, anchor="nw")
-        #canvas.pack(fill=tk.X, side=tk.TOP)
 
         fix_frame = tk.Frame(root,bg="black")
         fix_frame.pack(fill=tk.X, side=tk.TOP)
-        #fix_frame = canvas
 
-        #fix_frame.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
-        #canvas.configure(yscrollcommand=myscrollbar.set)
         i=0
         c=0
         r=0
@@ -1247,11 +1173,7 @@ class GUI(Base):
             data = self.FIXTURES.fixtures[fix]
             print( fix ,data )
             
-            #if(len(data["ATTRIBUT"].keys()) <= 1):
-            #    c,r=self.draw_dim(fix,data,c=c,r=r,frame=dim_frame)
-            #else:
             if 1:
-                #self._draw_fix(fix,data,root=fix_frame)
                 frame = fix_frame
                 
                 b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
@@ -1294,8 +1216,6 @@ class GUI(Base):
                 c=0
                 r+=1
                 
-        #fix_frame
-        #canvas.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
     def draw_fix(self,xframe):
         r=0
         c=0
@@ -1309,17 +1229,13 @@ class GUI(Base):
         fix_frame.pack(fill=tk.X, side=tk.TOP)
         Font = font.Font(family='Helvetica', size=9, weight='normal')
         FontBold = font.Font(family='Helvetica', size=10, weight='bold')
-        #self.tk.default_font.configure(size=9)
-        #self.tk.option_add("*Font", FontBold)
-        #dim_frame.configure(font=Font)
-        #fix_frame.configure(font=Font)
         i=0
         c=0
         r=0
         dim_end=0
-        for fix in self.FIXTURES.fixtures:
+        for fix in FIXTURES.fixtures:
             i+=1
-            data = self.FIXTURES.fixtures[fix]
+            data = FIXTURES.fixtures[fix]
             print( fix ,data )
             
             if(len(data["ATTRIBUT"].keys()) <= 1):
@@ -1366,21 +1282,13 @@ class GUI(Base):
         i=0
         c=0
         r=0
-        #frame = tk.Frame(root,bg="black")
-        #frame.pack(fill=tk.X, side=tk.TOP)
-
-        #b = tk.Label(frame,bg="black", text="--------------------------------- ---------------------------------------")
-        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        #r=0
         
         frame = tk.Frame(root2,bg="black")
         frame.pack( side=tk.TOP,expand=1,fill="both")
 
         
         b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        #r+=1
         c+=1
         for attr in self.all_attr:
             if attr.endswith("-FINE"):
@@ -1458,14 +1366,7 @@ class GUI(Base):
         i=0
         c=0
         r=0
-        #frame = tk.Frame(root,bg="black")
-        #frame.pack(fill=tk.X, side=tk.TOP)
-
-        #b = tk.Label(frame,bg="black", text="------------------------------ ---------------------------------------")
-        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        #r=0
         
-        #frame = tk.Frame(root2,bg="black")
         frame = tk.Frame(frame_cmd,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
        
@@ -1525,10 +1426,6 @@ class GUI(Base):
         frame = tk.Frame(root,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
        
-        #b = tk.Button(frame,bg="lightblue", text="EXEC")
-        #b.bind("<Button>",Xevent(elem=b).cb)
-        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        #r+=1      
         i=0
         for k in self.PRESETS.val_presets:
             if i%(8*8)==0 or i ==0:
@@ -1649,8 +1546,6 @@ class GUI(Base):
     def draw_colorpicker(self,xframe):
         import lib.colorpicker as colp
 
-        #colp.colorpicker(xframe,width=600,height=100, xcb=Xevent(fix=0,elem=None,attr="COLORPICKER",data=self,mode="INPUT").cb)
-        #xcb = cb
         e = dummy_event()
         r = Xevent(fix=0,elem=None,attr="RED",data=self,mode="ENCODER") #.cb
         g = Xevent(fix=0,elem=None,attr="GREEN",data=self,mode="ENCODER") #.cb
@@ -1713,7 +1608,6 @@ class GUI(Base):
                     e.set_fade=-1
                      
                     print("PICK COLOR:",data["color"])
-                    #self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
         _cb=_CB()
         colp.colorpicker(xframe,width=600,height=100, xcb=_cb.cb)
         return 0
@@ -1857,6 +1751,58 @@ class Fixtures(Base):
             self.gui.update(fix,attr,args={"text":text})
         return cmd
 
+    def encoder(self,fix,attr,action="",xfade=None):
+        print("FIXTURES.encoder",fix,attr,action,xfade)
+        data = self.fixtures[fix]
+        if action == "click":
+            print("encoder",fix,attr,action,data)
+            #cprint(type(self.data))
+            if data is dict or data is OrderedDict:
+                if "ATTRIBUT" in self.data:
+                    if attr in data["ATTRIBUT"]:
+                        if "ACTIVE" in data["ATTRIBUT"][attr]:
+                            if data["ATTRIBUT"][attr]["ACTIVE"]:
+                                data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                            else:
+                                data["ATTRIBUT"][attr]["ACTIVE"] = 1
+            return 1
+
+    
+        v2=data["ATTRIBUT"][attr]["VALUE"]
+        change=0
+        increment = 4.11
+        if action == "+":
+            v2+= increment
+            v = "+{:0.4f}".format( increment ) #) #4.11"
+            change=1
+        elif action == "-":
+            v2-= increment
+            v = "-{:0.4f}".format( increment ) #) #4.11"
+            change=1
+        elif type(action) is int or type(action) is float:
+            #v2-= increment
+            #v = "-{:0.4f}".format( increment ) #) #4.11"
+            v2 = action
+            change=1
+
+            
+        if v2 < 0:
+            v2=0
+        elif v2 > 256:
+            v2=256
+        out = {} 
+        if change:
+            data["ATTRIBUT"][attr]["ACTIVE"] = 1
+            data["ATTRIBUT"][attr]["VALUE"] = v2
+            if xfade:
+                cmd=update_dmx(attr=attr,data=data)
+            else:
+                cmd=update_dmx(attr=attr,data=data,args=[0])
+
+            if cmd and not modes.val("BLIND"):
+                client.send(cmd)
+        return v2
+
     def get_active(self):
         print(self,"get_active")
         CFG = OrderedDict()
@@ -1918,6 +1864,7 @@ class Presets(Base):
         super().__init__() 
         #self.load()
 
+
     def load_presets(self): 
         filename="presets"
         d,l = self._load(filename)
@@ -1948,6 +1895,7 @@ class Presets(Base):
             return {}
         if "CFG" in self.val_presets[nr]:
             return self.val_presets[nr]["CFG"]
+
 
     def get_raw_map(self,nr):
         print("get_raw_map",nr)

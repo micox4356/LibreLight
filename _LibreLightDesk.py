@@ -43,6 +43,7 @@ import traceback
 import tkinter
 import tkinter as tk
 from tkinter import font
+import tkinter.simpledialog
 
 
 import lib.chat as chat
@@ -738,42 +739,21 @@ class Xevent():
                             #self.button_refresh("STORE","grey")
                             #self.elem_commands["STORE"]["bg"] = "lightgrey"
                         elif modes.val("CFG-BTN"):
-                            import tkinter.simpledialog
-                            txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr))
-                            if "CFG" not in self.data.PRESETS.val_presets[nr]:
-                                self.data.PRESETS.val_presets[nr]["CFG"] = OrderedDict()
-                            if "BUTTON" not in self.data.PRESETS.val_presets[nr]["CFG"]:
-                                self.data.PRESETS.val_presets[nr]["CFG"]["BUTTON"] = ""
+                            _label = self.data.PRESETS.btn_cfg(nr) 
+                            txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=_label)
+                            if txt:
+                                self.data.PRESETS.btn_cfg(nr,txt)
+                                self.data.elem_presets[nr]["text"] = self.data.PRESETS.get_btn_txt(nr)
+                            modes.val("CFG-BTN",0)
 
-                            self.data.PRESETS.val_presets[nr]["CFG"]["BUTTON"] = txt
-                            sdata=self.data.PRESETS.val_presets[nr]
-                            BTN="go"
-                            if "CFG" in sdata:#["BUTTON"] = "GO"
-                                if "BUTTON" in sdata["CFG"]:
-                                    BTN = sdata["CFG"]["BUTTON"]
-                            label = self.data.PRESETS.label_presets[nr] # = label
-                            txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-                            self.data.elem_presets[nr]["text"] = txt
-                            modes.val("CFG-BTN",0)# = 0
                             #self.data.elem_commands["CFG-BTN"]["bg"] = "grey"
                         elif modes.val("LABEL"):#else:
-                            label = "lalaal"
-                            import tkinter.simpledialog
-                            label = tkinter.simpledialog.askstring("LABEL","Preset "+str(nr))
-                            if label is not None:
-
-                                self.data.elem_presets[nr]["text"] = label
-                                self.data.PRESETS.label_presets[nr] = label
-                                sdata=self.data.PRESETS.val_presets[nr]
-                                BTN="go"
-                                if "CFG" in sdata:#["BUTTON"] = "GO"
-                                    if "BUTTON" in sdata["CFG"]:
-                                        BTN = sdata["CFG"]["BUTTON"]
-                                txt=str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-                                #txt = "Preset:"+str(nr)+":\n"+str(len(l))+":"+label
-                                self.data.elem_presets[nr]["text"] = txt
-                                modes.val("LABEL", 0)
-                                self.data.elem_commands["LABEL"]["bg"] = "lightgrey"
+                            _label = self.data.PRESETS.label(nr) 
+                            txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=_label)
+                            if txt:
+                                self.data.PRESETS.label(nr,txt) 
+                                self.data.elem_presets[nr]["text"] = self.data.PRESETS.get_btn_txt(nr)
+                            modes.val("LABEL", 0)
                         elif modes.val("ACTIVATE"):
                             self.data.preset_select(nr)
                             self.data.preset_go(nr,xfade=0,event=event)
@@ -1661,6 +1641,7 @@ class GUI(Base):
         b = tk.Entry(frame,bg="grey", text="",width=20)
         self.entry3 = b
         b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
+        #b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
         b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         b.insert("end","fx:alloff:::")
@@ -1673,40 +1654,67 @@ class GUI(Base):
         r = Xevent(fix=0,elem=None,attr="RED",data=self,mode="ENCODER") #.cb
         g = Xevent(fix=0,elem=None,attr="GREEN",data=self,mode="ENCODER") #.cb
         b = Xevent(fix=0,elem=None,attr="BLUE",data=self,mode="ENCODER") #.cb
-        def _cb(event,data):
-            print("PPPPPPPOOOOOORRR",event,data)
-            print(event.num)
-            if "color" in data and (event.num == 1 or event.num == 3 or event.num==2):
-                e.num=5
-                e.type=1
-                cr=-1
-                cg=-1
-                cb=-1
-                color = data["color"]
-                if event.num == 1: 
-                    e.set_fade=fade
-                    cr = color[0]
-                    cg = color[1]
-                    cb = color[2]
-                elif event.num == 2: 
-                    e.num=1
-                    e.type=4
-                    e.set_value=-1
+        class _CB():
+            def __init__(self):
+                self.old_color = (0,0,0)
+            def cb(self,event,data):
+                if "color" in data and self.old_color != data["color"]:
+                    self.old_color = data["color"]
                 else:
-                    e.set_fade=-1
+                    return 0
+                color = data["color"]
 
-                e.set_value=cr#color[0]
-                r.cb(e)
-                e.set_value=cg#color[1]
-                g.cb(e)
-                e.set_value=cb#color[2]
-                b.cb(e)
-                e.set_value=-1
-                e.set_fade=-1
-                 
-                print("PICK COLOR:",data["color"])
-                #self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
-        colp.colorpicker(xframe,width=600,height=100, xcb=_cb)
+                print("PPPPPPPOOOOOORRR")
+                print("e",event,data)
+                print("e",dir(event))#.keys())
+                print("e.num",event.num)
+                try:
+                    print("e.stat",event.state)
+                except:pass
+
+                
+                if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state==256):
+                    e.num=5
+                    e.type=1
+                    cr=-1
+                    cg=-1
+                    cb=-1
+                    if event.num == 1: 
+                        e.set_fade=fade
+                        cr = color[0]
+                        cg = color[1]
+                        cb = color[2]
+                    elif event.num == 3: 
+                        cr = color[0]
+                        cg = color[1]
+                        cb = color[2]
+                        e.set_fade=-1
+                    elif event.num == 2: 
+                        e.num=1
+                        e.type=4
+                        e.set_value=-1
+                    elif event.state == 256:
+                        cr = color[0]
+                        cg = color[1]
+                        cb = color[2]
+                        e.set_fade=-1
+
+                    else:
+                        e.set_fade=-1
+
+                    e.set_value=cr#color[0]
+                    r.cb(e)
+                    e.set_value=cg#color[1]
+                    g.cb(e)
+                    e.set_value=cb#color[2]
+                    b.cb(e)
+                    e.set_value=-1
+                    e.set_fade=-1
+                     
+                    print("PICK COLOR:",data["color"])
+                    #self.encoder(fix=fix,attr=attr,data=data,elem=elem,action="+")
+        _cb=_CB()
+        colp.colorpicker(xframe,width=600,height=100, xcb=_cb.cb)
         return 0
 
         canvas=tk.Canvas(xframe,width=600,height=100)
@@ -1967,6 +1975,42 @@ class Presets(Base):
 
                 out.append(x)
         return out
+
+    def get_btn_txt(self,nr):
+        sdata=self.val_presets[nr]
+        BTN="go"
+        if "CFG" in sdata:
+            if "BUTTON" in sdata["CFG"]:
+                BTN = sdata["CFG"]["BUTTON"]
+        _label = self.label_presets[nr] # = label
+        txt=str(nr+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+_label
+        print("get_btn_txt",nr,[txt])
+        return txt
+
+    def btn_cfg(self,nr,txt=None):
+        if nr not in self.val_presets:
+            return ""
+        if type(name) is str:
+            if "CFG" not in self.val_presets[nr]:
+                self.val_presets[nr]["CFG"] = OrderedDict()
+            if "BUTTON" not in self.val_presets[nr]["CFG"]:
+                self.val_presets[nr]["CFG"]["BUTTON"] = ""
+            self.val_presets[nr]["CFG"]["BUTTON"] = txt
+        if self.val_presets[nr]["CFG"]["BUTTON"] is None:
+            self.val_presets[nr]["CFG"]["BUTTON"] = ""
+
+        print("EEE", self.val_presets[nr]["CFG"]["BUTTON"] )
+        return self.val_presets[nr]["CFG"]["BUTTON"] 
+
+    def label(self,nr,txt=None):
+        if nr not in self.label_presets:
+            return ""
+        if type(txt) is str:
+            self.label_presets[nr] = txt
+            print("set label",nr,[txt])
+        print("??? ?? set label",nr,[txt])
+        return self.label_presets[nr] 
+
     def store(self,nr,data,arg=""):
         #TODO implement
         print(self,"store()",data,arg)

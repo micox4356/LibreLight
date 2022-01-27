@@ -388,9 +388,10 @@ class Xevent():
         if ok:
             for fix in self.data.elem_attr:
                 for attr in self.data.elem_attr[fix]:
-                    if fix in self.data.elem_attr: 
-                        if attr in self.data.elem_attr[fix]: 
-                            self.data.elem_attr[fix][attr]["bg"] = "grey"
+                    print(type(self.data.elem_attr[fix]))
+                    print(type(self.data.elem_attr[fix][attr]))
+                    print((self.data.elem_attr[fix][attr]))
+                    self.data.elem_attr[fix][attr]["bg"] = "grey"
         return 0
 
         if modes.val("STORE"):
@@ -1341,12 +1342,12 @@ class GUI(Base):
                     
                 for attr in data["ATTRIBUT"]:
                     
+                    if attr.endswith("-FINE"):
+                        continue
                     if attr not in self.all_attr:
                         self.all_attr.append(attr)
                     if attr not in self.elem_attr[fix]:
-                        self.elem_attr[fix][attr] = []
-                    if attr.endswith("-FINE"):
-                        continue
+                        self.elem_attr[fix][attr] = ["line1348",fix,attr]
                     v= data["ATTRIBUT"][attr]["VALUE"]
                     
                     b = tk.Button(frame,bg="grey",font=FontBold, text=str(attr)+' '+str(round(v,2)),width=8)

@@ -327,51 +327,17 @@ class Xevent():
         self.attr = attr
         self.elem = elem
         self.mode = mode
-    def encoder(self,fix,attr,action="",xfade=None):
-        cprint(self.fix,fix,attr,color="red")
-        v = FIXTURES.encoder(fix,attr,action=action,xfade=xfade)
-        if self.fix:
-            self.elem["bg"] = "yellow"
-            self.elem["text"] = "{} {:0.02f}".format(attr,v)
-        else:
-            #refresh_gui(self):
-            pass
 
-
-    def clear(self,event=None):
-        ok = self.data.FIXTURES.clear(event)
-        if ok:
-            for fix in self.data.elem_attr:
-                for attr in self.data.elem_attr[fix]:
-                    print(type(self.data.elem_attr[fix]))
-                    print(type(self.data.elem_attr[fix][attr]))
-                    print((self.data.elem_attr[fix][attr]))
-                    self.data.elem_attr[fix][attr]["bg"] = "grey"
-        return 0
-
-        if modes.val("STORE"):
-            self.data.val_commands["STORE"] = 0
-            modes.val("STORE",0)# = 0
-
-        else: 
-            for fix in self.data.FIXTURES.fixtures:
-                data = self.data.FIXTURES.fixtures[fix]
-                for attr in data["ATTRIBUT"]:
-                    if attr.endswith("-FINE"):
-                        continue
-                    self.data.elem_attr[fix][attr]["bg"] = "grey"
-            print( "CB CLEAR" )
 
     def command(self,event):       
         if self.mode == "COMMAND":
             
             if self.attr == "CLEAR":
                 if event.num == 1:
-                    self.clear()
-                    #self.button_refresh("STORE","grey")
-                    #modes.val("STORE",0)
+                    ok = FIXTURES.clear()
+                    if ok:
+                        master.refresh_fix()
                     modes.val(self.attr,0)
-                    #modes.val("CLEAR",0)
 
                     
             elif self.attr.startswith("SZ:"):#SIN":
@@ -624,70 +590,44 @@ class Xevent():
 
             
     def cb(self,event):
-        #print("cb",self,event,data)
         cprint("EVENT cb",self.attr,self.mode,event,color='yellow')
         print(["type",event.type,"num",event.num])
-        #print(dir(event.type))
-        #print(dir(event),[str(event.type)])#.keys())
         try:
-            #v = self.data["ATTRIBUT"][self.attr]
-            #global modes
-            #global STORE
-            #global BLIND
-            #global FLASH
-            #global STONY_FX
-            #global LABEL
-            #global SELECT
-            #global ACTIVATE 
-            #global CFG-BTN
             change = 0
             if "keysym" in dir(event):
                 if "Escape" == event.keysym:
-                    self.clear()
-                    #CLEAR
+                    ok = FIXTURES.clear()
+                    master.refresh_fix()
                     return 0
 
             if self.mode == "COMMAND":
                 self.command(event)
             elif self.mode == "ROOT":
                 if event.keysym=="Escape":
-                    
                     pass
-                    #STORE = 0
-                    #LABEL = 0
 
             elif self.mode == "INPUT":
                 print("INP",self.data.entry.get())
                 if event.keycode == 36:
                     x=self.data.entry.get()
                     client.send(x)
-                    #self.data.entry.clean()
 
-                #self.data
-                #chat.send("")
             elif self.mode == "INPUT2":
                 print("INP2",self.data.entry2.get())
                 if event.keycode == 36:
                     x=self.data.entry2.get()
                     client.send(x)
-                    #self.data.entry.clean()
 
             elif self.mode == "INPUT3":
                 print("INP3",self.data.entry3.get())
                 if event.keycode == 36:
                     x=self.data.entry3.get()
                     client.send(x)
-                    #self.data.entry.clean()
 
-                #self.data
-                #chat.send("")
             elif self.mode == "PRESET":
                 nr = self.attr #int(self.attr.split(":")[1])-1
-                #print( "RRR", [str(event.type) , event.type] )
-                #print( "PRESET EVENT",event.num)
                 if event.num == 1:
                     if str(event.type) == '4': #4 ButtonPress
-                        #if str(event.type) == "ButtonRelease" or event.type == '5':
                         if modes.val("STORE"):
                             self.data.preset_store(nr)
                             modes.val("STORE",0)
@@ -699,7 +639,6 @@ class Xevent():
                                 self.data.elem_presets[nr]["text"] = self.data.PRESETS.get_btn_txt(nr)
                             modes.val("CFG-BTN",0)
 
-                            #self.data.elem_commands["CFG-BTN"]["bg"] = "grey"
                         elif modes.val("LABEL"):#else:
                             _label = self.data.PRESETS.label(nr) 
                             txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=_label)
@@ -727,8 +666,6 @@ class Xevent():
             elif self.mode == "INPUT":
                 return 0
             if self.mode == "ENCODER":
-                #if self.attr == "VDIM":
-                #    self.attr = "DIM"
                 for fix in FIXTURES.fixtures:
                     data = FIXTURES.fixtures[fix]
                     
@@ -753,15 +690,16 @@ class Xevent():
                             continue
                         
                         if event.num == 4:
-                            self.encoder(fix=fix,attr=attr,action="+")
+                            FIXTURES.encoder(fix=fix,attr=attr,action="+")
                         elif event.num == 5:
-                            self.encoder(fix=fix,attr=attr,action="-")
+                            FIXTURES.encoder(fix=fix,attr=attr,action="-")
                         if  "set_value" in dir(event)  and event.set_value >=0:
                             print("ENCODER set_value and set_fade",event)
                             if "set_fade" in dir(event) and event.set_fade >0:
-                                 self.encoder(fix=fix,attr=attr,action=event.set_value,xfade=1)
+                                 FIXTURES.encoder(fix=fix,attr=attr,action=event.set_value,xfade=1)
                             else:
-                                 self.encoder(fix=fix,attr=attr,action=event.set_value)
+                                 FIXTURES.encoder(fix=fix,attr=attr,action=event.set_value)
+                master.refresh_fix()
                 return 0
 
 
@@ -774,8 +712,9 @@ class Xevent():
                 action="-"
 
             if action:
-                self.encoder(fix=self.fix,attr=self.attr,action=action)
-            
+                FIXTURES.encoder(fix=self.fix,attr=self.attr,action=action)
+                
+                master.refresh_fix()
         except Exception as e:
             cprint("== cb EXCEPT",e,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
@@ -961,7 +900,7 @@ class GUI(Base):
         print("********************************************************")
         self.FIXTURES.backup_patch()
         print("*********del",self,"***********************************************")
-    def refresh_gui(self):
+    def refresh_fix(self):
         for fix in self.FIXTURES.fixtures:                            
             sdata = self.FIXTURES.fixtures[fix]                            
             for attr in sdata["ATTRIBUT"]:
@@ -1102,7 +1041,7 @@ class GUI(Base):
         if cmd and not modes.val("BLIND"):
             client.send(cmd )
         
-        self.refresh_gui()
+        self.refresh_fix()
 
         
     def draw_dim(self,fix,data,c=0,r=0,frame=None):
@@ -1752,8 +1691,21 @@ class Fixtures(Base):
         return cmd
 
     def encoder(self,fix,attr,action="",xfade=None):
-        print("FIXTURES.encoder",fix,attr,action,xfade)
-        data = self.fixtures[fix]
+        cprint("FIXTURES.encoder",fix,attr,action,xfade,color="yellow")
+        if attr == "CLEAR":
+            self.clear()
+            return 0
+        if fix in self.fixtures:
+            data = self.fixtures[fix]
+        else:
+            for fix in self.fixtures:
+                data = self.fixtures[fix]
+                if data["ATTRIBUT"][attr]["ACTIVE"]:
+                    if fix: # prevent endles recursion
+                        self.encoder(fix,attr,action,xfade)
+
+
+            return 0
         if action == "click":
             print("encoder",fix,attr,action,data)
             #cprint(type(self.data))
@@ -1842,21 +1794,16 @@ class Fixtures(Base):
                 out = 1
         return 1
 
-    def clear(self,event=None):
+    def clear(self):
         out = 0
-        if 1: 
-            for fix in self.fixtures:
-                #print( "clr",fix)
-                data = self.fixtures[fix]
-                #print("elm",self.data.elem_attr[fix])
-                for attr in data["ATTRIBUT"]:
-                    if attr.endswith("-FINE"):
-                        continue
-                    if data["ATTRIBUT"][attr]["ACTIVE"]:
-                        out +=1
+        for fix in self.fixtures:
+            data = self.fixtures[fix]
+            for attr in data["ATTRIBUT"]:
+                if attr.endswith("-FINE"):
+                    continue
+                if data["ATTRIBUT"][attr]["ACTIVE"]:
+                    out +=1
                     data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                #print(data["ATTRIBUT"])
-            print( "CB CLEAR" )
         return out
 
 class Presets(Base):
@@ -2066,11 +2013,10 @@ class GUIWindow():
         self.tk.mainloop()
     def callback(self,event,data={}):
         print("<GUI>",self,event,data)
-        #if "keysym" in dir(event):
-        #    if "Escape" == event.keysym:
-        #        e=dummy_event()
-        #        e.num=1
-        #        self._event_clear(e)
+        if "keysym" in dir(event):
+            if "Escape" == event.keysym:
+                FIXTURES.clear()
+                master.refresh_fix()
         
 class WindowManager():
     def __init__(self):
@@ -2104,7 +2050,7 @@ class WindowManager():
 
 window_manager = WindowManager()
 
-master =GUI()
+master = GUI()
 
 w = GUIWindow("MAIN",master=1,width=130,height=450,left=0,top=65)
 data = []

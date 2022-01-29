@@ -916,7 +916,7 @@ class GUI(Base):
                     if "BUTTON" in sdata["CFG"]:
                         BTN = sdata["CFG"]["BUTTON"]
                 txt=str(k)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-                txt+=str(self._XX)
+                #txt+=str(self._XX)
                 b["text"] = txt
                 b["bg"] = "yellow"
                 if len(sdata) > 1:
@@ -978,7 +978,6 @@ class GUI(Base):
 
 
     def preset_store(self,nr):
-        #TODO refactor
         print("------- STORE PRESET")
         data = FIXTURES.get_active()
         if modes.val("STONY_FX"):
@@ -986,51 +985,12 @@ class GUI(Base):
         else:
             PRESETS.store(nr,data)
             
-        
         sdata=data
         PRESETS.val_presets[nr] = sdata
+        
+        master.refresh_exec()
+        return 1
 
-
-        if len(sdata) > 1:
-            fx_color = 0
-            val_color = 0
-            for fix in sdata:
-                if fix == "CFG":
-                    continue
-                #print( "$$$$",fix,sdata[fix])
-                for attr in sdata[fix]:
-                    if "FX" in sdata[fix][attr]:
-                        if sdata[fix][attr]["FX"]:
-                            fx_color = 1
-                    if "VALUE" in sdata[fix][attr]:
-                        if sdata[fix][attr]["VALUE"] is not None:
-                            val_color = 1
-
-            self.elem_presets[nr]["fg"] = "black"
-            if val_color:
-                self.elem_presets[nr]["bg"] = "yellow"
-                if fx_color:
-                    self.elem_presets[nr]["fg"] = "blue"
-            else:   
-                if fx_color:
-                    self.elem_presets[nr]["bg"] = "cyan"
-        else:
-            self.elem_presets[nr]["fg"] = "black"
-            self.elem_presets[nr]["bg"] = "grey"
-        #self.elem_presets[nr].option_add("*Font", FontBold)
-        label = ""
-        if nr in PRESETS.label_presets:
-            #print(dir(self.data))
-            label = PRESETS.label_presets[nr]
-
-        BTN="go"
-        if "CFG" in sdata:#["BUTTON"] = "GO"
-            if "BUTTON" in sdata["CFG"]:
-                BTN = sdata["CFG"]["BUTTON"]
-        txt = str(nr)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label 
-        self.elem_presets[nr]["text"] = txt 
-        #print("GO CFG ",PRESETS.val_presets)
-           
 
     def preset_select(self,nr):
         print("SELECT PRESET")
@@ -1060,7 +1020,7 @@ class GUI(Base):
 
         xFLASH = 0
         value=None
-        cprint(nr,cfg)
+        cprint("preset_go",nr,cfg)
         if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val: #FLASH
             self.preset_select(nr)
         elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
@@ -1727,7 +1687,7 @@ class Fixtures(Base):
         data = self.fixtures[fix]
 
         if xval == "click":
-            cprint(data)
+            #cprint(data)
             return self.select(fix,attr,mode="toggle")
 
     
@@ -1765,7 +1725,7 @@ class Fixtures(Base):
         return v2
 
     def get_active(self):
-        print(self,"get_active")
+        cprint("get_active",self,"get_active")
         CFG = OrderedDict()
         sdata = OrderedDict()
         sdata["CFG"] = CFG # OrderedDict()
@@ -1897,7 +1857,7 @@ class Presets(Base):
         cprint("PRESETS.get_cfg()",nr)
         self.check_cfg(nr)
         if nr not in self.val_presets:
-            cprint(self,"error get_cfg no nr:",nr,color="red")
+            cprint("get_cfg",self,"error get_cfg no nr:",nr,color="red")
             return {}
         if "CFG" in self.val_presets[nr]:
             return self.val_presets[nr]["CFG"]
@@ -1978,29 +1938,35 @@ class Presets(Base):
         else:
             cprint("=NONE=",color="green")
 
-    def copy(self,nr):
+    def copy(self,nr,overwrite=1):
         cprint("PRESETS._copy",nr,"last",self._last_copy)
         if nr:
             if self._last_copy is not None:
-                ok = self._copy(self._last_copy,nr)
+                ok = self._copy(self._last_copy,nr,overwrite=overwrite)
                 return ok #ok
             else:
                 self._last_copy = nr
                 cprint("PRESETS.copy START ",color="red")
                 return 0
         return 1 # on error reset move
-    def _copy(self,nr_from,nr_to):
+    def _copy(self,nr_from,nr_to,overwrite=1):
         cprint("PRESETS._copy",nr_from,"to",nr_to)
         self.check_cfg(nr_from)
         if self._last_copy is None:
             cprint("PRESETS._copy last nr is None")
             return 0
         if nr_from in self.val_presets and nr_to in self.val_presets:
-            data = self.val_presets[nr_from]
-            cprint(data)
-            label = self.label_presets[nr_from]
-            self.val_presets[nr_to] = data
-            self.label_presets[nr_to] = label
+            fdata = self.val_presets[nr_from]
+            tdata = self.val_presets[nr_to]
+            #cprint(fdata)
+            flabel = self.label_presets[nr_from]
+            tlabel = self.label_presets[nr_to]
+            self.val_presets[nr_to] = fdata
+            self.label_presets[nr_to] = flabel
+            if not overwrite: #default
+                cprint("overwrite",overwrite)
+                self.val_presets[nr_from] = tdata
+                self.label_presets[nr_from] = tlabel
             #self.label_presets[nr_from] = "MOVE"
             self.clear_copy()
             cprint("PRESETS.copy OK",color="red")
@@ -2010,22 +1976,25 @@ class Presets(Base):
         cprint("PRESETS.move",self._last_copy,"to",nr)
         if nr: 
             last = self._last_copy
-            ok= self.copy(nr)
+            ok= self.copy(nr,overwrite=0)
             if ok and last:
                 cprint("PRESETS.move OK",color="red")
-                self.delete(last)
+                #self.delete(last)
                 return ok #ok
             
-        return 1 # on error reset move
+        return 0 # on error reset move
     def delete(self,nr):
         cprint("PRESETS.delete",nr)
+        ok=0
         if nr in self.val_presets:
             self.val_presets[nr] = OrderedDict()
             self.label_presets[nr] = "DEL"
+            ok = 1
         self.check_cfg(nr)
+        return ok
 
     def store(self,nr,data,arg=""):
-        print(self,"store()",data,arg)
+        print("store",self,"store()",data,arg)
         self.check_cfg(nr)
         self.val_presets[nr] = data
         return 1
@@ -2083,7 +2052,7 @@ class GUI_menu():
             i+=1
         self.frame.pack()
     def callback(self,event,data={}):
-        print(self,event,data)
+        print("callback543",self,event,data)
         window_manager.top(data["text"])# = WindowManager()
 
 lf_nr = 0
@@ -2128,7 +2097,7 @@ class GUIWindow():
     def callback(self,event,data={}):#value=255):
         print()
         print()
-        print("<GUI>",self,event,event.state,data,[event.type])
+        cprint("<GUI>",self,event,event.state,data,[event.type],color="yellow")
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
             value = 0
@@ -2165,7 +2134,7 @@ class GUIWindow():
                 CONSOLE.fx_off("all")
                 CONSOLE.flash_off("all")
             elif "Delete" == event.keysym:
-                pass 
+                PRESETS.delete()
 class WindowManager():
     def __init__(self):
         self.windows = {}
@@ -2227,9 +2196,6 @@ data = []
 data.append({"text":"EXEC"})
 data.append({"text":"DIMMER"})
 data.append({"text":"FIXTURES"})
-#data.append({"text":"PRESET"})
-#data.append({"text":"PATCH"})
-#data.append({"text":"ENCODER"})
 f = GUI_menu(w.tk,data)
 window_manager.new(w)
 

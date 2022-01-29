@@ -442,7 +442,7 @@ def CB(data):
                 print("EXCEPTION IN FADE",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
         elif xcmd.startswith("fxf"):
-            xxcmd=xcmd[1:].split(":")
+            xxcmd=xcmd[3:].split(":")
             #print("fxf:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:

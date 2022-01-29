@@ -37,19 +37,19 @@ class cb():
         clobj=event.widget
         ## undermouse=find_withtag(master.CURRENT)
         undermouse=self.win.find_closest(self.win.CURRENT)
-        print( repr(undermouse))
+        print( "colorpicker._callback",repr(undermouse))
     def callback(self,event):
         cnv = self.win
         item = cnv.find_closest(cnv.canvasx(event.x), cnv.canvasy(event.y))[0]
         tags = cnv.gettags(item)
         #cnv.itemconfigure(self.tag, text=tags[0])
-        print(tags,item)
+        print("colorpicker callback",tags,item)
         color = cnv.itemcget(item, "fill")
         cnv.itemconfig("all", width=1)#filla="green")
         cnv.itemconfig(item, width=3)#filla="green")
-        print(color)
+        print("picker",color)
         int_color= hex_to_rgb(color[1:])
-        print(int_color)
+        print("picker",int_color)
         self.cb(event,{"canvas":cnv,"color":int_color})
 
 
@@ -81,20 +81,20 @@ def colorpicker(xframe,width=600,height=100,xcb=None):
     mode = 0
     count = 0
     while 1:
-        print("-",[r,g,b],mode)
+        #print("-",[r,g,b],mode)
         for xx in range(d,0,-1):
             fi = int(xx*255/d)
-            print(xx,y)
-            print(fi,end=" ")
+            #print(xx,y)
+            #print(fi,end=" ")
             color = '#%02x%02x%02x' % (int(255-r*fi),int(255-g*fi),int(255-b*fi)) 
             canvas.create_rectangle(x, y, x+20, y+20, fill=color)
             
             y+=22
         color = '#%02x%02x%02x' % (255,255,255) 
         canvas.create_rectangle(x, y, x+20, y+20, fill=color)
-        print()
+        #print()
         if count == 1 and mode == 3:
-            print("-------")
+            #print("-------")
             break
         y=2
         x+=22

@@ -537,6 +537,7 @@ class Xevent():
                 if event.num == 1:
                     FIXTURES.fx_off("all")
                     CONSOLE.fx_off("all")
+                    CONSOLE.flash_off("all")
                     return 0
 
 
@@ -633,35 +634,27 @@ class Xevent():
                             self.data.preset_store(nr)
                             modes.val("STORE",0)
                         elif modes.val("CFG-BTN"):
-                            _label = PRESETS.btn_cfg(nr) 
-                            txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=_label)
-                            if txt:
-                                PRESETS.btn_cfg(nr,txt)
-                                self.data.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)
-                            modes.val("CFG-BTN",0)
+                            master.btn_cfg(nr)
 
                         elif modes.val("LABEL"):#else:
-                            _label = PRESETS.label(nr) 
-                            txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=_label)
-                            if txt:
-                                PRESETS.label(nr,txt) 
-                                self.data.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)
-                            modes.val("LABEL", 0)
+                            master.label(nr)
+
                         elif modes.val("ACTIVATE"):
                             self.data.preset_select(nr)
-                            self.data.preset_go(nr,xfade=0,event=event)
+                            self.data.preset_go(nr,xfade=0,event=event,val=255)
                             modes.val("ACTIVATE", 0)
                             self.data.elem_commands["ACTIVATE"]["bg"] = "lightgrey"
                         elif modes.val("SELECT"):
                             self.data.preset_select(nr)
                         else:
-                            self.data.preset_go(nr,event=event)
+                            self.data.preset_go(nr,event=event,val=255)
                     else:
-                        self.data.preset_go(nr,event=event)
+                        self.data.preset_go(nr,xfade=0,event=event,val=0)
+
                         
                 if event.num == 3:
                     if not modes.val("STORE"):
-                        self.data.preset_go(nr,xfade=0,event=event)
+                        self.data.preset_go(nr,xfade=0,event=event,val=255)
                         
                 return 0
             elif self.mode == "INPUT":
@@ -839,6 +832,20 @@ class GUI(Base):
             if fg:
                 self.elem_commands[name]["fg"] = fg
                 print(dir(self.elem_commands[name]))
+    def btn_cfg(self,nr):
+        txt = PRESETS.btn_cfg(nr) 
+        txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=txt)
+        if txt:
+            PRESETS.btn_cfg(nr,txt)
+            self.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)
+        modes.val("CFG-BTN",0)
+    def label(self,nr):
+        txt = PRESETS.label(nr) 
+        txt = tkinter.simpledialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
+        if txt:
+            PRESETS.label(nr,txt) 
+            self.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)
+        modes.val("LABEL", 0)
     def xcb(self,mode,value=None):
         cprint("MODE CALLBACK",mode,value,color="green",end="")
         #cprint(self,"xcb","MODE CALLBACK",mode,value,color="green")
@@ -949,7 +956,7 @@ class GUI(Base):
                     elem = self.elem_attr[fix][attr]
                     FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
-    def preset_go(self,nr,xfade=fade,event=None):
+    def preset_go(self,nr,val=None,xfade=fade,event=None):
         print("GO PRESET FADE",nr)
 
         rdata = PRESETS.get_raw_map(nr)
@@ -961,17 +968,23 @@ class GUI(Base):
         xFLASH = 0
         value=None
         #xfade = fade
-        if modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL"): #FLASH
+        if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val: #FLASH
             self.preset_select(nr)
             return 0
         elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
             xFLASH = 1
             xfade = 0
+            if type(val) is not None and val == 0 :
+                value = "off"
             if event:
                 if str(event.type) == "ButtonRelease" or event.type == '5' :
                     # 4 fix vor ThinkPad / Debian 11
                     if xFLASH:
                         value = "off"
+            cprint("preset_go() FLUSH",value,color="red")
+        elif not val:
+            cprint("preset_go() STOP",value,color="red")
+            return 0
 
         vvcmd = update_raw_dmx( rdata ,value,[xfade] ) 
         fxcmd = update_raw_dmx( rdata ,value,[xfade],fx=1) 
@@ -1537,6 +1550,7 @@ def ScrollFrame(root,width=50,height=100,bd=1):
     bframe.bind("<Configure>",scroll(canvas).config)
     canvas.bind("<Button>",Event("XXX").event)
     canvas.bind("<Key>",Event("XXX").event)
+    canvas.bind("<KeyRelease>",Event("XXX").event)
     return bframe
 #frame = ScrollFrame(root)
 
@@ -1839,11 +1853,11 @@ class Presets(Base):
     def btn_cfg(self,nr,txt=None):
         if nr not in self.val_presets:
             return ""
-        if type(name) is str:
-            if "CFG" not in self.val_presets[nr]:
-                self.val_presets[nr]["CFG"] = OrderedDict()
-            if "BUTTON" not in self.val_presets[nr]["CFG"]:
-                self.val_presets[nr]["CFG"]["BUTTON"] = ""
+        if "CFG" not in self.val_presets[nr]:
+            self.val_presets[nr]["CFG"] = OrderedDict()
+        if "BUTTON" not in self.val_presets[nr]["CFG"]:
+            self.val_presets[nr]["CFG"]["BUTTON"] = ""
+        if type(txt) is str:
             self.val_presets[nr]["CFG"]["BUTTON"] = txt
         if self.val_presets[nr]["CFG"]["BUTTON"] is None:
             self.val_presets[nr]["CFG"]["BUTTON"] = ""
@@ -1943,6 +1957,7 @@ class GUIWindow():
         self.tk["bg"] = "black"
         self.tk.bind("<Button>",self.callback)
         self.tk.bind("<Key>",self.callback)
+        self.tk.bind("<KeyRelease>",self.callback)
         self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
         lf_nr+=1
         #self.tk.geometry("270x600+0+65")
@@ -1964,23 +1979,43 @@ class GUIWindow():
         #self.frame.pack()
     def mainloop(self):
         self.tk.mainloop()
-    def callback(self,event,data={}):
-        print("<GUI>",self,event,data)
+    def callback(self,event,data={}):#value=255):
+        print("<GUI>",self,event,event.state,data,[event.type])
+        value = 255
+        if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
+            value = 0
         if "keysym" in dir(event):
             if "Escape" == event.keysym:
                 FIXTURES.clear()
                 modes.val("ESC",1)
                 master.refresh_fix()
-            elif "r" == event.keysym:
-                modes.val("STORE",1)
-            elif "m" == event.keysym:
-                modes.val("MOVE",1)
-            elif "s" == event.keysym:
-                modes.val("SELECT",1)
-            elif "Delete" == event.keysym:
+            elif event.keysym in "abfclrms": 
+                if "a" == event.keysym:
+                    modes.val("ACTIVATE",1)
+                elif "b" == event.keysym:
+                    modes.val("BLIND",1)
+                elif "f" == event.keysym:
+                    modes.val("FLASH",1)
+                elif "c" == event.keysym:
+                    modes.val("CFG-BTN",1)
+                elif "l" == event.keysym:
+                    modes.val("LABEL",1)
+                elif "r" == event.keysym:
+                    modes.val("STORE",1)
+                elif "m" == event.keysym:
+                    modes.val("MOVE",1)
+                elif "s" == event.keysym:
+                    modes.val("SELECT",1)
+            elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
+                nr = int( event.keysym[1])-1
+                cprint("F-KEY",value,nr)
+                master.preset_go(65-1+nr,xfade=fade,val=value)
+            elif "End" == event.keysym:
                 FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")
-        
+                CONSOLE.flash_off("all")
+            elif "Delete" == event.keysym:
+                pass 
 class WindowManager():
     def __init__(self):
         self.windows = {}
@@ -2016,10 +2051,13 @@ class Console():
     def __init__(self):
         pass
 
+    def flash_off(self,fix):
+        client.send("df0:alloff:::,")
     def fx_off(self,fix):
         cprint("Console.fx_off()",fix)
         if not fix or fix == "all":
-            client.send("fx0:alloff:,fxf:alloff:")
+            client.send("fx0:alloff:,fxf:alloff:,")
+            client.send("df0:alloff:::,")
             return 0
 
 

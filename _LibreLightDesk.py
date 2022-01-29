@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 
-(c) 2012 micha.rathfelder@gmail.com
+(c) 2012 micha@uxsrv.de
 """
 import random
 rnd_id = str(random.randint(1000,9000))
@@ -36,6 +36,7 @@ sys.stdout.write("\x1b]2;"+str(xtitle)+" "+str(rnd_id)+"\x07") # terminal title
 import json
 import time
 import sys
+import os 
 
 import _thread as thread
 import traceback
@@ -51,9 +52,6 @@ import lib.motion as motion
 
 from collections import OrderedDict
 
-show_name = "GloryCamp2021"
-#show_name = "JMS"
-#show_name = "Dimmer"
 
 
 CUES    = OrderedDict()
@@ -140,7 +138,7 @@ modes = Modes()
 #modes.val("BLIND", 0)
 #modes.modes["BLIND"] = 0
 modes.modes["ESC"] = 0
-modes.modes["STORE"] = 0
+modes.modes["REC"] = 0
 modes.modes["EDIT"] = 0
 modes.modes["MOVE"] = 0
 modes.modes["FLASH"] = 0
@@ -163,7 +161,10 @@ client = chat.tcp_sender()
 
 fade = 2 #2 #0.1 #1.13
 fade_on = 1
-fx_prm = {"SIZE":20,"SPEED":100,"OFFSET":50,"BASE":"-","START":0}
+fx_move_prm = {"SIZE":20,"SPEED":100,"OFFSET":50,"BASE":"-","START":0}
+fx_prm = {"SIZE":200,"SPEED":30,"OFFSET":255,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"WING":2}
+fx_modes = [":RED",":GREEN",":BLUE",":MAG",":YELLOW",":CYAN"]
+fx_mo = ["sinus","on","on2","bump","bump2","fade","cosinus"]
 
 def build_cmd(dmx,val,args=[fade],flash=0,xpfx="",attr=""):
     cmd=""
@@ -343,96 +344,237 @@ class Xevent():
 
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
-        if event.num == 1:
+        if event.num == 4:
+            cprint("FX:COLOR CHANGE",fx_prm,color="red")
+            txt = "FX:RED" 
+            fx_prm["MODE"] += 1
+            if fx_prm["MODE"] > len(fx_modes):
+                fx_prm["MODE"]=0
+            txt = "FX:"+fx_modes[fx_prm["MODE"]]
+
+            master.elem_fx_commands["FX:RED"]["text"] = txt
+        elif event.num == 5:
+            cprint("FX:COLOR CHANGE",fx_prm,color="red")
+            txt = "FX:RED" 
+            fx_prm["MODE"] -= 1
+            if fx_prm["MODE"] < 0:
+                fx_prm["MODE"]= len(fx_modes)-1
+            txt = "FX:"+fx_modes[fx_prm["MODE"]]
+            master.elem_fx_commands["FX:RED"]["text"] = txt
+        elif event.num == 1:
             cmd = ""
             offset = 0
             offset_flag=0
             start = fx_prm["START"]
             base  = fx_prm["BASE"]
             #FIXTURES.start_fx(attr)
+            xfixtures = []
+            # WING's and BLOCK's
             for fix in FIXTURES.fixtures:
-                data = FIXTURES.fixtures[fix]
-                #print( "ADD FX",fix)
-                for attr in data["ATTRIBUT"]:
-                    if attr.endswith("-FINE"):
-                        continue
+                xfixtures.append(fix)
+            x=0
+            if fx_prm["DIR"] < 0:
+                xfixtures = xfixtures[::-1]
+                x=-1
+            wings = []
+            if fx_prm["WING"]:
+                l = len(xfixtures)
+                w = l // fx_prm["WING"]
+                teiler = l//w
+                if teiler < 2:
+                    teiler = 2
+                for i in range(teiler):
+                    j = i*w
+                    wing = xfixtures[j:j+w]
+                    if i%2==0:
+                        wing = wing[::-1]
+                    print("wing",i,"j",j,"w",w,"wing",wing)
+                    wings.append(wing)
+                if l > j+w:
+                    wing = xfixtures[j+w:]
+                    wings.append(wing)
+            else:
+                wings.append(xfixtures)
+                print("FX442 ",xfixtures)
 
-                    fx=""
-                    if "SIN" in self.attr:
-                        fx = "sinus"
-                    elif "FD" in self.attr:
-                        fx = "fade"
-                    elif "ON2" in self.attr:
-                        fx = "on2"
-                    elif "ON" in self.attr:
-                        fx = "on"
-                    elif "BUM2" in self.attr:
-                        fx = "bump2"
-                    elif "BUM" in self.attr:
-                        fx = "bump"
-                    elif "COS" in self.attr:
-                        fx = "cosinus"
+            print("FX442 ",fx_prm,x)
+            for wing in wings:
+                coffset= offset
+                for fix in wing:
+                    data = FIXTURES.fixtures[fix]
+                    #print( "ADD FX",fix)
+                    for attr in data["ATTRIBUT"]:
+                        if attr.endswith("-FINE"):
+                            continue
 
-                    if fx:
-                        if fx_prm["SPEED"] < 0.1:
-                            fx = "off"
-                    else:
-                        if "DIM" in self.attr:
-                            base=""
-                            if attr == "DIM":
-                                if fx_prm["SPEED"] < 0.1:
-                                    fx = "off"
-                                else:
-                                    fx = "fade"
-                        elif "TILT" in self.attr:
-                            base=""
-                            if attr == "PAN":
+                        csize  = fx_prm["SIZE"]
+                        cspeed = fx_prm["SPEED"]
+                        cstart = fx_prm["START"]
+                        cbase  = fx_prm["BASE"]
+                        #cstart = start
+                        coffset= offset
+                        #cbase  = base
+                        fx=""
+                        if "SIN" in self.attr:
+                            fx = "sinus"
+                        elif "FD" in self.attr:
+                            fx = "fade"
+                        elif "ON2" in self.attr:
+                            fx = "on2"
+                        elif "ON" in self.attr:
+                            fx = "on"
+                        elif "BUM2" in self.attr:
+                            fx = "bump2"
+                        elif "BUM" in self.attr:
+                            fx = "bump"
+                        elif "COS" in self.attr:
+                            fx = "cosinus"
+
+                        if fx:
+                            if fx_prm["SPEED"] < 0.1:
                                 fx = "off"
-                            if attr == "TILT":
-                                if fx_prm["SPEED"] < 0.1:
+                        else:
+                            if ":DIM" in self.attr:
+                                base=""
+                                ffxb= fx_mo[fx_prm["MO"]] 
+                                if attr == "DIM":
+                                    if fx_prm["SPEED"] < 0.1:
+                                        fx = "off"
+                                    else:
+                                        fx = ffxb #"fade"
+                            elif ":TILT" in self.attr:
+                                base=""
+                                if attr == "PAN":
                                     fx = "off"
-                                else:
-                                    fx = "sinus"
-                        elif "PAN" in self.attr:
-                            base=""
-                            if attr == "PAN":
-                                if fx_prm["SPEED"] < 0.1:
-                                    fx = "off"
-                                else:
-                                    fx = "cosinus" 
-                            if attr == "TILT":
-                               fx = "off"
-                        elif "CIR" in self.attr:
-                            base=""
-                            if attr == "PAN":
-                                if fx_prm["SPEED"] < 0.1:
-                                    fx = "off"
-                                else:
+                                if attr == "TILT":
+                                    if fx_prm["SPEED"] < 0.1:
+                                        fx = "off"
+                                    else:
+                                        fx = "sinus"
+                            elif ":PAN" in self.attr:
+                                base=""
+                                if attr == "PAN":
+                                    if fx_prm["SPEED"] < 0.1:
+                                        fx = "off"
+                                    else:
+                                        fx = "cosinus" 
+                                if attr == "TILT":
+                                   fx = "off"
+                            elif ":CIR" in self.attr:
+                                base=""
+                                if attr == "PAN":
+                                    if fx_prm["SPEED"] < 0.1:
+                                        fx = "off"
+                                    else:
 
-                                    fx = "cosinus" 
-                            if attr == "TILT":
-                                if fx_prm["SPEED"] < 0.1:
-                                    fx = "off"
-                                else:
-                                    fx = "sinus"
-                    if fx:
-                        fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
-                        offset_flag=1
+                                        fx = "cosinus" 
+                                if attr == "TILT":
+                                    if fx_prm["SPEED"] < 0.1:
+                                        fx = "off"
+                                    else:
+                                        fx = "sinus"
+                            elif ":RED" in self.attr:
 
-                    if "FX" not in data["ATTRIBUT"][attr]:
-                        data["ATTRIBUT"][attr]["FX"] =""
-                    print("ADD FX",fix,attr,fx,data["ATTRIBUT"][attr]["ACTIVE"])
-                    if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
-                        print("++ADD FX",fix,attr,fx)
-                        data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
-                    
-                        cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
-                if fx_prm["OFFSET"] > 0.5 and offset_flag:  
-                    offset_flag=0
-                    offset += fx_prm["OFFSET"] # add offset on next fixture
-                #print("offset",offset)
+                                ffxb= fx_mo[fx_prm["MO"]] 
+                                ffx= "off" #fx_mo[fx_prm["MO"]] 
+                                if ":RED" in fx_modes[fx_prm["MODE"]]:#
+                                    base="-"
+                                    if attr == "RED":
+                                        #coffset=0
+                                        #cspeed=0
+                                        fx=ffx
+                                    if attr == "GREEN":
+                                        fx = ffxb# "off"
+                                    if attr == "BLUE":
+                                        fx =  ffxb#"off"
+                                elif ":GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
+                                    base="-"
+                                    if attr == "RED":
+                                        fx =  ffxb#"off" 
+                                elif ":GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
+                                    if attr == "GREEN":
+                                        fx = ffxb# "off"
+                                        #cspeed=0
+                                        #coffset=0
+                                        fx=ffx
+                                    if attr == "BLUE":
+                                        fx =  ffxb#"off"
+                                elif ":BLUE" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                    base="-"
+                                    if attr == "RED":
+                                        fx = ffxb# "off" 
+                                    if attr == "GREEN":
+                                        fx = ffxb# "off"
+                                    if attr == "BLUE":
+                                        fx = ffxb# "off"
+                                        #cspeed=0
+                                        #coffset=0
+                                        fx=ffx
+                                elif ":YELLOW" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                    base="-"
+                                    if attr == "RED":
+                                        fx = ffxb# "off" 
+                                        #cspeed=0
+                                        #coffset=0
+                                        fx=ffx
+                                    if attr == "GREEN":
+                                        fx = ffxb# "off"
+                                        #cspeed=0
+                                        #coffset=0
+                                        fx=ffx
+                                    if attr == "BLUE":
+                                        fx = "off"
+                                elif ":CYAN" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                    base="-"
+                                    if attr == "RED":
+                                        fx = ffxb# "off" 
+                                    if attr == "GREEN":
+                                        fx = ffxb# "off"
+                                        #cspeed=0
+                                        #coffset=0
+                                        fx=ffx
+                                    if attr == "BLUE":
+                                        fx = ffxb# "off"
+                                        #cspeed=0
+                                        #coffset=0
+                                        fx=ffx
+                                elif ":MAG" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                    base="-"
+                                    if attr == "RED":
+                                        fx = ffxb# "off" 
+                                        fx=ffx
+                                        #cspeed=0
+                                        #coffset=0
+                                    if attr == "GREEN":
+                                        fx = ffxb# "off"
+                                    if attr == "BLUE":
+                                        fx = ffxb# "off"
+                                        fx=ffx
+                                        #cspeed=0
+                                        #coffset=0
+                                else:
+                                    cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
+
+                        if fx:
+                            #fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
+                            fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(csize,cspeed,cstart,coffset,cbase)
+                            offset_flag=1
+                            #print("ADD FX",fix,attr,fx,data["ATTRIBUT"][attr]["ACTIVE"])
+
+                        if "FX" not in data["ATTRIBUT"][attr]:
+                            data["ATTRIBUT"][attr]["FX"] =""
+                        if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
+                            print("++ADD FX",fix,attr,fx)
+                            data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
+                            cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
+
+                    if fx_prm["OFFSET"] > 0.5 and offset_flag:  
+                        offset_flag=0
+                        offset += fx_prm["OFFSET"] # add offset on next fixture
+                    #print("offset",offset)
             if cmd and not modes.val("BLIND"):
                 client.send(cmd)
+            master.refresh_fix()
 
 
     def command(self,event):       
@@ -511,6 +653,54 @@ class Xevent():
                     fx_prm[k] =0
 
                 self.data.elem_fx_commands[self.attr]["text"] = "ST:{:0.0f}".format(fx_prm[k])
+            elif self.attr.startswith("MO:"):# on,sinus,bump
+                #global fx_prm
+                k = "MO"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    fx_prm[k] -=1
+                    if fx_prm[k] < 0:
+                        fx_prm[k] = len(fx_mo)-1
+                elif event.num == 5:
+                    fx_prm[k] +=1
+                    if fx_prm[k] >= len(fx_mo):
+                        fx_prm[k] = 0
+                txt = fx_mo[fx_prm[k]] 
+                self.data.elem_fx_commands[self.attr]["text"] = "MO:{}".format(txt)
+            elif self.attr.startswith("DIR:"):#SIN":
+                #global fx_prm
+                k = "DIR"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    fx_prm[k] = 1
+                elif event.num == 5:
+                    fx_prm[k] =-1
+                txt = fx_prm[k] 
+                self.data.elem_fx_commands[self.attr]["text"] = "DIR:{}".format(fx_prm[k])
+            elif self.attr.startswith("WING:"):#SIN":
+                #global fx_prm
+                k = "WING"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    fx_prm[k] += 1
+                elif event.num == 5:
+                    fx_prm[k] -=1
+                if fx_prm[k] > 10:
+                    fx_prm[k] = 10
+                if fx_prm[k] < 0:
+                    fx_prm[k] =0
+                    
+                txt = fx_prm[k] 
+                self.data.elem_fx_commands[self.attr]["text"] = "WING:{}".format(fx_prm[k])
             elif self.attr.startswith("OF:"):#SIN":
                 #global fx_prm
                 k = "OFFSET"
@@ -551,6 +741,7 @@ class Xevent():
                     FIXTURES.fx_off("all")
                     CONSOLE.fx_off("all")
                     CONSOLE.flash_off("all")
+                    master.refresh_fix()
                     return 0
 
 
@@ -643,9 +834,9 @@ class Xevent():
                 nr = self.attr #int(self.attr.split(":")[1])-1
                 if event.num == 1:
                     if str(event.type) == '4': #4 ButtonPress
-                        if modes.val("STORE"):
-                            self.data.preset_store(nr)
-                            modes.val("STORE",0)
+                        if modes.val("REC"):
+                            self.data.preset_rec(nr)
+                            modes.val("REC",0)
                         elif modes.val("DEL"):
                             ok=PRESETS.delete(nr)
                             if ok:
@@ -670,7 +861,7 @@ class Xevent():
                             self.data.preset_select(nr)
                             self.data.preset_go(nr,xfade=0,event=event,val=255)
                             modes.val("EDIT", 0)
-                            self.data.elem_commands["ACTIVATE"]["bg"] = "lightgrey"
+
                         elif modes.val("SELECT"):
                             self.data.preset_select(nr)
                         else:
@@ -680,7 +871,7 @@ class Xevent():
 
                         
                 if event.num == 3:
-                    if not modes.val("STORE"):
+                    if not modes.val("REC"):
                         self.data.preset_go(nr,xfade=0,event=event,val=255)
                         
                 return 0
@@ -724,9 +915,22 @@ class Element():
         
 class Base():
     def __init__(self):
+        show_name = "GloryCamp2021"
+        #show_name = "JMS"
+        #show_name = "Dimmer"
+        self.home = os.environ['HOME'] 
+        self.show_path = self.home +"/LibreLight/"
+        if not os.path.isdir(self.show_path):
+            os.mkdir(self.show_path)
+        self.show_path += "/show/"
+        if not os.path.isdir(self.show_path):
+            os.mkdir(self.show_path)
+        self.show_path += "/" +show_name +"/"
+        if not os.path.isdir(self.show_path):
+            os.mkdir(self.show_path)
         pass
     def _load(self,filename):
-        xfname = "show/"+show_name+"/"+str(filename)+".sav"
+        xfname = self.show_path+"/"+str(filename)+".sav"
         print("load",xfname)
         f = open(xfname,"r")
         lines = f.readlines()
@@ -765,7 +969,8 @@ class Base():
 
     def _backup(self,filename,data,labels):
         #fixture
-        xfname = "show/"+show_name+"/"+str(filename)+".sav"
+        #xfname = "show/"+show_name+"/"+str(filename)+".sav"
+        xfname = self.show_path+"/"+str(filename)+".sav"
         print("backup",xfname)
         f = open(xfname,"w")
         for key in data:
@@ -785,7 +990,7 @@ class Base():
 class Event():
     def __init__(self,name):
         self.name=name
-        print("init",self)
+        #print("init",self)
     def event(self,event):
         print(self.name,event)
 class scroll():
@@ -831,12 +1036,14 @@ class GUI(Base):
         self.elem_attr = {}
         
         self.fx_commands =["STONY_FX","FX OFF","\n"
-                ,"FX:CIR","FX:PAN","FX:TILT","FX:DIM","\n"
+                ,"FX:CIR","FX:PAN","FX:TILT","\n"
+                ,"MSZ:","MSP:","MST:","MOF:","MBS:-","\n"
+                ,"FX:DIM","FX:RED", "MO:on","DIR:1","WING:0","\n"
                 ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
-        self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","\n"
-                "SELECT","FLASH","GO","FADE","MOVE","DEL","\n"
-                ,"BLIND","CLEAR","STORE","EDIT","COPY","\n" 
+        self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","DEL","\n"
+                ,"SELECT","FLASH","GO","FADE","MOVE","\n"
+                ,"BLIND","CLEAR","REC","EDIT","COPY","\n" 
                 ]
         self.elem_fx_commands = {}
         self.val_fx_commands = {}
@@ -891,9 +1098,9 @@ class GUI(Base):
     def exit(self):
         print("__del__",self)
         PRESETS.backup_presets()
-        print("********************************************************")
+        #print("********************************************************")
         FIXTURES.backup_patch()
-        print("*********del",self,"***********************************************")
+        #print("*********del",self,"***********************************************")
     def refresh_exec(self):
         cprint("PRESET.refresh_exec()")
         
@@ -946,11 +1153,11 @@ class GUI(Base):
                     b["bg"] = "grey"
             if "SEL" in txt:
                 b["fg"] = "black"
-                b["bg"] = "blue"
+                b["bg"] = "#5555ff"
             elif "GO" in txt:
                 b["fg"] = "black"
             elif "FL" in txt:
-                b["fg"] = "red"
+                b["fg"] = "#7f00ff"
 
 
     def refresh_fix(self):
@@ -977,13 +1184,13 @@ class GUI(Base):
                         elem["fg"] = "black"
 
 
-    def preset_store(self,nr):
+    def preset_rec(self,nr):
         print("------- STORE PRESET")
         data = FIXTURES.get_active()
         if modes.val("STONY_FX"):
-            PRESETS.store(nr,data,"STONY_FX")
+            PRESETS.rec(nr,data,"STONY_FX")
         else:
-            PRESETS.store(nr,data)
+            PRESETS.rec(nr,data)
             
         sdata=data
         PRESETS.val_presets[nr] = sdata
@@ -1011,8 +1218,11 @@ class GUI(Base):
         print("GO PRESET FADE",nr,val)
 
         rdata = PRESETS.get_raw_map(nr)
+        print("???????")
         cfg   = PRESETS.get_cfg(nr)
+        print("''''''''")
         fcmd  = FIXTURES.update_raw(rdata)
+        print("========")
         #virtcmd  = FIXTURES.get_virtual(rdata)
         if not cfg:
             cprint("NO CFG",cfg,nr)
@@ -1120,7 +1330,7 @@ class GUI(Base):
         canvas = tk.Canvas(root)
         def yview(event):
             print("yevent",event)
-            print(dir(canvas))
+            #print(dir(canvas))
             yyy=20.1
             
             fix_frame.yview_moveto(yyy)
@@ -1134,7 +1344,7 @@ class GUI(Base):
         for fix in FIXTURES.fixtures:
             i+=1
             data = FIXTURES.fixtures[fix]
-            print( fix ,data )
+            #print("draw_patch", fix ,data )
             
             if 1:
                 frame = fix_frame
@@ -1179,10 +1389,12 @@ class GUI(Base):
                 c=0
                 r+=1
                 
-    def draw_fix(self,xframe):
+    def draw_fix(self,xframe,yframe=None):
         r=0
         c=0
         frame_dim=xframe
+        if yframe:
+            frame_dim=yframe
         frame_fix=xframe
         root = frame_dim
         dim_frame = tk.Frame(root,bg="black")
@@ -1199,7 +1411,7 @@ class GUI(Base):
         for fix in FIXTURES.fixtures:
             i+=1
             data = FIXTURES.fixtures[fix]
-            print( fix ,data )
+            #print("draw_fix", fix ,data )
             
             if(len(data["ATTRIBUT"].keys()) <= 1):
                 c,r=self.draw_sub_dim(fix,data,c=c,r=r,frame=dim_frame)
@@ -1292,24 +1504,40 @@ class GUI(Base):
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
             if comm == "BLIND":
                 b["bg"] = "grey"
-            if comm == "CLEAR":
+            elif comm == "CLEAR":
                 b["bg"] = "grey"
-            if comm == "STONY_FX":
+            elif comm == "STONY_FX":
                 b["bg"] = "grey"
-            if comm == "FADE":
+            elif comm == "FADE":
                 b["bg"] = "green"
-            if comm == "FX OFF":
+            elif comm == "FX OFF":
                 b["bg"] = "magenta"
-            if comm == "SZ:":
+            elif comm[:3] == "FX:":
+                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+                b["bg"] = "#ffbf00"
+            elif comm == "MO:on":
+                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+                b["bg"] = "lightgreen"
+            elif comm == "MO:on":
+                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+                b["bg"] = "lightgreen"
+            elif comm == "SZ:":
                 b["text"] = "SZ:{:0.0f}".format(fx_prm["SIZE"])
-            if comm == "SP:":
+                b["bg"] = "lightgreen"
+            elif comm == "SP:":
                 b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
-            if comm == "ST:":
-                b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
-            if comm == "OF:":
-                b["text"] = "OF:{:0.0f}".format(fx_prm["OFFSET"])
-            if comm == "BS:":
+                b["bg"] = "lightgreen"
+            elif comm == "ST:":
+                b["bg"] = "lightgreen"
+            elif comm == "OF:":
+                b["bg"] = "lightgreen"
+            elif comm == "BS:-":
                 b["text"] = "BS:{}".format(fx_prm["BASE"])
+                b["bg"] = "lightgreen"
+            elif comm[0] == "M":
+                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+                b["bg"] = "lightgrey"
+
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -1402,9 +1630,9 @@ class GUI(Base):
             i+=1
             v=0
             label = ""
-            if k in PRESETS.label_presets:
-                label = PRESETS.label_presets[k]
-                print([label])
+            #if k in PRESETS.label_presets:
+            #    label = PRESETS.label_presets[k]
+            #    #print([label])
 
             sdata=PRESETS.val_presets[k]
             BTN="go"
@@ -1469,13 +1697,13 @@ class GUI(Base):
             def __init__(self):
                 self.old_color = (0,0,0)
             def cb(self,event,data):
-                if "color" in data and self.old_color != data["color"]:
+                cprint("colorpicker CB")
+                if "color" in data and self.old_color != data["color"] or event.num==2:
                     self.old_color = data["color"]
                 else:
                     return 0
                 color = data["color"]
 
-                print("PPPPPPPOOOOOORRR")
                 print("e",event,data)
                 print("e",dir(event))#.keys())
                 try:
@@ -1548,7 +1776,7 @@ class GUI(Base):
         self.draw_input()
 
 def ScrollFrame(root,width=50,height=100,bd=1):
-    print("ScrollFrame init",width,height)
+    #print("ScrollFrame init",width,height)
     aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
     #aframe.place(x=0,y=0)
     aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
@@ -1618,7 +1846,7 @@ class Fixtures(Base):
                     data["ATTRIBUT"][attr]["FX"] = ""
 
     def update_raw(self,rdata):
-        #print("update_raw",rdata)
+        cprint("update_raw",len(rdata))
         cmd = []
         for i,d in enumerate(rdata):
             xcmd = {"DMX":""}
@@ -1635,7 +1863,7 @@ class Fixtures(Base):
 
             sDMX = 0
             if  sdata["DMX"] > 0:
-                print( sdata)
+                #print( sdata)
                 sDMX = (sdata["UNIVERS"]*512)+sdata["DMX"]  
                 #sDMX =sdata["DMX"]  
 
@@ -1663,6 +1891,7 @@ class Fixtures(Base):
             #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
             text = str(attr)+' '+str(round(v,2))
             self.gui.update(fix,attr,args={"text":text})
+            #print("END 5454 _=_=_=_=_==_")
         return cmd
 
     def encoder(self,fix,attr,xval="",xfade=0):
@@ -1988,13 +2217,13 @@ class Presets(Base):
         ok=0
         if nr in self.val_presets:
             self.val_presets[nr] = OrderedDict()
-            self.label_presets[nr] = "DEL"
+            self.label_presets[nr] = ""
             ok = 1
         self.check_cfg(nr)
         return ok
 
-    def store(self,nr,data,arg=""):
-        print("store",self,"store()",data,arg)
+    def rec(self,nr,data,arg=""):
+        print("rec",self,"rec()",data,arg)
         self.check_cfg(nr)
         self.val_presets[nr] = data
         return 1
@@ -2118,23 +2347,29 @@ class GUIWindow():
                 elif "l" == event.keysym:
                     modes.val("LABEL",1)
                 elif "r" == event.keysym:
-                    modes.val("STORE",1)
+                    modes.val("REC",1)
                 elif "m" == event.keysym:
                     x=modes.val("MOVE",1)
                     if not x:
                         PRESETS.clear_move()
                 elif "s" == event.keysym:
                     modes.val("SELECT",1)
+            elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
+                nr = int( event.keysym[1])-1
+                cprint("F-KEY",value,nr)
+                master.preset_go(129-1+nr,xfade=fade,val=value)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
                 nr = int( event.keysym[1])-1
                 cprint("F-KEY",value,nr)
-                master.preset_go(71-1+nr,xfade=fade,val=value)
+                master.preset_go(65-1+nr,xfade=fade,val=value)
             elif "End" == event.keysym:
                 FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")
                 CONSOLE.flash_off("all")
             elif "Delete" == event.keysym:
-                PRESETS.delete()
+                #PRESETS.delete(nr)
+                if value:
+                    modes.val("DEL",1)
 class WindowManager():
     def __init__(self):
         self.windows = {}
@@ -2201,7 +2436,7 @@ window_manager.new(w)
 
 name="DIMMER"
 w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
+w2 = ScrollFrame(w.tk,width=800,height=400)
 #frame_dim = w1 # w.tk
 #master.draw_dim(w1.tk)
 window_manager.new(w,name)
@@ -2210,7 +2445,7 @@ name="FIXTURES"
 w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
 #frame_fix = w1 #w.tk
-master.draw_fix(w1)#.tk)
+master.draw_fix(w1,w2)#.tk)
 window_manager.new(w,name)
 
 

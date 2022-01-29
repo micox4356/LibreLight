@@ -86,7 +86,7 @@ class Modes():
                 return self.__cfg[data]
 
     def set(self,mode,value):
-        protected = ["BLIND","CLEAR"]
+        protected = ["BLIND","CLEAR","STONY_FX"]
         self.__check(mode)
         out = 0
         if mode == "CLEAR":
@@ -151,6 +151,8 @@ modes.modes["LABEL"] = 0
 
 def xcb(mode,value=None):
     print("xcb","MODE CALLBACK",mode,value)
+    if mode == "STONY_FX":
+        print("xcb",modes.val("STONY_FX"))
 #modes.set_cb(xcb)
 
 POS   = ["PAN","TILT","MOTION"]
@@ -858,9 +860,11 @@ class Xevent():
                             master.label(nr)
 
                         elif modes.val("EDIT"):
+                            FIXTURES.clear()
                             self.data.preset_select(nr)
                             self.data.preset_go(nr,xfade=0,event=event,val=255)
                             modes.val("EDIT", 0)
+                            master.refresh_fix()
 
                         elif modes.val("SELECT"):
                             self.data.preset_select(nr)
@@ -1069,6 +1073,13 @@ class GUI(Base):
             if fg:
                 self.elem_commands[name]["fg"] = fg
                 print(dir(self.elem_commands[name]))
+        elif name in self.elem_fx_commands:
+            #todo
+            self.elem_fx_commands[name]["bg"] = color
+            self.elem_fx_commands[name].config(activebackground=color)
+            if fg:
+                self.elem_fx_commands[name]["fg"] = fg
+                print(dir(self.elem_fx_commands[name]))
     def btn_cfg(self,nr):
         txt = PRESETS.btn_cfg(nr) 
         txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=txt)
@@ -1118,6 +1129,7 @@ class GUI(Base):
 
             if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
                 sdata = PRESETS.val_presets[k]
+                #print("sdata7654",sdata)
                 BTN="go"
                 if "CFG" in sdata:#["BUTTON"] = "GO"
                     if "BUTTON" in sdata["CFG"]:
@@ -1126,6 +1138,7 @@ class GUI(Base):
                 #txt+=str(self._XX)
                 b["text"] = txt
                 b["bg"] = "yellow"
+                b.config(activebackground="yellow")
                 if len(sdata) > 1:
                     fx_color = 0
                     val_color = 0
@@ -1144,13 +1157,16 @@ class GUI(Base):
                     b["fg"] = "black"
                     if val_color:
                         b["bg"] = "gold"
+                        b.config(activebackground="gold")
                         if fx_color:
                             b["fg"] = "blue"
                     else:   
                         if fx_color:
                             b["bg"] = "cyan"
+                            b.config(activebackground="cyan")
                 else:
                     b["bg"] = "grey"
+                    b.config(activebackground="grey")
             if "SEL" in txt:
                 b["fg"] = "black"
                 b["bg"] = "#5555ff"
@@ -1189,6 +1205,7 @@ class GUI(Base):
         data = FIXTURES.get_active()
         if modes.val("STONY_FX"):
             PRESETS.rec(nr,data,"STONY_FX")
+            modes.val("STONY_FX",0)
         else:
             PRESETS.rec(nr,data)
             
@@ -1277,7 +1294,7 @@ class GUI(Base):
                             cmd.append( xcmd )
 
         cmd = "".join(cmd)
-        print("cmd",cmd) 
+        #print("cmd",cmd) 
         if cmd and not modes.val("BLIND"):
             client.send(cmd )
         
@@ -1529,11 +1546,13 @@ class GUI(Base):
                 b["bg"] = "lightgreen"
             elif comm == "ST:":
                 b["bg"] = "lightgreen"
+                b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
             elif comm == "OF:":
                 b["bg"] = "lightgreen"
+                b["text"] = "OF:{:0.0f}".format(fx_prm["OFFSET"])
             elif comm == "BS:-":
-                b["text"] = "BS:{}".format(fx_prm["BASE"])
                 b["bg"] = "lightgreen"
+                b["text"] = "BS:{}".format(fx_prm["BASE"])
             elif comm[0] == "M":
                 b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
                 b["bg"] = "lightgrey"
@@ -2190,11 +2209,11 @@ class Presets(Base):
             #cprint(fdata)
             flabel = self.label_presets[nr_from]
             tlabel = self.label_presets[nr_to]
-            self.val_presets[nr_to] = fdata
+            self.val_presets[nr_to] = copy.deepcopy(fdata)
             self.label_presets[nr_to] = flabel
             if not overwrite: #default
                 cprint("overwrite",overwrite)
-                self.val_presets[nr_from] = tdata
+                self.val_presets[nr_from] = copy.deepcopy(tdata)
                 self.label_presets[nr_from] = tlabel
             #self.label_presets[nr_from] = "MOVE"
             self.clear_copy()
@@ -2355,9 +2374,11 @@ class GUIWindow():
                 elif "s" == event.keysym:
                     modes.val("SELECT",1)
             elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
-                nr = int( event.keysym[1])-1
+                nr = int( event.keysym)
+                if nr == 0:
+                    nr =10
                 cprint("F-KEY",value,nr)
-                master.preset_go(129-1+nr,xfade=fade,val=value)
+                master.preset_go(128-1+nr,xfade=fade,val=value)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
                 nr = int( event.keysym[1])-1
                 cprint("F-KEY",value,nr)

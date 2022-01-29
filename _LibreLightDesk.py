@@ -2520,7 +2520,7 @@ master.draw_fx(w.tk)
 window_manager.new(w,name)
 
 #LibreLightDesk
-name="COLERPICKER"
+name="COLORPICKER"
 w = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
 master.draw_colorpicker(w.tk)
 window_manager.new(w,name)

@@ -116,12 +116,12 @@
 115	DEL	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 116	DEL	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}}
 117	a	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-118	c	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": 151.66000000000008, "FX": ""}, "TILT": {"VALUE": 4.11, "FX": ""}}, "3002": {"PAN": {"VALUE": 155.7700000000001, "FX": ""}, "TILT": {"VALUE": 4.11, "FX": ""}}}
-119	b	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "3001": {"PAN": {"VALUE": 151.66000000000008, "FX": ""}, "TILT": {"VALUE": 4.11, "FX": ""}}, "3002": {"PAN": {"VALUE": 155.7700000000001, "FX": ""}, "TILT": {"VALUE": 4.11, "FX": ""}}}
+118	DEL	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+119	DEL	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 120	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 121	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 122	TEST2	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "66": {"DIM": {"VALUE": 235.44999999999993, "FX": ""}}, "72": {"DIM": {"VALUE": 231.33999999999992, "FX": ""}}, "78": {"DIM": {"VALUE": 239.55999999999995, "FX": ""}}}
-123	-	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "49": {"DIM": {"VALUE": 256, "FX": ""}}, "55": {"DIM": {"VALUE": 256, "FX": ""}}, "61": {"DIM": {"VALUE": 256, "FX": ""}}, "67": {"DIM": {"VALUE": 256, "FX": ""}}}
+123	DEL	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 124	DEL	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 125	A	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "go"}, "61": {"DIM": {"VALUE": 256, "FX": ""}}, "67": {"DIM": {"VALUE": 256, "FX": ""}}, "73": {"DIM": {"VALUE": 256, "FX": ""}}, "79": {"DIM": {"VALUE": 256, "FX": ""}}}
 126	B	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "go"}, "61": {"DIM": {"VALUE": 256, "FX": ""}}, "67": {"DIM": {"VALUE": 256, "FX": ""}}, "73": {"DIM": {"VALUE": 256, "FX": ""}}, "79": {"DIM": {"VALUE": 256, "FX": ""}}}
@@ -131,21 +131,21 @@
 130	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 131	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 132	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-133	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+133		{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 134	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 135	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 136	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 137	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 138	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-139	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+139		{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 140	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "LALa"}}
 141	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 142	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-143	-	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "51": {"DIM": {"VALUE": 256, "FX": ""}}, "57": {"DIM": {"VALUE": 256, "FX": ""}}}
+143		{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 144	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 145	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-146	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-147	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+146	CYAN	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "43": {"DIM": {"VALUE": 210.78999999999985, "FX": ""}}, "49": {"DIM": {"VALUE": 149.13999999999965, "FX": ""}}, "55": {"DIM": {"VALUE": 235.44999999999993, "FX": ""}}, "1001": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 255, "FX": ""}, "BLUE": {"VALUE": 255, "FX": ""}}, "3001": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 255, "FX": ""}, "BLUE": {"VALUE": 255, "FX": ""}}, "3002": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 255, "FX": ""}, "BLUE": {"VALUE": 255, "FX": ""}}}
+147	GREEN	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "43": {"DIM": {"VALUE": 210.78999999999985, "FX": ""}}, "49": {"DIM": {"VALUE": 149.13999999999965, "FX": ""}}, "55": {"DIM": {"VALUE": 235.44999999999993, "FX": ""}}, "1001": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 255, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "3001": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 255, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}, "3002": {"RED": {"VALUE": 0, "FX": ""}, "GREEN": {"VALUE": 255, "FX": ""}, "BLUE": {"VALUE": 0, "FX": ""}}}
 148	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 149	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 150	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
@@ -156,13 +156,13 @@
 155	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 156	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 157	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-158	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+158	-	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "11": {"DIM": {"VALUE": 256, "FX": ""}}}
 159	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 160	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 161	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 162	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 163	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-164	-	{"CFG": {"FADE": 2, "DEALY": 0, "DELAY": 0, "BUTTON": "GO"}, "56": {"DIM": {"VALUE": 256, "FX": ""}}, "68": {"DIM": {"VALUE": 256, "FX": ""}}}
+164	DEL	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 165	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 166	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 167	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
@@ -172,7 +172,7 @@
 171	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 172	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 173	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
-174	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
+174		{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 175	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 176	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}
 177	-	{"CFG": {"FADE": 4, "DELAY": 0, "BUTTON": "GO"}}

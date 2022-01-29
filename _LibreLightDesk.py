@@ -96,6 +96,10 @@ class Modes():
         elif mode == "ESC":
             for m in self.modes:
                 print("ESC",m)
+                if m == "COPY":
+                    PRESETS.clear_copy()
+                if m == "MOVE":
+                    PRESETS.clear_move()
                 if m != "BLIND":
                     self.modes[m] = 0
                     self.callback(m)
@@ -108,12 +112,20 @@ class Modes():
                         self.modes[m]= 0
                         self.callback(m)
             if self.modes[mode]:
+                if modes == "MOVE":
+                    PRESETS.clear_move()
+                if modes == "COPY":
+                    PRESETS.clear_copy()
                 self.modes[mode] = 0 # value
             else:
                 self.modes[mode] = 1 #value
             out = 1
         else:
             self.modes[mode] = 0 #value
+            if modes == "COPY":
+                PRESETS.clear_copy()
+            if modes == "MOVE":
+                PRESETS.clear_move()
         self.callback(mode)
         return value
     def set_cb(self,cb):
@@ -132,9 +144,10 @@ modes.modes["STORE"] = 0
 modes.modes["EDIT"] = 0
 modes.modes["MOVE"] = 0
 modes.modes["FLASH"] = 0
+modes.modes["GO"] = 0
+modes.modes["DEL"] = 0
 modes.modes["STONY_FX"] = 0
 modes.modes["SELECT"] = 0
-modes.modes["ACTIVATE"] = 0
 modes.modes["CFG-BTN"] = 0
 modes.modes["LABEL"] = 0
 
@@ -633,16 +646,30 @@ class Xevent():
                         if modes.val("STORE"):
                             self.data.preset_store(nr)
                             modes.val("STORE",0)
+                        elif modes.val("DEL"):
+                            ok=PRESETS.delete(nr)
+                            if ok:
+                                modes.val("DEL",0)
+                        elif modes.val("COPY"):
+                            ok=PRESETS.copy(nr)
+                            if ok:
+                                modes.val("COPY",0)
+                                master.refresh_exec()
+                        elif modes.val("MOVE"):
+                            ok=PRESETS.move(nr)
+                            if ok:
+                                modes.val("MOVE",0)
+                                master.refresh_exec()
                         elif modes.val("CFG-BTN"):
                             master.btn_cfg(nr)
 
                         elif modes.val("LABEL"):#else:
                             master.label(nr)
 
-                        elif modes.val("ACTIVATE"):
+                        elif modes.val("EDIT"):
                             self.data.preset_select(nr)
                             self.data.preset_go(nr,xfade=0,event=event,val=255)
-                            modes.val("ACTIVATE", 0)
+                            modes.val("EDIT", 0)
                             self.data.elem_commands["ACTIVATE"]["bg"] = "lightgrey"
                         elif modes.val("SELECT"):
                             self.data.preset_select(nr)
@@ -660,16 +687,18 @@ class Xevent():
             elif self.mode == "INPUT":
                 return 0
             if self.mode == "ENCODER":
-                action=""
+                cprint("ENC",self.fix,self.attr,self.mode)
+                cprint(self.data)
+                val=""
                 if event.num == 1:
-                    action="click"
+                    val ="click"
                 elif event.num == 4:
-                    action="+"
+                    val ="+"
                 elif event.num == 5:
-                    action="-"
+                    val ="-"
 
-                if action:
-                    FIXTURES.encoder(fix=self.fix,attr=self.attr,action=action)
+                if val:
+                    FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
                     
                 master.refresh_fix()
 
@@ -796,6 +825,7 @@ class GUI(Base):
     def __init__(self):
         super().__init__() 
         self.load()
+        self._XX = 0
 
         self.all_attr =["DIM","PAN","TILT"]
         self.elem_attr = {}
@@ -805,8 +835,8 @@ class GUI(Base):
                 ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","\n"
-                ,"SET","SELECT","ACTIVATE","FLASH","FADE","\n"
-                ,"BLIND","CLEAR","STORE","EDIT","MOVE","\n" 
+                "SELECT","FLASH","GO","FADE","MOVE","DEL","\n"
+                ,"BLIND","CLEAR","STORE","EDIT","COPY","\n" 
                 ]
         self.elem_fx_commands = {}
         self.val_fx_commands = {}
@@ -864,6 +894,65 @@ class GUI(Base):
         print("********************************************************")
         FIXTURES.backup_patch()
         print("*********del",self,"***********************************************")
+    def refresh_exec(self):
+        cprint("PRESET.refresh_exec()")
+        
+        self._XX +=1
+        for k in PRESETS.val_presets: 
+            label = ""
+
+            if k not in self.elem_presets:
+                cprint("ERROR",k ,"not in elem_presets continue")
+                continue
+            if k in PRESETS.label_presets:
+                label = PRESETS.label_presets[k]
+                #print([label])
+            b = self.elem_presets[k]
+
+            if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
+                sdata = PRESETS.val_presets[k]
+                BTN="go"
+                if "CFG" in sdata:#["BUTTON"] = "GO"
+                    if "BUTTON" in sdata["CFG"]:
+                        BTN = sdata["CFG"]["BUTTON"]
+                txt=str(k)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+                txt+=str(self._XX)
+                b["text"] = txt
+                b["bg"] = "yellow"
+                if len(sdata) > 1:
+                    fx_color = 0
+                    val_color = 0
+                    for fix in sdata:
+                        if fix == "CFG":
+                            continue
+                        #print( "$$$$",fix,sdata[fix])
+                        for attr in sdata[fix]:
+                            if "FX" in sdata[fix][attr]:
+                                if sdata[fix][attr]["FX"]:
+                                    fx_color = 1
+                            if "VALUE" in sdata[fix][attr]:
+                                if sdata[fix][attr]["VALUE"] is not None:
+                                    val_color = 1
+
+                    b["fg"] = "black"
+                    if val_color:
+                        b["bg"] = "gold"
+                        if fx_color:
+                            b["fg"] = "blue"
+                    else:   
+                        if fx_color:
+                            b["bg"] = "cyan"
+                else:
+                    b["bg"] = "grey"
+            if "SEL" in txt:
+                b["fg"] = "black"
+                b["bg"] = "blue"
+            elif "GO" in txt:
+                b["fg"] = "black"
+            elif "FL" in txt:
+                b["fg"] = "red"
+
+
     def refresh_fix(self):
         for fix in FIXTURES.fixtures:                            
             sdata = FIXTURES.fixtures[fix]                            
@@ -900,6 +989,8 @@ class GUI(Base):
         
         sdata=data
         PRESETS.val_presets[nr] = sdata
+
+
         if len(sdata) > 1:
             fx_color = 0
             val_color = 0
@@ -957,20 +1048,21 @@ class GUI(Base):
                     FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
     def preset_go(self,nr,val=None,xfade=fade,event=None):
-        print("GO PRESET FADE",nr)
+        print("GO PRESET FADE",nr,val)
 
         rdata = PRESETS.get_raw_map(nr)
         cfg   = PRESETS.get_cfg(nr)
         fcmd  = FIXTURES.update_raw(rdata)
         #virtcmd  = FIXTURES.get_virtual(rdata)
-
+        if not cfg:
+            cprint("NO CFG",cfg,nr)
+            return 0
 
         xFLASH = 0
         value=None
-        #xfade = fade
+        cprint(nr,cfg)
         if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val: #FLASH
             self.preset_select(nr)
-            return 0
         elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
             xFLASH = 1
             xfade = 0
@@ -981,11 +1073,19 @@ class GUI(Base):
                     # 4 fix vor ThinkPad / Debian 11
                     if xFLASH:
                         value = "off"
+
             cprint("preset_go() FLUSH",value,color="red")
+            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
+                
         elif not val:
             cprint("preset_go() STOP",value,color="red")
-            return 0
+        elif modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"]): 
+            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
 
+        self.refresh_exec()
+
+    def _preset_go(self,rdata,cfg,fcmd,value,xfade=fade,event=None,xFLASH=0):
+        cprint("PRESETS._preset_go()",len(rdata))
         vvcmd = update_raw_dmx( rdata ,value,[xfade] ) 
         fxcmd = update_raw_dmx( rdata ,value,[xfade],fx=1) 
 
@@ -1011,7 +1111,6 @@ class GUI(Base):
         if cmd and not modes.val("BLIND"):
             client.send(cmd )
         
-        self.refresh_fix()
 
         
     def draw_sub_dim(self,fix,data,c=0,r=0,frame=None):
@@ -1357,50 +1456,14 @@ class GUI(Base):
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             
-            if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
-                b["bg"] = "yellow"
-                sdata = PRESETS.val_presets[k]
-                if len(sdata) > 1:
-                    fx_color = 0
-                    val_color = 0
-                    for fix in sdata:
-                        if fix == "CFG":
-                            continue
-                        #print( "$$$$",fix,sdata[fix])
-                        for attr in sdata[fix]:
-                            if "FX" in sdata[fix][attr]:
-                                if sdata[fix][attr]["FX"]:
-                                    fx_color = 1
-                            if "VALUE" in sdata[fix][attr]:
-                                if sdata[fix][attr]["VALUE"] is not None:
-                                    val_color = 1
-
-                    b["fg"] = "black"
-                    if val_color:
-                        b["bg"] = "gold"
-                        if fx_color:
-                            b["fg"] = "blue"
-                    else:   
-                        if fx_color:
-                            b["bg"] = "cyan"
-                else:
-                    b["bg"] = "grey"
-            if "SEL" in txt:
-                b["fg"] = "black"
-                b["bg"] = "blue"
-            elif "GO" in txt:
-                b["fg"] = "black"
-            elif "FL" in txt:
-                b["fg"] = "red"
-
             if k not in self.elem_presets:
                 self.elem_presets[k] = b
-                #PRESETS.val_presets[preset] = 0
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
                 c=0
                 r+=1
+        self.refresh_exec()
     def draw_input(self):
         i=0
         c=0
@@ -1442,10 +1505,6 @@ class GUI(Base):
     def draw_colorpicker(self,xframe):
         import lib.colorpicker as colp
 
-        e = dummy_event()
-        r = Xevent(fix=0,elem=None,attr="RED",data=self,mode="ENCODER") #.cb
-        g = Xevent(fix=0,elem=None,attr="GREEN",data=self,mode="ENCODER") #.cb
-        b = Xevent(fix=0,elem=None,attr="BLUE",data=self,mode="ENCODER") #.cb
         class _CB():
             def __init__(self):
                 self.old_color = (0,0,0)
@@ -1459,20 +1518,17 @@ class GUI(Base):
                 print("PPPPPPPOOOOOORRR")
                 print("e",event,data)
                 print("e",dir(event))#.keys())
-                print("e.num",event.num)
                 try:
-                    print("e.stat",event.state)
+                    print("e.state",event.state)
                 except:pass
-
+                set_fade = fade
                 
-                if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state==256):
-                    e.num=5
-                    e.type=1
-                    cr=-1
-                    cg=-1
-                    cb=-1
+                if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state in [256,1024]):
+                    cr=None
+                    cg=None
+                    cb=None
                     if event.num == 1: 
-                        e.set_fade=fade
+                        set_fade=fade
                         cr = color[0]
                         cg = color[1]
                         cb = color[2]
@@ -1480,28 +1536,28 @@ class GUI(Base):
                         cr = color[0]
                         cg = color[1]
                         cb = color[2]
-                        e.set_fade=-1
+                        set_fade=0
                     elif event.num == 2: 
-                        e.num=1
-                        e.type=4
-                        e.set_value=-1
+                        cr= "click"
+                        cg= "click"
+                        cb= "click"
                     elif event.state == 256:
                         cr = color[0]
                         cg = color[1]
                         cb = color[2]
-                        e.set_fade=-1
+                        set_fade=0
 
                     else:
-                        e.set_fade=-1
+                        set_fade=0
 
-                    e.set_value=cr#color[0]
-                    r.cb(e)
-                    e.set_value=cg#color[1]
-                    g.cb(e)
-                    e.set_value=cb#color[2]
-                    b.cb(e)
-                    e.set_value=-1
-                    e.set_fade=-1
+
+                    if cr is not None:
+                        FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade)
+                    if cg is not None:
+                        FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade)
+                    if cb is not None:
+                        FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade)
+                    master.refresh_fix()
                      
                     print("PICK COLOR:",data["color"])
         _cb=_CB()
@@ -1649,8 +1705,8 @@ class Fixtures(Base):
             self.gui.update(fix,attr,args={"text":text})
         return cmd
 
-    def encoder(self,fix,attr,action="",xfade=0):
-        #cprint("FIXTURES.encoder",fix,attr,action,xfade,color="yellow")
+    def encoder(self,fix,attr,xval="",xfade=0):
+        cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
 
         if attr == "CLEAR":
             self.clear()
@@ -1658,19 +1714,19 @@ class Fixtures(Base):
 
         if fix not in self.fixtures:
             for fix in self.fixtures:
-                #cprint(fix,attr,action)
+                #cprint(fix,attr,xval)
                 data = self.fixtures[fix]
                 if attr in data["ATTRIBUT"]:
-                    if action == "click":
+                    if xval == "click":
                         self.select(fix,attr,mode="on")
                     elif data["ATTRIBUT"][attr]["ACTIVE"]:
                         if fix: # prevent endless recursion
-                            self.encoder(fix,attr,action,xfade)
+                            self.encoder(fix,attr,xval,xfade)
             return 0
 
         data = self.fixtures[fix]
 
-        if action == "click":
+        if xval == "click":
             cprint(data)
             return self.select(fix,attr,mode="toggle")
 
@@ -1678,16 +1734,16 @@ class Fixtures(Base):
         v2=data["ATTRIBUT"][attr]["VALUE"]
         change=0
         increment = 4.11
-        if action == "+":
+        if xval == "+":
             v2+= increment
             v = "+{:0.4f}".format( increment ) #) #4.11"
             change=1
-        elif action == "-":
+        elif xval == "-":
             v2-= increment
             v = "-{:0.4f}".format( increment ) #) #4.11"
             change=1
-        elif type(action) is int or type(action) is float:
-            v2 = action
+        elif type(xval) is int or type(xval) is float:
+            v2 = xval 
             change=1
 
             
@@ -1777,6 +1833,8 @@ class Presets(Base):
     def __init__(self):
         super().__init__() 
         #self.load()
+        self._last_copy = None
+        self._last_move = None
 
 
     def load_presets(self): 
@@ -1794,7 +1852,39 @@ class Presets(Base):
                 sdata["CFG"]["BUTTON"] = "GO"
         self.val_presets = d
         self.label_presets = l
-        
+
+    def check_cfg(self,nr=None):
+        cprint("PRESETS.check_cfg()",nr)
+        ok = 0
+        if nr is not None:
+            ok += self._check_cfg(nr)
+        else:
+            for nr in self.val_presets:
+                ok += self._check_cfg(nr)
+        return ok
+
+    def _check_cfg(self,nr):
+        #cprint("PRESETS._check_cfg()",nr)
+        ok=0
+        if nr in self.val_presets:
+            sdata = self.val_presets[nr]
+            if "CFG" not in sdata:
+                sdata["CFG"] = OrderedDict()
+                ok += 1
+            if "FADE" not in sdata["CFG"]:
+                sdata["CFG"]["FADE"] = 4
+                ok += 1
+            if "DELAY" not in sdata["CFG"]:
+                sdata["CFG"]["DELAY"] = 0
+                ok += 1
+            if "BUTTON" not in sdata["CFG"]:
+                sdata["CFG"]["BUTTON"] = "GO"
+                ok += 1
+            if ok:
+                cprint("REPAIR CFG's",nr,sdata["CFG"],color="red")
+        else:
+            cprint("nr not in data ",nr,color="red")
+        return ok
         
     def backup_presets(self):
         filename = "presets"
@@ -1804,8 +1894,10 @@ class Presets(Base):
         
 
     def get_cfg(self,nr):
+        cprint("PRESETS.get_cfg()",nr)
+        self.check_cfg(nr)
         if nr not in self.val_presets:
-            print(self,"error get_cfg no nr:",nr)
+            cprint(self,"error get_cfg no nr:",nr,color="red")
             return {}
         if "CFG" in self.val_presets[nr]:
             return self.val_presets[nr]["CFG"]
@@ -1874,15 +1966,69 @@ class Presets(Base):
         print("??? ?? set label",nr,[txt])
         return self.label_presets[nr] 
 
+    def clear_move(self):
+        cprint("PRESETS.clear_move()",end=" ")
+        self.clear_copy()
+        
+    def clear_copy(self):
+        cprint("PRESETS.clear_copy()",end=" ")
+        if self._last_copy is not None:
+            cprint("=OK=",color="red")
+            self._last_copy = None
+        else:
+            cprint("=NONE=",color="green")
+
+    def copy(self,nr):
+        cprint("PRESETS._copy",nr,"last",self._last_copy)
+        if nr:
+            if self._last_copy is not None:
+                ok = self._copy(self._last_copy,nr)
+                return ok #ok
+            else:
+                self._last_copy = nr
+                cprint("PRESETS.copy START ",color="red")
+                return 0
+        return 1 # on error reset move
+    def _copy(self,nr_from,nr_to):
+        cprint("PRESETS._copy",nr_from,"to",nr_to)
+        self.check_cfg(nr_from)
+        if self._last_copy is None:
+            cprint("PRESETS._copy last nr is None")
+            return 0
+        if nr_from in self.val_presets and nr_to in self.val_presets:
+            data = self.val_presets[nr_from]
+            cprint(data)
+            label = self.label_presets[nr_from]
+            self.val_presets[nr_to] = data
+            self.label_presets[nr_to] = label
+            #self.label_presets[nr_from] = "MOVE"
+            self.clear_copy()
+            cprint("PRESETS.copy OK",color="red")
+            return 1
+
+    def move(self,nr):
+        cprint("PRESETS.move",self._last_copy,"to",nr)
+        if nr: 
+            last = self._last_copy
+            ok= self.copy(nr)
+            if ok and last:
+                cprint("PRESETS.move OK",color="red")
+                self.delete(last)
+                return ok #ok
+            
+        return 1 # on error reset move
+    def delete(self,nr):
+        cprint("PRESETS.delete",nr)
+        if nr in self.val_presets:
+            self.val_presets[nr] = OrderedDict()
+            self.label_presets[nr] = "DEL"
+        self.check_cfg(nr)
+
     def store(self,nr,data,arg=""):
-        #TODO implement
         print(self,"store()",data,arg)
+        self.check_cfg(nr)
         self.val_presets[nr] = data
-        if not self.label_presets:
-            self.label_presets = "Neu"
-
-        #return 0
-
+        return 1
            
 
 class GUI_grid():
@@ -1980,6 +2126,8 @@ class GUIWindow():
     def mainloop(self):
         self.tk.mainloop()
     def callback(self,event,data={}):#value=255):
+        print()
+        print()
         print("<GUI>",self,event,event.state,data,[event.type])
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
@@ -1989,9 +2137,9 @@ class GUIWindow():
                 FIXTURES.clear()
                 modes.val("ESC",1)
                 master.refresh_fix()
-            elif event.keysym in "abfclrms": 
-                if "a" == event.keysym:
-                    modes.val("ACTIVATE",1)
+            elif event.keysym in "ebfclrms" and value: 
+                if "e" == event.keysym:
+                    modes.val("EDIT",1)
                 elif "b" == event.keysym:
                     modes.val("BLIND",1)
                 elif "f" == event.keysym:
@@ -2003,13 +2151,15 @@ class GUIWindow():
                 elif "r" == event.keysym:
                     modes.val("STORE",1)
                 elif "m" == event.keysym:
-                    modes.val("MOVE",1)
+                    x=modes.val("MOVE",1)
+                    if not x:
+                        PRESETS.clear_move()
                 elif "s" == event.keysym:
                     modes.val("SELECT",1)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
                 nr = int( event.keysym[1])-1
                 cprint("F-KEY",value,nr)
-                master.preset_go(65-1+nr,xfade=fade,val=value)
+                master.preset_go(71-1+nr,xfade=fade,val=value)
             elif "End" == event.keysym:
                 FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")

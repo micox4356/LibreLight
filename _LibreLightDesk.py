@@ -6,8 +6,7 @@ This file is part of LibreLight.
 
 LibreLight is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 2 of the License.
 
 LibreLight is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1301,8 +1300,8 @@ class GUI(Base):
 
         
     def draw_sub_dim(self,fix,data,c=0,r=0,frame=None):
-        Font = font.Font(family='Helvetica', size=9, weight='normal')
-        FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+        Font = font.Font(family='FreeSans', size=9, weight='normal')
+        FontBold = font.Font(family='FreeSans', size=10, weight='bold')
         i=0
         if frame is None:
             frame = tk.Frame(root,bg="black")
@@ -1419,8 +1418,8 @@ class GUI(Base):
         root = frame_fix
         fix_frame = tk.Frame(root,bg="black")
         fix_frame.pack(fill=tk.X, side=tk.TOP)
-        Font = font.Font(family='Helvetica', size=9, weight='normal')
-        FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+        Font = font.Font(family='FreeSans', size=9, weight='normal')
+        FontBold = font.Font(family='FreeSans', size=10, weight='bold')
         i=0
         c=0
         r=0
@@ -2308,10 +2307,10 @@ class GUIWindow():
     def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
         global lf_nr
         if master: 
-            #Font = font.Font(family='Helvetica', size=9, weight='normal')
+            #Font = font.Font(family='FreeSans', size=9, weight='normal')
             self.tk = tkinter.Tk()#font=Font) #Toplevel()
-            #Font = font.Font(family='Helvetica', size=9, weight='normal')
-            #FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+            #Font = font.Font(family='FreeSans', size=9, weight='normal')
+            #FontBold = font.Font(family='FreeSans', size=10, weight='bold')
             #self.tk.default_font.configure(size=9)
             #self.tk.option_add("*Font", FontBold)
             #self.tk.configure(font=Font)
@@ -2473,9 +2472,9 @@ window_manager.new(w,name)
 name="ENCODER"
 ww = GUIWindow(name,master=0,width=800,height=50,left=140,top=500)
 Xroot = ww.tk
-#default_font = font.Font(family='Helvetica', size=12, weight='bold')
-Font = font.Font(family='Helvetica', size=9, weight='normal')
-FontBold = font.Font(family='Helvetica', size=10, weight='bold')
+#default_font = font.Font(family='FreeSans', size=12, weight='bold')
+Font = font.Font(family='FreeSans', size=9, weight='normal')
+FontBold = font.Font(family='FreeSans', size=10, weight='bold')
 #default_font.configure(size=9)
 Xroot.option_add("*Font", FontBold)
 w = None

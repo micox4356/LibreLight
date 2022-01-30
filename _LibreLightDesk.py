@@ -921,6 +921,7 @@ class Base():
         show_name = "GloryCamp2021"
         #show_name = "JMS"
         #show_name = "Dimmer"
+        show_name = "DemoShow"
         self.home = os.environ['HOME'] 
         self.show_path = self.home +"/LibreLight/"
         if not os.path.isdir(self.show_path):
@@ -1269,6 +1270,7 @@ class GUI(Base):
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
 
         self.refresh_exec()
+        self.refresh_fix()
 
     def _preset_go(self,rdata,cfg,fcmd,value,xfade=fade,event=None,xFLASH=0):
         cprint("PRESETS._preset_go()",len(rdata))

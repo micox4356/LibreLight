@@ -2,22 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of grandPA.
+This file is part of librelight.
 
-grandPA is free software: you can redistribute it and/or modify
+librelight is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
+the Free Software Foundation, version 2 of the License.
 
-grandPA is distributed in the hope that it will be useful,
+librelight is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with grandPA.  If not, see <http://www.gnu.org/licenses/>.
+along with librelight.  If not, see <http://www.gnu.org/licenses/>.
 
-(c) 2012 micha.rathfelder@gmail.com
+(c) 2012 micha@uxsrv.de
 """
 import math, random
 import time,json

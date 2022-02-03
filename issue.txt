@@ -1,0 +1,24 @@
+no 16bit DMX support
+
+no fx offset/wing grid
+
+no group select grid with order
+
+no fx fade off time
+
+no ArtNet in triggering
+
+latency on fast flushing in exec window
+
+no MIDI in triggering
+
+no cuelists
+
+no showfile management
+
+no stage layout-grid
+
+fx are not working good
+
+no fixture patching
+

@@ -355,7 +355,7 @@ class DMXCH(object):
         return self._last_val
 
 Bdmx = []
-for i in range(512*6):
+for i in range(512*3):
     Bdmx.append( DMXCH() )
     #print(type(dmx[i]))
 

@@ -1273,8 +1273,11 @@ class GUI(Base):
         elif modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"]): 
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
 
-        self.refresh_exec()
-        self.refresh_fix()
+        if modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
+            pass
+        else:
+            self.refresh_exec()
+            self.refresh_fix()
 
     def _preset_go(self,rdata,cfg,fcmd,value,xfade=fade,event=None,xFLASH=0):
         cprint("PRESETS._preset_go()",len(rdata))

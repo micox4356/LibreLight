@@ -15,7 +15,7 @@ screen -d -m -S console python3 $path/Xdesk/console.py
 echo "\e[42mSTARTING DMX MONITOR\e[0m"
 sleep 3;
 #xterm -e 'screen -r DMX'
-xfce4-terminal -e 'screen -r DMX' --hide-menubar --zoom=-2 --geometry=90x35+800+520
+xfce4-terminal -e 'screen -r DMX' --hide-menubar --zoom=-1.5 --geometry=90x35+800+520
 echo "\e[42mSTARTING GUI\e[0m"
 sleep 2
 screen -d -m -S Editor python3 $path/Xdesk/LibreLightDesk.py 

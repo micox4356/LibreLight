@@ -2271,13 +2271,13 @@ class GUI_menu():
         r=0
         c=0
         i=1
-        self.b = tk.Label(self.frame,bg="blue", text="MAIN:MENU",width=13,height=1)
+        self.b = tk.Label(self.frame,bg="lightblue", text="MAIN:MENU",width=10,height=1)
         self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
         r+=1
         for row in data:
             #print(i)
             #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=13,height=3)
+            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=10,height=3)
             self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             r+=1
@@ -2434,7 +2434,7 @@ FIXTURES = Fixtures()
 FIXTURES.load_patch()
 master = GUI()
 
-w = GUIWindow("MAIN",master=1,width=130,height=450,left=0,top=65)
+w = GUIWindow("MAIN",master=1,width=100,height=450,left=0,top=65)
 data = []
 #data.append({"text":"COMMAND"})
 data.append({"text":"EXEC"})
@@ -2444,21 +2444,21 @@ f = GUI_menu(w.tk,data)
 window_manager.new(w)
 
 name="EXEC"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
 #frame_exe = w.tk
 master.draw_preset(w1)#w.tk)
 window_manager.new(w,name)
 
 name="DIMMER"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
 w2 = ScrollFrame(w.tk,width=800,height=400)
 #frame_dim = w1 # w.tk
 #master.draw_dim(w1.tk)
 window_manager.new(w,name)
 
 name="FIXTURES"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
 #frame_fix = w1 #w.tk
 master.draw_fix(w1,w2)#.tk)
@@ -2466,7 +2466,7 @@ window_manager.new(w,name)
 
 
 name="ENCODER"
-ww = GUIWindow(name,master=0,width=800,height=50,left=140,top=500)
+ww = GUIWindow(name,master=0,width=800,height=50,left=110,top=500)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
@@ -2479,19 +2479,19 @@ master.draw_enc(root2)
 root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 
 name = "COMMAND"
-w = GUIWindow(name,master=0,width=350,height=200,left=950,top=65)
+w = GUIWindow(name,master=0,width=350,height=200,left=920,top=65)
 master.draw_command(w.tk)
 window_manager.new(w,name)
 
 
 name="PATCH"
-w = GUIWindow(name,master=0,width=800,height=400,left=140,top=65)
+w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
 master.draw_patch(w1)
 window_manager.new(w,name)
 
 name="FX"
-w = GUIWindow(name,master=0,width=350,height=250,left=950,top=305)
+w = GUIWindow(name,master=0,width=350,height=250,left=920,top=305)
 #frame_fx = w.tk
 master.draw_fx(w.tk)
 window_manager.new(w,name)

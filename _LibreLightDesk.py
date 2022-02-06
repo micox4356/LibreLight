@@ -228,7 +228,7 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
                 #print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
         #xcmd += ":{}".format(row["ATTR"])
         cmd.append( xcmd)
-    
+    cprint(cmd,color="red") 
     return cmd
 
 def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
@@ -292,6 +292,7 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
             cmd=""
 
         return cmd
+        cprint(cmd,color="red") 
     except Exception as e:
         cprint("== cb EXCEPT",e,color="red")
         cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
@@ -307,6 +308,7 @@ class dummy_event():
 
 gcolor = 1
 def cprint(*text,color="blue",space=" ",end="\n"):
+    #return 0 #disable print dbg
     if not gcolor:
         print(text)
         return 0
@@ -753,6 +755,7 @@ class Xevent():
             elif self.attr == "FADE":
                 global fade
                 global fade_on
+                print("EVENT CHANGE FADE",fade)
                 if fade < 0.01:
                     fade = 0.01
                 elif fade > 100.0:
@@ -1279,11 +1282,12 @@ class GUI(Base):
         elif not val:
             cprint("preset_go() STOP",value,color="red")
         elif modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"]): 
+            fcmd  = FIXTURES.update_raw(rdata)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
 
-        if modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
-            pass
-        else:
+
+
+        if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()
             self.refresh_fix()
 
@@ -1816,7 +1820,7 @@ class GUIHandler():
     def __init__(self):
         pass
     def update(self,fix,attr,args={}):
-        #print("GUIHandler",fix,attr,args)
+        print("GUIHandler.update()",fix,attr,args)
         for i,k in enumerate(args):
             v = args[k] 
             #print("GUI-H", i,k,v)
@@ -1880,6 +1884,8 @@ class Fixtures(Base):
                 #print( sdata)
                 sDMX = (sdata["UNIVERS"]*512)+sdata["DMX"]  
                 #sDMX =sdata["DMX"]  
+            #else:
+            #    continue
 
             if attr not in ATTR:
                 continue
@@ -1904,7 +1910,7 @@ class Fixtures(Base):
 
             #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
             text = str(attr)+' '+str(round(v,2))
-            self.gui.update(fix,attr,args={"text":text})
+            #self.gui.update(fix,attr,args={"text":text})
             #print("END 5454 _=_=_=_=_==_")
         return cmd
 
@@ -2344,7 +2350,8 @@ class GUIWindow():
     def callback(self,event,data={}):#value=255):
         print()
         print()
-        cprint("<GUI>",self,event,event.state,data,[event.type],color="yellow")
+        cprint("<GUI>",event,color="yellow")
+        cprint("<GUI>",event.state,data,[event.type],color="yellow")
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
             value = 0

@@ -530,4 +530,4 @@ def CB(data):
 
 chat.cmd(CB) # server listener
 
-input("END")
+#input("END")

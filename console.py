@@ -19,10 +19,15 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 (c) 2012 micha@uxsrv.de
 """
 import sys
+rnd_id = ""
+rnd_id += " Beta 22.02 "
+import subprocess
+rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+
 if "__file__" in dir():
-    sys.stdout.write("\x1b]2;"+str(__file__)+"\x07") # terminal title
+    sys.stdout.write("\x1b]2;"+str(__file__)+" "+rnd_id+"\x07") # terminal title
 else:
-    sys.stdout.write("\x1b]2;"+str("__file__")+"\x07") # terminal title
+    sys.stdout.write("\x1b]2;"+str("__file__")+" "+rnd_if+"\x07") # terminal title
 
 import time
 import socket

@@ -1164,19 +1164,24 @@ class GUI(Base):
                     b["fg"] = "black"
                     if val_color:
                         b["bg"] = "gold"
-                        b.config(activebackground="gold")
+                        b.config(activebackground="#ffaa55")
                         if fx_color:
                             b["fg"] = "blue"
                     else:   
                         if fx_color:
                             b["bg"] = "cyan"
-                            b.config(activebackground="cyan")
+                            b.config(activebackground="#55d4ff")
                 else:
                     b["bg"] = "grey"
-                    b.config(activebackground="grey")
+                    b.config(activebackground="#aaaaaa")
+
+            if "\n" in txt:
+                txt = txt.split("\n")[0]
             if "SEL" in txt:
                 b["fg"] = "black"
                 b["bg"] = "#5555ff"
+                b.config(activebackground="#6666ff")
+
             elif "GO" in txt:
                 b["fg"] = "black"
             elif "FL" in txt:

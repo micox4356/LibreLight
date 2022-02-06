@@ -20,7 +20,10 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 """
 import random
 rnd_id = str(random.randint(1000,9000))
-rnd_id += " Beta 22.01"
+rnd_id += " Beta 22.02 "
+import subprocess
+rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+
 try:
     xtitle = __file__
 except:
@@ -1086,7 +1089,7 @@ class GUI(Base):
                 print(dir(self.elem_fx_commands[name]))
     def btn_cfg(self,nr):
         txt = PRESETS.btn_cfg(nr) 
-        txt = tkinter.simpledialog.askstring("CFG-BTN","GO,FLASH,TOGGLE,SWOP\n EXE:"+str(nr+1),initialvalue=txt)
+        txt = tkinter.simpledialog.askstring("CFG-BTN","GO=GO\nFL=FLASH\nSEL=SELECT\n EXE:"+str(nr+1),initialvalue=txt)
         if txt:
             PRESETS.btn_cfg(nr,txt)
             self.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)

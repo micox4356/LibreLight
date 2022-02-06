@@ -193,21 +193,33 @@ def build_cmd(dmx,val,args=[fade],flash=0,xpfx="",attr=""):
                 cmd += ":{}".format(val)
     if attr:
         cmd += ":"+str(attr)
+    cprint("build_cmd",cmd,color="red")
     return cmd
 
 
 def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
     cmd = []
+    jcmd = []
     if flash:
         pfx += "f"
 
     for row in data:
+        jxcmd={}
+        if type(value) is float:
+            jxcmd["value"] = value #round(value,3)
+        else:
+            jxcmd["value"] = value
+        jxcmd["args"] = []
+
         if fx:
             if value is not None: 
                 # z.b. flush off
                 xcmd = str(value)+":"+row["FX"].split(":",1)[-1]
+                jxcmd["fx"] = row["FX"].split(":",1)[-1]
+
             else:
                 xcmd = row["FX"]
+                #jxcmd["fx"] = row["FX"]
         else:
             if row["VALUE"] is None:
                 xcmd = ""
@@ -218,17 +230,34 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
                     else:
                         xcmd = "{}".format(value)
                 else:
-                    xcmd = "{:0.4f}".format(row["VALUE"])
+                    v=row["VALUE"]
+                    xcmd = "{:0.4f}".format(v)
+                    cprint([v])
+                    if type(v) is float:
+                        jxcmd["value"]  = v #round(v,3)
+                    else:
+                        jxcmd["value"]  = v
 
                 for arg in args:
                     if type(arg) is float:
                         xcmd += ":{}".format(arg)
+                        jxcmd["args"].append(v)#round(arg,3))
                     else:
                         xcmd += ":{:0.4f}".format(arg)
+                        jxcmd["args"].append(arg)#round(arg,3))
                 #print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
         #xcmd += ":{}".format(row["ATTR"])
+        if len(jxcmd["args"]):
+            v=jxcmd["args"][0]
+            if type( v ) is float:
+                jxcmd["fade"] = v#round(v)
+            else:
+                jxcmd["fade"] = v
+        jcmd.append( jxcmd)
         cmd.append( xcmd)
-    cprint(cmd,color="red") 
+        if xcmd:
+            cprint("update_raw_dmx j",jxcmd,color="red") 
+            cprint("update_raw_dmx x",xcmd,color="red") 
     return cmd
 
 def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
@@ -291,8 +320,8 @@ def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
         if modes.val("BLIND"):
             cmd=""
 
+        cprint("update_dmx",cmd,color="red") 
         return cmd
-        cprint(cmd,color="red") 
     except Exception as e:
         cprint("== cb EXCEPT",e,color="red")
         cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
@@ -784,7 +813,7 @@ class Xevent():
                         fade = 0.01
                     elif fade < 1:
                         fade = 1.1
-
+                fade = round(fade,4)
                 self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
 
             elif self.attr == "BACKUP":
@@ -956,13 +985,32 @@ class Base():
             #print(line)
             jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
             nrnull = 0
+            print(jdata)
+            #if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
+            #    for attr in jdata["ATTRIBUT"]:
+            #        row = jdata["ATTRIBUT"][attr]
+            #        if type(row) is OrderedDict:
+            #            #print(row)
+            #            if "VALUE" in row:
+            #                v = row["VALUE"]
+            #                if type(v) is float:
+            #                    v = round(v,4)
+            #                    jdata["ATTRIBUT"][attr]["VALUE"] = round(v,4)
+            #                    print("preset v",key,label,attr,v)
             if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
                 for attr in jdata["ATTRIBUT"]:
-                    if "NR" in jdata["ATTRIBUT"][attr]:
-                        nr = jdata["ATTRIBUT"][attr]["NR"]
-                        if nr == 0:
-                            nrnull = 1
-                            break
+                    pass
+                    #if "VALUE" in jdata["ATTRIBUT"][attr]:
+                    #    v = jdata["ATTRIBUT"][attr]["VALUE"]
+                    #    if type(v) is float:
+                    #        jdata["ATTRIBUT"][attr]["VALUE"] = round(v,4)
+                    #        #print("fix v",attr,v)
+
+                    #if "NR" in jdata["ATTRIBUT"][attr]:
+                    #    nr = jdata["ATTRIBUT"][attr]["NR"]
+                    #    if nr == 0:
+                    #        nrnull = 1
+                    #        break
 
                 if nrnull:
                     print("DMX NR IS NULL",attr,"CHANGE +1")
@@ -1250,11 +1298,11 @@ class GUI(Base):
         print("GO PRESET FADE",nr,val)
 
         rdata = PRESETS.get_raw_map(nr)
+        if not rdata:
+            return 0
         print("???????")
         cfg   = PRESETS.get_cfg(nr)
         print("''''''''")
-        fcmd  = FIXTURES.update_raw(rdata)
-        print("========")
         #virtcmd  = FIXTURES.get_virtual(rdata)
         if not cfg:
             cprint("NO CFG",cfg,nr)
@@ -1277,6 +1325,7 @@ class GUI(Base):
                         value = "off"
 
             cprint("preset_go() FLUSH",value,color="red")
+            fcmd  = FIXTURES.update_raw(rdata)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
                 
         elif not val:
@@ -1912,6 +1961,7 @@ class Fixtures(Base):
             text = str(attr)+' '+str(round(v,2))
             #self.gui.update(fix,attr,args={"text":text})
             #print("END 5454 _=_=_=_=_==_")
+        cprint("update_raw",cmd,color="red")
         return cmd
 
     def encoder(self,fix,attr,xval="",xfade=0):
@@ -1963,7 +2013,7 @@ class Fixtures(Base):
         out = {} 
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
-            data["ATTRIBUT"][attr]["VALUE"] = v2
+            data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
             if xfade:
                 cmd=update_dmx(attr=attr,data=data)
             else:

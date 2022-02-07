@@ -384,6 +384,8 @@ def JCB(data):
     time = 0
     delay = 0
     for j in jdatas:
+        if not j:
+            continue
         try:
             jdata = j #jdatas[j]
             #print(j)
@@ -412,10 +414,10 @@ def JCB(data):
                 
                 if v is not None:
                     if "FLASH" in x:
-                        print("FLASH")
+                        #print("FLASH")
                         Bdmx[DMX].flush(target=v,time=time, clock=c,delay=delay)
                     else:
-                        print("FADE")
+                        #print("FADE")
                         Bdmx[DMX].fade(target=v,time=time, clock=c,delay=delay)
                 if fx:
                     ccm = str(DMX+1)+":"+fx
@@ -428,6 +430,7 @@ def JCB(data):
             return
         except Exception as e:
             print("EXCEPTION JCB",e)
+            print("----",jdata)
             print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
             
 def CB(data):
@@ -586,5 +589,6 @@ def CB(data):
 jchat = chat.CMD(JCB,port=50001) # server listener
 thread.start_new_thread(jchat.poll,())
 chat.cmd(CB) # server listener
+#chat.cmd(JCB,port=50001) # server listener
 
 #input("END")

@@ -1997,7 +1997,36 @@ class Fixtures(Base):
                 data = self.fixtures[fix]
                 for attr in data["ATTRIBUT"]:
                     data["ATTRIBUT"][attr]["FX"] = ""
+    def get_attr(self,fix,attr):
+        if fix in self.fixtures:
+            data = self.fixtures[fix]
+            if "ATTRIBUT" in data:
+                if attr in data["ATTRIBUT"]:
+                    return data["ATTRIBUT"][attr]
 
+    def get_dmx(self,fix,attr):
+        cprint("get_dmx",[fix,attr])
+        if fix in self.fixtures:
+            data = self.fixtures[fix]
+            if "DMX" in data:
+                DMX = int(data["DMX"])
+            else:
+                return -1
+            if "UNIVERS" in data:
+                DMX += (int(data["UNIVERS"])*512)
+            adata = self.get_attr(fix,attr)
+            cprint(adata,DMX)
+
+            if adata:
+                if "NR" in adata:
+                    NR = adata["NR"] 
+                    if NR > 0:
+                        DMX+=NR-1
+                    else:
+                        return -2
+                return DMX
+            return -4
+        return -3
     def update_raw(self,rdata):
         cprint("update_raw",len(rdata))
         cmd = []
@@ -2079,15 +2108,19 @@ class Fixtures(Base):
         v2=data["ATTRIBUT"][attr]["VALUE"]
         change=0
         increment = 4.11
+        jdata = {"MODE":"ENC"}
         if xval == "+":
             v2+= increment
+            jdata["INC"] = increment
             v = "+{:0.4f}".format( increment ) #) #4.11"
             change=1
         elif xval == "-":
+            jdata["INC"] = increment*-1
             v2-= increment
             v = "-{:0.4f}".format( increment ) #) #4.11"
             change=1
         elif type(xval) is int or type(xval) is float:
+            jdata["xVALUE"] = round(xval,4)
             v2 = xval 
             change=1
 
@@ -2096,17 +2129,27 @@ class Fixtures(Base):
             v2=0
         elif v2 > 256:
             v2=256
+        jdata["VALUE"] = round(v2,4)
+        jdata["FIX"] = fix
+        jdata["ATTR"] = attr
+        jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
         out = {} 
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
             data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
             if xfade:
                 cmd=update_dmx(attr=attr,data=data)
+                jdata["FADE"] = xfade
             else:
                 cmd=update_dmx(attr=attr,data=data,args=[0])
+                jdata["FADE"] = 0
 
             if cmd and not modes.val("BLIND"):
-                client.send(cmd)
+                #client.send(cmd)
+                jdata = [jdata]
+                print(jdata)
+                #print(cmd)
+                jclient.send("**"+json.dumps(jdata)+"**")
         return v2
 
     def get_active(self):

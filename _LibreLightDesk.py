@@ -162,15 +162,44 @@ COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender()
+jclient = chat.tcp_sender(port=50001)
 
-fade = 2 #2 #0.1 #1.13
-fade_on = 1
+class _FadeTime():
+    def __init__(self):
+        self._value = 2
+        self._on = 1
+    def inc(self,value=None):
+        if value is not None:
+            if type(value) is float:
+                self._value += round(value,4)
+            else:
+                self._value += value
+        return self._value
+    def val(self,value=None):
+        if value is not None:
+            if type(value) is float:
+                self._value = round(value,4)
+            else:
+                self._value = value
+        return self._value
+    def on(self):
+        self._on = 1
+    def off(self):
+        self._on = 0
+    def _is(self):
+        if self._on:
+            return 1
+        return 0
+
+FADE = _FadeTime()  #2 #0.1 #1.13
 fx_move_prm = {"SIZE":20,"SPEED":100,"OFFSET":50,"BASE":"-","START":0}
 fx_prm = {"SIZE":200,"SPEED":30,"OFFSET":255,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"WING":2}
 fx_modes = [":RED",":GREEN",":BLUE",":MAG",":YELLOW",":CYAN"]
 fx_mo = ["sinus","on","on2","bump","bump2","fade","cosinus"]
 
-def build_cmd(dmx,val,args=[fade],flash=0,xpfx="",attr=""):
+def build_cmd(dmx,val,args=[],flash=0,xpfx="",attr=""):
+    if not args:
+        args.append(FADE.val())
     cmd=""
     if xpfx:
         pfx=xpfx  
@@ -197,7 +226,16 @@ def build_cmd(dmx,val,args=[fade],flash=0,xpfx="",attr=""):
     return cmd
 
 
-def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
+def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
+
+    if flash:
+        xfade = 0
+
+    if not args: # and xfade is not None:# and FADE._is():
+        args.append(xfade)
+    else:
+        args[0] = xfade
+
     cmd = []
     jcmd = []
     if flash:
@@ -206,20 +244,20 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
     for row in data:
         jxcmd={}
         if type(value) is float:
-            jxcmd["value"] = value #round(value,3)
+            jxcmd["VALUE"] = value #round(value,3)
         else:
-            jxcmd["value"] = value
+            jxcmd["VALUE"] = value
         jxcmd["args"] = []
 
         if fx:
             if value is not None: 
                 # z.b. flush off
                 xcmd = str(value)+":"+row["FX"].split(":",1)[-1]
-                jxcmd["fx"] = row["FX"].split(":",1)[-1]
+                jxcmd["FX"] = row["FX"].split(":",1)[-1]
 
             else:
                 xcmd = row["FX"]
-                #jxcmd["fx"] = row["FX"]
+                jxcmd["FX"] = row["FX"]
         else:
             if row["VALUE"] is None:
                 xcmd = ""
@@ -234,9 +272,9 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
                     xcmd = "{:0.4f}".format(v)
                     cprint([v])
                     if type(v) is float:
-                        jxcmd["value"]  = v #round(v,3)
+                        jxcmd["VALUE"]  = v #round(v,3)
                     else:
-                        jxcmd["value"]  = v
+                        jxcmd["VALUE"]  = v
 
                 for arg in args:
                     if type(arg) is float:
@@ -246,21 +284,28 @@ def update_raw_dmx(data ,value=None,args=[fade],flash=0,pfx="d",fx=0):
                         xcmd += ":{:0.4f}".format(arg)
                         jxcmd["args"].append(arg)#round(arg,3))
                 #print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
+
         #xcmd += ":{}".format(row["ATTR"])
-        if len(jxcmd["args"]):
-            v=jxcmd["args"][0]
-            if type( v ) is float:
-                jxcmd["fade"] = v#round(v)
-            else:
-                jxcmd["fade"] = v
+        v= xfade #FADE.val() #rxcmd["args"][0]
+        if type( v ) is float:
+            jxcmd["FADE"] = round(v,4)
+        else:
+            jxcmd["FADE"] = v
+        #if ("VALUE" in jxcmd and jxcmd["VALUE"] is not None) or "FX" in jxcmd and jxcmd["FX"]:
         jcmd.append( jxcmd)
         cmd.append( xcmd)
-        if xcmd:
-            cprint("update_raw_dmx j",jxcmd,color="red") 
-            cprint("update_raw_dmx x",xcmd,color="red") 
-    return cmd
+        #if xcmd:
+        #    cprint("update_raw_dmx j",jxcmd,color="red") 
+        #    cprint("update_raw_dmx x",xcmd,color="red") 
+    return cmd,jcmd
 
-def update_dmx(attr,data,value=None,args=[fade],flash=0,pfx=""):
+def update_dmx(attr,data,value=None,args=None,flash=0,pfx=""):
+    xfade = 0
+    if not args:
+        args=[]
+        xfade = FADE.val()
+        args.append(xfade)
+
     #global modes #BLIND
     #print("update_dmx",data)
     dmx = data["DMX"]
@@ -782,11 +827,10 @@ class Xevent():
 
             
             elif self.attr == "FADE":
-                global fade
-                global fade_on
+                fade = FADE.val()
                 print("EVENT CHANGE FADE",fade)
                 if fade < 0.01:
-                    fade = 0.01
+                    FADE.val(0.01)
                 elif fade > 100.0:
                     fade = 100
                 if event.num == 4:
@@ -794,11 +838,11 @@ class Xevent():
                 elif event.num == 5:
                     fade /= 1.1
                 elif event.num == 1:
-                    if fade_on:
-                        fade_on = 0
+                    if FADE._is():
+                        FADE.off()# = 0
                         self.data.elem_commands[self.attr]["bg"] = "grey"
                     else:
-                        fade_on = 1
+                        FADE.on()# = 1
                         self.data.elem_commands[self.attr]["bg"] = "green"
                 elif event.num == 2:
                     if fade > 1 and fade < 4:
@@ -813,7 +857,8 @@ class Xevent():
                         fade = 0.01
                     elif fade < 1:
                         fade = 1.1
-                fade = round(fade,4)
+                fade = round(fade,3)
+                FADE.val(fade)
                 self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
 
             elif self.attr == "BACKUP":
@@ -877,6 +922,7 @@ class Xevent():
                             ok=PRESETS.delete(nr)
                             if ok:
                                 modes.val("DEL",0)
+                                master.refresh_exec()
                         elif modes.val("COPY"):
                             ok=PRESETS.copy(nr)
                             if ok:
@@ -1294,7 +1340,11 @@ class GUI(Base):
                     elem = self.elem_attr[fix][attr]
                     FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
-    def preset_go(self,nr,val=None,xfade=fade,event=None):
+    def preset_go(self,nr,val=None,xfade=None,event=None):
+        if xfade is None and FADE._is():
+            xfade = FADE.val()
+        
+
         print("GO PRESET FADE",nr,val)
 
         rdata = PRESETS.get_raw_map(nr)
@@ -1340,12 +1390,48 @@ class GUI(Base):
             self.refresh_exec()
             self.refresh_fix()
 
-    def _preset_go(self,rdata,cfg,fcmd,value,xfade=fade,event=None,xFLASH=0):
+    def _preset_go(self,rdata,cfg,fcmd,value,xfade=None,event=None,xFLASH=0):
+        if xfade is None and FADE._is():
+            xfade = FADE.val()
+
         cprint("PRESETS._preset_go()",len(rdata))
-        vvcmd = update_raw_dmx( rdata ,value,[xfade] ) 
-        fxcmd = update_raw_dmx( rdata ,value,[xfade],fx=1) 
+        vvcmd,jvvcmd = update_raw_dmx( rdata ,value,[],xfade=xfade ) 
+        fxcmd,jfxcmd = update_raw_dmx( rdata ,value,[],xfade=xfade,fx=1) 
 
         cmd = []
+        for vcmd,d in [[jvvcmd,"d"],[jfxcmd,"fx"]]:
+            cprint(vcmd)
+            if xFLASH:
+                d+="f"
+            for i,v in enumerate(fcmd):
+                if xFLASH:
+                    vcmd[i]["FLASH"] = 1
+                #print(i)
+                #print(fcmd)
+                DMX = fcmd[i]["DMX"]
+                if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is float:
+                    vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
+                if DMX and vcmd[i]:
+                    #xcmd = ",{}{}:{}".format(d,DMX,vcmd[i])
+                    vcmd[i]["DMX"] = DMX
+                    #cmd.append( xcmd )
+
+                if "VIRTUAL" in fcmd[i]:
+                    for a in fcmd[i]["VIRTUAL"]:
+                        DMX = fcmd[i]["VIRTUAL"][a]
+                        if DMX and vcmd[i]:
+                            vcmd[i]["DMX"] = DMX
+                            #xcmd = ",{}{}:{}".format(d,DMX,vcmd[i])
+                            #cmd.append( xcmd )
+                if vcmd[i]["VALUE"] is not None or ("FX" in vcmd[i] and vcmd[i]["FX"]):
+                    cprint("jvcmd",vcmd[i])
+                    cmd.append(vcmd[i])
+        if cmd and not modes.val("BLIND"):
+            pass
+            jclient.send( "**"+ json.dumps(cmd) +"**" )
+        return 0
+
+        cmd=[]
         for vcmd,d in [[vvcmd,"d"],[fxcmd,"fx"]]:
             if xFLASH:
                 d+="f"
@@ -1653,7 +1739,7 @@ class GUI(Base):
             if comm == "SP:":
                 b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
             if comm == "FADE":
-                b["text"] = "FADE:{:0.02f}".format(fade)
+                b["text"] = "FADE:{:0.02f}".format(FADE.val())
             if comm == "ST:":
                 b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
             if comm == "OF:":
@@ -1776,7 +1862,7 @@ class GUI(Base):
                 try:
                     print("e.state",event.state)
                 except:pass
-                set_fade = fade
+                set_fade = FADE.val() #fade
                 
                 if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state in [256,1024]):
                     cr=None
@@ -2028,7 +2114,7 @@ class Fixtures(Base):
         CFG = OrderedDict()
         sdata = OrderedDict()
         sdata["CFG"] = CFG # OrderedDict()
-        sdata["CFG"]["FADE"] = fade
+        sdata["CFG"]["FADE"] = FADE.val()
         sdata["CFG"]["DEALY"] = 0
         #sdata["CFG"]["BUTTON"] = "GO"
         for fix in self.fixtures:                            
@@ -2041,7 +2127,7 @@ class Fixtures(Base):
                         sdata[fix][attr] = OrderedDict()
                         if not modes.val("STONY_FX"):
                             sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                            #sdata[fix][attr]["FADE"] = fade
+                            #sdata[fix][attr]["FADE"] = FADE.val() #fade
                         else:
                             sdata[fix][attr]["VALUE"] = None #data["ATTRIBUT"][attr]["VALUE"]
 
@@ -2434,11 +2520,17 @@ class GUIWindow():
                 if nr == 0:
                     nr =10
                 cprint("F-KEY",value,nr)
-                master.preset_go(128-1+nr,xfade=fade,val=value)
+                xfade = 0
+                if FADE._is():
+                    xfade = 0
+                master.preset_go(128-1+nr,xfade=xfade,val=value)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
                 nr = int( event.keysym[1])-1
                 cprint("F-KEY",value,nr)
-                master.preset_go(65-1+nr,xfade=fade,val=value)
+                xfade = 0
+                if FADE._is():
+                    xfade = 0
+                master.preset_go(65-1+nr,xfade=xfade,val=value)
             elif "End" == event.keysym:
                 FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")

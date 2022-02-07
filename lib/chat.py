@@ -167,6 +167,7 @@ class CMD():
                                 client_nr = clients.index(sock)
                                 clients2[client_nr] = ""
                             clients.remove(sock)
+                        time.sleep(0.0001)
         except KeyboardInterrupt:
             print(" strg+c")
         finally:

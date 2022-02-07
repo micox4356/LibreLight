@@ -375,7 +375,61 @@ def split_cmd(data):
     return cmds
 
 
+import json
+def JCB(data):
+    jdatas = data["cmd"].split("**")
+    print("JCB")
+    c = clock.time() 
+    c = float(c)
+    time = 0
+    delay = 0
+    for j in jdatas:
+        try:
+            jdata = j #jdatas[j]
+            #print(j)
+            cmds = json.loads(jdata)
+            for x in cmds:
+                print("json", x,type(x))#,cmds[x])
 
+                if "DMX" in x:
+                    DMX = int(x["DMX"])-1
+                else:continue
+                if "VALUE" in x:# and x["VALUE"] is not None:
+                    v = x["VALUE"]
+                else:continue
+                if "FX" in x:# and x["VALUE"] is not None:
+                    fx = x["FX"]
+                else:fx=""
+                if "FADE" in x:
+                    time = x["FADE"]
+                else:time=0
+                if "DELAY" in x:
+                    delay = x["DELAY"]
+                else:delay=0
+
+                if len(Bdmx) < DMX:
+                    continue
+                
+                if v is not None:
+                    if "FLASH" in x:
+                        print("FLASH")
+                        Bdmx[DMX].flush(target=v,time=time, clock=c,delay=delay)
+                    else:
+                        print("FADE")
+                        Bdmx[DMX].fade(target=v,time=time, clock=c,delay=delay)
+                if fx:
+                    ccm = str(DMX+1)+":"+fx
+                    print("ccm",ccm)
+                    if "FLASH" in x:
+                        CB({"cmd":"fxf"+ccm})
+                    else:
+                        CB({"cmd":"fx"+ccm})
+
+            return
+        except Exception as e:
+            print("EXCEPTION JCB",e)
+            print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
+            
 def CB(data):
     #print("CB",data)
 
@@ -388,6 +442,7 @@ def CB(data):
     for xcmd in cmds:
         if xcmd:
             print("CB",xcmd)
+            pass
         else:
             continue
         if xcmd.startswith("df"):
@@ -528,6 +583,8 @@ def CB(data):
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 
+jchat = chat.CMD(JCB,port=50001) # server listener
+thread.start_new_thread(jchat.poll,())
 chat.cmd(CB) # server listener
 
 #input("END")

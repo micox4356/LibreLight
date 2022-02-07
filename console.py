@@ -377,8 +377,9 @@ def split_cmd(data):
 
 import json
 def JCB(data):
-    jdatas = data["cmd"].split("**")
-    print("JCB")
+    #jdatas = data["cmd"].split("\x00")
+    jdatas = [data["cmd"]]
+    #print("JCB")
     c = clock.time() 
     c = float(c)
     time = 0
@@ -586,9 +587,9 @@ def CB(data):
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 
-jchat = chat.CMD(JCB,port=50001) # server listener
+jchat = chat.CMD(CB,port=50001) # server listener
 thread.start_new_thread(jchat.poll,())
-chat.cmd(CB) # server listener
+chat.cmd(JCB) # server listener
 #chat.cmd(JCB,port=50001) # server listener
 
 #input("END")

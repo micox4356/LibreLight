@@ -1,6 +1,7 @@
 echo "\e[42mBOOTING LIBRELIGHT CONSOLE\e[0m"
 
 #killall ibus-daemon # ibus slowsdown tkinter/Editor
+killall ibus-daemon # ibus slowsdown tkinter/Editor
 
 screen -ls
 set -e

@@ -90,6 +90,7 @@ class CMD():
         self.clients2 = clients2
         self.cb=cb
         self.select=select
+        self.msg=b''
     def poll(self):
         server  = self.server
         clients = self.clients
@@ -114,14 +115,19 @@ class CMD():
                     else:
                         msg=b''
                         try:
-                            xmsg = sock.recv(1024)#5120)
-                        except BlockingIOError as e:
-                            pass#print( "exception",e)
-                        try:
-                            while xmsg: 
-                                msg += xmsg
+                            if self.msg:
+                                xmsg = self.msg
+                            else:
                                 xmsg = sock.recv(1024)#5120)
-                                xmsg = xmsg.replace(b";",b"")
+                            while xmsg:# != b"\x00": 
+                                if b'\x00' in xmsg:
+                                    s = xmsg.split(b"\x00",1)
+                                    msg += s[0]
+                                    self.msg = s[1]
+                                    break
+                                msg += xmsg
+                                xmsg = sock.recv(1)#5120)
+                                #xmsg = xmsg.replace(b";",b"")
                             #print(msg)
                         except BlockingIOError as e:
                             pass#print( "exception",e)
@@ -154,7 +160,7 @@ class CMD():
                                 cb({"c":client_nr,"cmd":cmd})
 
 
-                        else:
+                        if 0:#else: #workaround json sock pkg-drops
                             print("+++ Verbindung zu %s beendet" % ip)
                             sock.close()
                             if sock in clients:

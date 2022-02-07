@@ -160,7 +160,7 @@ class CMD():
                                 cb({"c":client_nr,"cmd":cmd})
 
 
-                        if 0:#else: #workaround json sock pkg-drops
+                        else: #workaround json sock pkg-drops
                             print("+++ Verbindung zu %s beendet" % ip)
                             sock.close()
                             if sock in clients:

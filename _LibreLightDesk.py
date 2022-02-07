@@ -163,6 +163,8 @@ BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender(port=50001)
 jclient = chat.tcp_sender()#port=50001)
+def jclient_send(data):
+    jclient.send( json.dumps(data) +"\x00")
 
 class _FadeTime():
     def __init__(self):
@@ -424,6 +426,9 @@ class Xevent():
 
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
+        jdata = {"MODE":"FX"}
+        jdata["FIX"] = fix
+        jdata["ATTR"] =attr
         if event.num == 4:
             cprint("FX:COLOR CHANGE",fx_prm,color="red")
             txt = "FX:RED" 
@@ -654,6 +659,7 @@ class Xevent():
                     #print("offset",offset)
             if cmd and not modes.val("BLIND"):
                 client.send(cmd)
+                jclient_send([jdata])
             master.refresh_fix()
 
 
@@ -1428,7 +1434,7 @@ class GUI(Base):
                     cmd.append(vcmd[i])
         if cmd and not modes.val("BLIND"):
             pass
-            jclient.send( "\x00"+ json.dumps(cmd) +"\x00" )
+            jclient_send(cmd)
         return 0
 
         cmd=[]
@@ -1869,7 +1875,7 @@ class GUI(Base):
                     cg=None
                     cb=None
                     if event.num == 1: 
-                        set_fade=fade
+                        set_fade=FADE.val() #fade
                         cr = color[0]
                         cg = color[1]
                         cb = color[2]
@@ -2089,7 +2095,7 @@ class Fixtures(Base):
         if fix not in self.fixtures:
             jdata=[{"MODE":"---"}]
             ii =0
-            jclient.send("\x00"+json.dumps(jdata)+"\x00")
+            jclient_send(jdata)
             for fix in self.fixtures:
                 ii+=1
                 #cprint(fix,attr,xval)
@@ -2101,7 +2107,7 @@ class Fixtures(Base):
                         if fix: # prevent endless recursion
                             self.encoder(fix,attr,xval,xfade)
             jdata=[{"MODE":ii}]
-            jclient.send("\x00"+json.dumps(jdata)+"\x00")
+            jclient_send(jdata)
             return 0
 
         data = self.fixtures[fix]
@@ -2148,7 +2154,7 @@ class Fixtures(Base):
             if not modes.val("BLIND"):
                 jdata = [jdata]
                 print(jdata)
-                jclient.send("\x00"+json.dumps(jdata)+"\x00")
+                jclient_send(jdata)
         return v2
 
     def get_active(self):

@@ -488,6 +488,7 @@ class Xevent():
                     #print( "ADD FX",fix)
                     for attr in data["ATTRIBUT"]:
                         jdata = {"MODE":"FX"}
+                        jdata["VALUE"] = None
                         jdata["FIX"] = fix
                         jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
                         jdata["ATTR"] =attr
@@ -499,7 +500,7 @@ class Xevent():
                         cstart = fx_prm["START"]
                         cbase  = fx_prm["BASE"]
                         #cstart = start
-                        coffset= offset
+                        coffset= round(offset,1)
                         #cbase  = base
                         fx=""
                         if "SIN" in self.attr:
@@ -642,18 +643,25 @@ class Xevent():
                                 else:
                                     cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
 
-                            jdata["TYPE"]  = fx
-                            jdata["OFFSET"]= coffset
-                            jdata["SPEED"] = cspeed
-                            jdata["START"] = cstart
-                            jdata["BASE"]  = cbase
-                            if fx:
+                            #if fx:
+                            fxtype = fx
+                            if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
+                                fjdata = {}
+                                fjdata["TYPE"]  = fxtype
+                                fjdata["SIZE"] = round(csize,2)
+                                fjdata["SPEED"] = round(cspeed,2)
+                                fjdata["START"] = cstart
+                                fjdata["OFFSET"]= round(coffset,2)
+                                fjdata["BASE"]  = cbase
+                                jdata["FX2"] = fjdata
                                 print(jdata)
-                                jdatas.append(jdata)
+                                #jdatas.append(jdata)
 
+                        fxtype = fx
                         if fx:
                             #fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
                             fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(csize,cspeed,cstart,coffset,cbase)
+                            jdata["FX"] = fx
                             offset_flag=1
                             #print("ADD FX",fix,attr,fx,data["ATTRIBUT"][attr]["ACTIVE"])
 
@@ -663,11 +671,22 @@ class Xevent():
                             print("++ADD FX",fix,attr,fx)
                             data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
                             cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
+                            fjdata = {}
+                            fjdata["TYPE"]  = fxtype
+                            fjdata["SIZE"] = round(csize,2)
+                            fjdata["SPEED"] = round(cspeed,2)
+                            fjdata["START"] = cstart
+                            fjdata["OFFSET"]= round(coffset,2)
+                            fjdata["BASE"]  = cbase
+                            jdata["FX2"] = fjdata
+                            jdatas.append(jdata)
+                            print(jdata)
 
 
                     if fx_prm["OFFSET"] > 0.5 and offset_flag:  
                         offset_flag=0
                         offset += fx_prm["OFFSET"] # add offset on next fixture
+                        offset = round(offset,2)
                     #print("offset",offset)
             if cmd and not modes.val("BLIND"):
                 #client.send(cmd)
@@ -1993,7 +2012,7 @@ class Fixtures(Base):
                     return data["ATTRIBUT"][attr]
 
     def get_dmx(self,fix,attr):
-        cprint("get_dmx",[fix,attr])
+        #cprint("get_dmx",[fix,attr])
         if fix in self.fixtures:
             data = self.fixtures[fix]
             if "DMX" in data:
@@ -2004,7 +2023,7 @@ class Fixtures(Base):
                 DMX += (int(data["UNIVERS"])*512)
             adata = self.get_attr(fix,attr)
             #-hier ende 8.2.22
-            cprint("adata",adata,DMX)
+            #cprint("adata",adata,DMX)
 
             if adata:
                 if "NR" in adata:
@@ -2613,10 +2632,15 @@ class Console():
             #client.send("fx0:alloff:,fxf:alloff:,")
             #client.send("df0:alloff:::,")
             j = []
-            jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2, 'DMX': '0'}
-            j.append(jdata)
-            jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2,'FLASH':1, 'DMX': '0'}
-            j.append(jdata)
+            if 0:
+                jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2, 'DMX': '0'}
+                j.append(jdata)
+                jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2,'FLASH':1, 'DMX': '0'}
+                j.append(jdata)
+            else:
+                jdata = {'VALUE': None, 'args': [], 'FX2': {"TYPE":"alloff"}, 'FADE': 2,'FLASH':1, 'DMX': '1'}
+                j.append(jdata)
+
             jclient_send(j)
             return 0
 

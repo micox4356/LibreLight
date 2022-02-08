@@ -164,7 +164,7 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 client = chat.tcp_sender(port=50001)
 jclient = chat.tcp_sender()#port=50001)
 def jclient_send(data):
-    jclient.send( json.dumps(data) +"\x00")
+    jclient.send("\00 "+ json.dumps(data) +"\00 ")
 
 class _FadeTime():
     def __init__(self):
@@ -280,10 +280,10 @@ def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
 
                 for arg in args:
                     if type(arg) is float:
-                        xcmd += ":{}".format(arg)
+                        xcmd += ":{:0.4f}".format(arg)
                         jxcmd["args"].append(v)#round(arg,3))
                     else:
-                        xcmd += ":{:0.4f}".format(arg)
+                        xcmd += ":{}".format(arg)
                         jxcmd["args"].append(arg)#round(arg,3))
                 #print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
 
@@ -426,9 +426,7 @@ class Xevent():
 
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
-        jdata = {"MODE":"FX"}
-        jdata["FIX"] = fix
-        jdata["ATTR"] =attr
+        jdatas = []
         if event.num == 4:
             cprint("FX:COLOR CHANGE",fx_prm,color="red")
             txt = "FX:RED" 
@@ -489,6 +487,10 @@ class Xevent():
                     data = FIXTURES.fixtures[fix]
                     #print( "ADD FX",fix)
                     for attr in data["ATTRIBUT"]:
+                        jdata = {"MODE":"FX"}
+                        jdata["FIX"] = fix
+                        jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
+                        jdata["ATTR"] =attr
                         if attr.endswith("-FINE"):
                             continue
 
@@ -640,6 +642,15 @@ class Xevent():
                                 else:
                                     cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
 
+                            jdata["TYPE"]  = fx
+                            jdata["OFFSET"]= coffset
+                            jdata["SPEED"] = cspeed
+                            jdata["START"] = cstart
+                            jdata["BASE"]  = cbase
+                            if fx:
+                                print(jdata)
+                                jdatas.append(jdata)
+
                         if fx:
                             #fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
                             fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(csize,cspeed,cstart,coffset,cbase)
@@ -653,13 +664,14 @@ class Xevent():
                             data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
                             cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
 
+
                     if fx_prm["OFFSET"] > 0.5 and offset_flag:  
                         offset_flag=0
                         offset += fx_prm["OFFSET"] # add offset on next fixture
                     #print("offset",offset)
             if cmd and not modes.val("BLIND"):
                 client.send(cmd)
-                jclient_send([jdata])
+                jclient_send(jdatas)
             master.refresh_fix()
 
 
@@ -1381,7 +1393,7 @@ class GUI(Base):
                         value = "off"
 
             cprint("preset_go() FLUSH",value,color="red")
-            fcmd  = FIXTURES.update_raw(rdata)
+            fcmd  = FIXTURES.update_raw(rdata,update=0)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
                 
         elif not val:
@@ -1395,6 +1407,9 @@ class GUI(Base):
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()
             self.refresh_fix()
+        else:
+            self.refresh_exec()
+            self.refresh_fix()
 
     def _preset_go(self,rdata,cfg,fcmd,value,xfade=None,event=None,xFLASH=0):
         if xfade is None and FADE._is():
@@ -1406,7 +1421,7 @@ class GUI(Base):
 
         cmd = []
         for vcmd,d in [[jvvcmd,"d"],[jfxcmd,"fx"]]:
-            cprint(vcmd)
+            #cprint(vcmd)
             if xFLASH:
                 d+="f"
             for i,v in enumerate(fcmd):
@@ -1435,7 +1450,7 @@ class GUI(Base):
         if cmd and not modes.val("BLIND"):
             pass
             jclient_send(cmd)
-        return 0
+        return 0 #======================= END
 
         cmd=[]
         for vcmd,d in [[vvcmd,"d"],[fxcmd,"fx"]]:
@@ -2021,19 +2036,20 @@ class Fixtures(Base):
             if "UNIVERS" in data:
                 DMX += (int(data["UNIVERS"])*512)
             adata = self.get_attr(fix,attr)
-            cprint(adata,DMX)
+            #-hier ende 8.2.22
+            cprint("adata",adata,DMX)
 
             if adata:
                 if "NR" in adata:
                     NR = adata["NR"] 
-                    if NR > 0:
+                    if NR:
                         DMX+=NR-1
                     else:
                         return -2
                 return DMX
             return -4
         return -3
-    def update_raw(self,rdata):
+    def update_raw(self,rdata,update=1):
         cprint("update_raw",len(rdata))
         cmd = []
         for i,d in enumerate(rdata):
@@ -2059,7 +2075,7 @@ class Fixtures(Base):
 
             if attr not in ATTR:
                 continue
-        
+            #DMX = FIXTURES.get_dmx(fix) 
             if ATTR[attr]["NR"] >= 0:
                 DMX = sDMX+ATTR[attr]["NR"]-1
                 xcmd["DMX"] = str(DMX)
@@ -2075,7 +2091,7 @@ class Fixtures(Base):
             cmd.append(xcmd)
 
             v=ATTR[attr]["VALUE"]
-            if v2 is not None:
+            if v2 is not None and update:
                 ATTR[attr]["VALUE"] = v2
 
             #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))

@@ -1407,9 +1407,6 @@ class GUI(Base):
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()
             self.refresh_fix()
-        else:
-            self.refresh_exec()
-            self.refresh_fix()
 
     def _preset_go(self,rdata,cfg,fcmd,value,xfade=None,event=None,xFLASH=0):
         if xfade is None and FADE._is():

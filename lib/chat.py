@@ -118,7 +118,7 @@ class CMD():
                             if self.msg:
                                 xmsg = self.msg
                             else:
-                                xmsg = sock.recv(1024)#5120)
+                                xmsg = sock.recv(1)#1024)#5120)
                             while xmsg:# != b"\x00": 
                                 if b'\x00' in xmsg:
                                     s = xmsg.split(b"\x00",1)

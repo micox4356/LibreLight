@@ -161,7 +161,7 @@ POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
-client = chat.tcp_sender(port=50001)
+#client = chat.tcp_sender(port=50001)
 jclient = chat.tcp_sender()#port=50001)
 def jclient_send(data):
     jclient.send("\00 "+ json.dumps(data) +"\00 ")
@@ -670,7 +670,7 @@ class Xevent():
                         offset += fx_prm["OFFSET"] # add offset on next fixture
                     #print("offset",offset)
             if cmd and not modes.val("BLIND"):
-                client.send(cmd)
+                #client.send(cmd)
                 jclient_send(jdatas)
             master.refresh_fix()
 
@@ -915,19 +915,19 @@ class Xevent():
                 print("INP",self.data.entry.get())
                 if event.keycode == 36:
                     x=self.data.entry.get()
-                    client.send(x)
+                    #client.send(x)
 
             elif self.mode == "INPUT2":
                 print("INP2",self.data.entry2.get())
                 if event.keycode == 36:
                     x=self.data.entry2.get()
-                    client.send(x)
+                    #client.send(x)
 
             elif self.mode == "INPUT3":
                 print("INP3",self.data.entry3.get())
                 if event.keycode == 36:
                     x=self.data.entry3.get()
-                    client.send(x)
+                    #client.send(x)
 
             elif self.mode == "PRESET":
                 nr = self.attr #int(self.attr.split(":")[1])-1
@@ -1418,59 +1418,29 @@ class GUI(Base):
 
         cmd = []
         for vcmd,d in [[jvvcmd,"d"],[jfxcmd,"fx"]]:
-            #cprint(vcmd)
             if xFLASH:
                 d+="f"
             for i,v in enumerate(fcmd):
                 if xFLASH:
                     vcmd[i]["FLASH"] = 1
-                #print(i)
-                #print(fcmd)
+
                 DMX = fcmd[i]["DMX"]
                 if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is float:
                     vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
                 if DMX and vcmd[i]:
-                    #xcmd = ",{}{}:{}".format(d,DMX,vcmd[i])
                     vcmd[i]["DMX"] = DMX
-                    #cmd.append( xcmd )
 
                 if "VIRTUAL" in fcmd[i]:
                     for a in fcmd[i]["VIRTUAL"]:
                         DMX = fcmd[i]["VIRTUAL"][a]
                         if DMX and vcmd[i]:
                             vcmd[i]["DMX"] = DMX
-                            #xcmd = ",{}{}:{}".format(d,DMX,vcmd[i])
-                            #cmd.append( xcmd )
                 if vcmd[i]["VALUE"] is not None or ("FX" in vcmd[i] and vcmd[i]["FX"]):
                     cprint("jvcmd",vcmd[i])
                     cmd.append(vcmd[i])
+
         if cmd and not modes.val("BLIND"):
-            pass
             jclient_send(cmd)
-        return 0 #======================= END
-
-        cmd=[]
-        for vcmd,d in [[vvcmd,"d"],[fxcmd,"fx"]]:
-            if xFLASH:
-                d+="f"
-            for i,v in enumerate(fcmd):
-                DMX = fcmd[i]["DMX"]
-                if DMX and vcmd[i]:
-                    xcmd = ",{}{}:{}".format(d,DMX,vcmd[i])
-                    cmd.append( xcmd )
-
-                if "VIRTUAL" in fcmd[i]:
-                    for a in fcmd[i]["VIRTUAL"]:
-                        DMX = fcmd[i]["VIRTUAL"][a]
-                        if DMX and vcmd[i]:
-                            xcmd = ",{}{}:{}".format(d,DMX,vcmd[i])
-                            cmd.append( xcmd )
-
-        cmd = "".join(cmd)
-        #print("cmd",cmd) 
-        if cmd and not modes.val("BLIND"):
-            client.send(cmd )
-        
 
         
     def draw_sub_dim(self,fix,data,c=0,r=0,frame=None):
@@ -2636,12 +2606,18 @@ class Console():
         pass
 
     def flash_off(self,fix):
-        client.send("df0:alloff:::,")
+        pass#client.send("df0:alloff:::,")
     def fx_off(self,fix):
         cprint("Console.fx_off()",fix)
         if not fix or fix == "all":
-            client.send("fx0:alloff:,fxf:alloff:,")
-            client.send("df0:alloff:::,")
+            #client.send("fx0:alloff:,fxf:alloff:,")
+            #client.send("df0:alloff:::,")
+            j = []
+            jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2, 'DMX': '0'}
+            j.append(jdata)
+            jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2,'FLASH':1, 'DMX': '0'}
+            j.append(jdata)
+            jclient_send(j)
             return 0
 
 

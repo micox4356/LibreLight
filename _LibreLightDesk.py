@@ -260,6 +260,9 @@ def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
             else:
                 xcmd = row["FX"]
                 jxcmd["FX"] = row["FX"]
+
+            if row["FX2"]:
+                jxcmd["FX2"] = row["FX2"]
         else:
             if row["VALUE"] is None:
                 xcmd = ""
@@ -427,6 +430,7 @@ class Xevent():
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
         jdatas = []
+        fx2 = {}
         if event.num == 4:
             cprint("FX:COLOR CHANGE",fx_prm,color="red")
             txt = "FX:RED" 
@@ -645,17 +649,17 @@ class Xevent():
 
                             #if fx:
                             fxtype = fx
-                            if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
-                                fjdata = {}
-                                fjdata["TYPE"]  = fxtype
-                                fjdata["SIZE"] = round(csize,2)
-                                fjdata["SPEED"] = round(cspeed,2)
-                                fjdata["START"] = cstart
-                                fjdata["OFFSET"]= round(coffset,2)
-                                fjdata["BASE"]  = cbase
-                                jdata["FX2"] = fjdata
-                                print(jdata)
-                                #jdatas.append(jdata)
+                            #if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
+                            #    fjdata = {}
+                            #    fjdata["TYPE"]  = fxtype
+                            #    fjdata["SIZE"] = round(csize,2)
+                            #    fjdata["SPEED"] = round(cspeed,2)
+                            #    fjdata["START"] = cstart
+                            #    fjdata["OFFSET"]= round(coffset,2)
+                            #    fjdata["BASE"]  = cbase
+                            #    jdata["FX2"] = fjdata
+                            #    print(jdata)
+                            #    #jdatas.append(jdata)
 
                         fxtype = fx
                         if fx:
@@ -667,6 +671,9 @@ class Xevent():
 
                         if "FX" not in data["ATTRIBUT"][attr]:
                             data["ATTRIBUT"][attr]["FX"] =""
+                        if "FX2" not in data["ATTRIBUT"][attr]:
+                            data["ATTRIBUT"][attr]["FX2"] ={}
+
                         if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
                             print("++ADD FX",fix,attr,fx)
                             data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
@@ -679,6 +686,7 @@ class Xevent():
                             fjdata["OFFSET"]= round(coffset,2)
                             fjdata["BASE"]  = cbase
                             jdata["FX2"] = fjdata
+                            data["ATTRIBUT"][attr]["FX2"] = fjdata
                             jdatas.append(jdata)
                             print(jdata)
 
@@ -1288,6 +1296,9 @@ class GUI(Base):
                             continue
                         #print( "$$$$",fix,sdata[fix])
                         for attr in sdata[fix]:
+                            if "FX2" in sdata[fix][attr]:
+                                if sdata[fix][attr]["FX2"]:
+                                    fx_color = 1
                             if "FX" in sdata[fix][attr]:
                                 if sdata[fix][attr]["FX"]:
                                     fx_color = 1
@@ -1454,9 +1465,14 @@ class GUI(Base):
                         DMX = fcmd[i]["VIRTUAL"][a]
                         if DMX and vcmd[i]:
                             vcmd[i]["DMX"] = DMX
-                if vcmd[i]["VALUE"] is not None or ("FX" in vcmd[i] and vcmd[i]["FX"]):
-                    cprint("jvcmd",vcmd[i])
-                    cmd.append(vcmd[i])
+                #if vcmd[i]["VALUE"] is not None or ("FX2" in vcmd[i] and vcmd[i]["FX2"]):
+                #    cprint("jvcmd",vcmd[i])
+                #    cmd.append(vcmd[i])
+                #elif vcmd[i]["VALUE"] is not None or ("FX" in vcmd[i] and vcmd[i]["FX"]):
+                #    cprint("jvcmd",vcmd[i])
+                #    cmd.append(vcmd[i])
+                cprint("jvcmd",vcmd[i])
+                cmd.append(vcmd[i])
 
         if cmd and not modes.val("BLIND"):
             jclient_send(cmd)
@@ -2183,8 +2199,11 @@ class Fixtures(Base):
 
                         if "FX" not in data["ATTRIBUT"][attr]: 
                              data["ATTRIBUT"][attr]["FX"] =""
+                        if "FX2" not in data["ATTRIBUT"][attr]: 
+                             data["ATTRIBUT"][attr]["FX2"] ={}
                         
                         sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
+                        sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
     
         return sdata
 
@@ -2297,13 +2316,55 @@ class Presets(Base):
         if "CFG" in self.val_presets[nr]:
             return self.val_presets[nr]["CFG"]
 
-
-    def get_raw_map(self,nr):
-        print("get_raw_map",nr)
+    def clean(self,nr):
+        
         if nr not in self.val_presets:
             self.val_presets[nr] = OrderedDict()
-            self.val_presets[nr]["VALUE"] = 0
-            self.val_presets[nr]["FX"] = ""
+            #self.val_presets[nr]["VALUE"] = 0
+            #self.val_presets[nr]["FX"] = ""
+
+
+        sdata = self.val_presets[nr]
+        for fix in sdata:
+            print("exec.clear()",nr,fix,sdata[fix])
+            for attr in sdata[fix]:
+                row = sdata[fix][attr]
+                if fix == "CFG":
+                    continue
+
+                if "VALUE" not in row:
+                    row["VALUE"] = None
+                if "FX" not in row:
+                    row["FX"] = "" 
+                if "FX2" not in row:
+                    row["FX2"] = OrderedDict()
+                elif row["FX2"]:
+                    for k in ["SIZE","SPEED","START","OFFSET"]:
+                        row["FX2"][k] = int( row["FX2"][k] )
+                    row["FX"] = "" 
+
+
+                if "FX" in row and row["FX"] and not row["FX2"]: # rebuild old FX to Dict-FX2
+                    #"off:0:0:0:16909:-:"
+                    x = row["FX"].split(":")
+                    print(x,len(x))
+                    #'FX2': {'TYPE': 'sinus', 'SIZE': 200, 'SPEED': 30, 'START': 0, 'OFFSET': 2805, 'BASE': '-'}}
+                    if len(x) >= 6:
+                        row["FX2"]["TYPE"] = x[0] 
+                        row["FX2"]["SIZE"] =  int(x[1])
+                        row["FX2"]["SPEED"] = int(x[2]) 
+                        row["FX2"]["START"] = int(x[3]) 
+                        row["FX2"]["OFFSET"] = int(x[4]) 
+                        row["FX2"]["BASE"] = x[5] 
+                    row["FXOLD"] = row["FX"]
+                    row["FX"] = ""
+                cprint("exec.clear()",nr,fix,row)
+
+            
+    def get_raw_map(self,nr):
+        self.clean(nr)
+
+        print("get_raw_map",nr)
         sdata = self.val_presets[nr]
         cmd = ""
         out = []
@@ -2321,6 +2382,7 @@ class Presets(Base):
 
                 x["VALUE"] = sdata[fix][attr]["VALUE"]
                 x["FX"]    = sdata[fix][attr]["FX"]
+                x["FX2"]    = sdata[fix][attr]["FX2"]
                 #x["DMX"]  = sdata[fix][attr]["NR"] 
 
                 out.append(x)

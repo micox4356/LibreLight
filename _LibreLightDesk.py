@@ -195,8 +195,8 @@ class _FadeTime():
 
 FADE = _FadeTime()  #2 #0.1 #1.13
 fx_move_prm = {"SIZE":20,"SPEED":100,"OFFSET":50,"BASE":"-","START":0}
-fx_prm = {"SIZE":200,"SPEED":30,"OFFSET":255,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"WING":2}
-fx_modes = [":RED",":GREEN",":BLUE",":MAG",":YELLOW",":CYAN"]
+fx_prm = {"SIZE":200,"SPEED":30,"OFFSET":255,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
+fx_modes = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
 fx_mo = ["sinus","on","on2","bump","bump2","fade","cosinus"]
 
 def build_cmd(dmx,val,args=[],flash=0,xpfx="",attr=""):
@@ -437,7 +437,7 @@ class Xevent():
             fx_prm["MODE"] += 1
             if fx_prm["MODE"] > len(fx_modes):
                 fx_prm["MODE"]=0
-            txt = "FX:"+fx_modes[fx_prm["MODE"]]
+            txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
 
             master.elem_fx_commands["FX:RED"]["text"] = txt
         elif event.num == 5:
@@ -446,7 +446,7 @@ class Xevent():
             fx_prm["MODE"] -= 1
             if fx_prm["MODE"] < 0:
                 fx_prm["MODE"]= len(fx_modes)-1
-            txt = "FX:"+fx_modes[fx_prm["MODE"]]
+            txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
             master.elem_fx_commands["FX:RED"]["text"] = txt
         elif event.num == 1:
             cmd = ""
@@ -466,6 +466,9 @@ class Xevent():
             if fx_prm["DIR"] < 0:
                 xfixtures = xfixtures[::-1]
                 x=-1
+            if not xfixtures:
+                cprint("470 fx() ... init no fixture selected",color="red")
+                return 0
             wings = []
             if fx_prm["WING"]:
                 l = len(xfixtures)
@@ -492,7 +495,10 @@ class Xevent():
                 print("wing",wing)
                 wlen = len(wing)
                 coffset= 0 # 1024/wlen * (offset/255)
-                offset = 0
+                if fx_prm["DIR"]:
+                    offset = 0
+                else:
+                    offset = 1024
                 for fix in wing:
                     data = FIXTURES.fixtures[fix]
                     #print( "ADD FX",fix)
@@ -509,6 +515,8 @@ class Xevent():
                         cspeed = fx_prm["SPEED"]
                         cstart = fx_prm["START"]
                         cbase  = fx_prm["BASE"]
+                        width  = fx_prm["WIDTH"]
+                        invert = fx_prm["INVERT"]
                         #cstart = start
                         coffset= round(offset,1)
                         #cbase  = base
@@ -575,7 +583,7 @@ class Xevent():
 
                                 ffxb= fx_mo[fx_prm["MO"]] 
                                 ffx= "off" #fx_mo[fx_prm["MO"]] 
-                                if ":RED" in fx_modes[fx_prm["MODE"]]:#
+                                if "RED" in fx_modes[fx_prm["MODE"]]:#
                                     base="-"
                                     if attr == "RED":
                                         #coffset=0
@@ -585,11 +593,11 @@ class Xevent():
                                         fx = ffxb# "off"
                                     if attr == "BLUE":
                                         fx =  ffxb#"off"
-                                elif ":GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
+                                elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
                                     base="-"
                                     if attr == "RED":
                                         fx =  ffxb#"off" 
-                                elif ":GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
+                                elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
                                     if attr == "GREEN":
                                         fx = ffxb# "off"
                                         #cspeed=0
@@ -597,7 +605,7 @@ class Xevent():
                                         fx=ffx
                                     if attr == "BLUE":
                                         fx =  ffxb#"off"
-                                elif ":BLUE" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                elif "BLUE" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
                                     base="-"
                                     if attr == "RED":
                                         fx = ffxb# "off" 
@@ -608,7 +616,7 @@ class Xevent():
                                         #cspeed=0
                                         #coffset=0
                                         fx=ffx
-                                elif ":YELLOW" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                elif "YELLOW" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
                                     base="-"
                                     if attr == "RED":
                                         fx = ffxb# "off" 
@@ -622,7 +630,7 @@ class Xevent():
                                         fx=ffx
                                     if attr == "BLUE":
                                         fx = "off"
-                                elif ":CYAN" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                elif "CYAN" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
                                     base="-"
                                     if attr == "RED":
                                         fx = ffxb# "off" 
@@ -636,7 +644,7 @@ class Xevent():
                                         #cspeed=0
                                         #coffset=0
                                         fx=ffx
-                                elif ":MAG" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
+                                elif "MAG" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
                                     base="-"
                                     if attr == "RED":
                                         fx = ffxb# "off" 
@@ -688,8 +696,10 @@ class Xevent():
                             fjdata["TYPE"]  = fxtype
                             fjdata["SIZE"] = round(csize,2)
                             fjdata["SPEED"] = round(cspeed,2)
+                            fjdata["WIDTH"] = int(width)
                             fjdata["START"] = cstart
                             fjdata["OFFSET"]= round(coffset,2)
+                            fjdata["INVERT"]= int(invert)
                             fjdata["BASE"]  = cbase
                             jdata["FX2"] = fjdata
                             data["ATTRIBUT"][attr]["FX2"] = fjdata
@@ -743,7 +753,7 @@ class Xevent():
                     fx_prm[k] = 4000
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
-                self.data.elem_fx_commands[self.attr]["text"] = "SZ:{:0.0f}".format(fx_prm[k])
+                self.data.elem_fx_commands[self.attr]["text"] = "SZ:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("SP:"):#SIN":
                 #global fx_prm
                 k = "SPEED"
@@ -765,9 +775,9 @@ class Xevent():
                     fx_prm[k] =0
 
                 if fx_prm[k] < 0.1:
-                    self.data.elem_fx_commands[self.attr]["text"] = "SP:off".format(fx_prm[k])
+                    self.data.elem_fx_commands[self.attr]["text"] = "SP:\noff".format(fx_prm[k])
                 else:
-                    self.data.elem_fx_commands[self.attr]["text"] = "SP:{:0.0f}".format(fx_prm[k])
+                    self.data.elem_fx_commands[self.attr]["text"] = "SP:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("ST:"):#SIN":
                 #global fx_prm
                 k = "START"
@@ -788,7 +798,7 @@ class Xevent():
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
 
-                self.data.elem_fx_commands[self.attr]["text"] = "ST:{:0.0f}".format(fx_prm[k])
+                self.data.elem_fx_commands[self.attr]["text"] = "ST:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("MO:"):# on,sinus,bump
                 #global fx_prm
                 k = "MO"
@@ -805,7 +815,28 @@ class Xevent():
                     if fx_prm[k] >= len(fx_mo):
                         fx_prm[k] = 0
                 txt = fx_mo[fx_prm[k]] 
-                self.data.elem_fx_commands[self.attr]["text"] = "MO:{}".format(txt)
+                self.data.elem_fx_commands[self.attr]["text"] = "MO:\n{}".format(txt)
+            elif self.attr.startswith("WIDTH:"):#SIN":
+                #global fx_prm
+                k = "WIDTH"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    if fx_prm[k] <= 0:
+                        fx_prm[k] = 1
+                    fx_prm[k] *=1.1
+                elif event.num == 5:
+                    fx_prm[k] /=1.1
+                #fx_prm[k] =int(fx_prm[k])
+                
+                if fx_prm[k] > 100:
+                    fx_prm[k] = 100
+                if fx_prm[k] < 0:
+                    fx_prm[k] =0
+
+                self.data.elem_fx_commands[self.attr]["text"] = "WIDTH:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("DIR:"):#SIN":
                 #global fx_prm
                 k = "DIR"
@@ -818,7 +849,19 @@ class Xevent():
                 elif event.num == 5:
                     fx_prm[k] =-1
                 txt = fx_prm[k] 
-                self.data.elem_fx_commands[self.attr]["text"] = "DIR:{}".format(fx_prm[k])
+                self.data.elem_fx_commands[self.attr]["text"] = "DIR:\n{}".format(fx_prm[k])
+            elif self.attr.startswith("INVERT:"):#SIN":
+                #global fx_prm
+                k = "INVERT"
+                if event.num == 1:
+                    pass
+                elif event.num == 2:
+                    pass
+                elif event.num == 4:
+                    fx_prm[k] = 1
+                elif event.num == 5:
+                    fx_prm[k] =0
+                self.data.elem_fx_commands[self.attr]["text"] = k+":\n{}".format(fx_prm[k])
             elif self.attr.startswith("WING:"):#SIN":
                 #global fx_prm
                 k = "WING"
@@ -830,13 +873,13 @@ class Xevent():
                     fx_prm[k] += 1
                 elif event.num == 5:
                     fx_prm[k] -=1
-                if fx_prm[k] > 10:
-                    fx_prm[k] = 10
+                if fx_prm[k] > 100:
+                    fx_prm[k] = 100
                 if fx_prm[k] < 1:
                     fx_prm[k] =1
                     
                 txt = fx_prm[k] 
-                self.data.elem_fx_commands[self.attr]["text"] = "WING:{}".format(fx_prm[k])
+                self.data.elem_fx_commands[self.attr]["text"] = "WING:\n{}".format(fx_prm[k])
             elif self.attr.startswith("OF:"):#SIN":
                 #global fx_prm
                 k = "OFFSET"
@@ -852,12 +895,12 @@ class Xevent():
                     fx_prm[k] /=1.2
                 #fx_prm[k] =int(fx_prm[k])
                 
-                if fx_prm[k] > 255:
-                    fx_prm[k] = 255
+                if fx_prm[k] > 512:
+                    fx_prm[k] = 512
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
 
-                self.data.elem_fx_commands[self.attr]["text"] = "OF:{:0.0f}".format(fx_prm[k])
+                self.data.elem_fx_commands[self.attr]["text"] = "OF:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("BS:"):
                 k = "BASE"
                 if event.num == 1:
@@ -868,7 +911,7 @@ class Xevent():
                     fx_prm[k] = "+"
                 elif event.num == 5:
                     fx_prm[k] = "-"
-                self.data.elem_fx_commands[self.attr]["text"] = "BS:{}".format(fx_prm[k])
+                self.data.elem_fx_commands[self.attr]["text"] = "BS:\n{}".format(fx_prm[k])
             elif self.attr.startswith("FX:"):#SIN":
                 self.fx(event)
 
@@ -1057,10 +1100,21 @@ class Base():
     def __init__(self):
         show_name = "GloryCamp2021"
         #show_name = "JMS"
-        #show_name = "Dimmer"
         show_name = "DemoShow"
+        #show_name = "Dimmer"
         self.home = os.environ['HOME'] 
         self.show_path = self.home +"/LibreLight/"
+        try:
+            f = open(self.show_path+"init.txt","r")
+            for line in f.readlines():
+                cprint(line)
+                if not line.startswith("#"):
+                    show_name = line.strip()
+                    show_name = show_name.replace(".","")
+                    show_name = show_name.replace("\\","")
+                    show_name = show_name.replace("/","")
+        except Exception as e:
+            cprint("shownamw exception",color="red")
         if not os.path.isdir(self.show_path):
             os.mkdir(self.show_path)
         self.show_path += "/show/"
@@ -1196,10 +1250,10 @@ class GUI(Base):
         self.elem_attr = {}
         
         self.fx_commands =["STONY_FX","FX OFF","\n"
-                ,"FX:CIR","FX:PAN","FX:TILT","\n"
+                ,"FX:CIR","FX:PAN","FX:TILT","MO:ON""\n"
                 ,"MSZ:","MSP:","MST:","MOF:","MBS:-","\n"
-                ,"FX:DIM","FX:RED", "MO:on","DIR:1","WING:2","\n"
-                ,"SZ:","SP:","ST:","OF:","BS:-","\n"
+                ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","WING:\n2","\n"
+                ,"SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","DEL","\n"
                 ,"SELECT","FLASH","GO","FADE","MOVE","\n"
@@ -1362,6 +1416,9 @@ class GUI(Base):
                         elem["bg"] = "grey"
                         elem.config(activebackground="grey")
 
+                    if "FX2" not in sdata["ATTRIBUT"][attr]: # insert FX2 excetption
+                        sdata["ATTRIBUT"][attr]["FX2"] = OrderedDict()
+                        
                     if sdata["ATTRIBUT"][attr]["FX"]:
                         elem["fg"] = "blue"
                     elif sdata["ATTRIBUT"][attr]["FX2"]:
@@ -1451,7 +1508,7 @@ class GUI(Base):
             self.refresh_exec()
             self.refresh_fix()
 
-    def _preset_go(self,rdata,cfg,fcmd,value,xfade=None,event=None,xFLASH=0):
+    def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0):
         if xfade is None and FADE._is():
             xfade = FADE.val()
 
@@ -1470,6 +1527,12 @@ class GUI(Base):
                 DMX = fcmd[i]["DMX"]
                 if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is float:
                     vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
+                if value is not None:
+                    vcmd[i]["VALUE"] = value 
+                if value == "off":
+                    if "FX2" in vcmd:
+                        vcmd[i]["FX2"]["TYPE"] = value
+
                 if DMX and vcmd[i]:
                     vcmd[i]["DMX"] = DMX
 
@@ -1686,6 +1749,7 @@ class GUI(Base):
             
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
             if comm not in self.elem_fx_commands:
+                comm = comm.replace("\n","")
                 self.elem_fx_commands[comm] = b
                 self.val_fx_commands[comm] = 0
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
@@ -1709,20 +1773,20 @@ class GUI(Base):
                 b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
                 b["bg"] = "lightgreen"
             elif comm == "SZ:":
-                b["text"] = "SZ:{:0.0f}".format(fx_prm["SIZE"])
+                b["text"] = "SZ:\n{:0.0f}".format(fx_prm["SIZE"])
                 b["bg"] = "lightgreen"
             elif comm == "SP:":
-                b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
+                b["text"] = "SP:\n{:0.0f}".format(fx_prm["SPEED"])
                 b["bg"] = "lightgreen"
             elif comm == "ST:":
                 b["bg"] = "lightgreen"
-                b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
+                b["text"] = "ST:\n{:0.0f}".format(fx_prm["START"])
             elif comm == "OF:":
                 b["bg"] = "lightgreen"
-                b["text"] = "OF:{:0.0f}".format(fx_prm["OFFSET"])
+                b["text"] = "OF:\n{:0.0f}".format(fx_prm["OFFSET"])
             elif comm == "BS:-":
                 b["bg"] = "lightgreen"
-                b["text"] = "BS:{}".format(fx_prm["BASE"])
+                b["text"] = "BS:\n{}".format(fx_prm["BASE"])
             elif comm[0] == "M":
                 b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
                 b["bg"] = "lightgrey"
@@ -1730,7 +1794,7 @@ class GUI(Base):
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=5:
+            if c >=6:
                 c=0
                 r+=1
     def draw_command(self,xframe):
@@ -2787,7 +2851,7 @@ master.draw_patch(w1)
 window_manager.new(w,name)
 
 name="FX"
-w = GUIWindow(name,master=0,width=350,height=250,left=920,top=305)
+w = GUIWindow(name,master=0,width=410,height=250,left=920,top=305)
 #frame_fx = w.tk
 master.draw_fx(w.tk)
 window_manager.new(w,name)

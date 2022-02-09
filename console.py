@@ -131,9 +131,10 @@ class Main():
                     except:pass
                     artnet = self.artnet[str(univ)]
                     artnet.dmx = xx
-
+                
                 v = dmxch.next(t)
                 if i == 0:
+                    #print(dmxch)
                     if int(xx[i]*100) != int( v*100):
                         #print("----v",x[i],v,t)
                         pass

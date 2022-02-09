@@ -457,7 +457,10 @@ class Xevent():
             #FIXTURES.start_fx(attr)
             xfixtures = []
             # WING's and BLOCK's
-            for fix in FIXTURES.fixtures:
+            fix_active =FIXTURES.get_active() 
+            for fix in fix_active:
+                if fix == "CFG":
+                    continue
                 xfixtures.append(fix)
             x=0
             if fx_prm["DIR"] < 0:
@@ -486,7 +489,10 @@ class Xevent():
 
             print("FX442 ",fx_prm,x)
             for wing in wings:
-                coffset= offset
+                print("wing",wing)
+                wlen = len(wing)
+                coffset= 0 # 1024/wlen * (offset/255)
+                offset = 0
                 for fix in wing:
                     data = FIXTURES.fixtures[fix]
                     #print( "ADD FX",fix)
@@ -665,7 +671,7 @@ class Xevent():
                         if fx:
                             #fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(fx_prm["SIZE"],fx_prm["SPEED"],start,offset,base)
                             fx += ":{:0.0f}:{:0.0f}:{:0.0f}:{:0.0f}:{}:".format(csize,cspeed,cstart,coffset,cbase)
-                            jdata["FX"] = fx
+                            #jdata["FX"] = fx
                             offset_flag=1
                             #print("ADD FX",fix,attr,fx,data["ATTRIBUT"][attr]["ACTIVE"])
 
@@ -676,7 +682,7 @@ class Xevent():
 
                         if data["ATTRIBUT"][attr]["ACTIVE"] and fx:
                             print("++ADD FX",fix,attr,fx)
-                            data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
+                            #data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
                             cmd+=update_dmx(attr,data,pfx="fx",value=fx)#,flash=FLASH)
                             fjdata = {}
                             fjdata["TYPE"]  = fxtype
@@ -693,7 +699,12 @@ class Xevent():
 
                     if fx_prm["OFFSET"] > 0.5 and offset_flag:  
                         offset_flag=0
-                        offset += fx_prm["OFFSET"] # add offset on next fixture
+                        #offset += fx_prm["OFFSET"] # add offset on next fixture
+                        #offset += 1024/wlen * (fx_prm["OFFSET"]/255)
+                        if fx_prm["DIR"]:
+                            offset += 1024/wlen * (fx_prm["OFFSET"]/255)
+                        else:
+                            offset -= 1024/wlen * (fx_prm["OFFSET"]/255)
                         offset = round(offset,2)
                     #print("offset",offset)
             if cmd and not modes.val("BLIND"):
@@ -821,8 +832,8 @@ class Xevent():
                     fx_prm[k] -=1
                 if fx_prm[k] > 10:
                     fx_prm[k] = 10
-                if fx_prm[k] < 0:
-                    fx_prm[k] =0
+                if fx_prm[k] < 1:
+                    fx_prm[k] =1
                     
                 txt = fx_prm[k] 
                 self.data.elem_fx_commands[self.attr]["text"] = "WING:{}".format(fx_prm[k])
@@ -841,8 +852,8 @@ class Xevent():
                     fx_prm[k] /=1.2
                 #fx_prm[k] =int(fx_prm[k])
                 
-                if fx_prm[k] > 1024:
-                    fx_prm[k] = 1024
+                if fx_prm[k] > 255:
+                    fx_prm[k] = 255
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
 
@@ -1187,7 +1198,7 @@ class GUI(Base):
         self.fx_commands =["STONY_FX","FX OFF","\n"
                 ,"FX:CIR","FX:PAN","FX:TILT","\n"
                 ,"MSZ:","MSP:","MST:","MOF:","MBS:-","\n"
-                ,"FX:DIM","FX:RED", "MO:on","DIR:1","WING:0","\n"
+                ,"FX:DIM","FX:RED", "MO:on","DIR:1","WING:2","\n"
                 ,"SZ:","SP:","ST:","OF:","BS:-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","DEL","\n"
@@ -1353,6 +1364,8 @@ class GUI(Base):
 
                     if sdata["ATTRIBUT"][attr]["FX"]:
                         elem["fg"] = "blue"
+                    elif sdata["ATTRIBUT"][attr]["FX2"]:
+                        elem["fg"] = "red"
                     else:
                         elem["fg"] = "black"
 

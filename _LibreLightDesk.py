@@ -164,7 +164,10 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
 jclient = chat.tcp_sender()#port=50001)
 def jclient_send(data):
+    t_start = time.time()
     jclient.send("\00 "+ json.dumps(data) +"\00 ")
+    print(time.time()-t_start)
+    cprint(time.time(),color="yellow")
 
 class _FadeTime():
     def __init__(self):
@@ -1459,6 +1462,7 @@ class GUI(Base):
                     FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
     def preset_go(self,nr,val=None,xfade=None,event=None):
+        t_start = time.time()
         if xfade is None and FADE._is():
             xfade = FADE.val()
         
@@ -1507,6 +1511,7 @@ class GUI(Base):
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()
             self.refresh_fix()
+        cprint("preset_go",time.time()-t_start)
 
     def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0):
         if xfade is None and FADE._is():
@@ -2097,6 +2102,7 @@ class Fixtures(Base):
                 data = self.fixtures[fix]
                 for attr in data["ATTRIBUT"]:
                     data["ATTRIBUT"][attr]["FX"] = ""
+                    data["ATTRIBUT"][attr]["FX2"] = OrderedDict()
     def get_attr(self,fix,attr):
         if fix in self.fixtures:
             data = self.fixtures[fix]

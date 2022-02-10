@@ -166,8 +166,8 @@ jclient = chat.tcp_sender()#port=50001)
 def jclient_send(data):
     t_start = time.time()
     jclient.send("\00 "+ json.dumps(data) +"\00 ")
-    print(time.time()-t_start)
-    cprint(time.time(),color="yellow")
+    print(round((time.time()-t_start)*1000,4),"milis")
+    cprint(round(time.time(),4),color="yellow")
 
 class _FadeTime():
     def __init__(self):
@@ -1330,6 +1330,9 @@ class GUI(Base):
         FIXTURES.backup_patch()
         #print("*********del",self,"***********************************************")
     def refresh_exec(self):
+        refresher.reset() # = Refresher()
+
+    def _refresh_exec(self):
         cprint("PRESET.refresh_exec()")
         
         self._XX +=1
@@ -1402,6 +1405,8 @@ class GUI(Base):
 
 
     def refresh_fix(self):
+        refresher.reset() # = Refresher()
+    def _refresh_fix(self):
         for fix in FIXTURES.fixtures:                            
             sdata = FIXTURES.fixtures[fix]                            
             for attr in sdata["ATTRIBUT"]:
@@ -2187,7 +2192,7 @@ class Fixtures(Base):
         return cmd
 
     def encoder(self,fix,attr,xval="",xfade=0):
-        cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
+        #cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
 
         if attr == "CLEAR":
             self.clear()
@@ -2798,7 +2803,31 @@ PRESETS.load_presets()
 
 FIXTURES = Fixtures()
 FIXTURES.load_patch()
+
+
+
 master = GUI()
+
+class Refresher():
+    def __init__(self):
+        self.time = time.time()+1
+    def reset(self):
+        self.time = time.time()+.1
+    def refresh(self):
+        if time.time() > self.time:
+            if time.time() < self.time+2:
+                #self.time = time.time()+1
+                self._refresh()
+    def _refresh(self):
+        master._refresh_fix()
+        master._refresh_exec()
+    def loop(self,args={}):
+        while 1:
+            self.refresh()
+            time.sleep(0.1)
+
+refresher = Refresher()
+thread.start_new_thread(refresher.loop,())
 
 w = GUIWindow("MAIN",master=1,width=100,height=450,left=0,top=65)
 data = []

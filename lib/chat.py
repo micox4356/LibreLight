@@ -160,6 +160,8 @@ class CMD():
                                 cb({"c":client_nr,"cmd":cmd})
 
 
+                        else:
+                            time.sleep(0.0001)
                         #else: #workaround json sock pkg-drops
                         #    print("+++ Verbindung zu %s beendet" % ip)
                         #    sock.close()
@@ -167,7 +169,6 @@ class CMD():
                         #        client_nr = clients.index(sock)
                         #        clients2[client_nr] = ""
                         #    clients.remove(sock)
-                        time.sleep(0.0001)
         except KeyboardInterrupt:
             print(" strg+c")
         finally:

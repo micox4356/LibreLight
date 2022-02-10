@@ -425,11 +425,12 @@ def split_cmd(data):
 import time
 import json
 def JCB(data):
+    t_start = time.time()
     #jdatas = data["cmd"].split("\x00")
     jdatas = [data["cmd"]]
-    #print("JCB")
     c = clock.time() 
     c = float(c)
+    print("JCB",round(c,2))
     ftime = 0
     delay = 0
     for j in jdatas:
@@ -522,6 +523,8 @@ def JCB(data):
                     else:
                         CB({"cmd":"fx"+ccm})
 
+            print(time.time()-t_start)
+            print(time.time())
             return
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")

@@ -275,7 +275,7 @@ def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
                 else:
                     v=row["VALUE"]
                     xcmd = "{:0.4f}".format(v)
-                    cprint([v])
+                    #cprint([v])
                     if type(v) is float:
                         jxcmd["VALUE"]  = v #round(v,3)
                     else:
@@ -1547,7 +1547,7 @@ class GUI(Base):
                 #elif vcmd[i]["VALUE"] is not None or ("FX" in vcmd[i] and vcmd[i]["FX"]):
                 #    cprint("jvcmd",vcmd[i])
                 #    cmd.append(vcmd[i])
-                cprint("jvcmd",vcmd[i])
+                #cprint("jvcmd",vcmd[i])
                 cmd.append(vcmd[i])
 
         if cmd and not modes.val("BLIND"):
@@ -2177,7 +2177,7 @@ class Fixtures(Base):
             text = str(attr)+' '+str(round(v,2))
             #self.gui.update(fix,attr,args={"text":text})
             #print("END 5454 _=_=_=_=_==_")
-        cprint("update_raw",cmd,color="red")
+        #cprint("update_raw",cmd,color="red")
         return cmd
 
     def encoder(self,fix,attr,xval="",xfade=0):
@@ -2403,7 +2403,7 @@ class Presets(Base):
 
         sdata = self.val_presets[nr]
         for fix in sdata:
-            print("exec.clear()",nr,fix,sdata[fix])
+            #print("exec.clear()",nr,fix,sdata[fix])
             for attr in sdata[fix]:
                 row = sdata[fix][attr]
                 if fix == "CFG":
@@ -2435,7 +2435,7 @@ class Presets(Base):
                         row["FX2"]["BASE"] = x[5] 
                     row["FXOLD"] = row["FX"]
                     row["FX"] = ""
-                cprint("exec.clear()",nr,fix,row)
+                #cprint("exec.clear()",nr,fix,row)
 
             
     def get_raw_map(self,nr):

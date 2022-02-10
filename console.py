@@ -440,8 +440,8 @@ def JCB(data):
             #print(j)
             cmds = json.loads(jdata)
             for x in cmds:
-                cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
-                cprint("json", x,type(x),color="yellow")#,cmds[x])
+                #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
+                #cprint("json", x,type(x),color="yellow")#,cmds[x])
 
                 if "DMX" in x:
                     DMX = int(x["DMX"])
@@ -479,7 +479,7 @@ def JCB(data):
                 
                 if type(fx2) is dict and fx2:
 
-                    cprint("FX2",DMX,fx2,color="green")
+                    #cprint("FX2",DMX,fx2,color="green")
                     xtype="fade"
                     size  = 10
                     speed = 10

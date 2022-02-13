@@ -545,14 +545,14 @@ class Xevent():
                             fx = "cosinus"
 
                         if fx:
-                            if fx_prm["SPEED"] < 0.1:
+                            if fx_prm["SPEED"] < 0:
                                 fx = "off"
                         else:
                             if ":DIM" in self.attr:
                                 base=""
                                 ffxb= fx_mo[fx_prm["MO"]] 
                                 if attr == "DIM":
-                                    if fx_prm["SPEED"] < 0.1:
+                                    if fx_prm["SPEED"] < 0:
                                         fx = "off"
                                     else:
                                         fx = ffxb #"fade"
@@ -561,14 +561,14 @@ class Xevent():
                                 if attr == "PAN":
                                     fx = "off"
                                 if attr == "TILT":
-                                    if fx_prm["SPEED"] < 0.1:
+                                    if fx_prm["SPEED"] < 0:
                                         fx = "off"
                                     else:
                                         fx = "sinus"
                             elif ":PAN" in self.attr:
                                 base=""
                                 if attr == "PAN":
-                                    if fx_prm["SPEED"] < 0.1:
+                                    if fx_prm["SPEED"] < 0:
                                         fx = "off"
                                     else:
                                         fx = "cosinus" 
@@ -577,13 +577,13 @@ class Xevent():
                             elif ":CIR" in self.attr:
                                 base=""
                                 if attr == "PAN":
-                                    if fx_prm["SPEED"] < 0.1:
+                                    if fx_prm["SPEED"] < 0:
                                         fx = "off"
                                     else:
 
                                         fx = "cosinus" 
                                 if attr == "TILT":
-                                    if fx_prm["SPEED"] < 0.1:
+                                    if fx_prm["SPEED"] < 0:
                                         fx = "off"
                                     else:
                                         fx = "sinus"
@@ -764,32 +764,40 @@ class Xevent():
                 if fx_prm[k] == 6: #bug
                     fx_prm[k] =5
                 self.data.elem_fx_commands[self.attr]["text"] = "SZ:\n{:0.0f}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("SP:"):#SIN":
                 #global fx_prm
                 k = "SPEED"
                 if event.num == 1:
-                    pass
-                elif event.num == 2:
-                    pass
+                    fx_prm[k] = 6
+                elif event.num == 3:
+                    fx_prm[k] = 60
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
-                        fx_prm[k] = 0
-                    fx_prm[k] +=5 #1.1
+                        fx_prm[k] = 0.06
+                    elif fx_prm[k] < 5:
+                        fx_prm[k] *=1.2
+                    else:
+                        fx_prm[k] +=5 #1.1
                 elif event.num == 5:
-                    fx_prm[k] -= 5 #1.1
+                    if fx_prm[k] <= 5:
+                        fx_prm[k] *=0.8
+                    else:
+                        fx_prm[k] -= 5 #1.1
                 #fx_prm[k] =int(fx_prm[k])
                 
                 if fx_prm[k] > 4000:
                     fx_prm[k] = 4000
-                if fx_prm[k] < 0:
+                if fx_prm[k] < 0.05:
                     fx_prm[k] =0
-                if fx_prm[k] == 6: #bug
+                if fx_prm[k] > 5 and fx_prm[k] < 10: #bug
                     fx_prm[k] =5
 
-                if fx_prm[k] < 0.1:
+                if fx_prm[k] < 0:
                     self.data.elem_fx_commands[self.attr]["text"] = "SP:\noff".format(fx_prm[k])
                 else:
-                    self.data.elem_fx_commands[self.attr]["text"] = "SP:\n{:0.0f}".format(fx_prm[k])
+                    self.data.elem_fx_commands[self.attr]["text"] = "SP:\n{:0.02f}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("ST:"):#SIN":
                 #global fx_prm
                 k = "START"
@@ -813,6 +821,7 @@ class Xevent():
                     fx_prm[k] =5
 
                 self.data.elem_fx_commands[self.attr]["text"] = "ST:\n{:0.0f}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("MO:"):# on,sinus,bump
                 #global fx_prm
                 k = "MO"
@@ -830,6 +839,7 @@ class Xevent():
                         fx_prm[k] = 0
                 txt = fx_mo[fx_prm[k]] 
                 self.data.elem_fx_commands[self.attr]["text"] = "MO:\n{}".format(txt)
+                cprint(fx_prm)
             elif self.attr.startswith("WIDTH:"):#SIN":
                 #global fx_prm
                 k = "WIDTH"
@@ -853,6 +863,7 @@ class Xevent():
                     fx_prm[k] =5
 
                 self.data.elem_fx_commands[self.attr]["text"] = "WIDTH:\n{:0.0f}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("DIR:"):#SIN":
                 #global fx_prm
                 k = "DIR"
@@ -866,6 +877,7 @@ class Xevent():
                     fx_prm[k] =-1
                 txt = fx_prm[k] 
                 self.data.elem_fx_commands[self.attr]["text"] = "DIR:\n{}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("INVERT:"):#SIN":
                 #global fx_prm
                 k = "INVERT"
@@ -880,6 +892,7 @@ class Xevent():
                 if fx_prm[k] == 6: #bug ?
                     fx_prm[k] =5
                 self.data.elem_fx_commands[self.attr]["text"] = k+":\n{}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("WING:"):#SIN":
                 #global fx_prm
                 k = "WING"
@@ -898,6 +911,7 @@ class Xevent():
                     
                 txt = fx_prm[k] 
                 self.data.elem_fx_commands[self.attr]["text"] = "WING:\n{}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("OF:"):#SIN":
                 #global fx_prm
                 k = "OFFSET"
@@ -921,6 +935,7 @@ class Xevent():
                     fx_prm[k] =5
 
                 self.data.elem_fx_commands[self.attr]["text"] = "OF:\n{:0.0f}".format(fx_prm[k])
+                cprint(fx_prm)
             elif self.attr.startswith("BS:"):
                 k = "BASE"
                 if event.num == 1:

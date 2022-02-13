@@ -239,6 +239,7 @@ class FX():
         self.__offset = offset
         self.__clock = clock
         self.__clock_curr = clock
+        self.out = 0
         self.run = 1
         self.__angel = self.__clock_curr*360%360
     def __str__(self):
@@ -422,10 +423,12 @@ def split_cmd(data):
 
 import time
 import json
-def JCB(data):
+import zlib
+def JCB(data): #json client input
     t_start = time.time()
     #jdatas = data["cmd"].split("\x00")
     jdatas = [data["cmd"]]
+
     c = clock.time() 
     c = float(c)
     print("JCB",round(c,2))
@@ -531,7 +534,7 @@ def JCB(data):
             cprint("----",jdata,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             
-def CB(data):
+def CB(data): # raw/text client input 
     #print("CB",data)
 
     cmds = split_cmd(data)

@@ -232,6 +232,8 @@ class FX():
         self.__start = start
         if width > 200:
             width = 200
+        if width <= 0:
+            width = 1
         self.__width = width
         self.__invert = invert
         self.__base = base
@@ -252,91 +254,106 @@ class FX():
             self.__clock_curr = clock
         t = self.__clock_curr  * self.__speed / 60
         t += self.__offset / 1024 #255
-        t += self.__start / 1024 #255
+        t += self.__start  / 1024 #255
         tw = t%1
         t = t * (100/self.__width)
         if tw > self.__width/100:
-            t = 1 #self.__width/100
+            t = 1 
         
-        #self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
-        self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
+        self.__angel = t%1*360 
         t = t%1
         rad = math.radians(self.__angel)
 
-        base = 0
-        if self.__base == "+": # add
-            base = self.__size
-        elif self.__base == "-": # sub
-            base = self.__size*-1
-
-        # todo start angle 20°
-        # todo width angle 90°
-
-        #print("{:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(self.__angel ,self.__clock_curr,self.__angel ,math.sin(rad) ) )
+        v=0
         out = 0
-        if self.__xtype == "sinus":
-            out = math.sin( rad ) * self.__size +base #/2 + base/2
-        elif self.__xtype == "cosinus":
-            if self.__base == "+": # add
-                out = math.cos( rad ) * self.__size*-1 + base #*4 #/2
-            elif self.__base == "-": # add
-                out = math.cos( rad ) * self.__size + base #*4
-            else: 
-                out = math.cos( rad ) * self.__size #+ base/2
+        base = 0
+        size = self.__size
 
-        elif self.__xtype == "on2":
-            out = self.__size/2
-            if self.__angel > 90 and self.__angel <=270:
-                out *=-1
-            out += base/2
-            print("ON {:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(out,t,0,self.__angel, base))
-            #return out 
+        if self.__base == "+": # add
+            base = size/2
+        elif self.__base == "-": # sub
+            base = size/2*-1
+
+        if self.__xtype == "sinus":
+            v = math.sin( rad )
+            v/=2
+        elif self.__xtype == "cosinus":
+            v = math.cos( rad )
+            if self.__base == "+": # add
+                size *= -1
+
+            v/=2
         elif self.__xtype == "on":
-            out = self.__size/2
+            #base = 0
             if self.__angel > 90 and self.__angel <=270:
-                pass
+                v=1
             else:
-                out *=-1
-            out += base/2
-            #return out 
-        elif self.__xtype == "bump":
-            out = 0 
+                v=0
+            base = 0
             if self.__base == "-": # sub
-                out = (t%1-1) * self.__size 
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
             elif self.__base == "+": # sub
-                out = (t%1) * self.__size 
+                if self.__invert:
+                    v = v-1
             else:
-                out = (t%1-0.5) * self.__size 
-            #print("bump",out)
-            #return out
+                v = (t%1-0.5)
+        elif self.__xtype == "bump":
+            v = (t%1) 
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
+            else:
+                v = (t%1-0.5)
+
+
         elif self.__xtype == "bump2":
-            out = 0 
-            if self.__base == "+": # sub
-                out = (t%1-1) * (self.__size *-1) 
-            elif self.__base == "-": # sub
-                out = (t%1) * (self.__size *-1)
+            v = (t%1) 
+            v = 1-v  
+            if v == 1:
+                v=0
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
             else:
-                out = (t%1-0.5) * (self.__size *-1)
-            #print("bump",out)
-            #return out
+                v = (t%1-0.5)
+
         elif self.__xtype == "fade":
             x = t * 2 
             if x > 1:
                 x = 2-x 
             x -= 0.5
+            v = x*2
+            #base /= 2
+            #base *=2 
             if self.__base == "+": # add
-                base = self.__size
-                out = x * self.__size + base/2
+                pass#base /= 2
             else:
-                base = self.__size*-1
-                out = x * self.__size + base/2
-                out = self.__size*-1 -out
-            #if self.__base == "+": # sub
-            #    out = self.__size*-1 -out
+                v *= -1
 
-        #if not self.__invert:
-        #    out = self.__size*-1 -out
+            v/=2
 
+        if self.__invert:
+            v *=-1
+
+        out = v *size +base
         self.out = out
         return out
 

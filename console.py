@@ -438,8 +438,10 @@ def JCB(data):
             continue
         try:
             jdata = j #jdatas[j]
-            #print(j)
-            cmds = json.loads(jdata)
+            jtxt = jdata
+            #jtxt = zlib.decompress(jtxt) #jtxt.decode())
+            jtxt = str(jtxt,"UTF-8")
+            cmds = json.loads(jtxt)
             for x in cmds:
                 #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
                 #cprint("json", x,type(x),color="yellow")#,cmds[x])

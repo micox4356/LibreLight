@@ -163,9 +163,14 @@ BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
 jclient = chat.tcp_sender()#port=50001)
+import zlib
 def jclient_send(data):
     t_start = time.time()
-    jclient.send("\00 "+ json.dumps(data) +"\00 ")
+    jtxt = data
+    jtxt = json.dumps(jtxt)
+    jtxt = jtxt.encode()
+    #jtxt = zlib.compress(jtxt)
+    jclient.send(b"\00 "+ jtxt +b"\00 ")
     print(round((time.time()-t_start)*1000,4),"milis")
     cprint(round(time.time(),4),color="yellow")
 

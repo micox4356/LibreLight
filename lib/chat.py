@@ -44,7 +44,8 @@ class tcp_sender(object):
     def send(self,nachricht):
 
         try:
-            self.xs.send(bytes(nachricht+";","utf-8") )
+            #self.xs.send(bytes(nachricht+";","utf-8") )
+            self.xs.send(nachricht+b";" )
         except socket.error as e:
             self.connect()
     def close(self):
@@ -138,10 +139,10 @@ class CMD():
                             
                         nachricht = msg
                         #print(msg)
-                        nachricht = str(nachricht,"utf-8")
-                        nachricht = nachricht.replace(";","")
-                        nachrichten = nachricht.strip().replace("EOB","")
-                        if "client_name:" in nachrichten:
+                        #nachricht = str(nachricht,"utf-8")
+                        nachricht = nachricht.replace(b";",b"")
+                        nachrichten = nachricht.strip().replace(b"EOB",b"")
+                        if b"client_name:" in nachrichten:
                             if sock in clients:
                                 client_nr = clients.index(sock)
                                 clients2[client_nr] = nachrichten
@@ -154,7 +155,7 @@ class CMD():
                             tstamp = time.strftime("%H:%M:%S")
 
                             #print("from:",client_nr,">>>", tstamp , ip, nachrichten.split(";"))
-                            for xx,nachricht in enumerate(nachrichten.split(";")):
+                            for xx,nachricht in enumerate(nachrichten.split(b";")):
                                 cmd = nachricht #.split(" ")
                                 #print(xx,cmd)
                                 cb({"c":client_nr,"cmd":cmd})

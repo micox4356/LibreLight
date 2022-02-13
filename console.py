@@ -225,8 +225,81 @@ class Fade():
         # start,stop,fwd,bwd,revers
         pass
 
+class MASTER_FX():
+    def __init__(self):
+        cprint(self,"MASTER_FX INIT !",color="green")
+
+        self.__data = []
+        self.__ok = []
+        self.i=0
+        self.old_offsets = []
+        self.offsets = []
+        self.count = -1
+        self.init = 0
+    def add(self,fx):
+        if fx not in self.__data:
+            cprint(self,"ADD TO MASTER !",color="green")
+            self.__data.append(fx)
+            info = fx._get_info()
+            cprint(self,"ADD" ,info,color="green")
+            offset = 0
+            if "offset" in info:
+                offset = info["offset"]
+            self.old_offsets.append(offset)
+            self.offsets.append(offset)
+            if "xtype" in info:
+                if info["xtype"] == "rnd":
+                    self._shuffle()
+                    #self.init += 1
+            
+    def _shuffle(self):
+        #cprint(self,"REORDER RANDOM !",color="green")
+        #self.init = 0
+
+        #cprint(self.old_offsets)
+        random.shuffle(self.old_offsets)
+        #cprint(self.old_offsets)
+    def _init(self):
+        self._shuffle()
+        #self.offsets = []
+        for i,v in enumerate(self.old_offsets):
+            offset = self.old_offsets[i]
+            self.offsets[i] =  offset
+        self.init = 0
+    def next(self,child):
+        i = self.__data.index(child)
+        offset = self.old_offsets[i]
+        self.offsets[i] =  offset
+        return offset
+        #for i,v in enumerate(self.old_offsets):
+        #    offset = self.old_offsets[i]
+        #    self.offsets[i] =  offset
+
+
+    def get(self,child,count):
+        offset = 0
+
+        if child not in self.__data:
+            return offset
+
+        if self.init:
+            self._init()
+
+        idx = self.__data.index(child) 
+        if self.count != count and idx == 0:
+            self._shuffle()
+            #print( count)
+            self.count=count
+            
+
+        idx = self.__data.index(child) 
+        offset = self.offsets[idx]
+
+        return offset
+        
+
 class FX():
-    def __init__(self,xtype="sinus",size=10,speed=10,invert=0,width=100,start=0,offset=0,base="",clock=0):
+    def __init__(self,xtype="sinus",size=10,speed=10,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
         self.__xtype=xtype
         self.__size  = size
         self.__start = start
@@ -242,8 +315,25 @@ class FX():
         self.__clock = clock
         self.__clock_curr = clock
         self.out = 0
+        self.old_v = -1
         self.run = 1
+        self.count = -1
         self.__angel = self.__clock_curr*360%360
+        if master is None:
+            cprint(master, "MASTER_FX ERR",master,color="red")
+            self.__master = MASTER_FX()
+            self.__master.add(self)
+        else:
+            cprint( "MASTER_FX OK",master,color="red")
+            self.__master = master
+            self.__master.add(self)
+        if self.__xtype == "rnd":
+            self.__offset = self.__master.get(self,-2)
+            self.__offset = self.__master.next(self)#,count)
+    def _get_info(self):
+        print(self.__offset)
+        return {"offset":self.__offset,"xtype":self.__xtype}
+        #return self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run 
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
@@ -253,9 +343,10 @@ class FX():
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
         t = self.__clock_curr  * self.__speed / 60
-        t += self.__offset / 1024 #255
+        t += self.__offset / 255 #1024 #255
         t += self.__start  / 1024 #255
         tw = t%1
+        count = t//1
         t = t * (100/self.__width)
         if tw > self.__width/100:
             t = 1 
@@ -283,6 +374,32 @@ class FX():
                 size *= -1
 
             v/=2
+        elif self.__xtype == "rnd":
+            #base = 0
+            if self.__angel > 90 and self.__angel <=270:
+                v=1
+            else:
+                v=0
+            #if count != self.count and v: # % 2 == 0:#!= self.count:
+            #    #self.__offset = random.randint(0,1024)# /1024
+            #    self.__master._shuffle()
+            
+            if count != self.count and v == 0: # and v: # % 2 == 0:#!= self.count:
+                 self.__master.next(self)#,count)
+            self.__offset = self.__master.get(self,count)
+                
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
+            else:
+                v = (t%1-0.5)
         elif self.__xtype == "on":
             #base = 0
             if self.__angel > 90 and self.__angel <=270:
@@ -355,6 +472,7 @@ class FX():
 
         out = v *size +base
         self.out = out
+        self.count = count
         return out
 
 class DMXCH(object):
@@ -377,14 +495,14 @@ class DMXCH(object):
                 #self._fade.next()
             except Exception as e:
                 print( "Except:fade",e,target,ftime,clock)
-    def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0):
+    def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
         print([self,xtype,size,speed,start,offset,base, clock])
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,ftime=2,clock=clock) 
             self._fx = None
             self._fx_value = 0 
         else:
-            self._fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock)
+            self._fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
     def flush(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
             self._flush = None
@@ -394,13 +512,14 @@ class DMXCH(object):
                 self._flush = Fade(self._last_val,target,ftime=ftime,clock=clock,delay=delay)
             except Exception as e:
                 print( "Except:flush",target,ftime,clock,__name__,e,)
-    def flush_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0):
+    def flush_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
+        cprint("flush_fx",xtype)
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,ftime=2,clock=clock) 
             self._flush_fx = None
             self._flush_fx_value = 0 
         else:
-            self._flush_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock)
+            self._flush_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
 
     def fx_ctl(self,cmd=""):#start,stop,off
         pass
@@ -455,6 +574,7 @@ def split_cmd(data):
 import time
 import json
 import zlib
+    
 def JCB(data): #json client input
     t_start = time.time()
     #jdatas = data["cmd"].split("\x00")
@@ -466,6 +586,7 @@ def JCB(data): #json client input
     ftime = 0
     delay = 0
     for j in jdatas:
+        master_fx = MASTER_FX()
         if not j:
             continue
         try:
@@ -545,9 +666,9 @@ def JCB(data): #json client input
                                 i.fx(xtype="off",clock=c)
 
                     if "FLASH" in x:
-                        Bdmx[DMX].flush_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c)
+                        Bdmx[DMX].flush_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
                     else:
-                        Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c)
+                        Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
 
                 elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
                     ccm = str(DMX+1)+":"+fx
@@ -560,10 +681,12 @@ def JCB(data): #json client input
             print(time.time()-t_start)
             print(time.time())
             return
-        except Exception as e:
-            cprint("EXCEPTION JCB",e,color="red")
-            cprint("----",jdata,color="red")
-            cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+        finally:
+            pass
+        #except Exception as e:
+        #    cprint("EXCEPTION JCB",e,color="red")
+        #    cprint("----",jdata,color="red")
+        #    cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             
 def CB(data): # raw/text client input 
     #print("CB",data)

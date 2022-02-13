@@ -205,7 +205,7 @@ FADE = _FadeTime()  #2 #0.1 #1.13
 fx_move_prm = {"SIZE":20,"SPEED":100,"OFFSET":50,"BASE":"-","START":0}
 fx_prm = {"SIZE":200,"SPEED":30,"OFFSET":255,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_modes = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
-fx_mo = ["sinus","on","on2","bump","bump2","fade","cosinus"]
+fx_mo = ["sinus","on","rnd","bump","bump2","fade","cosinus"]
 
 def build_cmd(dmx,val,args=[],flash=0,xpfx="",attr=""):
     if not args:
@@ -533,8 +533,8 @@ class Xevent():
                             fx = "sinus"
                         elif "FD" in self.attr:
                             fx = "fade"
-                        elif "ON2" in self.attr:
-                            fx = "on2"
+                        elif "RND" in self.attr:
+                            fx = "rnd"
                         elif "ON" in self.attr:
                             fx = "on"
                         elif "BUM2" in self.attr:
@@ -850,17 +850,34 @@ class Xevent():
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
                         fx_prm[k] = 1
-                    fx_prm[k] += 5 #*=1.1
+                    elif fx_prm[k] == 50:
+                        fx_prm[k] = 100
+                    elif fx_prm[k] == 5:
+                        fx_prm[k] = 25
+                    elif fx_prm[k] == 25:
+                        fx_prm[k] = 50
+                    else:
+                        fx_prm[k] += 1 #*=1.1
                 elif event.num == 5:
-                    fx_prm[k] -=5 #/=1.1
+                    if fx_prm[k] == 50:
+                        fx_prm[k] = 25
+                    elif fx_prm[k] == 100:
+                        fx_prm[k] = 50
+                    else:
+                        fx_prm[k] -=1 #/=1.1
+                    
                 #fx_prm[k] =int(fx_prm[k])
                 
+                if fx_prm[k] < 0:
+                    fx_prm[k] = 0
                 if fx_prm[k] > 100:
                     fx_prm[k] = 100
-                if fx_prm[k] < 5:
-                    fx_prm[k] =0
                 if fx_prm[k] == 6: #bug
                     fx_prm[k] =5
+                if fx_prm[k] > 25 and fx_prm[k] < 50: #bug
+                    fx_prm[k] =50
+                if fx_prm[k] > 50 and fx_prm[k] < 100: #bug
+                    fx_prm[k] =100
 
                 self.data.elem_fx_commands[self.attr]["text"] = "WIDTH:\n{:0.0f}".format(fx_prm[k])
                 cprint(fx_prm)
@@ -1289,7 +1306,7 @@ class GUI(Base):
                 ,"MSZ:","MSP:","MST:","MOF:","MBS:-","\n"
                 ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","WING:\n2","\n"
                 ,"SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
-                , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:ON2" ]
+                , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:RND" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","DEL","\n"
                 ,"SELECT","FLASH","GO","FADE","MOVE","\n"
                 ,"BLIND","CLEAR","REC","EDIT","COPY","\n" 
@@ -1529,9 +1546,7 @@ class GUI(Base):
                 value = "off"
             if event:
                 if str(event.type) == "ButtonRelease" or event.type == '5' :
-                    # 4 fix vor ThinkPad / Debian 11
-                    if xFLASH:
-                        value = "off"
+                    value = "off"
 
             cprint("preset_go() FLUSH",value,color="red")
             fcmd  = FIXTURES.update_raw(rdata,update=0)

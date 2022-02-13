@@ -5,7 +5,7 @@ Stage Lighting Control Software, Movingheads, Movinglights, Dimmer, LED, Spotlig
 
 
 HomePage
-- librelight.de
+- http://librelight.de
 
 Youtube Tutorial
 - https://youtu.be/sIp39YimyVw

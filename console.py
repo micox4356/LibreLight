@@ -254,10 +254,8 @@ class FX():
         t += self.__start / 1024 #255
         tw = t%1
         if tw > self.__width/100:
-            if self.__invert:
-                return 0
-            else:
-                return self.__size*-1 
+            return self.out
+        
         t = t * (100/self.__width)
         self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
         t = t%1
@@ -321,10 +319,10 @@ class FX():
             out = x * self.__size + base/2
             #print("FADE {:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(out,t,x,self.__angel, base))
             #return out
-        if self.__invert:
-            return out
-        else:
-            return self.__size*-1 -out
+
+        if not self.__invert:
+            out = self.__size*-1 -out
+        self.out = out
         return out
 
 class DMXCH(object):

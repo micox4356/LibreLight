@@ -752,15 +752,17 @@ class Xevent():
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
                         fx_prm[k] = 1
-                    fx_prm[k] *=1.2
+                    fx_prm[k] +=5
                 elif event.num == 5:
-                    fx_prm[k] /=1.2
+                    fx_prm[k] -=5
                 #fx_prm[k] =int(fx_prm[k])
                 
                 if fx_prm[k] > 4000:
                     fx_prm[k] = 4000
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
+                if fx_prm[k] == 6: #bug
+                    fx_prm[k] =5
                 self.data.elem_fx_commands[self.attr]["text"] = "SZ:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("SP:"):#SIN":
                 #global fx_prm
@@ -771,16 +773,18 @@ class Xevent():
                     pass
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
-                        fx_prm[k] = 1
-                    fx_prm[k] *=1.2
+                        fx_prm[k] = 0
+                    fx_prm[k] +=5 #1.1
                 elif event.num == 5:
-                    fx_prm[k] /=1.2
+                    fx_prm[k] -= 5 #1.1
                 #fx_prm[k] =int(fx_prm[k])
                 
                 if fx_prm[k] > 4000:
                     fx_prm[k] = 4000
                 if fx_prm[k] < 0:
                     fx_prm[k] =0
+                if fx_prm[k] == 6: #bug
+                    fx_prm[k] =5
 
                 if fx_prm[k] < 0.1:
                     self.data.elem_fx_commands[self.attr]["text"] = "SP:\noff".format(fx_prm[k])
@@ -796,15 +800,17 @@ class Xevent():
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
                         fx_prm[k] = 1
-                    fx_prm[k] *=1.2
+                    fx_prm[k] += 5 #1.1
                 elif event.num == 5:
-                    fx_prm[k] /=1.2
+                    fx_prm[k] -= 5 #1.1
                 #fx_prm[k] =int(fx_prm[k])
                 
                 if fx_prm[k] > 4000:
                     fx_prm[k] = 4000
-                if fx_prm[k] < 0:
+                if fx_prm[k] < 5:
                     fx_prm[k] =0
+                if fx_prm[k] == 6: #bug
+                    fx_prm[k] =5
 
                 self.data.elem_fx_commands[self.attr]["text"] = "ST:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("MO:"):# on,sinus,bump
@@ -834,15 +840,17 @@ class Xevent():
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
                         fx_prm[k] = 1
-                    fx_prm[k] *=1.1
+                    fx_prm[k] += 5 #*=1.1
                 elif event.num == 5:
-                    fx_prm[k] /=1.1
+                    fx_prm[k] -=5 #/=1.1
                 #fx_prm[k] =int(fx_prm[k])
                 
                 if fx_prm[k] > 100:
                     fx_prm[k] = 100
-                if fx_prm[k] < 0:
+                if fx_prm[k] < 5:
                     fx_prm[k] =0
+                if fx_prm[k] == 6: #bug
+                    fx_prm[k] =5
 
                 self.data.elem_fx_commands[self.attr]["text"] = "WIDTH:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("DIR:"):#SIN":
@@ -869,6 +877,8 @@ class Xevent():
                     fx_prm[k] = 1
                 elif event.num == 5:
                     fx_prm[k] =0
+                if fx_prm[k] == 6: #bug ?
+                    fx_prm[k] =5
                 self.data.elem_fx_commands[self.attr]["text"] = k+":\n{}".format(fx_prm[k])
             elif self.attr.startswith("WING:"):#SIN":
                 #global fx_prm
@@ -898,15 +908,17 @@ class Xevent():
                 elif event.num == 4:
                     if fx_prm[k] <= 0:
                         fx_prm[k] = 1
-                    fx_prm[k] *=1.2
+                    fx_prm[k] +=5 #*=1.1
                 elif event.num == 5:
-                    fx_prm[k] /=1.2
+                    fx_prm[k] -=5 #/=1.1
                 #fx_prm[k] =int(fx_prm[k])
                 
                 if fx_prm[k] > 512:
                     fx_prm[k] = 512
-                if fx_prm[k] < 0:
+                if fx_prm[k] < 5:
                     fx_prm[k] =0
+                if fx_prm[k] == 6: #bug
+                    fx_prm[k] =5
 
                 self.data.elem_fx_commands[self.attr]["text"] = "OF:\n{:0.0f}".format(fx_prm[k])
             elif self.attr.startswith("BS:"):

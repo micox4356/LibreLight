@@ -250,14 +250,15 @@ class FX():
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
-        t = self.__clock_curr  * self.__speed / 255
+        t = self.__clock_curr  * self.__speed / 60
         t += self.__offset / 1024 #255
         t += self.__start / 1024 #255
         tw = t%1
-        if tw > self.__width/100:
-            return self.out
-        
         t = t * (100/self.__width)
+        if tw > self.__width/100:
+            t = 1 #self.__width/100
+        
+        #self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
         self.__angel = t%1*360 #self.__clock_curr%1 #*360%360
         t = t%1
         rad = math.radians(self.__angel)
@@ -274,9 +275,15 @@ class FX():
         #print("{:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(self.__angel ,self.__clock_curr,self.__angel ,math.sin(rad) ) )
         out = 0
         if self.__xtype == "sinus":
-            out = math.sin( rad ) * self.__size/2 + base/2
+            out = math.sin( rad ) * self.__size +base #/2 + base/2
         elif self.__xtype == "cosinus":
-            out = math.cos( rad ) * self.__size/2 + base/2
+            if self.__base == "+": # add
+                out = math.cos( rad ) * self.__size*-1 + base #*4 #/2
+            elif self.__base == "-": # add
+                out = math.cos( rad ) * self.__size + base #*4
+            else: 
+                out = math.cos( rad ) * self.__size #+ base/2
+
         elif self.__xtype == "on2":
             out = self.__size/2
             if self.__angel > 90 and self.__angel <=270:
@@ -317,12 +324,19 @@ class FX():
             if x > 1:
                 x = 2-x 
             x -= 0.5
-            out = x * self.__size + base/2
-            #print("FADE {:0.2f} {:0.2f} {:0.2f} {:0.2f}".format(out,t,x,self.__angel, base))
-            #return out
+            if self.__base == "+": # add
+                base = self.__size
+                out = x * self.__size + base/2
+            else:
+                base = self.__size*-1
+                out = x * self.__size + base/2
+                out = self.__size*-1 -out
+            #if self.__base == "+": # sub
+            #    out = self.__size*-1 -out
 
-        if not self.__invert:
-            out = self.__size*-1 -out
+        #if not self.__invert:
+        #    out = self.__size*-1 -out
+
         self.out = out
         return out
 

@@ -169,7 +169,22 @@ class CLOCK():
             #print(self.__time)
             #for i in range(10):
             time.sleep(self.__tick)
-clock = CLOCK()
+class CLOCK_REAL():
+    def __init__(self):
+        self.__time = 0
+        self.__start = time.time() # only for debugging
+        self.__tick = 0.01 # incremental timer drift's on highe cpu load ?
+    def time(self):
+        self.__time = time.time()
+        return self.__time
+    def get_drift(self):
+        run_time = time.time() - self.__start
+        tick_time = self.__time # * self.__tick
+        print( "runtime:{:0.2f} tick_timer:{:0.2f} drift:{:0.2f}".format(run_time,tick_time,run_time-tick_time))
+    def loop(self):
+        pass
+#clock = CLOCK()
+clock = CLOCK_REAL()
 thread.start_new_thread(clock.loop,())
 
 class Fade():
@@ -343,7 +358,7 @@ class FX():
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
         t = self.__clock_curr  * self.__speed / 60
-        t += self.__offset / 255 #1024 #255
+        t += self.__offset / 100 #255 #1024 #255
         t += self.__start  / 1024 #255
         tw = t%1
         count = t//1
@@ -681,12 +696,10 @@ def JCB(data): #json client input
             print(time.time()-t_start)
             print(time.time())
             return
-        finally:
-            pass
-        #except Exception as e:
-        #    cprint("EXCEPTION JCB",e,color="red")
-        #    cprint("----",jdata,color="red")
-        #    cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+        except Exception as e:
+            cprint("EXCEPTION JCB",e,color="red")
+            cprint("----",jdata,color="red")
+            cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             
 def CB(data): # raw/text client input 
     #print("CB",data)

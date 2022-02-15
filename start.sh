@@ -25,5 +25,10 @@ sleep 2
 screen -d -m -S Editor python3 $path/Xdesk/LibreLightDesk.py 
 
 screen -ls
+
+sudo /opt/netns/create 18
+/opt/netns/exec --id=18 --cmd="xterm -e screen python3 /opt/LibreLight/ASP/monitor/oszi_grid.py"
+#/opt/netns/exec --id=18 --cmd="xterm -e screen sh /opt/LibreLight/ASP/start.sh"
+
 echo "BOOT END"
 sleep 3;

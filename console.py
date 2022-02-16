@@ -514,9 +514,14 @@ class DMXCH(object):
     def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
         print([self,xtype,size,speed,start,offset,base, clock])
         if str(xtype).lower() == "off":
-            #self._fx = Fade(self._fx_value,target=0,ftime=2,clock=clock) 
-            self._fx = None
-            self._fx_value = 0 
+            fx_value = self._fx_value
+            if fx_value != 0:
+                cprint("???????______ FX OFF AS FADE",fx_value,0,255)
+                self._fx = Fade(fx_value,0,ftime=0.5,clock=clock)#,delay=delay)
+            else:
+                #self._fx = Fade(self._fx_value,target=0,ftime=2,clock=clock) 
+                self._fx = None
+                self._fx_value = 0 
         else:
             self._fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
     def flash(self,target,ftime=0,clock=0,delay=0):
@@ -530,17 +535,20 @@ class DMXCH(object):
                 print( "Except:flash",target,ftime,clock,__name__,e,)
     def flash_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
 
-        if self._flash_fx is not None :
-            cprint("flash_fx",xtype)
+        #if self._flash_fx is not None :
+        #    cprint("flash_fx",xtype)
 
         if str(xtype).lower() == "off":
             fx_value = self._fx_value
-            if fx_value != 0:
-                cprint("???????______ FX OFF AS FADE",fx_value,0,255)
-                self._flash_fx = Fade(fx_value,0,ftime=0.5,clock=clock)#,delay=delay)
-            else:
-                self._flash_fx = None 
-                self._flash_fx_value = 0 
+            #if fx_value != 0:
+            #    cprint("???????______ FX OFF AS FADE",fx_value,0,255)
+            #    self._flash_fx = Fade(fx_value,0,ftime=0.5,clock=clock)#,delay=delay)
+            #    self._flash_fx = None 
+            #else:
+            #    self._flash_fx = None 
+            #    self._flash_fx_value = 0 
+            self._flash_fx = None 
+            self._flash_fx_value = 0 
         else:
             self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
 

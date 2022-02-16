@@ -253,7 +253,7 @@ class MASTER_FX():
         self.init = 0
     def add(self,fx):
         if fx not in self.__data:
-            cprint(self,"ADD TO MASTER !",color="green")
+            #cprint(self,"ADD TO MASTER !",color="green")
             self.__data.append(fx)
             info = fx._get_info()
             cprint(self,"ADD" ,info,color="green")
@@ -345,6 +345,7 @@ class FX():
         if self.__xtype == "rnd":
             self.__offset = self.__master.get(self,-2)
             self.__offset = self.__master.next(self)#,count)
+        print("init FX",self)
     def _get_info(self):
         print(self.__offset)
         return {"offset":self.__offset,"xtype":self.__xtype}
@@ -497,9 +498,9 @@ class DMXCH(object):
         self._fx    = None
         self._fx_value = 0
 
-        self._flush    = None
-        self._flush_fx = None
-        self._flush_fx_value = 0
+        self._flash    = None
+        self._flash_fx = None
+        self._flash_fx_value = 0
         self._last_val = None
     def fade(self,target,ftime=0,clock=0,delay=0):
         if target != self._base_value:
@@ -518,23 +519,23 @@ class DMXCH(object):
             self._fx_value = 0 
         else:
             self._fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
-    def flush(self,target,ftime=0,clock=0,delay=0):
+    def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
-            self._flush = None
+            self._flash = None
         else:#elif target != self._base_value:
             try:
                 target = float(target)
-                self._flush = Fade(self._last_val,target,ftime=ftime,clock=clock,delay=delay)
+                self._flash = Fade(self._last_val,target,ftime=ftime,clock=clock,delay=delay)
             except Exception as e:
-                print( "Except:flush",target,ftime,clock,__name__,e,)
-    def flush_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
-        cprint("flush_fx",xtype)
+                print( "Except:flash",target,ftime,clock,__name__,e,)
+    def flash_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
+        cprint("flash_fx",xtype)
         if str(xtype).lower() == "off":
             #self._fx = Fade(self._fx_value,target=0,ftime=2,clock=clock) 
-            self._flush_fx = None
-            self._flush_fx_value = 0 
+            self._flash_fx = None
+            self._flash_fx_value = 0 
         else:
-            self._flush_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
+            self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
 
     def fx_ctl(self,cmd=""):#start,stop,off
         pass
@@ -550,10 +551,10 @@ class DMXCH(object):
             self._last_val = value
         fx_value = self._fx_value
 
-        if self._flush is not None:
-            value = self._flush.next(clock)
+        if self._flash is not None:
+            value = self._flash.next(clock)
             #flicker bug ?!
-            value = self._flush.next(clock)
+            value = self._flash.next(clock)
             fx_value = 0
         elif self._fade is not None:#is Fade:# is Fade:
             self._base_value = self._fade.next(clock)
@@ -562,9 +563,9 @@ class DMXCH(object):
             value = self._base_value
 
         
-        if self._flush_fx is not None:# is FX:
-            fx_value = self._flush_fx.next(clock)
-        elif self._fx is not None and self._flush is None:# is FX:
+        if self._flash_fx is not None:# is FX:
+            fx_value = self._flash_fx.next(clock)
+        elif self._fx is not None and self._flash is None:# is FX:
             self._fx_value = self._fx.next(clock)
             fx_value = self._fx_value
 
@@ -605,6 +606,7 @@ def JCB(data): #json client input
         if not j:
             continue
         try:
+            cprint("JCB",j)
             jdata = j #jdatas[j]
             jtxt = jdata
             #jtxt = zlib.decompress(jtxt) #jtxt.decode())
@@ -643,7 +645,7 @@ def JCB(data): #json client input
                 if v is not None:
                     if "FLASH" in x:
                         #print("FLASH")
-                        Bdmx[DMX].flush(target=v,ftime=ftime, clock=c,delay=delay)
+                        Bdmx[DMX].flash(target=v,ftime=ftime, clock=c,delay=delay)
                     else:
                         #print("FADE")
                         Bdmx[DMX].fade(target=v,ftime=ftime, clock=c,delay=delay)
@@ -673,15 +675,18 @@ def JCB(data): #json client input
                         invert = fx2["INVERT"]
                     if "WIDTH" in fx2:
                         width = fx2["WIDTH"]
+                    
+                    if "off" == x["VALUE"]: #fix fx flash off
+                        xtype= "off"
 
                     if "alloff" == xtype.lower():
                         for i in Bdmx:
                             if i is not None:
-                                i.flush_fx(xtype="off",clock=c)
+                                i.flash_fx(xtype="off",clock=c)
                                 i.fx(xtype="off",clock=c)
 
                     if "FLASH" in x:
-                        Bdmx[DMX].flush_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                        Bdmx[DMX].flash_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
                     else:
                         Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
 
@@ -723,7 +728,7 @@ def CB(data): # raw/text client input
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
                     if i is not None:
-                        i.flush_fx(xtype="off",clock=c)
+                        i.flash_fx(xtype="off",clock=c)
             l = xxcmd
             try:
                 xtype=""
@@ -752,7 +757,7 @@ def CB(data): # raw/text client input
                 
                 if len(Bdmx) > k:
                     #Bdmx[k].fade(target=v,ftime=t, clock=c)
-                    Bdmx[k].flush_fx(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=c)
+                    Bdmx[k].flash_fx(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=c)
             except Exception as e:
                 print("EXCEPTION IN FX",e)
                 print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))

@@ -1044,7 +1044,7 @@ class Xevent():
                         elif modes.val("EDIT"):
                             FIXTURES.clear()
                             self.data.preset_select(nr)
-                            self.data.preset_go(nr,xfade=0,event=event,val=255)
+                            self.data.preset_go(nr,xfade=0,event=event,val=255,button="go")
                             modes.val("EDIT", 0)
                             master.refresh_fix()
 
@@ -1470,7 +1470,7 @@ class GUI(Base):
                     elem = self.elem_attr[fix][attr]
                     FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
-    def preset_go(self,nr,val=None,xfade=None,event=None):
+    def preset_go(self,nr,val=None,xfade=None,event=None,button=""):
         t_start = time.time()
         if xfade is None and FADE._is():
             xfade = FADE.val()
@@ -1492,9 +1492,9 @@ class GUI(Base):
         xFLASH = 0
         value=None
         cprint("preset_go",nr,cfg)
-        if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val: #FLASH
+        if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val and not button: #FLASH
             self.preset_select(nr)
-        elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL"): #FLASH
+        elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL") and not button: #FLASH
             xFLASH = 1
             xfade = 0
             if type(val) is not None and val == 0 :
@@ -1509,7 +1509,7 @@ class GUI(Base):
                 
         elif not val:
             cprint("preset_go() STOP",value,color="red")
-        elif modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"]): 
+        elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
 
@@ -2185,6 +2185,9 @@ class Fixtures(Base):
             v=ATTR[attr]["VALUE"]
             if v2 is not None and update:
                 ATTR[attr]["VALUE"] = v2
+            
+            if d["FX2"] and update:
+                ATTR[attr]["FX2"] = d["FX2"] 
 
             #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
             text = str(attr)+' '+str(round(v,2))

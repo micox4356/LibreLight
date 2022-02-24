@@ -471,8 +471,8 @@ class Xevent():
                 cprint("470 fx() ... init no fixture selected",color="red")
                 return 0
             wings = []
-            if fx_prm["WING"]:
-                l = len(xfixtures)
+            l = len(xfixtures)
+            if fx_prm["WING"] and l > 1:
                 w = l // fx_prm["WING"]
                 teiler = l//w
                 if teiler < 2:

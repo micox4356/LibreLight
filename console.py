@@ -250,7 +250,7 @@ class MASTER_FX():
         self.old_offsets = []
         self.offsets = []
         self.count = -1
-        self.init = 0
+        self.init = 10
     def add(self,fx):
         if fx not in self.__data:
             #cprint(self,"ADD TO MASTER !",color="green")
@@ -292,6 +292,7 @@ class MASTER_FX():
 
 
     def get(self,child,count):
+
         offset = 0
 
         if child not in self.__data:
@@ -301,7 +302,8 @@ class MASTER_FX():
             self._init()
 
         idx = self.__data.index(child) 
-        if self.count != count and idx == 0:
+        if (self.count != count and idx == 0 ) or  self.init == 0:
+            self.init = 1
             self._shuffle()
             #print( count)
             self.count=count
@@ -402,6 +404,7 @@ class FX():
             
             if count != self.count and v == 0: # and v: # % 2 == 0:#!= self.count:
                  self.__master.next(self)#,count)
+            #self.__master.next(self)#,count)
             self.__offset = self.__master.get(self,count)
                 
             base = 0

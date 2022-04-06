@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=restart LibreLight
+Comment=
+Exec=sh /opt/LibreLight/Xdesk/start.sh
+Icon=input-gaming
+Path=/opt/LibreLight/Xdesk/
+Terminal=true
+StartupNotify=false

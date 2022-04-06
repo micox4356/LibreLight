@@ -1402,6 +1402,10 @@ class GUI(Base):
                 b["bg"] = "#5555ff"
                 b.config(activebackground="#6666ff")
 
+            elif "ON" in txt:
+                b["bg"] = "#ffcc00"
+                b["fg"] = "#00c"
+
             elif "GO" in txt:
                 b["fg"] = "black"
             elif "FL" in txt:
@@ -1509,6 +1513,9 @@ class GUI(Base):
                 
         elif not val:
             cprint("preset_go() STOP",value,color="red")
+        elif button == "on" or ( modes.val("ON") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["on","ON"])):
+            fcmd  = FIXTURES.update_raw(rdata)
+            self._preset_go(rdata,cfg,fcmd,value,xfade=0,xFLASH=xFLASH)
         elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)

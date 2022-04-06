@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=upgrade LibreLight
+Exec=xfce4-terminal -e 'sh /opt/LibreLight/Xdesk/upgrade.sh'
+Icon=software-update-available
+Path=/home/user/
+Terminal=true
+StartupNotify=false

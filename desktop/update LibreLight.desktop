@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=update LibreLight
+Exec=xfce4-terminal -e 'sh /home/user/LibreLight_update.sh'
+Icon=software-update-available
+Path=/home/user/
+Terminal=true
+StartupNotify=false

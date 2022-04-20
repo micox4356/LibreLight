@@ -22,7 +22,10 @@ import random
 rnd_id = str(random.randint(1000,9000))
 rnd_id += " Beta 22.02 "
 import subprocess
-rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+try:
+    rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+except:
+    rnd_id += " no git"
 
 try:
     xtitle = __file__
@@ -202,10 +205,16 @@ class _FadeTime():
         return 0
 
 FADE = _FadeTime()  #2 #0.1 #1.13
-fx_move_prm = {"SIZE":20,"SPEED":100,"OFFSET":100,"BASE":"-","START":0}
-fx_prm = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
-fx_modes = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
-fx_mo = ["sinus","on","rnd","bump","bump2","fade","cosinus"]
+fx_prm_move = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
+fx_prm      = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
+fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
+fx_mo       = ["sinus","on","rnd","bump","bump2","fade","cosinus"]
+
+class FX_handler():
+    def __init__():
+        pass
+
+
 
 def build_cmd(dmx,val,args=[],flash=0,xpfx="",attr=""):
     if not args:
@@ -2596,7 +2605,83 @@ class Presets(Base):
         self.val_presets[nr] = data
         return 1
            
+def test(a1="",a2=""):
+    print([a1,a2])
 
+
+class FixtureEditor():
+    def __init__(self,dmx=1):
+        pass
+        self.elem=[]
+        self.dmx=dmx
+        print("init FixtureEditor",dmx)
+    def event(self,a1="",a2=""):
+        print([self.dmx,a1,a2])
+        j=[]
+        jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.dmx)}
+        j.append(jdata)
+
+        jclient_send(j)
+
+def change_dmx(event=""):
+    print("change_dmx",event)
+
+class GUI_fader():
+    def __init__(self,root,data,title="tilte",width=800):
+
+        self.data = data
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        r=0
+        c=0
+        i=1
+        self.b = tk.Label(self.frame,bg="lightblue",text="Fixture Editor" )
+        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        c+=1
+        self.b = tk.Label(self.frame,bg="black",text="" ,width=11)
+        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        c+=1
+        self.b = tk.Label(self.frame,bg="lightblue",text="DMX START:")
+        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        c+=1
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=11,command=change_dmx)
+        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        #r+=1
+
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        r=0
+        c=0
+        for j,row in enumerate(data):
+
+            if c % 12 == 0:
+                r+=1
+                c=0
+                frameS = tk.Frame(self.frame,bg="red",width=width)
+                frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+                r+=1
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11)
+                self.b.pack(fill=tk.BOTH, side=tk.TOP)
+                r+=1
+                self.b = tk.Label(frameS,bg="lightblue",text="PAGE:{}".format(j//12+1) ,width=11)
+                self.b.pack(fill=tk.BOTH, side=tk.TOP)
+                c=0
+            frameS = tk.Frame(self.frame,bg="#005",width=width)
+            frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            f = FixtureEditor(j+1)
+            self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=f.event)
+            self.b.pack(fill=tk.Y, side=tk.TOP)
+
+            self.b = tk.Button(frameS,bg="lightblue",text="DMX:{}".format(j+1), width=4,command=test)
+            self.b.pack(fill=tk.BOTH, side=tk.TOP)
+            self.b = tk.Button(frameS,bg="lightblue",text="PAN", width=4,command=test)
+            self.b.pack(fill=tk.BOTH, side=tk.TOP)
+            self.b = tk.Button(frameS,bg="lightblue",text="FADE", width=4,command=test)
+            self.b.pack(fill=tk.BOTH, side=tk.TOP)
+            #self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            c+=1
+            i+=1
+        self.frame.pack()
 class GUI_grid():
     def __init__(self,root,data,title="tilte",width=800):
 
@@ -2871,6 +2956,18 @@ w1 = ScrollFrame(w.tk,width=800,height=400)
 master.draw_fix(w1,w2)#.tk)
 window_manager.new(w,name)
 
+
+name="FADER"
+w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
+w1 = ScrollFrame(w.tk,width=800,height=400)
+data=[]
+for i in range(24):
+    data.append({"text"+str(i):"test"})
+GUI_fader(w1,data)
+#frame_fix = w1 #w.tk
+#master.draw_fix(w1,w2)#.tk)
+
+window_manager.new(w,name)
 
 name="ENCODER"
 ww = GUIWindow(name,master=0,width=800,height=50,left=110,top=500)

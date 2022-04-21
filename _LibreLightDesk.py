@@ -2623,30 +2623,65 @@ class FixtureEditor():
 
         jclient_send(j)
 
-def change_dmx(event=""):
-    print("change_dmx",event)
+class BufferVar():
+    def __init__(self,elem):
+        self.elem = elem
+    def change_dmx(self,event=""):
+        nr=1
+        txt=""
+        txt = tkinter.simpledialog.askstring("FADER-DMX-START","DMX:"+str(nr+1),initialvalue=txt)
+        print("change_dmx",[event,self])
+
+class ELEM_FADER():
+    def __init__(self,frame,nr,**args):
+        self.frame = frame
+        self.nr= nr
+        self.elm = []
+    def pack(self,**args):
+        width=11
+        r=0
+        c=0
+        j=0
+        frameS = tk.Frame(self.frame,bg="#005",width=width)
+        frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        #self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        f = FixtureEditor(self.nr)
+        self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=f.event)
+        self.b.pack(fill=tk.Y, side=tk.TOP)
+
+        self.b = tk.Button(frameS,bg="lightblue",text="DMX:{}".format(self.nr), width=4,command=test)
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.b = tk.Button(frameS,bg="lightblue",text="PAN", width=4,command=test)
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.b = tk.Button(frameS,bg="blue",text="FADE", width=4,command=test)
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.b = tk.Label(frameS,bg="black",text="", width=4)
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+
 
 class GUI_fader():
     def __init__(self,root,data,title="tilte",width=800):
+        r=0
+        c=0
+        i=1
 
         self.data = data
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-        r=0
-        c=0
-        i=1
-        self.b = tk.Label(self.frame,bg="lightblue",text="Fixture Editor" )
-        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        c+=1
-        self.b = tk.Label(self.frame,bg="black",text="" ,width=11)
-        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        c+=1
+
+        self.b = tk.Label(self.frame,bg="blue",text="Fixture Editor" )
+        self.b.pack(fill=None, side=tk.LEFT)
+        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
         self.b = tk.Label(self.frame,bg="lightblue",text="DMX START:")
-        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        c+=1
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=11,command=change_dmx)
-        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        #r+=1
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=11)#,command=bv.change_dmx)
+        bv = BufferVar(self.b)
+        self.b["command"] = bv.change_dmx
+        self.b.pack( side=tk.LEFT)
+        self.b = tk.Label(self.frame,bg="black",text="") # spacer
+        self.b.pack(fill=tk.Y, side=tk.LEFT)
 
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
@@ -2658,30 +2693,23 @@ class GUI_fader():
                 r+=1
                 c=0
                 frameS = tk.Frame(self.frame,bg="red",width=width)
-                frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-                r+=1
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11)
                 self.b.pack(fill=tk.BOTH, side=tk.TOP)
                 r+=1
+                self.b = tk.Label(frameS,bg="black",text="" ,width=21)
+                self.b.pack(fill=tk.BOTH, side=tk.TOP)
+                #r+=1
                 self.b = tk.Label(frameS,bg="lightblue",text="PAGE:{}".format(j//12+1) ,width=11)
                 self.b.pack(fill=tk.BOTH, side=tk.TOP)
                 c=0
             frameS = tk.Frame(self.frame,bg="#005",width=width)
             frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-            f = FixtureEditor(j+1)
-            self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=f.event)
-            self.b.pack(fill=tk.Y, side=tk.TOP)
-
-            self.b = tk.Button(frameS,bg="lightblue",text="DMX:{}".format(j+1), width=4,command=test)
-            self.b.pack(fill=tk.BOTH, side=tk.TOP)
-            self.b = tk.Button(frameS,bg="lightblue",text="PAN", width=4,command=test)
-            self.b.pack(fill=tk.BOTH, side=tk.TOP)
-            self.b = tk.Button(frameS,bg="lightblue",text="FADE", width=4,command=test)
-            self.b.pack(fill=tk.BOTH, side=tk.TOP)
-            #self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            e= ELEM_FADER(frameS,nr=j+1)
+            e.pack()
             c+=1
             i+=1
         self.frame.pack()
+
+
 class GUI_grid():
     def __init__(self,root,data,title="tilte",width=800):
 

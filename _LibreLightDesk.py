@@ -1901,7 +1901,7 @@ class GUI(Base):
                 b = tk.Button(frame,bg="lightblue", text="EXEC " )
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
-                b = tk.Button(frame,bg="lightblue", text="PAGE " + str(int(i/(8*8))+1) )
+                b = tk.Button(frame,bg="lightblue", text="BANK " + str(int(i/(8*8))+1) )
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 b = tk.Button(frame,bg="lightblue", text="<NAME>"  )
@@ -2636,28 +2636,66 @@ class ELEM_FADER():
     def __init__(self,frame,nr,**args):
         self.frame = frame
         self.nr= nr
-        self.elm = []
+        self.id=nr
+        self.elem = []
+        width=11
+        frameS = tk.Frame(self.frame,bg="#005",width=width)
+        frameS.pack(fill=tk.Y, side=tk.LEFT)
+        self.frame=frameS
+
+    def event(self,a1="",a2=""):
+        print(self,"event",[self.nr,a1,a2])
+        j=[]
+        jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
+        j.append(jdata)
+        jclient_send(j)
+    def set_nr(self,nr,btn=1):
+        self.nr=nr
+        try:
+            self.elem[btn]["text"]="{} D:{}".format(self.id,nr)
+        except:pass
+
+    def set_attr(self,_event=None):
+        txt= self.attr["text"]
+        txt = tkinter.simpledialog.askstring("ATTR","XX",initialvalue=txt)
+        self._set_attr(txt)
+    def _set_attr(self,txt=""):
+        self.attr["text"] = "{}".format(txt)
+        print("_set_attr",[self])
+
+    def set_mode(self,_event=None):
+        txt= self.mode["text"]
+        txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
+        self._set_mode(txt)
+    def _set_mode(self,txt=""):
+        self.mode["text"] = "{}".format(txt[0].upper())
+        print("_set_attr",[self])
+    def _refresh(self):
+        pass
     def pack(self,**args):
         width=11
         r=0
         c=0
         j=0
-        frameS = tk.Frame(self.frame,bg="#005",width=width)
-        #frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        frameS.pack(fill=tk.Y, side=tk.LEFT)
-        #self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        f = FixtureEditor(self.nr)
-        self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=f.event)
+        frameS=self.frame
+        self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
+        self.elem.append(self.b)
 
         self.b = tk.Button(frameS,bg="lightblue",text="DMX:{}".format(self.nr), width=4,command=test)
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.b = tk.Button(frameS,bg="lightblue",text="PAN", width=4,command=test)
+        self.elem.append(self.b)
+        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr)
+        self.attr=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.b = tk.Button(frameS,bg="blue",text="FADE", width=4,command=test)
+        self.elem.append(self.b)
+        self.b = tk.Button(frameS,bg="lightblue",text="FADE", width=4,command=self.set_mode)
+        self.mode=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.elem.append(self.b)
         self.b = tk.Label(frameS,bg="black",text="", width=4)
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.elem.append(self.b)
 
 
 class GUI_FaderLayout():
@@ -2665,22 +2703,53 @@ class GUI_FaderLayout():
         r=0
         c=0
         i=1
-
+        self.elem=[]
+        self.header=[]
         self.data = data
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        self.b = tk.Label(self.frame,bg="blue",text="Fixture Editor" )
+        self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor" )
         self.b.pack(fill=None, side=tk.LEFT)
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
+        self.b.pack(fill=None, side=tk.LEFT)
+        self.b = tk.Button(self.frame,bg="lightblue",text="MAC-500", width=11)
+        self.name=self.b
+        self.b["command"] = self.set_name
+        self.b.pack( side=tk.LEFT)
         self.b = tk.Label(self.frame,bg="lightblue",text="DMX START:")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=11)#,command=bv.change_dmx)
-        bv = BufferVar(self.b)
-        self.b["command"] = bv.change_dmx
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=11)#,command=self.event) #bv.change_dmx)
+        self.entry=self.b
+        self.b["command"] = self.event
         self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="Empty", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.load_EMPTY
+        self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="DIM", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.load_DIM
+        self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="IRGB", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.load_LED
+        self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="MH", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.load_MH
+        self.b.pack( side=tk.LEFT)
+        
+        self.b = tk.Button(self.frame,bg="lightblue",text="MH2", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.load_MH2
+        self.b.pack( side=tk.LEFT)
+        
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
@@ -2688,14 +2757,18 @@ class GUI_FaderLayout():
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
         r=0
         c=0
-        pb=13
+        pb=12
+        self.pb=pb
         for j,row in enumerate(data):
             if c % pb == 0 or c==0:
                 h=hex(j*10)[2:].rjust(2,"0")
                 frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
                 frameS.pack(fill=tk.BOTH, side=tk.TOP)
                 p=j//pb+1
-                self.b = tk.Label(frameS,bg="lightblue",text="PAGE:{} {}-{}".format(p,p*pb-pb+1,p*pb) ,width=15)
+                txt="BANK:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=15)
+                self.header.append(self.b)
+
                 self.b.pack(fill=None, side=tk.LEFT)
                 self.b = tk.Label(frameS,bg="black",text="" ,width=11)
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
@@ -2705,11 +2778,73 @@ class GUI_FaderLayout():
             print(frameS)
             e= ELEM_FADER(frameS,nr=j+1)
             e.pack()
+            self.elem.append(e)
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
             i+=1
         self.frame.pack()
+    def set_name(self,_event=None):
+        txt = self.name["text"]
+        txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
+        self.name["text"] = "{}".format(txt)
+        print("change_dmx",[_event,self])
 
+
+
+    def load_EMPTY(self,_event=None,attr=[]):
+        #attr = [,"RED","GREEN","BLUE"]
+        #mode = ["F","F","F","F"]
+        self._load_mh(None)#,attr,mode)
+    def load_DIM(self,_event=None,attr=[]):
+        attr = ["DIM"]
+        mode = ["F"]
+        self._load_mh(None,attr,mode)
+    def load_LED(self,_event=None,attr=[]):
+        attr = ["DIM","RED","GREEN","BLUE"]
+        mode = ["F","F","F","F"]
+        self._load_mh(None,attr,mode)
+    def load_MH(self,_event=None,attr=[]):
+        attr = ["PAN","PAN-FINE","TITL","TITL-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
+        mode = ["F","F","F","F","S","F","F","F","F","S"]
+        self._load_mh(None,attr,mode)
+    def load_MH2(self,_event=None,attr=[]):
+        attr = ["PAN","PAN-FINE","TITL","TITL-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO","G-ROT","PRISM","P-ROT","ZOOM","CONTR"]
+        mode = ["F","F","F","F","S","F","F","F","F","S","S","S","S","F","S"]
+        self._load_mh(None,attr,mode)
+    def _load_mh(self,_event=None,attr=[],mode=[]):
+        print("load_fixture",[_event,self])
+        #for i,e in enumerate(self.elem):
+        for i,e in enumerate(self.elem):
+            #print(self,"event",_event,e)
+            print("event",_event,e)
+            e._set_attr( "---")
+            if len(attr) > i:
+                e._set_attr( attr[i])
+            e._set_mode( "---")
+            if len(mode) > i:
+                e._set_mode( mode[i])
+
+    def event(self,_event=None):
+        nr=1
+        txt="dd"
+        txt= self.entry["text"]
+        txt = tkinter.simpledialog.askstring("FADER-DMX-START","DMX:"+str(nr+1),initialvalue=txt)
+        nr = int(txt)
+        self.entry["text"] = "DMX:{}".format(nr)
+        print("change_dmx",[_event,self])
+        for i,e in enumerate(self.elem):
+            #print(self,"event",_event,e)
+            print("event",_event,e)
+            e.set_nr(nr+i)
+
+        pb=self.pb
+        for j,e in enumerate(self.header):
+            p=j+1
+            #p=nr/pb
+            txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr-1) 
+            print("---",j,txt,e)
+            e["text"] = txt
+            
 
 class GUI_grid():
     def __init__(self,root,data,title="tilte",width=800):
@@ -2990,7 +3125,7 @@ name="FADER"
 w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
 data=[]
-for i in range(24):
+for i in range(24+12):
     data.append({"text"+str(i):"test"})
 GUI_FaderLayout(w1,data)
 #frame_fix = w1 #w.tk

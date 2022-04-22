@@ -2643,7 +2643,8 @@ class ELEM_FADER():
         c=0
         j=0
         frameS = tk.Frame(self.frame,bg="#005",width=width)
-        frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        #frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+        frameS.pack(fill=tk.Y, side=tk.LEFT)
         #self.b.pack(fill=tk.BOTH, side=tk.TOP)
         f = FixtureEditor(self.nr)
         self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=f.event)
@@ -2659,7 +2660,7 @@ class ELEM_FADER():
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
 
 
-class GUI_fader():
+class GUI_FaderLayout():
     def __init__(self,root,data,title="tilte",width=800):
         r=0
         c=0
@@ -2683,28 +2684,28 @@ class GUI_fader():
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
-        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
         r=0
         c=0
+        pb=13
         for j,row in enumerate(data):
+            if c % pb == 0 or c==0:
+                h=hex(j*10)[2:].rjust(2,"0")
+                frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
+                frameS.pack(fill=tk.BOTH, side=tk.TOP)
+                p=j//pb+1
+                self.b = tk.Label(frameS,bg="lightblue",text="PAGE:{} {}-{}".format(p,p*pb-pb+1,p*pb) ,width=15)
+                self.b.pack(fill=None, side=tk.LEFT)
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11)
+                self.b.pack(fill=tk.BOTH, side=tk.LEFT)
 
-            if c % 12 == 0:
-                r+=1
+                frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
                 c=0
-                frameS = tk.Frame(self.frame,bg="red",width=width)
-                self.b.pack(fill=tk.BOTH, side=tk.TOP)
-                r+=1
-                self.b = tk.Label(frameS,bg="black",text="" ,width=21)
-                self.b.pack(fill=tk.BOTH, side=tk.TOP)
-                #r+=1
-                self.b = tk.Label(frameS,bg="lightblue",text="PAGE:{}".format(j//12+1) ,width=11)
-                self.b.pack(fill=tk.BOTH, side=tk.TOP)
-                c=0
-            frameS = tk.Frame(self.frame,bg="#005",width=width)
-            frameS.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            print(frameS)
             e= ELEM_FADER(frameS,nr=j+1)
             e.pack()
+            frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
             i+=1
         self.frame.pack()
@@ -2991,7 +2992,7 @@ w1 = ScrollFrame(w.tk,width=800,height=400)
 data=[]
 for i in range(24):
     data.append({"text"+str(i):"test"})
-GUI_fader(w1,data)
+GUI_FaderLayout(w1,data)
 #frame_fix = w1 #w.tk
 #master.draw_fix(w1,w2)#.tk)
 

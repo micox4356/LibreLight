@@ -2629,7 +2629,7 @@ class BufferVar():
     def change_dmx(self,event=""):
         nr=1
         txt=""
-        txt = tkinter.simpledialog.askstring("FADER-DMX-START","DMX:"+str(nr+1),initialvalue=txt)
+        txt = tkinter.simpledialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
         print("change_dmx",[event,self])
 
 class ELEM_FADER():
@@ -2666,6 +2666,9 @@ class ELEM_FADER():
     def set_mode(self,_event=None):
         txt= self.mode["text"]
         txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
+
+        w = GUIWindow("config",master=1,width=200,height=140,left=110,top=65)
+        #w.pack()
         self._set_mode(txt)
     def _set_mode(self,txt=""):
         self.mode["text"] = "{}".format(txt[0].upper())
@@ -2682,7 +2685,7 @@ class ELEM_FADER():
         self.b.pack(fill=tk.Y, side=tk.TOP)
         self.elem.append(self.b)
 
-        self.b = tk.Button(frameS,bg="lightblue",text="DMX:{}".format(self.nr), width=4,command=test)
+        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test)
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
         self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr)
@@ -2719,10 +2722,19 @@ class GUI_FaderLayout():
         self.name=self.b
         self.b["command"] = self.set_name
         self.b.pack( side=tk.LEFT)
-        self.b = tk.Label(self.frame,bg="lightblue",text="DMX START:")
+
+        self.b = tk.Label(self.frame,bg="lightblue",text="UNIV:")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=11)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
+        self.entry=self.b
+        self.b["command"] = self.event
+        self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="lightblue",text="DMX:")
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
         self.entry=self.b
         self.b["command"] = self.event
         self.b.pack( side=tk.LEFT)
@@ -2828,9 +2840,9 @@ class GUI_FaderLayout():
         nr=1
         txt="dd"
         txt= self.entry["text"]
-        txt = tkinter.simpledialog.askstring("FADER-DMX-START","DMX:"+str(nr+1),initialvalue=txt)
+        txt = tkinter.simpledialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
         nr = int(txt)
-        self.entry["text"] = "DMX:{}".format(nr)
+        self.entry["text"] = "{}".format(nr)
         print("change_dmx",[_event,self])
         for i,e in enumerate(self.elem):
             #print(self,"event",_event,e)

@@ -437,6 +437,8 @@ def cprint(*text,color="blue",space=" ",end="\n"):
 cprint("________________________________")
  
 class Xevent():
+    """ global input event Handeler for short cut's ... etc
+    """
     def __init__(self,fix,elem,attr=None,data=None,mode=None):
         self.fix = fix
         self.data=data
@@ -1633,22 +1635,33 @@ class GUI(Base):
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
+            b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
+            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
+            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
             #r+=1
+
+            start_c=3
+            c=start_c
             if fix not in self.elem_attr:
                 self.elem_attr[fix] = {}
                 
-            patch = ["DMX","UNIVERS"]
+            patch = ["UNIVERS","DMX"]
             for k in patch:
                 v=data[k]
                 b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
-                #self.elem_attr[fix][attr] = b
-                #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 if c >=8:
-                    c=1
+                    c=start_c
                     r+=1
-            for attr in data["ATTRIBUT"]:
+            b = tk.Button(xframe,bg="grey", text="CH:{}".format(len(data["ATTRIBUT"])),width=8)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            if 0: #for attr in data["ATTRIBUT"]:
                 
                 if attr not in self.all_attr:
                     self.all_attr.append(attr)
@@ -1664,7 +1677,7 @@ class GUI(Base):
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 if c >=8:
-                    c=1
+                    c=start_c
                     r+=1
             c=0
             r+=1
@@ -1706,6 +1719,8 @@ class GUI(Base):
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 #r+=1
+                start_c=3
+                c=start_c
                 if fix not in self.elem_attr:
                     self.elem_attr[fix] = {}
                     
@@ -1725,7 +1740,7 @@ class GUI(Base):
                     b.grid(row=r, column=c, sticky=tk.W+tk.E)
                     c+=1
                     if c >=8:
-                        c=1
+                        c=start_c
                         r+=1
                 c=0
                 r+=1
@@ -2657,11 +2672,13 @@ class ELEM_FADER():
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
-        txt = tkinter.simpledialog.askstring("ATTR","XX",initialvalue=txt)
+        txt = tkinter.simpledialog.askstring("ATTR","set attr:",initialvalue=txt)
+        
         self._set_attr(txt)
     def _set_attr(self,txt=""):
-        self.attr["text"] = "{}".format(txt)
-        print("_set_attr",[self])
+        if type(txt) is str:
+            self.attr["text"] = "{}".format(txt)
+            print("_set_attr",[self])
 
     def set_mode(self,_event=None):
         txt= self.mode["text"]
@@ -2671,8 +2688,9 @@ class ELEM_FADER():
         #w.pack()
         self._set_mode(txt)
     def _set_mode(self,txt=""):
-        self.mode["text"] = "{}".format(txt[0].upper())
-        print("_set_attr",[self])
+        if type(txt) is str:
+            self.mode["text"] = "{}".format(txt[0].upper())
+            print("_set_attr",[self])
     def _refresh(self):
         pass
     def pack(self,**args):
@@ -3133,7 +3151,7 @@ master.draw_fix(w1,w2)#.tk)
 window_manager.new(w,name)
 
 
-name="FADER"
+name="FIXTURE-EDITOR"
 w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
 w1 = ScrollFrame(w.tk,width=800,height=400)
 data=[]

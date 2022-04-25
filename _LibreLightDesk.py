@@ -1627,11 +1627,47 @@ class GUI(Base):
         i=0
         c=0
         r=0
+        b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+
+        c=0
+        r+=1
         for fix in FIXTURES.fixtures:
             i+=1
             data = FIXTURES.fixtures[fix]
                             
-            b = tk.Button(xframe,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
+            b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w")
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            if len(data["ATTRIBUT"]) == 1:
+                b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
+            elif "PAN" in data["ATTRIBUT"] or  "TITL" in data["ATTRIBUT"] :
+                b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
+            else:
+                b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -1653,13 +1689,17 @@ class GUI(Base):
             patch = ["UNIVERS","DMX"]
             for k in patch:
                 v=data[k]
-                b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
+                #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
+                b = tk.Button(xframe,bg="grey", text=str(v),width=2)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 if c >=8:
                     c=start_c
                     r+=1
-            b = tk.Button(xframe,bg="grey", text="CH:{}".format(len(data["ATTRIBUT"])),width=8)
+            b = tk.Button(xframe,bg="grey", text="{}".format(len(data["ATTRIBUT"])),width=3)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             if 0: #for attr in data["ATTRIBUT"]:
                 
@@ -2070,6 +2110,120 @@ class GUI(Base):
     def render(self):
         #Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
         self.draw_input()
+
+class TableFrame():
+    def __init__(self,root, width=50,height=100,bd=1):
+        self.root=root
+
+        f=self.HFrame()
+        f=self.Sframe(f, width=width,height=height,bd=bd)
+        self.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
+        f=self.HFrame()
+        f=self.Sframe(f, width=width,height=height,bd=bd)
+        self.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
+        f=self.HFrame()
+        f=self.Sframe(f, width=width,height=height,bd=bd)
+
+    def HFrame(self):  
+        try:
+            pass#self.hframe.destroy()
+        except:pass
+
+        hframe=tk.Frame(self.root,relief=tk.GROOVE,bg="red")#,width=width,height=height,bd=bd)
+        hframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+        self.hframe=hframe
+        hframe=self.hframe
+        for i in dir(hframe):
+            print(i)
+        h2frame=tk.Frame(hframe,relief=tk.GROOVE,bg="#de0")#,width=width,height=height,bd=bd)
+        h2frame.pack(side="top",fill="x",expand=0) #x=0,y=0)
+        l=tk.Label(h2frame,text="filter:")
+        #l.pack(side="left")
+        r=0
+        c=0
+        l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
+        c+=1
+        l=tk.Entry(h2frame,text="test")
+        l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
+        self.hframe = hframe
+        #self.bframe=hframe
+        return hframe
+
+    def Sframe(self,root, width=50,height=100,bd=1):
+        try:
+            pass#self.aframe.destroy()
+        except:pass
+        aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
+        self.aframe=aframe
+        #aframe.place(x=0,y=0)
+        aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+
+        canvas=tk.Canvas(aframe,width=width-24,height=height)
+        canvas["bg"] = "blue" #black" #"green"
+        bframe=tk.Frame(canvas)#,width=width,height=height)
+        bframe["bg"] = "blue"
+        scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        scrollbar.pack(side="right",fill="y")
+        canvas.pack(side="left",expand=1,fill="both")
+        canvas.create_window((0,0),window=bframe,anchor='nw')
+        bframe.bind("<Configure>",scroll(canvas).config)
+        canvas.bind("<Button>",Event("XXX").event)
+        canvas.bind("<Key>",Event("XXX").event)
+        canvas.bind("<KeyRelease>",Event("XXX").event)
+        self.bframe=bframe
+        return bframe
+
+
+    def draw(self,data=[1,2],head=[],config=[]):
+        global tk
+        bframe=self.bframe
+        yframe = bframe
+        if 1: 
+            xframe = tk.Frame(yframe,bg="black")
+            xframe.pack()
+            def yview(event):
+                print("yevent",event)
+                yyy=20.1
+                xframe.yview_moveto(yyy)
+
+            i=0
+            c=0
+            r=0
+            b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+
+            c=0
+            r+=1
+
+            for i,p in enumerate(data):
+                for j in data[i]:
+                    b = tk.Button(xframe,bg="lightblue", text=""+str(j),width=6,anchor="e")
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                    c+=1
+                c=0
+                r+=1
+                    
+        return bframe
 
 def ScrollFrame(root,width=50,height=100,bd=1):
     #print("ScrollFrame init",width,height)
@@ -3200,6 +3354,18 @@ w = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
 master.draw_colorpicker(w.tk)
 window_manager.new(w,name)
 
+name="Table"
+w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
+w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
+x=TableFrame(root=w.tk)#,left=80,top=620)
+data =[]
+for a in range(40):
+    data.append(["E","E{}".format(a+1)])
+
+x.draw(data=data,head=["E","C"],config=[12,5,5])
+w=x.bframe
+#window_manager.new(w,name)
+
 
 #Xroot = tk.Tk()
 #Xroot["bg"] = "black" #white
@@ -3208,7 +3374,7 @@ window_manager.new(w,name)
 
 
 master.render()
-
+window_manager.top("Table")
 #w = frame_fix #GUIWindow("OLD",master=0,width=800,height=500,left=130,top=65)
 window_manager.new(w,name)
         

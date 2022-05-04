@@ -170,6 +170,20 @@ import zlib
 def jclient_send(data):
     t_start = time.time()
     jtxt = data
+    jdatas = []
+    for jdata in data:
+        if "DMX" in jdata:
+            try:
+                if int(jdata["DMX"]) >= 1: # ignore DMX lower one
+                     jdatas.append(jdata)
+                else:
+                     cprint("jclient_send, ignore DMX ",jdata["DMX"],color="red")
+            except Exception as e:
+                cprint("jclient_send, Exception DMX ",color="red")
+                cprint("",jdata,color="red")
+                cprint("-----",color="red")
+            
+    jtxt = jdatas
     jtxt = json.dumps(jtxt)
     jtxt = jtxt.encode()
     #jtxt = zlib.compress(jtxt)
@@ -2306,12 +2320,20 @@ class Fixtures(Base):
         #cprint("get_dmx",[fix,attr])
         if fix in self.fixtures:
             data = self.fixtures[fix]
+            DMX = -99
             if "DMX" in data:
                 DMX = int(data["DMX"])
+                if DMX < 1: # ignore attribute with DMX lower 1
+                    return -22
             else:
                 return -1
+
+
             if "UNIVERS" in data:
-                DMX += (int(data["UNIVERS"])*512)
+                if int(data["UNIVERS"]) >= 0:
+                    DMX += (int(data["UNIVERS"])*512)
+                else:
+                    return -33
             adata = self.get_attr(fix,attr)
             #-hier ende 8.2.22
             #cprint("adata",adata,DMX)
@@ -2319,10 +2341,10 @@ class Fixtures(Base):
             if adata:
                 if "NR" in adata:
                     NR = adata["NR"] 
-                    if NR:
+                    if NR >= 1:
                         DMX+=NR-1
                     else:
-                        return -2
+                        return -44
                 return DMX
             return -4
         return -3

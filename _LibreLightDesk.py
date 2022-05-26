@@ -703,6 +703,11 @@ class Xevent():
             master.refresh_fix()
 
 
+    def setup(self,event):       
+        print(self,"SETUP",event,self.mode)
+        r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
+        return 1
+
     def command(self,event):       
         if self.mode == "COMMAND":
             
@@ -1016,6 +1021,8 @@ class Xevent():
 
             if self.mode == "COMMAND":
                 self.command(event)
+            elif self.mode == "SETUP":
+                self.setup(event)
             elif self.mode == "ROOT":
                 if event.keysym=="Escape":
                     pass
@@ -1111,7 +1118,7 @@ class Xevent():
             cprint("== cb EXCEPT",e,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-                                            
+        return 1 
         
 def wheel(event,d=None):
     print("wheel",event,d)

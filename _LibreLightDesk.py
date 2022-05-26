@@ -1100,7 +1100,10 @@ class Xevent():
                     val ="-"
 
                 if val:
-                    FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
+                    if self.attr == "DIM" and self.fix == 0 and val == "click":
+                        pass    
+                    else:
+                        FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
                     
                 master.refresh_fix()
 
@@ -1816,7 +1819,10 @@ class GUI(Base):
             if attr.endswith("-FINE"):
                 continue
             v=0
+            
             b = tk.Button(frame,bg="orange", text=str(attr)+'',width=6)
+            if attr == "DIM":
+                b = tk.Button(frame,bg="yellow", text=str(attr)+'',width=6)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=self,mode="ENCODER").cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1

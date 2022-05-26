@@ -2031,7 +2031,7 @@ class GUI(Base):
        
         i=0
         for k in PRESETS.val_presets:
-            if i%(8*8)==0 or i ==0:
+            if i%(10*8)==0 or i ==0:
                 c=0
                 b = tk.Label(frame,bg="black", text="" )
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -2068,7 +2068,7 @@ class GUI(Base):
                 self.elem_presets[k] = b
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=8:
+            if c >=10:
                 c=0
                 r+=1
         self.refresh_exec()
@@ -3223,7 +3223,7 @@ class GUIWindow():
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             print(defaultFont)
             defaultFont.configure(family="FreeSans",
-                                   size=10,
+                                   size=8,
                                    weight="bold")
             #self.tk.option_add("*Font", FontBold)
             # MAIN MENUE

@@ -1443,19 +1443,28 @@ class GUI(Base):
     def refresh_fix(self):
         refresher.reset() # = Refresher()
     def _refresh_fix(self):
+        c_d =0
+        c_f =0
+        c_a =0
         for fix in FIXTURES.fixtures:                            
             sdata = FIXTURES.fixtures[fix]                            
+            _c_a = 0
             for attr in sdata["ATTRIBUT"]:
                 if "FINE" in attr:
                     continue
                 v2 = sdata["ATTRIBUT"][attr]["VALUE"]
                 if fix in self.elem_attr:
+                    
                     elem = self.elem_attr[fix][attr]
                     #print( attr,v2)
                     elem["text"] = "{} {:0.2f}".format(attr,v2)
                     if sdata["ATTRIBUT"][attr]["ACTIVE"]:
                         elem["bg"] = "yellow"
                         elem.config(activebackground="yellow")
+                        if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
+                            c_d+=1
+                        else:
+                            _c_a += 1
                     else:
                         elem["bg"] = "grey"
                         elem.config(activebackground="grey")
@@ -1469,7 +1478,11 @@ class GUI(Base):
                         elem["fg"] = "red"
                     else:
                         elem["fg"] = "black"
-
+            c_a += _c_a
+            if _c_a>0:
+                c_f +=1
+        gui_menu.update("FIXTURES","{}:{}".format(c_f,c_a))
+        gui_menu.update("DIMMER","{}".format(c_d))
 
     def preset_rec(self,nr):
         print("------- STORE PRESET")
@@ -3138,7 +3151,7 @@ class GUI_menu():
     def __init__(self,root,data,title="tilte",width=800):
         global tk
         self.data = data
-
+        self.data2 = {}
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
         r=0
@@ -3153,12 +3166,21 @@ class GUI_menu():
             self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=10,height=3)
             self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
+            row["elem"] = self.b
+            self.data2[row["text"]] = row
             r+=1
             i+=1
         self.frame.pack()
     def callback(self,event,data={}):
         print("callback543",self,event,data)
         window_manager.top(data["text"])# = WindowManager()
+    def update(self,button,text):
+        print(self,button,text)
+        for k in self.data2:
+            v=self.data2[k]
+            #print(self,k,v)
+            if button == k:
+                v["elem"]["text"] = k+"\n"+text
 
 lf_nr = 0
         
@@ -3383,7 +3405,8 @@ data = []
 data.append({"text":"EXEC"})
 data.append({"text":"DIMMER"})
 data.append({"text":"FIXTURES"})
-f = GUI_menu(w.tk,data)
+gui_menu = GUI_menu(w.tk,data)
+
 window_manager.new(w)
 
 name="EXEC"
@@ -3485,12 +3508,10 @@ master.render()
 window_manager.top("Table")
 #w = frame_fix #GUIWindow("OLD",master=0,width=W1,height=500,left=130,top=TOP)
 window_manager.new(w,name)
-        
-try:
 
+try:
     #root.mainloop()
     #tk.mainloop()
-
     window_manager.mainloop()
     
 finally:

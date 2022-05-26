@@ -1489,7 +1489,16 @@ class GUI(Base):
             if _c_a>0:
                 c_f +=1
         gui_menu.update("FIXTURES","{}:{}".format(c_f,c_a))
+        if c_f > 0:
+            gui_menu.config("FIXTURES","bg","yellow")
+        else:
+            gui_menu.config("FIXTURES","bg","")
+
         gui_menu.update("DIMMER","{}".format(c_d))
+        if c_d > 0:
+            gui_menu.config("DIMMER","bg","yellow")
+        else:
+            gui_menu.config("DIMMER","bg","")
 
     def preset_rec(self,nr):
         print("------- STORE PRESET")
@@ -3188,6 +3197,17 @@ class GUI_menu():
             #print(self,k,v)
             if button == k:
                 v["elem"]["text"] = k+"\n"+text
+    def config(self,button,attr,value):
+        print(self,button,attr,value)
+        for k in self.data2:
+            v=self.data2[k]
+            #print(self,k,v)
+            if button == k:
+                print(dir(v["elem"]))
+                if attr == "bg":
+                    if value == "":
+                        value = "lightgrey"
+                    v["elem"]["bg"] = str(value)
 
 lf_nr = 0
         

@@ -1894,6 +1894,42 @@ class GUI(Base):
             if c >=6:
                 c=0
                 r+=1
+    def draw_setup(self,xframe):
+        frame_cmd=xframe
+        i=0
+        c=0
+        r=0
+        
+        frame = tk.Frame(frame_cmd,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+       
+        #b = tk.Button(frame,bg="lightblue", text="SETUP",width=6)
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        
+        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        #r+=1
+        c+=1
+        for comm in ["BACKUP\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS"]:
+            if comm == "\n":
+                c=0
+                r+=1
+                continue
+            v=0
+            
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            if comm not in self.elem_commands:
+                self.elem_commands[comm] = b
+                self.val_commands[comm] = 0
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="SETUP").cb)
+
+            if comm == "BS:":
+                b["text"] = "BS:{}".format(fx_prm["BASE"])
+            if comm:
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            if c >=5:
+                c=0
+                r+=1
     def draw_command(self,xframe):
         frame_cmd=xframe
         i=0
@@ -1903,10 +1939,9 @@ class GUI(Base):
         frame = tk.Frame(frame_cmd,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
        
-        b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
+        # b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
         #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
         #r+=1
         c+=1
         for comm in self.commands:
@@ -2128,16 +2163,27 @@ class GUI(Base):
 class TableFrame():
     def __init__(self,root, width=50,height=100,bd=1):
         self.root=root
-
-        f=self.HFrame()
-        f=self.Sframe(f, width=width,height=height,bd=bd)
+        self.a = _TableFrame(self.root)
+        f=self.a.HFrame()
+        f=self.a.Sframe(f, width=width,height=height,bd=bd)
         self.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
-        f=self.HFrame()
-        f=self.Sframe(f, width=width,height=height,bd=bd)
-        self.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
-        f=self.HFrame()
-        f=self.Sframe(f, width=width,height=height,bd=bd)
 
+        self.b = _TableFrame(self.root)
+        f=self.b.HFrame()
+        f=self.b.Sframe(f, width=width,height=height,bd=bd)
+        self.b.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
+
+        self.c = _TableFrame(self.root)
+        f=self.c.HFrame()
+        f=self.c.Sframe(f, width=width,height=height,bd=bd)
+
+        self.bframe=None
+    def draw(self,data=[1,2],head=[],config=[]):
+        pass
+
+class _TableFrame():
+    def __init__(self,root):
+        self.root=root
     def HFrame(self):  
         try:
             pass#self.hframe.destroy()
@@ -2151,14 +2197,15 @@ class TableFrame():
             print(i)
         h2frame=tk.Frame(hframe,relief=tk.GROOVE,bg="#de0")#,width=width,height=height,bd=bd)
         h2frame.pack(side="top",fill="x",expand=0) #x=0,y=0)
-        l=tk.Label(h2frame,text="filter:")
+        self.l=tk.Label(h2frame,text="filter:")
         #l.pack(side="left")
         r=0
         c=0
-        l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
+        self.l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
         c+=1
-        l=tk.Entry(h2frame,text="test")
-        l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
+        self.l=tk.Entry(h2frame,text="test")
+        self.l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
+
         self.hframe = hframe
         #self.bframe=hframe
         return hframe
@@ -2860,7 +2907,7 @@ class ELEM_FADER():
         txt= self.mode["text"]
         txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
 
-        w = GUIWindow("config",master=1,width=200,height=140,left=110,top=65)
+        w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
         #w.pack()
         self._set_mode(txt)
     def _set_mode(self,txt=""):
@@ -3296,7 +3343,13 @@ class Refresher():
 refresher = Refresher()
 thread.start_new_thread(refresher.loop,())
 
-w = GUIWindow("MAIN",master=1,width=100,height=450,left=0,top=65)
+TOP = 15
+L1 = 110
+L2 = 920 
+W1 = 800
+H1 = 550
+
+w = GUIWindow("MAIN",master=1,width=100,height=H1,left=0,top=TOP)
 data = []
 #data.append({"text":"COMMAND"})
 data.append({"text":"EXEC"})
@@ -3306,30 +3359,30 @@ f = GUI_menu(w.tk,data)
 window_manager.new(w)
 
 name="EXEC"
-w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
+w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+w1 = ScrollFrame(w.tk,width=W1,height=H1)
 #frame_exe = w.tk
 master.draw_preset(w1)#w.tk)
 window_manager.new(w,name)
 
 name="DIMMER"
-w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
-w2 = ScrollFrame(w.tk,width=800,height=400)
+w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+w2 = ScrollFrame(w.tk,width=W1,height=H1)
 #frame_dim = w1 # w.tk
 #master.draw_dim(w1.tk)
 window_manager.new(w,name)
 
 name="FIXTURES"
-w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
+w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+w1 = ScrollFrame(w.tk,width=W1,height=H1)
 #frame_fix = w1 #w.tk
 master.draw_fix(w1,w2)#.tk)
 window_manager.new(w,name)
 
 
 name="FIXTURE-EDITOR"
-w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
+w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+w1 = ScrollFrame(w.tk,width=W1,height=H1)
 data=[]
 for i in range(24+12):
     data.append({"text"+str(i):"test"})
@@ -3340,7 +3393,7 @@ GUI_FaderLayout(w1,data)
 window_manager.new(w,name)
 
 name="ENCODER"
-ww = GUIWindow(name,master=0,width=800,height=50,left=110,top=500)
+ww = GUIWindow(name,master=0,width=600,height=100,left=740,top=620)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
@@ -3352,33 +3405,38 @@ root2 = tk.Frame(Xroot,bg="black",width="1px")
 master.draw_enc(root2)
 root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 
+name = "SETUP"
+w = GUIWindow(name,master=0,width=350,height=45,left=10+L1+W1,top=TOP)
+master.draw_setup(w.tk)
+window_manager.new(w,name)
+
 name = "COMMAND"
-w = GUIWindow(name,master=0,width=350,height=200,left=920,top=65)
+w = GUIWindow(name,master=0,width=350,height=130,left=10+L1+W1,top=100)
 master.draw_command(w.tk)
 window_manager.new(w,name)
 
 
 name="PATCH"
-w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
-w1 = ScrollFrame(w.tk,width=800,height=400)
+w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+w1 = ScrollFrame(w.tk,width=W1,height=H1)
 master.draw_patch(w1)
 window_manager.new(w,name)
 
 name="FX"
-w = GUIWindow(name,master=0,width=410,height=250,left=920,top=305)
+w = GUIWindow(name,master=0,width=410,height=250,left=10+L1+W1,top=265)
 #frame_fx = w.tk
 master.draw_fx(w.tk)
 window_manager.new(w,name)
 
 #LibreLightDesk
 name="COLORPICKER"
-w = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
+w = GUIWindow(name,master=0,width=580,height=100,left=L1,top=620)
 master.draw_colorpicker(w.tk)
 window_manager.new(w,name)
 
 name="Table"
 w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
-w = GUIWindow(name,master=0,width=800,height=400,left=110,top=65)
+w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 x=TableFrame(root=w.tk)#,left=80,top=620)
 data =[]
 for a in range(40):
@@ -3397,7 +3455,7 @@ w=x.bframe
 
 master.render()
 window_manager.top("Table")
-#w = frame_fix #GUIWindow("OLD",master=0,width=800,height=500,left=130,top=65)
+#w = frame_fix #GUIWindow("OLD",master=0,width=W1,height=500,left=130,top=TOP)
 window_manager.new(w,name)
         
 try:

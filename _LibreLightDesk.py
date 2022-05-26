@@ -1316,6 +1316,66 @@ class cb():
         print( hex_to_rgb(color[1:]))
 
 
+class MiniButton:
+    def __init__(self,root,width=70,height=38,text="button"):
+        self.text=text
+        self.rb = tk.Frame(root, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
+        self.bb.configure(width=width, height=height)
+
+        #txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+        #self.b = tk.Button(self.bb,bg="grey", text=text,width=7,height=2)
+        #self.b = tk.Button(self.bb,bg="grey", text=text,width=7,height=2)
+        #bb.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+        #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+    def _label(self,text="1\n2\n3\n"):
+        z = 0
+        self.bb.delete("label")
+        if "grün" in text.lower() or "green" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="green",tag="label")
+        elif "blau" in text.lower() or "blue" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="blue",tag="label")
+        elif "rot" in text.lower() or "red" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="red",tag="label")
+        elif "orange" in text.lower():# or "yellow" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="orange",tag="label")
+        elif "weiß" in text.lower() or "white" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="white",tag="label")
+        elif "cyan" in text.lower():# or "yellow" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="cyan",tag="label")
+        elif "gelb" in text.lower() or "yellow" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="yellow",tag="label")
+        elif "mage" in text.lower() or "mage" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="red",tag="label")
+
+        if "nebel" in text.lower()  or "smoke" in text.lower() or "haze" in text.lower():
+            self.l = self.bb.create_rectangle(10,27,60,37,fill="white",tag="label")
+        if "mh " in text.lower() or " mh" in text.lower() :
+            self.l = self.bb.create_rectangle(30,27,35,32,fill="black",tag="label")
+            self.l = self.bb.create_rectangle(28,34,37,37,fill="black",tag="label")
+
+        for t in text.split("\n"):
+            #print(t)
+            self.l = self.bb.create_text(35,z*10+10,text=t,anchor="c",tag="label")
+            z+=1
+    def configure(self,**args):
+        if "text" in args:
+            self.text = args["text"]
+            self._label(self.text)
+        if "bg" in args:
+            #print(dir(self.bb))
+            self.bb.configure(bg=args["bg"])
+    def config(self,**args):
+        self.configure(**args)
+    def bind(self,etype="<Button>",cb=None):
+        #bb.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+        #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+        if cb:
+            self.bb.bind(etype,cb)
+    def grid(self,row=0, column=0, sticky=""):
+        self.bb.pack() #(row=row, column=column, sticky=sticky)
+        self.rb.grid(row=row, column=column, sticky=sticky)
+        
 class GUI(Base):
     def __init__(self):
         super().__init__() 
@@ -1378,14 +1438,14 @@ class GUI(Base):
         txt = tkinter.simpledialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
         if txt:
             PRESETS.btn_cfg(nr,txt)
-            self.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)
+            self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
         modes.val("CFG-BTN",0)
     def label(self,nr):
         txt = PRESETS.label(nr) 
         txt = tkinter.simpledialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
         if txt:
             PRESETS.label(nr,txt) 
-            self.elem_presets[nr]["text"] = PRESETS.get_btn_txt(nr)
+            self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
         modes.val("LABEL", 0)
     def xcb(self,mode,value=None):
         cprint("MODE CALLBACK",mode,value,color="green",end="")
@@ -1444,8 +1504,8 @@ class GUI(Base):
                         BTN = sdata["CFG"]["BUTTON"]
                 txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
                 #txt+=str(self._XX)
-                b["text"] = txt
-                b["bg"] = "yellow"
+                b.configure(text= txt)
+                b.configure(bg="yellow")
                 b.config(activebackground="yellow")
                 if len(sdata) > 1:
                     fx_color = 0
@@ -1465,35 +1525,35 @@ class GUI(Base):
                                 if sdata[fix][attr]["VALUE"] is not None:
                                     val_color = 1
 
-                    b["fg"] = "black"
+                    b.configure(fg= "black")
                     if val_color:
-                        b["bg"] = "gold"
+                        b.configure(bg="gold")
                         b.config(activebackground="#ffaa55")
                         if fx_color:
-                            b["fg"] = "blue"
+                            b.configure(fg = "blue")
                     else:   
                         if fx_color:
-                            b["bg"] = "cyan"
+                            b.configure(bg = "cyan")
                             b.config(activebackground="#55d4ff")
                 else:
-                    b["bg"] = "grey"
+                    b.configure(bg="grey")
                     b.config(activebackground="#aaaaaa")
 
             if "\n" in txt:
                 txt = txt.split("\n")[0]
             if "SEL" in txt:
-                b["fg"] = "black"
-                b["bg"] = "#5555ff"
+                b.configure(fg= "black")
+                b.configure(bg = "#5555ff")
                 b.config(activebackground="#6666ff")
 
             elif "ON" in txt:
-                b["bg"] = "#ffcc00"
-                b["fg"] = "#00c"
+                b.configure(bg = "#ffcc00")
+                b.configure(fg = "#00c")
 
             elif "GO" in txt:
-                b["fg"] = "black"
+                b.configure(fg="black")
             elif "FL" in txt:
-                b["fg"] = "#7f00ff"
+                b.configure(fg = "#7f00ff")
 
 
     def refresh_fix(self):
@@ -2136,7 +2196,7 @@ class GUI(Base):
                 b = tk.Button(frame,bg="lightblue", text="BANK " + str(int(i/(8*8))+1) )
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
-                b = tk.Button(frame,bg="lightblue", text="<NAME>"  )
+                b = tk.Button(frame,bg="lightblue", text="NAME"  )
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 r+=1
                 c=0
@@ -2152,13 +2212,20 @@ class GUI(Base):
             if "CFG" in sdata:#["BUTTON"] = "GO"
                 if "BUTTON" in sdata["CFG"]:
                     BTN = sdata["CFG"]["BUTTON"]
+
+
+            #bb = tk.Frame(frame, highlightbackground = "red", highlightthickness = 1, bd=0)
+            #bb = tk.Canvas(frame, highlightbackground = "black", highlightthickness = 1, bd=1)
+            #bb.configure(width=70, height=38)
             txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-            b = tk.Button(frame,bg="grey", text=txt,width=7,height=2)
+            b = MiniButton(frame,text=txt)
+            #b = tk.Button(bb,bg="grey", text=txt,width=7,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             
             if k not in self.elem_presets:
                 self.elem_presets[k] = b
+            #b.pack(expand=1)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=10:

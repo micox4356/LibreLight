@@ -73,7 +73,7 @@ class Modes():
         elif mode in self.modes:
             return self.modes[mode]
     def get(self,mode,value=None):
-        return slef.val(mode,value)
+        return self.val(mode,value)
     def __check(self,mode):
         if mode not in self.modes:
             self.modes[mode] = 0
@@ -93,7 +93,6 @@ class Modes():
     def set(self,mode,value):
         protected = ["BLIND","CLEAR","REC-FX"]
         self.__check(mode)
-        out = 0
         if mode == "CLEAR":
             return 1
         elif mode == "ESC":
@@ -106,23 +105,23 @@ class Modes():
                 if m != "BLIND":
                     self.modes[m] = 0
                     self.callback(m)
-            out = 1
             return 1
-        elif value:
+
+        if value:
             for m in self.modes:
                 if m not in protected and mode not in protected and m != mode:
+                    cprint("-#-# clear mode",mode,m,value,color="red")
                     if self.modes[m]:
                         self.modes[m]= 0
                         self.callback(m)
-            if self.modes[mode]:
+            if self.modes[mode] and value == 1:
                 if modes == "MOVE":
                     PRESETS.clear_move()
                 if modes == "COPY":
                     PRESETS.clear_copy()
                 self.modes[mode] = 0 # value
             else:
-                self.modes[mode] = 1 #value
-            out = 1
+                self.modes[mode] = value #1 #value
         else:
             self.modes[mode] = 0 #value
             if modes == "COPY":
@@ -139,7 +138,9 @@ class Modes():
             value = self.modes[mode]
             self.__cb(mode=mode,value=value)
 
+
 modes = Modes()
+
 #modes.val("BLIND", 0)
 #modes.modes["BLIND"] = 0
 modes.modes["ESC"] = 0
@@ -1313,14 +1314,17 @@ class GUI(Base):
                 PRESETS.label_presets[i] = "-"
 
         modes.set_cb(self.xcb)
-    def button_refresh(self,name,color,color2=None,fg=None):
+    def button_refresh(self,name,color,color2=None,text="",fg=None):
         cprint("button_refresh",name,color)
         #if color == "gold":
         #    color2 = "yellow"
         if color2 is None:
             color2 = color
+        if text:
+            text = "\n"+str(text)
         if name in self.elem_commands:
             self.elem_commands[name]["bg"] = color
+            self.elem_commands[name]["text"] = name+ text
             self.elem_commands[name].config(activebackground=color2)
             if fg:
                 self.elem_commands[name]["fg"] = fg
@@ -1351,9 +1355,17 @@ class GUI(Base):
         #cprint(self,"xcb","MODE CALLBACK",mode,value,color="green")
         if value:
             cprint("===== ON  ======",color="red")
+            txt = ""
             if mode == "REC-FX":
                 modes.val("REC",1)
-            self.button_refresh(mode,color="red")#,fg="blue")
+            if value == 2:
+                if mode in ["MOVE","COPY"]:
+                    txt="to"
+                self.button_refresh(mode,color="orange",text=txt)#,fg="blue")
+            else:
+                if mode in ["MOVE","COPY"]:
+                    txt="from"
+                self.button_refresh(mode,color="red",text=txt)#,fg="blue",text="from")
         else:
             cprint("===== OFF ======",color="red")
             if mode == "REC-FX":
@@ -2828,9 +2840,13 @@ class Presets(Base):
         cprint("PRESETS._copy",nr,"last",self._last_copy)
         if nr:
             if self._last_copy is not None:
+                if modes.val("COPY"):
+                    modes.val("COPY",3)
                 ok = self._copy(self._last_copy,nr,overwrite=overwrite)
                 return ok #ok
             else:
+                if modes.val("COPY"):
+                    modes.val("COPY",2)
                 self._last_copy = nr
                 cprint("PRESETS.copy START ",color="red")
                 return 0
@@ -2862,8 +2878,12 @@ class Presets(Base):
         cprint("PRESETS.move",self._last_copy,"to",nr)
         if nr: 
             last = self._last_copy
+            if modes.val("MOVE"):
+                modes.val("MOVE",2)
             ok= self.copy(nr,overwrite=0)
             if ok and last:
+                if modes.val("MOVE"):
+                    modes.val("MOVE",3)
                 cprint("PRESETS.move OK",color="red")
                 #self.delete(last)
                 return ok #ok

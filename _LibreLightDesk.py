@@ -1806,7 +1806,7 @@ class GUI(Base):
         r=0
         
         frame = tk.Frame(root2,bg="black")
-        frame.pack( side=tk.TOP,expand=1,fill="both")
+        frame.pack( side=tk.LEFT,expand=0,fill="both")
 
         
         b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
@@ -1998,7 +1998,7 @@ class GUI(Base):
         for k in PRESETS.val_presets:
             if i%(8*8)==0 or i ==0:
                 c=0
-                b = tk.Label(frame,bg="black", text="X" )
+                b = tk.Label(frame,bg="black", text="" )
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 r+=1
                 c=0
@@ -3185,6 +3185,8 @@ class GUIWindow():
 
         #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
+    def close_app_win(self,event):
+        print("close_app_win",self,event)
     def title(self,title=None):
         if title is None:
             return self.tk.title()
@@ -3348,8 +3350,9 @@ L1 = 110
 L2 = 920 
 W1 = 800
 H1 = 550
+HTB = 23 # hight of the titlebar from window manager
 
-w = GUIWindow("MAIN",master=1,width=100,height=H1,left=0,top=TOP)
+w = GUIWindow("MAIN",master=1,width=100,height=H1//2,left=0,top=TOP)
 data = []
 #data.append({"text":"COMMAND"})
 data.append({"text":"EXEC"})
@@ -3393,7 +3396,7 @@ GUI_FaderLayout(w1,data)
 window_manager.new(w,name)
 
 name="ENCODER"
-ww = GUIWindow(name,master=0,width=600,height=100,left=740,top=620)
+ww = GUIWindow(name,master=0,width=600,height=100,left=740,top=HTB*2+TOP+H1)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
@@ -3430,7 +3433,7 @@ window_manager.new(w,name)
 
 #LibreLightDesk
 name="COLORPICKER"
-w = GUIWindow(name,master=0,width=580,height=100,left=L1,top=620)
+w = GUIWindow(name,master=0,width=580,height=100,left=L1,top=20+HTB*2+H1)
 master.draw_colorpicker(w.tk)
 window_manager.new(w,name)
 

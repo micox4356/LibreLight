@@ -705,22 +705,30 @@ class Xevent():
 
 
     def setup(self,event):       
-        print(self,"SETUP",event,self.mode)
-        r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
+        cprint("xevent.SETUP",[self.mode,self.attr],color="red")
+        if self.mode == "SETUP":
+            if self.attr == "BACKUP\nSHOW":
+                self.elem["bg"] = "orange"
+                self.elem["text"] = "SAVING..."
+                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                #self.elem["fg"] = "orange"
+                self.elem.config(activebackground="orange")
+                modes.val(self.attr,1)
+                PRESETS.backup_presets()
+                FIXTURES.backup_patch()
+                #time.sleep(1)
+                #modes.val(self.attr,0)
+                self.elem["bg"] = "lightgrey"
+                #self.elem["fg"] = "lightgrey"
+                self.elem.config(activebackground="lightgrey")
+            else:
+                r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
 
-    def command(self,event):       
-        if self.mode == "COMMAND":
+    def fx_command(self,event):       
+        if self.mode == "FX":
             
-            if self.attr == "CLEAR":
-                if event.num == 1:
-                    ok = FIXTURES.clear()
-                    if ok:
-                        master.refresh_fix()
-                    modes.val(self.attr,0)
-
-                    
-            elif self.attr.startswith("SZ:"):#SIN":
+            if self.attr.startswith("SZ:"):#SIN":
                 #global fx_prm
                 k = "SIZE"
                 if event.num == 1:
@@ -957,9 +965,21 @@ class Xevent():
                     master.refresh_fix()
                     return 0
 
+                #if event.num == 1:
+            elif self.attr == "REC-FX":
+                print("ELSE",self.attr)
+                modes.val(self.attr,1)
 
             
-            elif self.attr == "FADE":
+
+            return 0
+
+
+
+    def live(self,event):       
+        if self.mode == "LIVE":
+                    
+            if self.attr == "FADE":
                 fade = FADE.val()
                 print("EVENT CHANGE FADE",fade)
                 if fade < 0.01:
@@ -993,6 +1013,17 @@ class Xevent():
                 fade = round(fade,3)
                 FADE.val(fade)
                 self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
+                self.elem.config(activebackground="lightgreen")
+    def command(self,event):       
+        if self.mode == "COMMAND":
+            
+            if self.attr == "CLEAR":
+                if event.num == 1:
+                    ok = FIXTURES.clear()
+                    if ok:
+                        master.refresh_fix()
+                    modes.val(self.attr,0)
+
 
             elif self.attr == "BACKUP":
                 modes.val(self.attr,1)
@@ -1006,7 +1037,25 @@ class Xevent():
                     modes.val(self.attr,1)
 
             return 0
+    def encoder(self,event):
+        if self.mode == "ENCODER":
+            cprint("ENC",self.fix,self.attr,self.mode)
+            cprint(self.data)
+            val=""
+            if event.num == 1:
+                val ="click"
+            elif event.num == 4:
+                val ="+"
+            elif event.num == 5:
+                val ="-"
 
+            if val:
+                if self.attr == "DIM" and self.fix == 0 and val == "click":
+                    pass    
+                else:
+                    FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
+                
+            master.refresh_fix()
 
             
     def cb(self,event):
@@ -1020,10 +1069,16 @@ class Xevent():
                     master.refresh_fix()
                     return 0
 
-            if self.mode == "COMMAND":
-                self.command(event)
-            elif self.mode == "SETUP":
+            if self.mode == "SETUP":
                 self.setup(event)
+            elif self.mode == "COMMAND":
+                self.command(event)
+            elif self.mode == "LIVE":
+                self.live(event)
+            elif self.mode == "ENCODER":
+                self.encoder(event)
+            elif self.mode == "FX":
+                self.fx_command(event)
             elif self.mode == "ROOT":
                 if event.keysym=="Escape":
                     pass
@@ -1096,24 +1151,6 @@ class Xevent():
                 return 0
             elif self.mode == "INPUT":
                 return 0
-            if self.mode == "ENCODER":
-                cprint("ENC",self.fix,self.attr,self.mode)
-                cprint(self.data)
-                val=""
-                if event.num == 1:
-                    val ="click"
-                elif event.num == 4:
-                    val ="+"
-                elif event.num == 5:
-                    val ="-"
-
-                if val:
-                    if self.attr == "DIM" and self.fix == 0 and val == "click":
-                        pass    
-                    else:
-                        FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
-                    
-                master.refresh_fix()
 
         except Exception as e:
             cprint("== cb EXCEPT",e,color="red")
@@ -1294,8 +1331,8 @@ class GUI(Base):
                 ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","WING:\n2","\n"
                 ,"SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:RND" ]
-        self.commands =["\n","ESC","CFG-BTN","LABEL","BACKUP","DEL","\n"
-                ,"SELECT","FLASH","GO","FADE","MOVE","\n"
+        self.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","\n"
+                ,"SELECT","FLASH","GO","-","MOVE","\n"
                 ,"BLIND","CLEAR","REC","EDIT","COPY","\n" 
                 ]
         self.elem_fx_commands = {}
@@ -1729,7 +1766,7 @@ class GUI(Base):
             c+=1
             if len(data["ATTRIBUT"]) == 1:
                 b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
-            elif "PAN" in data["ATTRIBUT"] or  "TITL" in data["ATTRIBUT"] :
+            elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
                 b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
             else:
                 b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
@@ -1897,13 +1934,15 @@ class GUI(Base):
                 r+=1
                 continue
             v=0
-            
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            if "PAN/TILT" in comm: 
+                b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
+            else:
+                b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
             if comm not in self.elem_fx_commands:
                 comm = comm.replace("\n","")
                 self.elem_fx_commands[comm] = b
                 self.val_fx_commands[comm] = 0
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="FX").cb)
             if comm == "BLIND":
                 b["bg"] = "grey"
             elif comm == "CLEAR":
@@ -1970,7 +2009,10 @@ class GUI(Base):
                 continue
             v=0
             
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            if comm == "BACKUP\nSHOW":
+                b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            else:
+                b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
             if comm not in self.elem_commands:
                 self.elem_commands[comm] = b
                 self.val_commands[comm] = 0
@@ -1978,6 +2020,38 @@ class GUI(Base):
 
             if comm == "BS:":
                 b["text"] = "BS:{}".format(fx_prm["BASE"])
+            if comm:
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            if c >=5:
+                c=0
+                r+=1
+    def draw_live(self,xframe):
+        frame_cmd=xframe
+        i=0
+        c=0
+        r=0
+        
+        frame = tk.Frame(frame_cmd,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+       
+        c+=1
+        for comm in ["FADE","DELAY:0.0","PAN/TILT\nFADE:x.x","PAN/TILT\nDELAY:0.0"]:
+            if comm == "\n":
+                c=0
+                r+=1
+                continue
+            v=0
+            
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            if comm not in self.elem_commands:
+                self.elem_commands[comm] = b
+                self.val_commands[comm] = 0
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="LIVE").cb)
+            if "FADE" == comm:
+                b["text"] = "FADE:2.0"
+            if "FADE" in comm:
+                b["bg"] = "green"
             if comm:
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -2247,8 +2321,8 @@ class _TableFrame():
         hframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
         self.hframe=hframe
         hframe=self.hframe
-        for i in dir(hframe):
-            print(i)
+        #for i in dir(hframe):
+        #    print(i)
         h2frame=tk.Frame(hframe,relief=tk.GROOVE,bg="#de0")#,width=width,height=height,bd=bd)
         h2frame.pack(side="top",fill="x",expand=0) #x=0,y=0)
         self.l=tk.Label(h2frame,text="filter:")
@@ -3119,11 +3193,11 @@ class GUI_FaderLayout():
         mode = ["F","F","F","F"]
         self._load_mh(None,attr,mode)
     def load_MH(self,_event=None,attr=[]):
-        attr = ["PAN","PAN-FINE","TITL","TITL-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
+        attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
         mode = ["F","F","F","F","S","F","F","F","F","S"]
         self._load_mh(None,attr,mode)
     def load_MH2(self,_event=None,attr=[]):
-        attr = ["PAN","PAN-FINE","TITL","TITL-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO","G-ROT","PRISM","P-ROT","ZOOM","CONTR"]
+        attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO","G-ROT","PRISM","P-ROT","ZOOM","CONTR"]
         mode = ["F","F","F","F","S","F","F","F","F","S","S","S","S","F","S"]
         self._load_mh(None,attr,mode)
     def _load_mh(self,_event=None,attr=[],mode=[]):
@@ -3200,13 +3274,13 @@ class GUI_menu():
         r=0
         c=0
         i=1
-        self.b = tk.Label(self.frame,bg="lightblue", text="MAIN:MENU",width=10,height=1)
+        self.b = tk.Label(self.frame,bg="lightblue", text="MAIN:MENU",width=8,height=1)
         self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
         r+=1
         for row in data:
             #print(i)
             #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=10,height=3)
+            self.b = tk.Button(self.frame,bg="lightgrey", text=row["text"],width=8,height=2)
             self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             row["elem"] = self.b
@@ -3352,6 +3426,9 @@ class GUIWindow():
                 #PRESETS.delete(nr)
                 if value:
                     modes.val("DEL",1)
+
+
+
 class WindowManager():
     def __init__(self):
         self.windows = {}
@@ -3443,18 +3520,20 @@ refresher = Refresher()
 thread.start_new_thread(refresher.loop,())
 
 TOP = 15
-L1 = 110
+L1 = 95
 L2 = 920 
 W1 = 800
 H1 = 550
 HTB = 23 # hight of the titlebar from window manager
 
-w = GUIWindow("MAIN",master=1,width=100,height=H1//2,left=0,top=TOP)
+w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=0,top=TOP)
+gui_menu_gui = w
 data = []
 #data.append({"text":"COMMAND"})
-data.append({"text":"EXEC"})
+data.append({"text":"PATCH"})
 data.append({"text":"DIMMER"})
 data.append({"text":"FIXTURES"})
+data.append({"text":"EXEC"})
 gui_menu = GUI_menu(w.tk,data)
 
 window_manager.new(w)
@@ -3494,7 +3573,7 @@ GUI_FaderLayout(w1,data)
 window_manager.new(w,name)
 
 name="ENCODER"
-ww = GUIWindow(name,master=0,width=600,height=100,left=740,top=HTB*2+TOP+H1)
+ww = GUIWindow(name,master=0,width=600,height=100,left=720,top=HTB*2+TOP+H1)
 Xroot = ww.tk
 w = None
 root = tk.Frame(Xroot,bg="black",width="10px")
@@ -3507,13 +3586,24 @@ master.draw_enc(root2)
 root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 
 name = "SETUP"
-w = GUIWindow(name,master=0,width=350,height=45,left=10+L1+W1,top=TOP)
+w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=TOP)
 master.draw_setup(w.tk)
 window_manager.new(w,name)
 
 name = "COMMAND"
-w = GUIWindow(name,master=0,width=350,height=130,left=10+L1+W1,top=100)
+w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=98)
 master.draw_command(w.tk)
+window_manager.new(w,name)
+
+name = "LIVE"
+w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=255)
+master.draw_live(w.tk)
+window_manager.new(w,name)
+
+name="FX"
+w = GUIWindow(name,master=0,width=415,height=250,left=10+L1+W1,top=328)
+#frame_fx = w.tk
+master.draw_fx(w.tk)
 window_manager.new(w,name)
 
 
@@ -3521,12 +3611,6 @@ name="PATCH"
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 w1 = ScrollFrame(w.tk,width=W1,height=H1)
 master.draw_patch(w1)
-window_manager.new(w,name)
-
-name="FX"
-w = GUIWindow(name,master=0,width=410,height=250,left=10+L1+W1,top=265)
-#frame_fx = w.tk
-master.draw_fx(w.tk)
 window_manager.new(w,name)
 
 #LibreLightDesk

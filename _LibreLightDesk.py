@@ -1324,14 +1324,14 @@ class GUI(Base):
             self.elem_commands[name].config(activebackground=color2)
             if fg:
                 self.elem_commands[name]["fg"] = fg
-                print(dir(self.elem_commands[name]))
+                #print(dir(self.elem_commands[name]))
         elif name in self.elem_fx_commands:
             #todo
             self.elem_fx_commands[name]["bg"] = color
             self.elem_fx_commands[name].config(activebackground=color2)
             if fg:
                 self.elem_fx_commands[name]["fg"] = fg
-                print(dir(self.elem_fx_commands[name]))
+                #print(dir(self.elem_fx_commands[name]))
     def btn_cfg(self,nr):
         txt = PRESETS.btn_cfg(nr) 
         txt = tkinter.simpledialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
@@ -1393,7 +1393,7 @@ class GUI(Base):
                 if "CFG" in sdata:#["BUTTON"] = "GO"
                     if "BUTTON" in sdata["CFG"]:
                         BTN = sdata["CFG"]["BUTTON"]
-                txt=str(k)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+                txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
                 #txt+=str(self._XX)
                 b["text"] = txt
                 b["bg"] = "yellow"
@@ -1488,17 +1488,24 @@ class GUI(Base):
             c_a += _c_a
             if _c_a>0:
                 c_f +=1
-        gui_menu.update("FIXTURES","{}:{}".format(c_f,c_a))
+
+        c_a2=0
+
         if c_f > 0:
-            gui_menu.config("FIXTURES","bg","yellow")
+            c_a2 = round(c_a/c_f,2)
+            if c_a2 % 1 > 0:
+                gui_menu.config("FIXTURES","bg","orange")
+            else:
+                gui_menu.config("FIXTURES","bg","yellow")
         else:
             gui_menu.config("FIXTURES","bg","")
+        gui_menu.update("FIXTURES","{} : {}".format(c_f,c_a2))
 
-        gui_menu.update("DIMMER","{}".format(c_d))
         if c_d > 0:
             gui_menu.config("DIMMER","bg","yellow")
         else:
             gui_menu.config("DIMMER","bg","")
+        gui_menu.update("DIMMER","{}".format(c_d))
 
     def preset_rec(self,nr):
         print("------- STORE PRESET")
@@ -3191,7 +3198,7 @@ class GUI_menu():
         print("callback543",self,event,data)
         window_manager.top(data["text"])# = WindowManager()
     def update(self,button,text):
-        print(self,button,text)
+        #print(self,button,text)
         for k in self.data2:
             v=self.data2[k]
             #print(self,k,v)
@@ -3203,7 +3210,7 @@ class GUI_menu():
             v=self.data2[k]
             #print(self,k,v)
             if button == k:
-                print(dir(v["elem"]))
+                #print(dir(v["elem"]))
                 if attr == "bg":
                     if value == "":
                         value = "lightgrey"

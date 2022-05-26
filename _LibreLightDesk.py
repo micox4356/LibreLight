@@ -2060,7 +2060,7 @@ class GUI(Base):
                 if "BUTTON" in sdata["CFG"]:
                     BTN = sdata["CFG"]["BUTTON"]
             txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-            b = tk.Button(frame,bg="grey", text=txt,width=8,height=2)
+            b = tk.Button(frame,bg="grey", text=txt,width=7,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             
@@ -3223,7 +3223,7 @@ class GUIWindow():
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             print(defaultFont)
             defaultFont.configure(family="FreeSans",
-                                   size=8,
+                                   size=10,
                                    weight="bold")
             #self.tk.option_add("*Font", FontBold)
             # MAIN MENUE

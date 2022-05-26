@@ -3305,22 +3305,18 @@ class GUIWindow():
                         PRESETS.clear_move()
                 elif "s" == event.keysym:
                     modes.val("SELECT",1)
+            elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
+                nr = int( event.keysym[1])
+                nr = nr-1+81  
+                cprint("F-KEY",value,nr)
+                master.preset_go(nr-1,xfade=None,val=value)
             elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
                 nr = int( event.keysym)
                 if nr == 0:
-                    nr =10
-                cprint("F-KEY",value,nr)
-                xfade = 0
-                if FADE._is():
-                    xfade = 0
-                master.preset_go(128-1+nr,xfade=xfade,val=value)
-            elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
-                nr = int( event.keysym[1])-1
-                cprint("F-KEY",value,nr)
-                xfade = 0
-                if FADE._is():
-                    xfade = 0
-                master.preset_go(65-1+nr,xfade=xfade,val=value)
+                    nr = 10
+                nr = nr-1+161  
+                cprint("NUM-KEY",value,nr)
+                master.preset_go(nr-1,xfade=None,val=value)
             elif "End" == event.keysym:
                 FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")

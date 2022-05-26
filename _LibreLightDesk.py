@@ -3155,9 +3155,14 @@ class GUI_menu():
         window_manager.top(data["text"])# = WindowManager()
 
 lf_nr = 0
+        
+from tkinter import PhotoImage 
+
 class GUIWindow():
     def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
         global lf_nr
+        #ico_path="/opt/LibreLight/Xdesk/icon/"
+        ico_path="./icon/"
         if master: 
             self.tk = tkinter.Tk()
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
@@ -3166,9 +3171,23 @@ class GUIWindow():
                                    size=10,
                                    weight="bold")
             #self.tk.option_add("*Font", FontBold)
+            # MAIN MENUE
+            self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
         else:
+            # addtional WINDOW
             self.tk = tkinter.Toplevel()
-        #print(title,self.tk.__doc__)
+            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            if "COLORPICKER" in title:
+                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
+            elif "ENCODER" in title:
+                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"enc.png"))
+            elif "EXEC" in title:
+                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"exec.png"))
+            elif "FX" in title:
+                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"fx.png"))
+            else:
+                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
+
 
         self.tk["bg"] = "black"
         self.tk.bind("<Button>",self.callback)

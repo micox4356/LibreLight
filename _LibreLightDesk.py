@@ -1065,7 +1065,7 @@ class Xevent():
                         elif modes.val("MOVE"):
                             ok=PRESETS.move(nr)
                             if ok:
-                                modes.val("MOVE",0)
+                                #modes.val("MOVE",0) # keep MOVE on
                                 master.refresh_exec()
                         elif modes.val("CFG-BTN"):
                             master.btn_cfg(nr)
@@ -3417,7 +3417,7 @@ class Refresher():
     def loop(self,args={}):
         while 1:
             self.refresh()
-            time.sleep(0.1)
+            time.sleep(0.2)
 
 refresher = Refresher()
 thread.start_new_thread(refresher.loop,())

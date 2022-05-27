@@ -1317,7 +1317,7 @@ class cb():
 
 
 class MiniButton:
-    def __init__(self,root,width=70,height=38,text="button"):
+    def __init__(self,root,width=72,height=38,text="button"):
         self.text=text
         self.rb = tk.Frame(root, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
@@ -1373,7 +1373,7 @@ class MiniButton:
         text = txt2
         for t in text.split("\n"):
             #print(t)
-            self.l = self.bb.create_text(35,z*10+10,text=t,anchor="c",tag="label")
+            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
             z+=1
     def configure(self,**args):
         if "text" in args:

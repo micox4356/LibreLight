@@ -1331,6 +1331,10 @@ class MiniButton:
     def _label(self,text="1\n2\n3\n"):
         z = 0
         self.bb.delete("label")
+        txt2 = text
+        try:
+            text = text.split("\n")[1]
+        except:pass
         if "grün" in text.lower() or "green" in text.lower():
             self.l = self.bb.create_rectangle(10,27,20,37,fill="green",tag="label")
         elif "blau" in text.lower() or "blue" in text.lower():
@@ -1346,14 +1350,27 @@ class MiniButton:
         elif "gelb" in text.lower() or "yellow" in text.lower():
             self.l = self.bb.create_rectangle(10,27,20,37,fill="yellow",tag="label")
         elif "mage" in text.lower() or "mage" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="red",tag="label")
+            self.l = self.bb.create_rectangle(10,27,20,37,fill="magenta",tag="label")
 
         if "nebel" in text.lower()  or "smoke" in text.lower() or "haze" in text.lower():
             self.l = self.bb.create_rectangle(10,27,60,37,fill="white",tag="label")
         if "mh " in text.lower() or " mh" in text.lower() :
             self.l = self.bb.create_rectangle(30,27,35,32,fill="black",tag="label")
             self.l = self.bb.create_rectangle(28,34,37,37,fill="black",tag="label")
+        if "off" in text.lower(): 
+            self.l = self.bb.create_rectangle(50,30,55,35,fill="black",tag="label")
+        if "dim" in text.lower() or "front" in text.lower()  or "on" in text.lower(): 
+            #self.l = self.bb.create_line(56,30,60,28,fill="black",tag="label")
+            self.l = self.bb.create_rectangle(50,30,55,35,fill="white",tag="label")
+            #self.l = self.bb.create_line(56,36,58,36,fill="black",tag="label")
+        if "circle" in text.lower(): 
+            self.l = self.bb.create_oval(30,27,40,37,fill="",tag="label")
+        if "pan" in text.lower(): 
+            self.l = self.bb.create_line(20,34 ,45,34,fill="black",arrow=tk.BOTH,tag="label")
+        if "tilt" in text.lower(): 
+            self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag="label")
 
+        text = txt2
         for t in text.split("\n"):
             #print(t)
             self.l = self.bb.create_text(35,z*10+10,text=t,anchor="c",tag="label")

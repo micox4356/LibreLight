@@ -231,84 +231,48 @@ class FX_handler():
 
 
 
-def reshape_preset(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
+def reshape_preset(data ,value=None,xfade=0,flash=0):
 
     if flash:
         xfade = 0
 
-    if not args: # and xfade is not None:# and FADE._is():
-        args.append(xfade)
-    else:
-        args[0] = xfade
-
-    cmd = []
-    jcmd = []
-    if flash:
-        pfx += "f"
-
+    out = []
     for row in data:
         cprint("reshape_preset",row)
-        jxcmd={}
+        line = {}
         if type(value) is float:
-            jxcmd["VALUE"] = value #round(value,3)
+            line["VALUE"] = value #round(value,3)
         else:
-            jxcmd["VALUE"] = value
-        jxcmd["args"] = []
+            line["VALUE"] = value
 
-        if fx:
-            if value is not None: 
-                # z.b. flush off
-                xcmd = str(value)+":"+row["FX"].split(":",1)[-1]
-                jxcmd["FX"] = row["FX"].split(":",1)[-1]
-
-            else:
-                xcmd = row["FX"]
-                jxcmd["FX"] = row["FX"]
-
-            if row["FX2"]:
-                jxcmd["FX2"] = row["FX2"]
+        if value is not None: 
+            line["FX"] = row["FX"].split(":",1)[-1]
         else:
-            if row["VALUE"] is None:
-                xcmd = ""
-            else:
-                if value is not None: 
-                    if type(value) is float:
-                        xcmd = "{:0.4f}".format(value)
-                    else:
-                        xcmd = "{}".format(value)
+            line["FX"] = row["FX"]
+
+        if row["FX2"]:
+            line["FX2"] = row["FX2"]
+
+
+        if row["VALUE"] is not None:
+            if value is None: 
+                v=row["VALUE"]
+                if type(v) is float:
+                    line["VALUE"]  = v #round(v,3)
                 else:
-                    v=row["VALUE"]
-                    xcmd = "{:0.4f}".format(v)
-                    #cprint([v])
-                    if type(v) is float:
-                        jxcmd["VALUE"]  = v #round(v,3)
-                    else:
-                        jxcmd["VALUE"]  = v
+                    line["VALUE"]  = v
 
-                for arg in args:
-                    if type(arg) is float:
-                        xcmd += ":{:0.4f}".format(arg)
-                        jxcmd["args"].append(v)#round(arg,3))
-                    else:
-                        xcmd += ":{}".format(arg)
-                        jxcmd["args"].append(arg)#round(arg,3))
-                #print( "pack: FIX",row["FIX"],row["ATTR"], xcmd)
 
-        #xcmd += ":{}".format(row["ATTR"])
-        v= xfade #FADE.val() #rxcmd["args"][0]
+        v = xfade 
         if type( v ) is float:
-            jxcmd["FADE"] = round(v,4)
+            line["FADE"] = round(v,4)
         else:
-            jxcmd["FADE"] = v
-        #if ("VALUE" in jxcmd and jxcmd["VALUE"] is not None) or "FX" in jxcmd and jxcmd["FX"]:
-        jcmd.append( jxcmd)
-        cmd.append( xcmd)
-        #if xcmd:
-        if 1:
-            cprint("reshape_preset j",jxcmd,color="red") 
-            cprint("reshape_preset x",xcmd,color="red") 
-            cprint("reshape_preset x",cmd,color="red") 
-    return cmd,jcmd
+            line["FADE"] = v
+        
+        if 0:
+            cprint("reshape_preset j",line,color="red") 
+        out.append(line)
+    return out
 
 class dummy_event():
     def __init__(self):
@@ -1570,6 +1534,7 @@ class GUI(Base):
                     elem = self.elem_attr[fix][attr]
                     FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
                     elem["bg"] = "yellow"
+
     def preset_go(self,nr,val=None,xfade=None,event=None,button=""):
         t_start = time.time()
         if xfade is None and FADE._is():
@@ -1604,6 +1569,7 @@ class GUI(Base):
                     value = "off"
 
             cprint("preset_go() FLUSH",value,color="red")
+            
             fcmd  = FIXTURES.update_raw(rdata,update=0)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
                 
@@ -1628,42 +1594,34 @@ class GUI(Base):
             xfade = FADE.val()
 
         cprint("PRESETS._preset_go()",len(rdata))
-        vvcmd,jvvcmd = reshape_preset( rdata ,value,[],xfade=xfade ) 
-        fxcmd,jfxcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
+        #vcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
+        vcmd = reshape_preset( rdata ,value,xfade=xfade) 
 
         cmd = []
-        for vcmd,d in [[jvvcmd,"d"],[jfxcmd,"fx"]]:
+
+        for i,v in enumerate(fcmd):
+            print(i,v)
             if xFLASH:
-                d+="f"
-            for i,v in enumerate(fcmd):
-                if xFLASH:
-                    vcmd[i]["FLASH"] = 1
+                vcmd[i]["FLASH"] = 1
 
-                DMX = fcmd[i]["DMX"]
-                if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is float:
-                    vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
-                if value is not None:
-                    vcmd[i]["VALUE"] = value 
-                if value == "off":
-                    if "FX2" in vcmd:
-                        vcmd[i]["FX2"]["TYPE"] = value
+            DMX = fcmd[i]["DMX"]
+            if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is float:
+                vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
+            if value is not None:
+                vcmd[i]["VALUE"] = value 
+            if value == "off":
+                if "FX2" in vcmd:
+                    vcmd[i]["FX2"]["TYPE"] = value
 
-                if DMX and vcmd[i]:
-                    vcmd[i]["DMX"] = DMX
+            if DMX and vcmd[i]:
+                vcmd[i]["DMX"] = DMX
 
-                if "VIRTUAL" in fcmd[i]:
-                    for a in fcmd[i]["VIRTUAL"]:
-                        DMX = fcmd[i]["VIRTUAL"][a]
-                        if DMX and vcmd[i]:
-                            vcmd[i]["DMX"] = DMX
-                #if vcmd[i]["VALUE"] is not None or ("FX2" in vcmd[i] and vcmd[i]["FX2"]):
-                #    cprint("jvcmd",vcmd[i])
-                #    cmd.append(vcmd[i])
-                #elif vcmd[i]["VALUE"] is not None or ("FX" in vcmd[i] and vcmd[i]["FX"]):
-                #    cprint("jvcmd",vcmd[i])
-                #    cmd.append(vcmd[i])
-                #cprint("jvcmd",vcmd[i])
-                cmd.append(vcmd[i])
+            if "VIRTUAL" in fcmd[i]:
+                for a in fcmd[i]["VIRTUAL"]:
+                    DMX = fcmd[i]["VIRTUAL"][a]
+                    if DMX and vcmd[i]:
+                        vcmd[i]["DMX"] = DMX
+            cmd.append(vcmd[i])
 
         if cmd and not modes.val("BLIND"):
             jclient_send(cmd)
@@ -1687,11 +1645,18 @@ class GUI(Base):
             if attr.endswith("-FINE"):
                 continue
             v= data["ATTRIBUT"][attr]["VALUE"]
-            b = tk.Button(frame,bg="lightblue", text=""+str(fix)+" "+data["NAME"],width=4)
+            b = tk.Button(frame,bg="lightblue", text=""+str(fix),width=3,anchor="w")
+            b.config(padx=1)
             b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=6)
+            b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
+            b.config(padx=1)
+            b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(frame,bg="grey", text=str(round(v,2)),width=10,anchor="w")
+            b.config(padx=1)
             self.elem_attr[fix][attr] = b
             b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -1839,7 +1804,11 @@ class GUI(Base):
                 #self._draw_fix(fix,data,root=fix_frame)
                 frame = fix_frame
             
-                b = tk.Button(frame,bg="lightblue", text="FIX:"+str(fix)+" "+data["NAME"],width=20)
+                b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
+                b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
                 b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1

@@ -1945,7 +1945,13 @@ def draw_enc(gui,xframe):
     b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
-    for attr in ["xx"]*23: # gui.all_attr:
+    #for attr in ["xx"]*23: # gui.all_attr:
+    eat = gui.all_attr
+
+    if len(eat) < 23:
+        for i in range(23-len(eat)):
+            eat.append("xx")
+    for attr in eat:
         if attr.endswith("-FINE"):
             continue
         v=0

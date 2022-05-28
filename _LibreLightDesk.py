@@ -192,16 +192,25 @@ def jclient_send(data):
     print(round((time.time()-t_start)*1000,4),"milis")
     cprint(round(time.time(),4),color="yellow")
 
-class _FadeTime():
-    def __init__(self):
+class ValueBuffer():
+    def __init__(self,_min=0,_max=255):
         self._value = 2
         self._on = 1
+        self._min=_min
+        self._max=_max
+    def check(self):
+        if self._value < self._min:
+            self._value = self._min
+        elif self._value > self._max:
+            self._value = self._max
+
     def inc(self,value=None):
         if value is not None:
             if type(value) is float:
                 self._value += round(value,4)
             else:
                 self._value += value
+        self.check()
         return self._value
     def val(self,value=None):
         if value is not None:
@@ -209,6 +218,7 @@ class _FadeTime():
                 self._value = round(value,4)
             else:
                 self._value = value
+        self.check()
         return self._value
     def on(self):
         self._on = 1
@@ -219,7 +229,7 @@ class _FadeTime():
             return 1
         return 0
 
-FADE = _FadeTime()  #2 #0.1 #1.13
+FADE = ValueBuffer()  #2 #0.1 #1.13
 fx_prm_move = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_prm      = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
@@ -849,7 +859,7 @@ class Xevent():
                 if fade < 0.01:
                     FADE.val(0.01)
                 elif fade > 100.0:
-                    fade = 100
+                    pass #fade = 100
                 if event.num == 4:
                     fade *= 1.1
                 elif event.num == 5:
@@ -858,9 +868,11 @@ class Xevent():
                     if FADE._is():
                         FADE.off()# = 0
                         self.data.elem_commands[self.attr]["bg"] = "grey"
+                        self.elem.config(activebackground="grey")
                     else:
                         FADE.on()# = 1
                         self.data.elem_commands[self.attr]["bg"] = "green"
+                        self.elem.config(activebackground="lightgreen")
                 elif event.num == 2:
                     if fade > 1 and fade < 4:
                         fade = 4
@@ -875,9 +887,8 @@ class Xevent():
                     elif fade < 1:
                         fade = 1.1
                 fade = round(fade,3)
-                FADE.val(fade)
+                fade = FADE.val(fade)
                 self.data.elem_commands[self.attr]["text"] = "Fade{:0.2f}".format(fade)
-                self.elem.config(activebackground="lightgreen")
     def command(self,event):       
         if self.mode == "COMMAND":
             

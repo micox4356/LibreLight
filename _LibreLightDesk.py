@@ -1070,7 +1070,7 @@ class Base():
         try:
             f = open(self.show_path+"init.txt","r")
             for line in f.readlines():
-                cprint(line)
+                #cprint(line)
                 if not line.startswith("#"):
                     show_name = line.strip()
                     show_name = show_name.replace(".","")
@@ -1107,7 +1107,7 @@ class Base():
         show_list =  list(os.listdir( self.show_path1 ))
         out = []
         for fname in show_list:
-            print(fname)
+            #print(fname)
             ctime = os.path.getmtime(self.show_path1+fname)
             ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
             try:
@@ -1125,6 +1125,7 @@ class Base():
         return out
 
     def _load(self,filename):
+        self._init()
         #self._check()
         xfname = self.show_path+"/"+str(filename)+".sav"
         print("load",xfname)
@@ -1183,7 +1184,7 @@ class Base():
         return data,labels
 
     def _backup(self,filename,data,labels):
-        self._check()
+        self._init()
         #fixture
         #xfname = "show/"+show_name+"/"+str(filename)+".sav"
         xfname = self.show_path+"/"+str(filename)+".sav"
@@ -2133,11 +2134,12 @@ def draw_load_show(xframe):
             #base = Base()
             #show_path = base.show_path1 + base.show_name
             print("LOAD SHOW:",event,self.fname)
-            LOAD_SHOW()
-            refresher.reset() # = Refresher()
-            master._refresh_fix()
-            master._refresh_exec()
-            draw_patch(master,main_preset_frame)
+            if 0: #disable load show ... error gui[elem] ..
+                LOAD_SHOW()
+                refresher.reset() # = Refresher()
+                master._refresh_fix()
+                master._refresh_exec()
+                draw_patch(master,main_preset_frame)
 
     frame = ScrollFrame(xframe,width=300,height=200,bd=1)
     frame.pack() #fill=tk.BOTH,expand=1, side=tk.TOP)
@@ -2160,7 +2162,7 @@ def draw_load_show(xframe):
                 b = tk.Button(frame,text=j,anchor="w",bg=bg,relief="sunken")
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             else:
-                b = tk.Button(frame,text=j,anchor="w",bg="grey")#,command=OEvent(j).cb)
+                b = tk.Button(frame,text=j,anchor="w",bg="grey",command=OEvent(j).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
         r+=1

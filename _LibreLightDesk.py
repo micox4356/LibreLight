@@ -2160,6 +2160,7 @@ def draw_load_show(xframe):
 
             #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
             os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
+            sys.exit()
             
 
     frame = ScrollFrame(xframe,width=300,height=200,bd=1)

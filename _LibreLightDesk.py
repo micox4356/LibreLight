@@ -1323,11 +1323,34 @@ class MiniButton:
         self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
         self.bb.configure(width=width, height=height)
 
-        #txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-        #self.b = tk.Button(self.bb,bg="grey", text=text,width=7,height=2)
-        #self.b = tk.Button(self.bb,bg="grey", text=text,width=7,height=2)
-        #bb.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+    def _label(self,text="1\n2\n3\n"):
+        z = 0
+        self.bb.delete("label")
+
+        for t in text.split("\n"):
+            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
+            z+=1
+    def configure(self,**args):
+        if "text" in args:
+            self.text = args["text"]
+            self._label(self.text)
+        if "bg" in args:
+            #print(dir(self.bb))
+            self.bb.configure(bg=args["bg"])
+    def config(self,**args):
+        self.configure(**args)
+    def bind(self,etype="<Button>",cb=None):
         #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+        if cb:
+            self.bb.bind(etype,cb)
+    def grid(self,row=0, column=0, sticky=""):
+        self.bb.pack() #(row=row, column=column, sticky=sticky)
+        self.rb.grid(row=row, column=column, sticky=sticky)
+        
+class ExecButton(MiniButton):
+    def __init__(self,root,width=72,height=38,text="button"):
+        super().__init__(root,width,height,text)
+
     def _label(self,text="1\n2\n3\n"):
         z = 0
         self.bb.delete("label")
@@ -1375,23 +1398,6 @@ class MiniButton:
             #print(t)
             self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
             z+=1
-    def configure(self,**args):
-        if "text" in args:
-            self.text = args["text"]
-            self._label(self.text)
-        if "bg" in args:
-            #print(dir(self.bb))
-            self.bb.configure(bg=args["bg"])
-    def config(self,**args):
-        self.configure(**args)
-    def bind(self,etype="<Button>",cb=None):
-        #bb.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
-        #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
-        if cb:
-            self.bb.bind(etype,cb)
-    def grid(self,row=0, column=0, sticky=""):
-        self.bb.pack() #(row=row, column=column, sticky=sticky)
-        self.rb.grid(row=row, column=column, sticky=sticky)
         
 class GUI(Base):
     def __init__(self):
@@ -2235,7 +2241,9 @@ class GUI(Base):
             #bb = tk.Canvas(frame, highlightbackground = "black", highlightthickness = 1, bd=1)
             #bb.configure(width=70, height=38)
             txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-            b = MiniButton(frame,text=txt)
+
+            b = ExecButton(frame,text=txt)
+
             #b = tk.Button(bb,bg="grey", text=txt,width=7,height=2)
             b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
             b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
@@ -3606,7 +3614,7 @@ thread.start_new_thread(refresher.loop,())
 TOP = 15
 L1 = 95
 L2 = 920 
-W1 = 800
+W1 = 810
 H1 = 550
 HTB = 23 # hight of the titlebar from window manager
 

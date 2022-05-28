@@ -2126,11 +2126,11 @@ def draw_load_show(xframe):
 
     show_path = base.show_path1 +base.show_name
     b = tk.Label(xframe,bg="grey",text="PATH: "+show_path,anchor="w")
-    b.pack(side="top",expand=1,fill="x" ) 
+    b.pack(side="top",expand=0,fill="x" ) 
 
     ctime = time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
     b = tk.Label(xframe,bg="grey",text="DATE:      "+ctime,anchor="w")
-    b.pack(side="top",expand=1,fill="x" ) 
+    b.pack(side="top",expand=0,fill="x" ) 
 
     b = tk.Label(xframe,bg="black",fg="black",text="")
     b.pack(side="top") 
@@ -2141,6 +2141,8 @@ def draw_load_show(xframe):
         def __init__(self,fname=""):
             self.fname=fname
         def cb(self,event=None):
+            if not self.fname:
+                return 0
             if base.show_name == self.fname:
                 cprint("filename is the same",self.fname)
                 return 0
@@ -2168,14 +2170,17 @@ def draw_load_show(xframe):
             
 
     frame = ScrollFrame(xframe,width=300,height=500,bd=1)
-    frame.pack() #fill=tk.BOTH,expand=1, side=tk.TOP)
+    frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP)
     for i in ["name","stamp"]: #,"create"]:
         b = tk.Label(frame,bg="grey",text=i)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
     r+=1
+    blist = base._list()
+    for i in range(10):
+        blist.append(["",""])
 
-    for i in base._list():
+    for i in blist:
         #print(i)
         c=0
         for j in i:

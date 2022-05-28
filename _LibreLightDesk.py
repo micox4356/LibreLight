@@ -584,6 +584,7 @@ class Xevent():
             if self.attr == "BACKUP\nSHOW":
                 self.elem["bg"] = "orange"
                 self.elem["text"] = "SAVING..."
+                self.elem["bg"] = "red"
                 tkinter.Tk.update_idletasks(gui_menu_gui.tk)
                 #self.elem["fg"] = "orange"
                 self.elem.config(activebackground="orange")
@@ -597,15 +598,15 @@ class Xevent():
                 self.elem.config(activebackground="lightgrey")
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
-                w = GUIWindow(name,master=0,width=400,height=250,exit=1,left=400,top=100)#,left=10+L1+W1,top=98)
-                self.elem["text"] = "SAVING..."
-                PRESETS.backup_presets()
-                FIXTURES.backup_patch()
+                w = GUIWindow(name,master=0,width=400,height=450,exit=1,left=400,top=100)#,left=10+L1+W1,top=98)
+                #self.elem["text"] = "LOADING..."
+                #PRESETS.backup_presets()
+                #FIXTURES.backup_patch()
                 draw_load_show(w.tk)
                 window_manager.new(w,name)
                 #w.tk.attributes('-topmost',True)
-                self.elem["bg"] = "lightgrey"
-                self.elem.config(activebackground="lightgrey")
+                self.elem["bg"] = "red"
+                self.elem.config(activebackground="red")
                 #w.tk.attributes('-topmost',False)
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
@@ -2140,6 +2141,9 @@ def draw_load_show(xframe):
         def __init__(self,fname=""):
             self.fname=fname
         def cb(self,event=None):
+            if base.show_name == self.fname:
+                cprint("filename is the same",self.fname)
+                return 0
             base._set(self.fname)
             #base = Base()
             #show_path = base.show_path1 + base.show_name
@@ -2163,7 +2167,7 @@ def draw_load_show(xframe):
             sys.exit()
             
 
-    frame = ScrollFrame(xframe,width=300,height=200,bd=1)
+    frame = ScrollFrame(xframe,width=300,height=500,bd=1)
     frame.pack() #fill=tk.BOTH,expand=1, side=tk.TOP)
     for i in ["name","stamp"]: #,"create"]:
         b = tk.Label(frame,bg="grey",text=i)
@@ -2174,17 +2178,22 @@ def draw_load_show(xframe):
     for i in base._list():
         #print(i)
         c=0
-        bg="lightgrey"
-        if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-            bg = "lightgreen"
-        elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-            bg = "green"
         for j in i:
+            bg="lightgrey"
+            dbg="lightgrey"
+            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+                dbg = "lightgreen"
+            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+                dbg = "green"
+
+
             if c > 0:
-                b = tk.Button(frame,text=j,anchor="w",bg=bg,relief="sunken")
+                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             else:
-                b = tk.Button(frame,text=j,anchor="w",bg="grey",command=OEvent(j).cb)
+                if base.show_name == i[0]:
+                    bg="green"
+                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=OEvent(j).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
         r+=1

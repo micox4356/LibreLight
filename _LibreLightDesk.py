@@ -67,7 +67,7 @@ class Modes():
         self.modes = {}
         self.__cfg = {}
         self.__cb = None
-    def val(self,mode,value=None):
+    def val(self,mode,value=None): #like jquery
         if value is not None:
             return self.set(mode,value)
         elif mode in self.modes:
@@ -3322,16 +3322,21 @@ class GUIWindow():
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
-            if "COLORPICKER" in title:
-                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
-            elif "ENCODER" in title:
-                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"enc.png"))
-            elif "EXEC" in title:
-                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"exec.png"))
-            elif "FX" in title:
-                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"fx.png"))
-            else:
-                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
+            try:
+                if "COLORPICKER" in title:
+                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
+                elif "ENCODER" in title:
+                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"enc.png"))
+                elif "EXEC" in title:
+                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"exec.png"))
+                elif "FX" in title:
+                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"fx.png"))
+                else:
+                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
+            except Exception as e:
+                print("Exception on load window icon",title)
+                print("Exception:",e)
+
 
 
         self.tk["bg"] = "black"

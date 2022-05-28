@@ -231,7 +231,7 @@ class FX_handler():
 
 
 
-def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
+def reshape_preset(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
 
     if flash:
         xfade = 0
@@ -247,6 +247,7 @@ def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
         pfx += "f"
 
     for row in data:
+        cprint("reshape_preset",row)
         jxcmd={}
         if type(value) is float:
             jxcmd["VALUE"] = value #round(value,3)
@@ -303,8 +304,10 @@ def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
         jcmd.append( jxcmd)
         cmd.append( xcmd)
         #if xcmd:
-        #    cprint("update_raw_dmx j",jxcmd,color="red") 
-        #    cprint("update_raw_dmx x",xcmd,color="red") 
+        if 1:
+            cprint("reshape_preset j",jxcmd,color="red") 
+            cprint("reshape_preset x",xcmd,color="red") 
+            cprint("reshape_preset x",cmd,color="red") 
     return cmd,jcmd
 
 class dummy_event():
@@ -1625,8 +1628,8 @@ class GUI(Base):
             xfade = FADE.val()
 
         cprint("PRESETS._preset_go()",len(rdata))
-        vvcmd,jvvcmd = update_raw_dmx( rdata ,value,[],xfade=xfade ) 
-        fxcmd,jfxcmd = update_raw_dmx( rdata ,value,[],xfade=xfade,fx=1) 
+        vvcmd,jvvcmd = reshape_preset( rdata ,value,[],xfade=xfade ) 
+        fxcmd,jfxcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
 
         cmd = []
         for vcmd,d in [[jvvcmd,"d"],[jfxcmd,"fx"]]:

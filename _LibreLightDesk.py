@@ -1086,7 +1086,7 @@ class Base():
         ini = self.show_path0+"init.txt"
         print("SET SHOW NAME",fname,ok,ini)
         if ok:
-            self.show_name = fname
+            #self.show_name = fname
             f = open( ini ,"a")
             f.write(fname+"\n")
             f.close()
@@ -2140,6 +2140,7 @@ def draw_load_show(xframe):
                 master._refresh_fix()
                 master._refresh_exec()
                 draw_patch(master,main_preset_frame)
+            #os.system('''kill "$(ps aux | grep -i  'python3 LibreLightDesk.py' | head -n1 | awk '{print $2}')"''')
 
     frame = ScrollFrame(xframe,width=300,height=200,bd=1)
     frame.pack() #fill=tk.BOTH,expand=1, side=tk.TOP)

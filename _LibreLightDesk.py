@@ -598,9 +598,14 @@ class Xevent():
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
                 w = GUIWindow(name,master=0,width=400,height=250,exit=1,left=400,top=100)#,left=10+L1+W1,top=98)
+                self.elem["text"] = "SAVING..."
+                PRESETS.backup_presets()
+                FIXTURES.backup_patch()
                 draw_load_show(w.tk)
                 window_manager.new(w,name)
-                w.tk.attributes('-topmost',True)
+                #w.tk.attributes('-topmost',True)
+                self.elem["bg"] = "lightgrey"
+                self.elem.config(activebackground="lightgrey")
                 #w.tk.attributes('-topmost',False)
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
@@ -1143,7 +1148,7 @@ class Base():
             #print(line)
             jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
             nrnull = 0
-            print(jdata)
+            #print(jdata)
             #if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
             #    for attr in jdata["ATTRIBUT"]:
             #        row = jdata["ATTRIBUT"][attr]
@@ -1664,7 +1669,7 @@ class GUI():
         cmd = []
 
         for i,v in enumerate(fcmd):
-            print(i,v)
+            print("go",i,v)
             if xFLASH:
                 vcmd[i]["FLASH"] = 1
 
@@ -1922,21 +1927,24 @@ def draw_fix(gui,xframe,yframe=None):
 
 
 
-
 def draw_enc(gui,xframe):
+
+    for widget in xframe.winfo_children():
+        widget.destroy()
+
     root2 = xframe
     i=0
     c=0
     r=0
     
-    frame = tk.Frame(root2,bg="black")
+    frame = tk.Frame(xframe,bg="black")
     frame.pack( side=tk.LEFT,expand=0,fill="both")
 
     
     b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
-    for attr in gui.all_attr:
+    for attr in ["xx"]*23: # gui.all_attr:
         if attr.endswith("-FINE"):
             continue
         v=0
@@ -2054,6 +2062,8 @@ def draw_setup(gui,xframe):
         
         if comm == "BACKUP\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        elif comm == "LOAD\nSHOW":
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         else:
             b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
         if comm not in gui.elem_commands:
@@ -2141,6 +2151,16 @@ def draw_load_show(xframe):
                 master._refresh_exec()
                 draw_patch(master,main_preset_frame)
             #os.system('''kill "$(ps aux | grep -i  'python3 LibreLightDesk.py' | head -n1 | awk '{print $2}')"''')
+            import os,sys
+
+            print(sys.executable, os.path.abspath(__file__), *sys.argv)
+            #input()
+            #ok /usr/bin/python3 /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
+            #err /opt/LibreLight/Xdesk/_LibreLightDesk.py /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
+
+            #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+            os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
+            
 
     frame = ScrollFrame(xframe,width=300,height=200,bd=1)
     frame.pack() #fill=tk.BOTH,expand=1, side=tk.TOP)
@@ -2151,7 +2171,7 @@ def draw_load_show(xframe):
     r+=1
 
     for i in base._list():
-        print(i)
+        #print(i)
         c=0
         bg="lightgrey"
         if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
@@ -2935,7 +2955,7 @@ class Presets():
                 if "FX" in row and row["FX"] and not row["FX2"]: # rebuild old FX to Dict-FX2
                     #"off:0:0:0:16909:-:"
                     x = row["FX"].split(":")
-                    print(x,len(x))
+                    print("-fx",x,len(x))
                     #'FX2': {'TYPE': 'sinus', 'SIZE': 200, 'SPEED': 30, 'START': 0, 'OFFSET': 2805, 'BASE': '-'}}
                     if len(x) >= 6:
                         row["FX2"]["TYPE"] = x[0] 
@@ -3277,7 +3297,7 @@ class GUI_FaderLayout():
 
                 frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
                 c=0
-            print(frameS)
+            #print(frameS)
             e= ELEM_FADER(frameS,nr=j+1)
             e.pack()
             self.elem.append(e)
@@ -3614,6 +3634,7 @@ FIXTURES = Fixtures()
 def LOAD_SHOW():
     PRESETS.load_presets()
     FIXTURES.load_patch()
+    #draw_enc(gui,root2)
     #master._refresh_fix()
     #master._refresh_exec()
 LOAD_SHOW()
@@ -3710,6 +3731,7 @@ root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 
 name = "SETUP"
 w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=TOP)
+w.tk.title("SETUP   SHOW:"+master.base.show_name)
 draw_setup(master,w.tk)
 window_manager.new(w,name)
 

@@ -595,6 +595,13 @@ class Xevent():
                 self.elem["bg"] = "lightgrey"
                 #self.elem["fg"] = "lightgrey"
                 self.elem.config(activebackground="lightgrey")
+            elif self.attr == "LOAD\nSHOW":
+                name = "LOAD-SHOW"
+                w = GUIWindow(name,master=0,width=400,height=250,exit=1,left=400,top=100)#,left=10+L1+W1,top=98)
+                draw_load_show(w.tk)
+                window_manager.new(w,name)
+                w.tk.attributes('-topmost',True)
+                #w.tk.attributes('-topmost',False)
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
@@ -1049,12 +1056,17 @@ class Element():
         
 class Base():
     def __init__(self):
+        self._init()
+
+    def _init(self):
         show_name = "GloryCamp2021"
         #show_name = "JMS"
         show_name = "DemoShow"
         #show_name = "Dimmer"
         self.home = os.environ['HOME'] 
-        self.show_path = self.home +"/LibreLight/"
+        self.show_path0 = self.home +"/LibreLight/"
+        self.show_path  = self.show_path0 
+        self.show_path1 = self.show_path0 + "/show/"
         try:
             f = open(self.show_path+"init.txt","r")
             for line in f.readlines():
@@ -1064,18 +1076,56 @@ class Base():
                     show_name = show_name.replace(".","")
                     show_name = show_name.replace("\\","")
                     show_name = show_name.replace("/","")
+            self.show_name = show_name
         except Exception as e:
-            cprint("shownamw exception",color="red")
+            cprint("show name exception",color="red")
+
+        self._check()
+    def _set(self,fname):
+        ok= os.path.isdir(self.show_path1+"/"+fname)
+        ini = self.show_path0+"init.txt"
+        print("SET SHOW NAME",fname,ok,ini)
+        if ok:
+            self.show_name = fname
+            f = open( ini ,"a")
+            f.write(fname+"\n")
+            f.close()
+            return 1
+        
+    def _check(self):
         if not os.path.isdir(self.show_path):
             os.mkdir(self.show_path)
         self.show_path += "/show/"
         if not os.path.isdir(self.show_path):
             os.mkdir(self.show_path)
-        self.show_path += "/" +show_name +"/"
+        self.show_path += "/" +self.show_name +"/"
         if not os.path.isdir(self.show_path):
             os.mkdir(self.show_path)
         pass
+    def _list(self):
+        #self._check()
+        show_list =  list(os.listdir( self.show_path1 ))
+        out = []
+        for fname in show_list:
+            print(fname)
+            ctime = os.path.getmtime(self.show_path1+fname)
+            ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
+            try:
+                mtime = os.path.getmtime(self.show_path1+fname+"/patch.sav")
+                mtime = time.strftime("%Y-%m-%d %X",  time.localtime(mtime)) #1650748726.6604707))
+            except:
+                mtime = 0
+
+            if mtime:
+                out.append([fname,mtime])#,ctime])
+
+        from operator import itemgetter
+        out=sorted(out, key=itemgetter(1))
+        out.reverse()
+        return out
+
     def _load(self,filename):
+        #self._check()
         xfname = self.show_path+"/"+str(filename)+".sav"
         print("load",xfname)
         f = open(xfname,"r")
@@ -1133,6 +1183,7 @@ class Base():
         return data,labels
 
     def _backup(self,filename,data,labels):
+        self._check()
         #fixture
         #xfname = "show/"+show_name+"/"+str(filename)+".sav"
         xfname = self.show_path+"/"+str(filename)+".sav"
@@ -1274,9 +1325,10 @@ class ExecButton(MiniButton):
             self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
             z+=1
         
-class GUI(Base):
+class GUI():
     def __init__(self):
-        super().__init__() 
+        #super().__init__() 
+        self.base = Base ()
         self.load()
         self._XX = 0
 
@@ -1687,7 +1739,11 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
 
 
 def draw_patch(gui,yframe):
-    
+    #print(dir(yframe))
+    #yframe.clear()
+    for widget in yframe.winfo_children():
+        widget.destroy()
+
     xframe = tk.Frame(yframe,bg="black")
     xframe.pack()
     def yview(event):
@@ -2050,6 +2106,64 @@ def draw_live(gui,xframe):
             r+=1
 
 
+#_load_show = 0
+def draw_load_show(xframe):
+    base = Base()
+    c=0
+    r=0
+
+    show_path = base.show_path1 +base.show_name
+    b = tk.Label(xframe,bg="grey",text="PATH: "+show_path,anchor="w")
+    b.pack(side="top",expand=1,fill="x" ) 
+
+    ctime = time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
+    b = tk.Label(xframe,bg="grey",text="DATE:      "+ctime,anchor="w")
+    b.pack(side="top",expand=1,fill="x" ) 
+
+    b = tk.Label(xframe,bg="black",fg="black",text="")
+    b.pack(side="top") 
+
+    #frame = tk.Frame(xframe,heigh=2800)
+    #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
+    class OEvent():
+        def __init__(self,fname=""):
+            self.fname=fname
+        def cb(self,event=None):
+            base._set(self.fname)
+            #base = Base()
+            #show_path = base.show_path1 + base.show_name
+            print("LOAD SHOW:",event,self.fname)
+            LOAD_SHOW()
+            refresher.reset() # = Refresher()
+            master._refresh_fix()
+            master._refresh_exec()
+            draw_patch(master,main_preset_frame)
+
+    frame = ScrollFrame(xframe,width=300,height=200,bd=1)
+    frame.pack() #fill=tk.BOTH,expand=1, side=tk.TOP)
+    for i in ["name","stamp"]: #,"create"]:
+        b = tk.Label(frame,bg="grey",text=i)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+    r+=1
+
+    for i in base._list():
+        print(i)
+        c=0
+        bg="lightgrey"
+        if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+            bg = "lightgreen"
+        elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+            bg = "green"
+        for j in i:
+            if c > 0:
+                b = tk.Button(frame,text=j,anchor="w",bg=bg,relief="sunken")
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            else:
+                b = tk.Button(frame,text=j,anchor="w",bg="grey")#,command=OEvent(j).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+        r+=1
 
 def draw_command(gui,xframe):
     frame_cmd=xframe
@@ -2303,7 +2417,7 @@ class TableFrame():
         self.b = _TableFrame(self.root) #äself.root)
         b=self.b.HFrame()
         b=self.b.Sframe(b, width=width,height=height,bd=bd)
-        self.b.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
+        self.b.draw([["AA","1a1"],["BBB",114],["EE","22"],["RRR","RRR"],["TTZ","TTZ"],["ZZU","ZZU"]])
 
         self.c = _TableFrame(self.root)
         c=self.c.HFrame()
@@ -2411,7 +2525,7 @@ def ScrollFrame(root,width=50,height=100,bd=1):
 
     canvas=tk.Canvas(aframe,width=width-24,height=height)
     canvas["bg"] = "black" #"green"
-    bframe=tk.Frame(canvas)#,width=width,height=height)
+    bframe=tk.Frame(canvas,width=width,height=height)
     bframe["bg"] = "blue"
     scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
     canvas.configure(yscrollcommand=scrollbar.set)
@@ -2435,9 +2549,10 @@ class GUIHandler():
             v = args[k] 
             #print("GUI-H", i,k,v)
             
-class Fixtures(Base):
+class Fixtures():
     def __init__(self):
-        super().__init__() 
+        #super().__init__() 
+        self.base=Base()
         #self.load()
         self.fixtures = OrderedDict()
         self.gui = GUIHandler()
@@ -2445,7 +2560,8 @@ class Fixtures(Base):
         
     def load_patch(self):
         filename="patch"
-        d,l = self._load(filename)
+        self.base._init()
+        d,l = self.base._load(filename)
         self.fixtures = OrderedDict()
         for i in l:
             sdata = d[i]
@@ -2463,7 +2579,8 @@ class Fixtures(Base):
         labels = {}
         for k in data:
             labels[k] = k
-        self._backup(filename,data,labels)
+        self.base._init()
+        self.base._backup(filename,data,labels)
 
     def fx_off(self,fix=None):
         if not fix or fix == "all":
@@ -2707,17 +2824,20 @@ class Fixtures(Base):
                     data["ATTRIBUT"][attr]["ACTIVE"] = 0
         return out
 
-class Presets(Base):
+class Presets():
     def __init__(self):
-        super().__init__() 
+        #super().__init__() 
+        self.base = Base()
         #self.load()
         self._last_copy = None
         self._last_move = None
 
 
     def load_presets(self): 
+        #self._load()
         filename="presets"
-        d,l = self._load(filename)
+        self.base._init()
+        d,l = self.base._load(filename)
         for i in d:
             sdata = d[i]
             if "CFG" not in sdata:
@@ -2768,7 +2888,8 @@ class Presets(Base):
         filename = "presets"
         data   = self.val_presets
         labels = self.label_presets
-        self._backup(filename,data,labels)
+        self.base._init()
+        self.base._backup(filename,data,labels)
         
 
     def get_cfg(self,nr):
@@ -3304,7 +3425,7 @@ lf_nr = 0
 from tkinter import PhotoImage 
 
 class GUIWindow():
-    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None):
+    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0):
         global lf_nr
         #ico_path="/opt/LibreLight/Xdesk/icon/"
         ico_path="./icon/"
@@ -3321,7 +3442,8 @@ class GUIWindow():
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
-            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            if not exit:
+                self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
             try:
                 if "COLORPICKER" in title:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
@@ -3483,14 +3605,18 @@ window_manager = WindowManager()
 
 CONSOLE = Console()
 PRESETS = Presets()
-PRESETS.load_presets()
 
 FIXTURES = Fixtures()
-FIXTURES.load_patch()
 
-
+def LOAD_SHOW():
+    PRESETS.load_presets()
+    FIXTURES.load_patch()
+    #master._refresh_fix()
+    #master._refresh_exec()
+LOAD_SHOW()
 
 master = GUI()
+
 
 class Refresher():
     def __init__(self):
@@ -3604,7 +3730,8 @@ window_manager.new(w,name)
 name="PATCH"
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 w1 = ScrollFrame(w.tk,width=W1,height=H1)
-draw_patch(master,w1)
+main_preset_frame = w1
+draw_patch(master,main_preset_frame)
 window_manager.new(w,name)
 
 #LibreLightDesk

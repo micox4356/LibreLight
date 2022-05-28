@@ -1637,144 +1637,223 @@ class GUI(Base):
         if cmd and not modes.val("BLIND"):
             jclient_send(cmd)
 
+    def render(self):
+        #Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
+        #self.draw_input()
+        pass
         
-    def draw_sub_dim(self,fix,data,c=0,r=0,frame=None):
-        i=0
-        if frame is None:
-            frame = tk.Frame(root,bg="black")
-            frame.pack(fill=tk.X, side=tk.TOP)
 
-        if fix not in self.elem_attr:
-            self.elem_attr[fix] = {}
+
+def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
+    i=0
+    if frame is None:
+        frame = tk.Frame(root,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+
+    if fix not in gui.elem_attr:
+        gui.elem_attr[fix] = {}
+        
+    for attr in data["ATTRIBUT"]:
+        
+        if attr not in gui.all_attr:
+            gui.all_attr.append(attr)
+        if attr not in gui.elem_attr[fix]:
+            gui.elem_attr[fix][attr] = []
+        if attr.endswith("-FINE"):
+            continue
+        v= data["ATTRIBUT"][attr]["VALUE"]
+        b = tk.Button(frame,bg="lightblue", text=""+str(fix),width=3,anchor="w")
+        b.config(padx=1)
+        b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
+        b.config(padx=1)
+        b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(frame,bg="grey", text=str(round(v,2)),width=10,anchor="w")
+        b.config(padx=1)
+        gui.elem_attr[fix][attr] = b
+        b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        if c >=12:
+            c=0
+            r+=1
+    return c,r
+
+
+
+
+def draw_patch(gui,yframe):
+    
+    xframe = tk.Frame(yframe,bg="black")
+    xframe.pack()
+    def yview(event):
+        print("yevent",event)
+        yyy=20.1
+        xframe.yview_moveto(yyy)
+
+    i=0
+    c=0
+    r=0
+    b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
+    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
+    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+
+    c=0
+    r+=1
+    for fix in FIXTURES.fixtures:
+        i+=1
+        data = FIXTURES.fixtures[fix]
+                        
+        b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w")
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        if len(data["ATTRIBUT"]) == 1:
+            b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
+        elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
+            b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
+        else:
+            b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
+        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
+        b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
+        b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        #r+=1
+
+        start_c=3
+        c=start_c
+        if fix not in gui.elem_attr:
+            gui.elem_attr[fix] = {}
             
-        for attr in data["ATTRIBUT"]:
+        patch = ["UNIVERS","DMX"]
+        for k in patch:
+            v=data[k]
+            #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
+            b = tk.Button(xframe,bg="grey", text=str(v),width=2)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            if c >=8:
+                c=start_c
+                r+=1
+        b = tk.Button(xframe,bg="grey", text="{}".format(len(data["ATTRIBUT"])),width=3)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        if 0: #for attr in data["ATTRIBUT"]:
             
-            if attr not in self.all_attr:
-                self.all_attr.append(attr)
-            if attr not in self.elem_attr[fix]:
-                self.elem_attr[fix][attr] = []
+            if attr not in gui.all_attr:
+                gui.all_attr.append(attr)
+            if attr not in gui.elem_attr[fix]:
+                gui.elem_attr[fix][attr] = []
             if attr.endswith("-FINE"):
                 continue
             v= data["ATTRIBUT"][attr]["VALUE"]
-            b = tk.Button(frame,bg="lightblue", text=""+str(fix),width=3,anchor="w")
-            b.config(padx=1)
-            b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+            
+            b = tk.Button(xframe,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+            #gui.elem_attr[fix][attr] = b
+            #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
-            b.config(padx=1)
-            b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(frame,bg="grey", text=str(round(v,2)),width=10,anchor="w")
-            b.config(padx=1)
-            self.elem_attr[fix][attr] = b
-            b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=12:
-                c=0
+            if c >=8:
+                c=start_c
                 r+=1
-        return c,r
-    def draw_patch(self,yframe):
-        
-        xframe = tk.Frame(yframe,bg="black")
-        xframe.pack()
-        def yview(event):
-            print("yevent",event)
-            yyy=20.1
-            xframe.yview_moveto(yyy)
-
-        i=0
-        c=0
-        r=0
-        b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-
         c=0
         r+=1
-        for fix in FIXTURES.fixtures:
-            i+=1
-            data = FIXTURES.fixtures[fix]
-                            
-            b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if len(data["ATTRIBUT"]) == 1:
-                b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
-            elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
-                b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
-            else:
-                b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
+           
+
+
+def draw_fix(gui,xframe,yframe=None):
+    r=0
+    c=0
+    frame_dim=xframe
+    if yframe:
+        frame_dim=yframe
+    frame_fix=xframe
+    root = frame_dim
+    dim_frame = tk.Frame(root,bg="black")
+    dim_frame.pack(fill=tk.X, side=tk.TOP)
+    root = frame_fix
+    fix_frame = tk.Frame(root,bg="black")
+    fix_frame.pack(fill=tk.X, side=tk.TOP)
+    i=0
+    c=0
+    r=0
+    dim_end=0
+    for fix in FIXTURES.fixtures:
+        i+=1
+        data = FIXTURES.fixtures[fix]
+        #print("draw_fix", fix ,data )
+        
+        if(len(data["ATTRIBUT"].keys()) <= 1):
+            c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
+        else:
+            if not dim_end:
+                dim_end=1
+                c=0
+                r=0
+            #gui._draw_fix(fix,data,root=fix_frame)
+            frame = fix_frame
+        
+            b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
             b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
+            b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
             b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             #r+=1
-
             start_c=3
             c=start_c
-            if fix not in self.elem_attr:
-                self.elem_attr[fix] = {}
+            if fix not in gui.elem_attr:
+                gui.elem_attr[fix] = {}
                 
-            patch = ["UNIVERS","DMX"]
-            for k in patch:
-                v=data[k]
-                #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
-                b = tk.Button(xframe,bg="grey", text=str(v),width=2)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                if c >=8:
-                    c=start_c
-                    r+=1
-            b = tk.Button(xframe,bg="grey", text="{}".format(len(data["ATTRIBUT"])),width=3)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            if 0: #for attr in data["ATTRIBUT"]:
+            for attr in data["ATTRIBUT"]:
                 
-                if attr not in self.all_attr:
-                    self.all_attr.append(attr)
-                if attr not in self.elem_attr[fix]:
-                    self.elem_attr[fix][attr] = []
                 if attr.endswith("-FINE"):
                     continue
+                if attr not in gui.all_attr:
+                    gui.all_attr.append(attr)
+                if attr not in gui.elem_attr[fix]:
+                    gui.elem_attr[fix][attr] = ["line1348",fix,attr]
                 v= data["ATTRIBUT"][attr]["VALUE"]
                 
-                b = tk.Button(xframe,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
-                #self.elem_attr[fix][attr] = b
-                #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
+                b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                gui.elem_attr[fix][attr] = b
+                b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 if c >=8:
@@ -1782,483 +1861,436 @@ class GUI(Base):
                     r+=1
             c=0
             r+=1
-                
-    def draw_fix(self,xframe,yframe=None):
-        r=0
-        c=0
-        frame_dim=xframe
-        if yframe:
-            frame_dim=yframe
-        frame_fix=xframe
-        root = frame_dim
-        dim_frame = tk.Frame(root,bg="black")
-        dim_frame.pack(fill=tk.X, side=tk.TOP)
-        root = frame_fix
-        fix_frame = tk.Frame(root,bg="black")
-        fix_frame.pack(fill=tk.X, side=tk.TOP)
-        i=0
-        c=0
-        r=0
-        dim_end=0
-        for fix in FIXTURES.fixtures:
-            i+=1
-            data = FIXTURES.fixtures[fix]
-            #print("draw_fix", fix ,data )
             
-            if(len(data["ATTRIBUT"].keys()) <= 1):
-                c,r=self.draw_sub_dim(fix,data,c=c,r=r,frame=dim_frame)
-            else:
-                if not dim_end:
-                    dim_end=1
-                    c=0
-                    r=0
-                #self._draw_fix(fix,data,root=fix_frame)
-                frame = fix_frame
-            
-                b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
-                b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
-                b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                #r+=1
-                start_c=3
-                c=start_c
-                if fix not in self.elem_attr:
-                    self.elem_attr[fix] = {}
-                    
-                for attr in data["ATTRIBUT"]:
-                    
-                    if attr.endswith("-FINE"):
-                        continue
-                    if attr not in self.all_attr:
-                        self.all_attr.append(attr)
-                    if attr not in self.elem_attr[fix]:
-                        self.elem_attr[fix][attr] = ["line1348",fix,attr]
-                    v= data["ATTRIBUT"][attr]["VALUE"]
-                    
-                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
-                    self.elem_attr[fix][attr] = b
-                    b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                    c+=1
-                    if c >=8:
-                        c=start_c
-                        r+=1
-                c=0
-                r+=1
-                
-    def draw_enc(self,xframe):
-        root2 = xframe
-        i=0
-        c=0
-        r=0
-        
-        frame = tk.Frame(root2,bg="black")
-        frame.pack( side=tk.LEFT,expand=0,fill="both")
 
+
+
+
+def draw_enc(gui,xframe):
+    root2 = xframe
+    i=0
+    c=0
+    r=0
+    
+    frame = tk.Frame(root2,bg="black")
+    frame.pack( side=tk.LEFT,expand=0,fill="both")
+
+    
+    b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    for attr in gui.all_attr:
+        if attr.endswith("-FINE"):
+            continue
+        v=0
         
-        b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
+        b = tk.Button(frame,bg="orange", text=str(attr)+'',width=6)
+        if attr == "DIM":
+            b = tk.Button(frame,bg="yellow", text=str(attr)+'',width=6)
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        for attr in self.all_attr:
-            if attr.endswith("-FINE"):
-                continue
-            v=0
-            
-            b = tk.Button(frame,bg="orange", text=str(attr)+'',width=6)
-            if attr == "DIM":
-                b = tk.Button(frame,bg="yellow", text=str(attr)+'',width=6)
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=self,mode="ENCODER").cb)
+        if c >=8:
+            c=0
+            r+=1
+
+
+
+def draw_fx(gui,xframe):
+    frame_fx=xframe
+    i=0
+    c=0
+    r=0
+    
+    frame = tk.Frame(frame_fx,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+   
+    b = tk.Button(frame,bg="lightblue", text="FX.",width=6)
+    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+    
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    for comm in gui.fx_commands:
+        if comm == "\n":
+            c=0
+            r+=1
+            continue
+        v=0
+        if "PAN/TILT" in comm: 
+            b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
+        else:
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        if comm not in gui.elem_fx_commands:
+            comm = comm.replace("\n","")
+            gui.elem_fx_commands[comm] = b
+            gui.val_fx_commands[comm] = 0
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="FX").cb)
+        if comm == "BLIND":
+            b["bg"] = "grey"
+        elif comm == "CLEAR":
+            b["bg"] = "grey"
+        elif comm == "REC-FX":
+            b["bg"] = "grey"
+        elif comm == "FADE":
+            b["bg"] = "green"
+        elif comm == "FX OFF":
+            b["bg"] = "magenta"
+        elif comm[:3] == "FX:":
+            b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+            b["bg"] = "#ffbf00"
+        elif comm == "MO:on":
+            b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+            b["bg"] = "lightgreen"
+        elif comm == "MO:on":
+            b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+            b["bg"] = "lightgreen"
+        elif comm == "SZ:":
+            b["text"] = "SZ:\n{:0.0f}".format(fx_prm["SIZE"])
+            b["bg"] = "lightgreen"
+        elif comm == "SP:":
+            b["text"] = "SP:\n{:0.0f}".format(fx_prm["SPEED"])
+            b["bg"] = "lightgreen"
+        elif comm == "ST:":
+            b["bg"] = "lightgreen"
+            b["text"] = "ST:\n{:0.0f}".format(fx_prm["START"])
+        elif comm == "OF:":
+            b["bg"] = "lightgreen"
+            b["text"] = "OF:\n{:0.0f}".format(fx_prm["OFFSET"])
+        elif comm == "BS:-":
+            b["bg"] = "lightgreen"
+            b["text"] = "BS:\n{}".format(fx_prm["BASE"])
+        elif comm[0] == "M":
+            b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
+            b["bg"] = "lightgrey"
+
+        if comm:
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        if c >=6:
+            c=0
+            r+=1
+
+
+
+
+def draw_setup(gui,xframe):
+    frame_cmd=xframe
+    i=0
+    c=0
+    r=0
+    
+    frame = tk.Frame(frame_cmd,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+   
+    #b = tk.Button(frame,bg="lightblue", text="SETUP",width=6)
+    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+    
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #r+=1
+    c+=1
+    for comm in ["BACKUP\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS"]:
+        if comm == "\n":
+            c=0
+            r+=1
+            continue
+        v=0
+        
+        if comm == "BACKUP\nSHOW":
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        else:
+            b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
+        if comm not in gui.elem_commands:
+            gui.elem_commands[comm] = b
+            gui.val_commands[comm] = 0
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
+
+        if comm == "BS:":
+            b["text"] = "BS:{}".format(fx_prm["BASE"])
+        if comm:
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        if c >=5:
+            c=0
+            r+=1
+
+
+
+def draw_live(gui,xframe):
+    frame_cmd=xframe
+    i=0
+    c=0
+    r=0
+    
+    frame = tk.Frame(frame_cmd,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+   
+    c+=1
+    for comm in ["FADE","DELAY:0.0","PAN/TILT\nFADE:x.x","PAN/TILT\nDELAY:0.0"]:
+        if comm == "\n":
+            c=0
+            r+=1
+            continue
+        v=0
+        
+        b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        if comm not in gui.elem_commands:
+            gui.elem_commands[comm] = b
+            gui.val_commands[comm] = 0
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="LIVE").cb)
+        if "FADE" == comm:
+            b["text"] = "FADE:2.0"
+        if "FADE" in comm:
+            b["bg"] = "green"
+            b.config(activebackground="lightgreen")
+        if comm:
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        if c >=5:
+            c=0
+            r+=1
+
+
+
+def draw_command(gui,xframe):
+    frame_cmd=xframe
+    i=0
+    c=0
+    r=0
+    
+    frame = tk.Frame(frame_cmd,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+   
+    # b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
+    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #r+=1
+    c+=1
+    for comm in gui.commands:
+        if comm == "\n":
+            c=0
+            r+=1
+            continue
+        v=0
+        
+        b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        if comm not in gui.elem_commands:
+            gui.elem_commands[comm] = b
+            gui.val_commands[comm] = 0
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="COMMAND").cb)
+        if comm == "BLIND":
+            b["bg"] = "grey"
+        if comm == "CLEAR":
+            b["bg"] = "grey"
+        if comm == "REC-FX":
+            b["bg"] = "grey"
+        if comm == "FADE":
+            b["bg"] = "green"
+        if comm == "FX OFF":
+            b["bg"] = "magenta"
+        if comm == "SZ:":
+            b["text"] = "SZ:{:0.0f}".format(fx_prm["SIZE"])
+        if comm == "SP:":
+            b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
+        if comm == "FADE":
+            b["text"] = "FADE:{:0.02f}".format(FADE.val())
+        if comm == "ST:":
+            b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
+        if comm == "OF:":
+            b["text"] = "OF:{:0.0f}".format(fx_prm["OFFSET"])
+        if comm == "BS:":
+            b["text"] = "BS:{}".format(fx_prm["BASE"])
+        if comm:
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        if c >=5:
+            c=0
+            r+=1
+
+
+def draw_preset(gui,xframe):
+
+    i=0
+    c=0
+    r=0
+    root = xframe
+    
+    frame = tk.Frame(root,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+   
+    i=0
+    for k in PRESETS.val_presets:
+        if i%(10*8)==0 or i ==0:
+            c=0
+            b = tk.Label(frame,bg="black", text="" )
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            r+=1
+            c=0
+            b = tk.Button(frame,bg="lightblue", text="EXEC " )
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=8:
-                c=0
-                r+=1
-    def draw_fx(self,xframe):
-        frame_fx=xframe
-        i=0
-        c=0
-        r=0
-        
-        frame = tk.Frame(frame_fx,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-       
-        b = tk.Button(frame,bg="lightblue", text="FX.",width=6)
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        for comm in self.fx_commands:
-            if comm == "\n":
-                c=0
-                r+=1
-                continue
-            v=0
-            if "PAN/TILT" in comm: 
-                b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
-            else:
-                b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-            if comm not in self.elem_fx_commands:
-                comm = comm.replace("\n","")
-                self.elem_fx_commands[comm] = b
-                self.val_fx_commands[comm] = 0
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="FX").cb)
-            if comm == "BLIND":
-                b["bg"] = "grey"
-            elif comm == "CLEAR":
-                b["bg"] = "grey"
-            elif comm == "REC-FX":
-                b["bg"] = "grey"
-            elif comm == "FADE":
-                b["bg"] = "green"
-            elif comm == "FX OFF":
-                b["bg"] = "magenta"
-            elif comm[:3] == "FX:":
-                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
-                b["bg"] = "#ffbf00"
-            elif comm == "MO:on":
-                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
-                b["bg"] = "lightgreen"
-            elif comm == "MO:on":
-                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
-                b["bg"] = "lightgreen"
-            elif comm == "SZ:":
-                b["text"] = "SZ:\n{:0.0f}".format(fx_prm["SIZE"])
-                b["bg"] = "lightgreen"
-            elif comm == "SP:":
-                b["text"] = "SP:\n{:0.0f}".format(fx_prm["SPEED"])
-                b["bg"] = "lightgreen"
-            elif comm == "ST:":
-                b["bg"] = "lightgreen"
-                b["text"] = "ST:\n{:0.0f}".format(fx_prm["START"])
-            elif comm == "OF:":
-                b["bg"] = "lightgreen"
-                b["text"] = "OF:\n{:0.0f}".format(fx_prm["OFFSET"])
-            elif comm == "BS:-":
-                b["bg"] = "lightgreen"
-                b["text"] = "BS:\n{}".format(fx_prm["BASE"])
-            elif comm[0] == "M":
-                b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
-                b["bg"] = "lightgrey"
-
-            if comm:
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=6:
-                c=0
-                r+=1
-    def draw_setup(self,xframe):
-        frame_cmd=xframe
-        i=0
-        c=0
-        r=0
-        
-        frame = tk.Frame(frame_cmd,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-       
-        #b = tk.Button(frame,bg="lightblue", text="SETUP",width=6)
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        
-        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        #r+=1
-        c+=1
-        for comm in ["BACKUP\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS"]:
-            if comm == "\n":
-                c=0
-                r+=1
-                continue
-            v=0
-            
-            if comm == "BACKUP\nSHOW":
-                b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-            else:
-                b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
-            if comm not in self.elem_commands:
-                self.elem_commands[comm] = b
-                self.val_commands[comm] = 0
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="SETUP").cb)
-
-            if comm == "BS:":
-                b["text"] = "BS:{}".format(fx_prm["BASE"])
-            if comm:
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=5:
-                c=0
-                r+=1
-    def draw_live(self,xframe):
-        frame_cmd=xframe
-        i=0
-        c=0
-        r=0
-        
-        frame = tk.Frame(frame_cmd,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-       
-        c+=1
-        for comm in ["FADE","DELAY:0.0","PAN/TILT\nFADE:x.x","PAN/TILT\nDELAY:0.0"]:
-            if comm == "\n":
-                c=0
-                r+=1
-                continue
-            v=0
-            
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-            if comm not in self.elem_commands:
-                self.elem_commands[comm] = b
-                self.val_commands[comm] = 0
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="LIVE").cb)
-            if "FADE" == comm:
-                b["text"] = "FADE:2.0"
-            if "FADE" in comm:
-                b["bg"] = "green"
-            if comm:
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=5:
-                c=0
-                r+=1
-    def draw_command(self,xframe):
-        frame_cmd=xframe
-        i=0
-        c=0
-        r=0
-        
-        frame = tk.Frame(frame_cmd,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-       
-        # b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-        #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        #r+=1
-        c+=1
-        for comm in self.commands:
-            if comm == "\n":
-                c=0
-                r+=1
-                continue
-            v=0
-            
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-            if comm not in self.elem_commands:
-                self.elem_commands[comm] = b
-                self.val_commands[comm] = 0
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=self,mode="COMMAND").cb)
-            if comm == "BLIND":
-                b["bg"] = "grey"
-            if comm == "CLEAR":
-                b["bg"] = "grey"
-            if comm == "REC-FX":
-                b["bg"] = "grey"
-            if comm == "FADE":
-                b["bg"] = "green"
-            if comm == "FX OFF":
-                b["bg"] = "magenta"
-            if comm == "SZ:":
-                b["text"] = "SZ:{:0.0f}".format(fx_prm["SIZE"])
-            if comm == "SP:":
-                b["text"] = "SP:{:0.0f}".format(fx_prm["SPEED"])
-            if comm == "FADE":
-                b["text"] = "FADE:{:0.02f}".format(FADE.val())
-            if comm == "ST:":
-                b["text"] = "ST:{:0.0f}".format(fx_prm["START"])
-            if comm == "OF:":
-                b["text"] = "OF:{:0.0f}".format(fx_prm["OFFSET"])
-            if comm == "BS:":
-                b["text"] = "BS:{}".format(fx_prm["BASE"])
-            if comm:
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=5:
-                c=0
-                r+=1
-    def draw_preset(self,xframe):
-
-        i=0
-        c=0
-        r=0
-        root = xframe
-        
-        frame = tk.Frame(root,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-       
-        i=0
-        for k in PRESETS.val_presets:
-            if i%(10*8)==0 or i ==0:
-                c=0
-                b = tk.Label(frame,bg="black", text="" )
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                r+=1
-                c=0
-                b = tk.Button(frame,bg="lightblue", text="EXEC " )
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                b = tk.Button(frame,bg="lightblue", text="BANK " + str(int(i/(8*8))+1) )
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                b = tk.Button(frame,bg="lightblue", text="NAME"  )
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                r+=1
-                c=0
-            i+=1
-            v=0
-            label = ""
-            #if k in PRESETS.label_presets:
-            #    label = PRESETS.label_presets[k]
-            #    #print([label])
-
-            sdata=PRESETS.val_presets[k]
-            BTN="go"
-            if "CFG" in sdata:#["BUTTON"] = "GO"
-                if "BUTTON" in sdata["CFG"]:
-                    BTN = sdata["CFG"]["BUTTON"]
-
-
-            #bb = tk.Frame(frame, highlightbackground = "red", highlightthickness = 1, bd=0)
-            #bb = tk.Canvas(frame, highlightbackground = "black", highlightthickness = 1, bd=1)
-            #bb.configure(width=70, height=38)
-            txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-
-            b = ExecButton(frame,text=txt)
-
-            #b = tk.Button(bb,bg="grey", text=txt,width=7,height=2)
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
-            b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
-            
-            if k not in self.elem_presets:
-                self.elem_presets[k] = b
-            #b.pack(expand=1)
+            b = tk.Button(frame,bg="lightblue", text="BANK " + str(int(i/(8*8))+1) )
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            if c >=10:
-                c=0
-                r+=1
-        self.refresh_exec()
-    def draw_input(self):
-        i=0
-        c=0
-        r=0
-        frame = tk.Frame(root2,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
+            b = tk.Button(frame,bg="lightblue", text="NAME"  )
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            r+=1
+            c=0
+        i+=1
+        v=0
+        label = ""
+        #if k in PRESETS.label_presets:
+        #    label = PRESETS.label_presets[k]
+        #    #print([label])
 
-        b = tk.Label(frame,bg="black", text="------------------------ ---------------------------------------")
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        r=0
+        sdata=PRESETS.val_presets[k]
+        BTN="go"
+        if "CFG" in sdata:#["BUTTON"] = "GO"
+            if "BUTTON" in sdata["CFG"]:
+                BTN = sdata["CFG"]["BUTTON"]
+
+
+        #bb = tk.Frame(frame, highlightbackground = "red", highlightthickness = 1, bd=0)
+        #bb = tk.Canvas(frame, highlightbackground = "black", highlightthickness = 1, bd=1)
+        #bb.configure(width=70, height=38)
+        txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+
+        b = ExecButton(frame,text=txt)
+
+        #b = tk.Button(bb,bg="grey", text=txt,width=7,height=2)
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+        b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
         
-        frame = tk.Frame(root2,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-        
-        b = tk.Label(frame, text="send:")
+        if k not in gui.elem_presets:
+            gui.elem_presets[k] = b
+        #b.pack(expand=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        b = tk.Entry(frame,bg="grey", text="",width=50)
-        self.entry = b
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
-        b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT").cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
-        r+=1
-        b = tk.Entry(frame,bg="grey", text="",width=20)
-        self.entry2 = b
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT2").cb)
-        b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT2").cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        b.insert("end","d1:0:4")
-        r+=1
-        b = tk.Entry(frame,bg="grey", text="",width=20)
-        self.entry3 = b
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
-        #b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
-        b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=self,mode="INPUT3").cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        b.insert("end","fx:alloff:::")
-    def draw_colorpicker(self,xframe):
-        import lib.colorpicker as colp
+        if c >=10:
+            c=0
+            r+=1
+    gui.refresh_exec()
 
-        class _CB():
-            def __init__(self):
-                self.old_color = (0,0,0)
-            def cb(self,event,data):
-                cprint("colorpicker CB")
-                if "color" in data and self.old_color != data["color"] or event.num==2:
-                    self.old_color = data["color"]
+
+def draw_input(gui):
+    i=0
+    c=0
+    r=0
+    frame = tk.Frame(root2,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+
+    b = tk.Label(frame,bg="black", text="------------------------ ---------------------------------------")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    r=0
+    
+    frame = tk.Frame(root2,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+    
+    b = tk.Label(frame, text="send:")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Entry(frame,bg="grey", text="",width=50)
+    gui.entry = b
+    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
+    r+=1
+    b = tk.Entry(frame,bg="grey", text="",width=20)
+    gui.entry2 = b
+    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b.insert("end","d1:0:4")
+    r+=1
+    b = tk.Entry(frame,bg="grey", text="",width=20)
+    gui.entry3 = b
+    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    #b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b.insert("end","fx:alloff:::")
+
+
+def draw_colorpicker(gui,xframe):
+    import lib.colorpicker as colp
+
+    class _CB():
+        def __init__(gui):
+            gui.old_color = (0,0,0)
+        def cb(gui,event,data):
+            cprint("colorpicker CB")
+            if "color" in data and gui.old_color != data["color"] or event.num==2:
+                gui.old_color = data["color"]
+            else:
+                return 0
+            color = data["color"]
+
+            print("e",event,data)
+            print("e",dir(event))#.keys())
+            try:
+                print("e.state",event.state)
+            except:pass
+            set_fade = FADE.val() #fade
+            
+            if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state in [256,1024]):
+                cr=None
+                cg=None
+                cb=None
+                if event.num == 1: 
+                    set_fade=FADE.val() #fade
+                    cr = color[0]
+                    cg = color[1]
+                    cb = color[2]
+                elif event.num == 3: 
+                    cr = color[0]
+                    cg = color[1]
+                    cb = color[2]
+                    set_fade=0
+                elif event.num == 2: 
+                    cr= "click"
+                    cg= "click"
+                    cb= "click"
+                elif event.state == 256:
+                    cr = color[0]
+                    cg = color[1]
+                    cb = color[2]
+                    set_fade=0
+
                 else:
-                    return 0
-                color = data["color"]
-
-                print("e",event,data)
-                print("e",dir(event))#.keys())
-                try:
-                    print("e.state",event.state)
-                except:pass
-                set_fade = FADE.val() #fade
-                
-                if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state in [256,1024]):
-                    cr=None
-                    cg=None
-                    cb=None
-                    if event.num == 1: 
-                        set_fade=FADE.val() #fade
-                        cr = color[0]
-                        cg = color[1]
-                        cb = color[2]
-                    elif event.num == 3: 
-                        cr = color[0]
-                        cg = color[1]
-                        cb = color[2]
-                        set_fade=0
-                    elif event.num == 2: 
-                        cr= "click"
-                        cg= "click"
-                        cb= "click"
-                    elif event.state == 256:
-                        cr = color[0]
-                        cg = color[1]
-                        cb = color[2]
-                        set_fade=0
-
-                    else:
-                        set_fade=0
+                    set_fade=0
 
 
-                    if cr is not None:
-                        FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade)
-                    if cg is not None:
-                        FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade)
-                    if cb is not None:
-                        FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade)
-                    master.refresh_fix()
-                     
-                    print("PICK COLOR:",data["color"])
-        _cb=_CB()
-        colp.colorpicker(xframe,width=600,height=100, xcb=_cb.cb)
-        return 0
+                if cr is not None:
+                    FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade)
+                if cg is not None:
+                    FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade)
+                if cb is not None:
+                    FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade)
+                master.refresh_fix()
+                 
+                print("PICK COLOR:",data["color"])
+    _cb=_CB()
+    colp.colorpicker(xframe,width=600,height=100, xcb=_cb.cb)
+    return 0
 
-        canvas=tk.Canvas(xframe,width=600,height=100)
-        canvas["bg"] = "yellow" #"green"
-        canvas.pack()
-        # RGB
-        x=0
-        y=0
-        j=0
-        d = 20
-        for i in range(0,d+1):
-            fi = int(i*255/d)
-            f = 255-fi
-            if i > d/2: 
-                pass#break
-            color = '#%02x%02x%02x' % (f, fi, fi)
-            print( "farbe", i*10, j, f,fi,fi,color)
-            r = canvas.create_rectangle(x, y, x+20, y+20, fill=color)
-            x+=20
-            
-
-    def render(self):
-        #Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
-        self.draw_input()
+    canvas=tk.Canvas(xframe,width=600,height=100)
+    canvas["bg"] = "yellow" #"green"
+    canvas.pack()
+    # RGB
+    x=0
+    y=0
+    j=0
+    d = 20
+    for i in range(0,d+1):
+        fi = int(i*255/d)
+        f = 255-fi
+        if i > d/2: 
+            pass#break
+        color = '#%02x%02x%02x' % (f, fi, fi)
+        print( "farbe", i*10, j, f,fi,fi,color)
+        r = canvas.create_rectangle(x, y, x+20, y+20, fill=color)
+        x+=20
+        
 
 class TableFrame():
     def __init__(self,root, width=50,height=100,bd=1):
@@ -3337,7 +3369,7 @@ class GUIWindow():
 
         #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
-    def close_app_win(self,event):
+    def close_app_win(self,event=None):
         print("close_app_win",self,event)
     def title(self,title=None):
         if title is None:
@@ -3519,7 +3551,7 @@ name="EXEC"
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 w1 = ScrollFrame(w.tk,width=W1,height=H1)
 #frame_exe = w.tk
-master.draw_preset(w1)#w.tk)
+draw_preset(master,w1)#w.tk)
 window_manager.new(w,name)
 
 name="DIMMER"
@@ -3533,7 +3565,7 @@ name="FIXTURES"
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 w1 = ScrollFrame(w.tk,width=W1,height=H1)
 #frame_fix = w1 #w.tk
-master.draw_fix(w1,w2)#.tk)
+draw_fix(master,w1,w2)#.tk)
 window_manager.new(w,name)
 
 
@@ -3559,44 +3591,44 @@ root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 root3 = tk.Frame(Xroot,bg="black",width="20px")
 root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 root2 = tk.Frame(Xroot,bg="black",width="1px")
-master.draw_enc(root2)
+draw_enc(master,root2)
 root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
 
 name = "SETUP"
 w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=TOP)
-master.draw_setup(w.tk)
+draw_setup(master,w.tk)
 window_manager.new(w,name)
 
 name = "COMMAND"
 w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=98)
-master.draw_command(w.tk)
+draw_command(master,w.tk)
 window_manager.new(w,name)
 
 name = "LIVE"
 w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=255)
-master.draw_live(w.tk)
+draw_live(master,w.tk)
 window_manager.new(w,name)
 
 name="FX"
 w = GUIWindow(name,master=0,width=415,height=250,left=10+L1+W1,top=328)
 #frame_fx = w.tk
-master.draw_fx(w.tk)
+draw_fx(master,w.tk)
 window_manager.new(w,name)
 
 
 name="PATCH"
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 w1 = ScrollFrame(w.tk,width=W1,height=H1)
-master.draw_patch(w1)
+draw_patch(master,w1)
 window_manager.new(w,name)
 
 #LibreLightDesk
 name="COLORPICKER"
 w = GUIWindow(name,master=0,width=580,height=100,left=L1,top=20+HTB*2+H1)
-master.draw_colorpicker(w.tk)
+draw_colorpicker(master,w.tk)
 window_manager.new(w,name)
 
-name="Table"
+name="TableA"
 w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
 x=TableFrame(root=w.tk)#,left=80,top=620)
@@ -3607,6 +3639,7 @@ for a in range(40):
 x.draw(data=data,head=["E","C"],config=[12,5,5])
 w=x.bframe
 #window_manager.new(w,name)
+
 
 
 #Xroot = tk.Tk()

@@ -1125,7 +1125,7 @@ class Base():
         return out
 
     def _load(self,filename):
-        self._init()
+        #self._init()
         #self._check()
         xfname = self.show_path+"/"+str(filename)+".sav"
         print("load",xfname)
@@ -1184,7 +1184,7 @@ class Base():
         return data,labels
 
     def _backup(self,filename,data,labels):
-        self._init()
+        #self._init()
         #fixture
         #xfname = "show/"+show_name+"/"+str(filename)+".sav"
         xfname = self.show_path+"/"+str(filename)+".sav"
@@ -2563,7 +2563,7 @@ class Fixtures():
         
     def load_patch(self):
         filename="patch"
-        self.base._init()
+        #self.base._init()
         d,l = self.base._load(filename)
         self.fixtures = OrderedDict()
         for i in l:
@@ -2582,7 +2582,7 @@ class Fixtures():
         labels = {}
         for k in data:
             labels[k] = k
-        self.base._init()
+        #self.base._init()
         self.base._backup(filename,data,labels)
 
     def fx_off(self,fix=None):
@@ -2839,7 +2839,7 @@ class Presets():
     def load_presets(self): 
         #self._load()
         filename="presets"
-        self.base._init()
+        #self.base._init()
         d,l = self.base._load(filename)
         for i in d:
             sdata = d[i]
@@ -2891,7 +2891,7 @@ class Presets():
         filename = "presets"
         data   = self.val_presets
         labels = self.label_presets
-        self.base._init()
+        #self.base._init()
         self.base._backup(filename,data,labels)
         
 

@@ -2298,84 +2298,68 @@ class TableFrame():
         self.a = _TableFrame(self.root)
         f=self.a.HFrame()
         f=self.a.Sframe(f, width=width,height=height,bd=bd)
-        self.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
+        self.a.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
 
-        self.b = _TableFrame(self.root)
-        f=self.b.HFrame()
-        f=self.b.Sframe(f, width=width,height=height,bd=bd)
+        self.b = _TableFrame(self.root) #äself.root)
+        b=self.b.HFrame()
+        b=self.b.Sframe(b, width=width,height=height,bd=bd)
         self.b.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
 
         self.c = _TableFrame(self.root)
-        f=self.c.HFrame()
-        f=self.c.Sframe(f, width=width,height=height,bd=bd)
+        c=self.c.HFrame()
+        c=self.c.Sframe(c, width=width,height=height,bd=bd)
+        self.c.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]][::-1])
 
         self.bframe=None
     def draw(self,data=[1,2],head=[],config=[]):
         pass
 
 class _TableFrame():
-    def __init__(self,root):
-        self.root=root
-    def HFrame(self):  
-        try:
-            pass#self.hframe.destroy()
-        except:pass
+    def __init__(self,main):
+        self.main = main
+        self.frame=tk.Frame(self.main,relief=tk.GROOVE,bg="yellow")#,width=width,height=height,bd=bd)
+        self.frame.pack(side="top",fill="x",expand=1) #x=0,y=0)
 
-        hframe=tk.Frame(self.root,relief=tk.GROOVE,bg="red")#,width=width,height=height,bd=bd)
-        hframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
-        self.hframe=hframe
-        hframe=self.hframe
-        #for i in dir(hframe):
-        #    print(i)
-        h2frame=tk.Frame(hframe,relief=tk.GROOVE,bg="#de0")#,width=width,height=height,bd=bd)
-        h2frame.pack(side="top",fill="x",expand=0) #x=0,y=0)
-        self.l=tk.Label(h2frame,text="filter:")
-        #l.pack(side="left")
-        r=0
-        c=0
-        self.l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
-        c+=1
-        self.l=tk.Entry(h2frame,text="test")
-        self.l.grid(row=r, column=c)#, sticky=tk.W+tk.E)
+        self.hframe=tk.Frame(self.frame,relief=tk.GROOVE,bg="yellow")#,width=width,height=height,bd=bd)
+        self.hframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
+        
 
-        self.hframe = hframe
-        #self.bframe=hframe
-        return hframe
-
-    def Sframe(self,root, width=50,height=100,bd=1):
-        try:
-            pass#self.aframe.destroy()
-        except:pass
-        aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
-        self.aframe=aframe
+        self.aframe=tk.Frame(self.main,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
         #aframe.place(x=0,y=0)
-        aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+        self.aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
 
-        canvas=tk.Canvas(aframe,width=width-24,height=height)
-        canvas["bg"] = "blue" #black" #"green"
-        bframe=tk.Frame(canvas)#,width=width,height=height)
-        bframe["bg"] = "blue"
-        scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
-        canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas=tk.Canvas(self.aframe,width=100-24,height=150)
+        self.canvas["bg"] = "blue" #black" #"green"
+        self.bframe=tk.Frame(self.canvas)#,width=width,height=height)
+        self.bframe["bg"] = "blue"
+        self.scrollbar=tk.Scrollbar(self.aframe,orient="vertical",command=self.canvas.yview,width=20)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        scrollbar.pack(side="right",fill="y")
-        canvas.pack(side="left",expand=1,fill="both")
-        canvas.create_window((0,0),window=bframe,anchor='nw')
-        bframe.bind("<Configure>",scroll(canvas).config)
-        canvas.bind("<Button>",Event("XXX").event)
-        canvas.bind("<Key>",Event("XXX").event)
-        canvas.bind("<KeyRelease>",Event("XXX").event)
-        self.bframe=bframe
-        return bframe
+        self.scrollbar.pack(side="right",fill="y")
+        self.canvas.pack(side="left",expand=1,fill="both")
+        self.canvas.create_window((0,0),window=self.bframe,anchor='nw')
+        self.bframe.bind("<Configure>",scroll(self.canvas).config)
+        self.canvas.bind("<Button>",Event("XXX").event)
+        self.canvas.bind("<Key>",Event("XXX").event)
+        self.canvas.bind("<KeyRelease>",Event("XXX").event)
 
+        
+        #self.bframe=tk.Frame(self.frame,relief=tk.GROOVE,bg="magenta")#,width=width,height=height,bd=bd)
+        #self.bframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+        #self.HFrame()
+    def HFrame(self,main=None):  
+        self.e = tk.Label(self.hframe,text="Filter:")
+        self.e.pack(side="left")
+        self.e = tk.Entry(self.hframe)
+        self.e.pack(side="left")
+    def Sframe(self,main=None, **args):  
+        pass
 
     def draw(self,data=[1,2],head=[],config=[]):
-        global tk
-        bframe=self.bframe
-        yframe = bframe
+        yframe = self.bframe
         if 1: 
             xframe = tk.Frame(yframe,bg="black")
-            xframe.pack()
+            xframe.pack(side="top", expand=1,fill="both")
             def yview(event):
                 print("yevent",event)
                 yyy=20.1
@@ -2416,7 +2400,8 @@ class _TableFrame():
                 c=0
                 r+=1
                     
-        return bframe
+        return self.bframe
+
 
 def ScrollFrame(root,width=50,height=100,bd=1):
     #print("ScrollFrame init",width,height)
@@ -2650,7 +2635,7 @@ class Fixtures(Base):
 
             if not modes.val("BLIND"):
                 jdata = [jdata]
-                print(jdata)
+                #print(jdata)
                 jclient_send(jdata)
         return v2
 

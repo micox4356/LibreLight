@@ -231,35 +231,6 @@ class FX_handler():
 
 
 
-def build_cmd(dmx,val,args=[],flash=0,xpfx="",attr=""):
-    if not args:
-        args.append(FADE.val())
-    cmd=""
-    if xpfx:
-        pfx=xpfx  
-    elif flash:
-        pfx ="df"
-    else:
-        pfx ="d"
-    if type(val) is float or type(val) is int:
-        cmd += ",{}{}:{:0.4f}".format(pfx,dmx,val)
-    else:
-        cmd += ",{}{}:{}".format(pfx,dmx,val)
-   
-    if flash:
-        cmd += ":0:0"#.format(val)
-    else:
-        for val in args:
-            if type(val) is float or type(val) is int:
-                cmd += ":{:0.4f}".format(val)
-            else:
-                cmd += ":{}".format(val)
-    if attr:
-        cmd += ":"+str(attr)
-    #cprint("build_cmd",cmd,color="red")
-    return cmd
-
-
 def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
 
     if flash:
@@ -335,80 +306,6 @@ def update_raw_dmx(data ,value=None,args=[],xfade=0,flash=0,pfx="d",fx=0):
         #    cprint("update_raw_dmx j",jxcmd,color="red") 
         #    cprint("update_raw_dmx x",xcmd,color="red") 
     return cmd,jcmd
-
-def update_dmx(attr,data,value=None,args=None,flash=0,pfx=""):
-    xfade = 0
-    if not args:
-        args=[]
-        xfade = FADE.val()
-        args.append(xfade)
-
-    #global modes #BLIND
-    #print("update_dmx",data)
-    dmx = data["DMX"]
-    dmx = (data["UNIVERS"]*512)+data["DMX"]
-    val = None
-    cmd=""
-
-    try:
-        if attr == "DIM" and data["ATTRIBUT"][attr]["NR"] < 0: #VDIM
-            #print( "VDIM")
-            for attr in data["ATTRIBUT"]:
-                dmx = (data["UNIVERS"]*512) + data["DMX"]
-                dmx = data["DMX"]
-                if data["ATTRIBUT"][attr]["NR"] < 0: #virtual channels
-                    continue
-                dmx += data["ATTRIBUT"][attr]["NR"]-1
-                mode = ""
-                if "MODE" in data["ATTRIBUT"][attr]:
-                    mode = data["ATTRIBUT"][attr]["MODE"]
-                #print(attr)
-                val = data["ATTRIBUT"][attr]["VALUE"]
-                if data["ATTRIBUT"][attr]["MASTER"]:
-                    val = val * (data["ATTRIBUT"]["DIM"]["VALUE"] / 255.)
-                    if val is not None:            
-                     
-                        #cmd += ",d{}:{:0.4f}".format(dmx,int(val))
-                        if value is not None:
-                            val = value
-                        if mode == "F": #FADE
-                            cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
-                        else:
-                            cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
-                        #print("cmd",cmd)
-                    
-            
-        elif data["ATTRIBUT"][attr]["NR"] > 0: 
-            dmx += data["ATTRIBUT"][attr]["NR"]-1
-            val = data["ATTRIBUT"][attr]["VALUE"]
-            mode = ""
-            if "MODE" in data["ATTRIBUT"][attr]:
-                mode = data["ATTRIBUT"][attr]["MODE"]
-
-            if data["ATTRIBUT"][attr]["MASTER"]:
-                #if "VDIM" in data["ATTRIBUT"]:
-                if "DIM" in data["ATTRIBUT"] and data["ATTRIBUT"]["DIM"]["NR"] < 0: #VDIM
-                    val = val * (data["ATTRIBUT"]["DIM"]["VALUE"] / 255.)
-            if val is not None:            
-                #cmd += ",d{}:{}".format(dmx,int(val))
-                if value is not None:
-                    val = value
-                if mode == "F": #FADE
-                    cmd += build_cmd(dmx,val,args=args,flash=flash,xpfx=pfx,attr=attr)
-                else:
-                    cmd += build_cmd(dmx,val,args=[0],flash=flash,xpfx=pfx,attr=attr)
-                #print("cmd",cmd)
-
-        if modes.val("BLIND"):
-            cmd=""
-
-        #cprint("update_dmx",cmd,color="red") 
-        return cmd
-    except Exception as e:
-        cprint("== cb EXCEPT",e,color="red")
-        cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
-        cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-        raise e
 
 class dummy_event():
     def __init__(self):

@@ -2200,11 +2200,14 @@ def draw_load_show(xframe):
 
             if c > 0:
                 b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
+                b.config(activebackground=dbg)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             else:
                 if base.show_name == i[0]:
                     bg="green"
                 b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=OEvent(j).cb)
+                if base.show_name == i[0]:
+                    b.config(activebackground=bg)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
         r+=1

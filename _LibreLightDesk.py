@@ -598,13 +598,14 @@ class Xevent():
                 self.elem.config(activebackground="lightgrey")
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
-                w = GUIWindow(name,master=0,width=400,height=450,exit=1,left=400,top=100)#,left=10+L1+W1,top=98)
-                #self.elem["text"] = "LOADING..."
-                #PRESETS.backup_presets()
-                #FIXTURES.backup_patch()
-                draw_load_show(w.tk)
-                window_manager.new(w,name)
-                #w.tk.attributes('-topmost',True)
+                base = Base()
+                line1 = "PATH: "+base.show_path1 +base.show_name
+                line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
+                pw = PopupList(name)
+                frame = pw.sframe(line1=line1,line2=line2)
+                _load_show_list(frame)
+
+    
                 self.elem["bg"] = "red"
                 self.elem.config(activebackground="red")
                 #w.tk.attributes('-topmost',False)
@@ -2123,60 +2124,82 @@ def draw_live(gui,xframe):
             c=0
             r+=1
 
+class LOAD_SHOW_AND_RESTAT():
+    def __init__(self,fname=""):
+        self.fname=fname
+        self.base = Base()
 
-#_load_show = 0
-def draw_load_show(xframe):
-    base = Base()
+    def cb(self,event=None):
+        if not self.fname:
+            return 0
+        if self.base.show_name == self.fname:
+            cprint("filename is the same",self.fname)
+            return 0
+        self.base._set(self.fname)
+        #base = Base()
+        #show_path = base.show_path1 + base.show_name
+        print("LOAD SHOW:",event,self.fname)
+        if 0: #disable load show ... error gui[elem] ..
+            LOAD_SHOW()
+            refresher.reset() # = Refresher()
+            master._refresh_fix()
+            master._refresh_exec()
+            draw_patch(master,main_preset_frame)
+        #os.system('''kill "$(ps aux | grep -i  'python3 LibreLightDesk.py' | head -n1 | awk '{print $2}')"''')
+        import os,sys
+
+        print(sys.executable, os.path.abspath(__file__), *sys.argv)
+        #input()
+        #ok /usr/bin/python3 /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
+        #err /opt/LibreLight/Xdesk/_LibreLightDesk.py /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
+
+        #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
+        os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
+        sys.exit()
+                
+class PopupList():
+    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100):
+        self.name = name
+        self.frame = None
+
+        w = GUIWindow(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top)
+        self.w = w
+
+    def sframe(self,line1="<line1>",line2="<line2>",data=[]):
+
+        xframe=self.w.tk
+        c=0
+        r=0
+
+        b = tk.Label(xframe,bg="grey",text=line1,anchor="w")
+        b.pack(side="top",expand=0,fill="x" ) 
+
+
+        b = tk.Label(xframe,bg="grey",text=line2,anchor="w")
+        b.pack(side="top",expand=0,fill="x" ) 
+
+        b = tk.Label(xframe,bg="black",fg="black",text="")
+        b.pack(side="top") 
+
+        b = tk.Entry(xframe,width=10,text="")#,anchor="w")
+        b.pack(side="top",expand=0,fill="x") 
+        b.focus()
+
+
+        #frame = tk.Frame(xframe,heigh=2800)
+        #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
+
+        frame = ScrollFrame(xframe,width=300,height=500,bd=1)
+        frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP)
+        self.frame = frame
+        self.w.tk.attributes('-topmost',True)
+        return frame
+
+
+def _load_show_list(frame):
     c=0
     r=0
-
-    show_path = base.show_path1 +base.show_name
-    b = tk.Label(xframe,bg="grey",text="PATH: "+show_path,anchor="w")
-    b.pack(side="top",expand=0,fill="x" ) 
-
-    ctime = time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
-    b = tk.Label(xframe,bg="grey",text="DATE:      "+ctime,anchor="w")
-    b.pack(side="top",expand=0,fill="x" ) 
-
-    b = tk.Label(xframe,bg="black",fg="black",text="")
-    b.pack(side="top") 
-
-    #frame = tk.Frame(xframe,heigh=2800)
-    #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
-    class OEvent():
-        def __init__(self,fname=""):
-            self.fname=fname
-        def cb(self,event=None):
-            if not self.fname:
-                return 0
-            if base.show_name == self.fname:
-                cprint("filename is the same",self.fname)
-                return 0
-            base._set(self.fname)
-            #base = Base()
-            #show_path = base.show_path1 + base.show_name
-            print("LOAD SHOW:",event,self.fname)
-            if 0: #disable load show ... error gui[elem] ..
-                LOAD_SHOW()
-                refresher.reset() # = Refresher()
-                master._refresh_fix()
-                master._refresh_exec()
-                draw_patch(master,main_preset_frame)
-            #os.system('''kill "$(ps aux | grep -i  'python3 LibreLightDesk.py' | head -n1 | awk '{print $2}')"''')
-            import os,sys
-
-            print(sys.executable, os.path.abspath(__file__), *sys.argv)
-            #input()
-            #ok /usr/bin/python3 /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
-            #err /opt/LibreLight/Xdesk/_LibreLightDesk.py /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
-
-            #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
-            os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
-            sys.exit()
-            
-
-    frame = ScrollFrame(xframe,width=300,height=500,bd=1)
-    frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP)
+    base = Base()
     for i in ["name","stamp"]: #,"create"]:
         b = tk.Label(frame,bg="grey",text=i)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -2205,7 +2228,63 @@ def draw_load_show(xframe):
             else:
                 if base.show_name == i[0]:
                     bg="green"
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=OEvent(j).cb)
+
+                cb = LOAD_SHOW_AND_RESTAT(j).cb
+                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=cb)
+
+                if base.show_name == i[0]:
+                    b.config(activebackground=bg)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+        r+=1
+
+
+def _load_fixture_list(frame):
+    c=0
+    r=0
+    base = Base()
+    for i in ["name","stamp"]: #,"create"]:
+        b = tk.Label(frame,bg="grey",text=i)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+    r+=1
+    blist = [] #base._list()
+    blist.append(["MAC-500","martin","z"])
+    blist.append(["MAC-2000","martin","z"])
+    blist.append(["MAC-VIPER","martin","z"])
+    blist.append(["SPARX-7","JB","z"])
+    blist.append(["SPARX-11","JB","z"])
+    blist.append(["JB-P6","JB","z"])
+    blist.append(["JB-P7","JB","z"])
+    blist.append(["JB-A7","JB","z"])
+    blist.append(["TMH-12","Eurolight","z"])
+    for i in range(10):
+        blist.append(["",""])
+
+    for i in blist:
+        #print(i)
+        c=0
+        for j in i:
+            bg="lightgrey"
+            dbg="lightgrey"
+            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+                dbg = "lightgreen"
+            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+                dbg = "green"
+
+
+            if c > 0:
+                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
+                b.config(activebackground=dbg)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            else:
+                if base.show_name == i[0]:
+                    bg="green"
+
+                #cb = LOAD_SHOW_AND_RESTAT(j).cb
+                #b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=cb)
+                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg) #,command=cb)
+
                 if base.show_name == i[0]:
                     b.config(activebackground=bg)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -3276,24 +3355,8 @@ class GUI_FaderLayout():
         self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="Empty", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.load_EMPTY
-        self.b.pack( side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="DIM", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.load_DIM
-        self.b.pack( side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="IRGB", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.load_LED
-        self.b.pack( side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="MH", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.load_MH
-        self.b.pack( side=tk.LEFT)
-        
-        self.b = tk.Button(self.frame,bg="lightblue",text="MH2", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.load_MH2
+        self.b = tk.Button(self.frame,bg="lightblue",text="LIST", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.open_fixture_list
         self.b.pack( side=tk.LEFT)
         
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
@@ -3336,6 +3399,18 @@ class GUI_FaderLayout():
         print("change_dmx",[_event,self])
 
 
+    def open_fixture_list(self):
+        name = "LOAD-SHOW"
+        line1="Fixture Library"
+        line2="CHOOS to EDIT >> DEMO MODUS"
+        pw = PopupList(name)
+        frame = pw.sframe(line1=line1,line2=line2)
+        _load_fixture_list(frame)
+
+
+        #self.elem["bg"] = "red"
+        #self.elem.config(activebackground="red")
+        #w.tk.attributes('-topmost',False)
 
     def load_EMPTY(self,_event=None,attr=[]):
         #attr = [,"RED","GREEN","BLUE"]
@@ -3375,7 +3450,11 @@ class GUI_FaderLayout():
         txt="dd"
         txt= self.entry["text"]
         txt = tkinter.simpledialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
-        nr = int(txt)
+        try:
+            nr = int(txt)
+        except TypeError:
+            print("--- abort ---")
+            return 0
         self.entry["text"] = "{}".format(nr)
         print("change_dmx",[_event,self])
         for i,e in enumerate(self.elem):
@@ -3485,7 +3564,10 @@ class GUIWindow():
                                    weight="bold")
             #self.tk.option_add("*Font", FontBold)
             # MAIN MENUE
-            self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
+            try:
+                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
+            except Exception as e:
+                print("Exception GUIWindow.__init__",e)
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()

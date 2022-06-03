@@ -604,7 +604,7 @@ class Xevent():
                 cb = LOAD_SHOW_AND_RESTAT #(j).cb
                 pw = PopupList(name,cb=cb)
                 frame = pw.sframe(line1=line1,line2=line2)
-                _load_show_list(frame,cb=cb)
+                r = _load_show_list(frame,cb=cb)
 
     
                 self.elem["bg"] = "red"
@@ -2139,6 +2139,7 @@ class LOAD_FIXTURE():
                 self.master.load_MH2()
             else:
                 self.master.load_DIM()
+            print(dir(self.master))
 
 class LOAD_SHOW_AND_RESTAT():
     def __init__(self,fname=""):
@@ -2174,9 +2175,10 @@ class LOAD_SHOW_AND_RESTAT():
         sys.exit()
                 
 class PopupList():
-    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100,cb=None):
+    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100,cb=None,bg=""):
         self.name = name
         self.frame = None
+        self.bg=bg
         self.cb = cb
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")
@@ -2186,6 +2188,9 @@ class PopupList():
     def sframe(self,line1="<line1>",line2="<line2>",data=[]):
 
         xframe=self.w.tk
+        if self.bg:
+            xframe.configure(bg=self.bg)
+            self.w.tk.configure(bg=self.bg)
         c=0
         r=0
 
@@ -2197,6 +2202,9 @@ class PopupList():
         b.pack(side="top",expand=0,fill="x" ) 
 
         b = tk.Label(xframe,bg="black",fg="black",text="")
+        if self.bg:
+            b.configure(fg=self.bg)
+            b.configure(bg=self.bg)
         b.pack(side="top") 
 
         b = tk.Entry(xframe,width=10,text="")#,anchor="w")
@@ -2207,7 +2215,7 @@ class PopupList():
         #frame = tk.Frame(xframe,heigh=2800)
         #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
 
-        frame = ScrollFrame(xframe,width=300,height=500,bd=1)
+        frame = ScrollFrame(xframe,width=300,height=500,bd=1,bg=self.bg)
         frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP)
         self.frame = frame
         self.w.tk.attributes('-topmost',True)
@@ -2266,7 +2274,8 @@ def _load_show_list(frame,cb=None):
         r+=1
 
 
-def _load_fixture_list(frame,cb=None,master=None):
+def _load_fixture_list(frame,cb=None,master=None,bg="black"):
+    frame.configure(bg=bg)
     c=0
     r=0
     base = Base()
@@ -2674,14 +2683,14 @@ class _TableFrame():
         return self.bframe
 
 
-def ScrollFrame(root,width=50,height=100,bd=1):
+def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
     #print("ScrollFrame init",width,height)
     aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
     #aframe.place(x=0,y=0)
     aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
 
     canvas=tk.Canvas(aframe,width=width-24,height=height)
-    canvas["bg"] = "black" #"green"
+    canvas["bg"] = bg # "black" #"green"
     bframe=tk.Frame(canvas,width=width,height=height)
     bframe["bg"] = "blue"
     scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
@@ -3324,29 +3333,46 @@ class ELEM_FADER():
         r=0
         c=0
         j=0
+        font8 = ("FreeSans",8)
         frameS=self.frame
         self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         self.elem.append(self.b)
 
-        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test)
+        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
-        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr)
+        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
         self.attr=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
-        self.b = tk.Button(frameS,bg="lightblue",text="FADE", width=4,command=self.set_mode)
+        f = tk.Frame(frameS)
+        #f.pack()
+        self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=font8 )
+        self.mode=self.b
+        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        self.elem.append(self.b)
+
+        self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=font8 )
         self.mode=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         self.elem.append(self.b)
-        self.b = tk.Label(frameS,bg="black",text="", width=4)
+
+        self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=font8 )
+        self.mode=self.b
+        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        self.elem.append(self.b)
+
+        self.b = tk.Label(frameS,bg="black",text="", width=4,font=font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
 
 
 class GUI_FaderLayout():
     def __init__(self,root,data,title="tilte",width=800):
+        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
+        font8 = ("FreeSans",8)
         r=0
         c=0
         i=1
@@ -3356,7 +3382,7 @@ class GUI_FaderLayout():
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor" )
+        self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor") #,font=font8 )
         self.b.pack(fill=None, side=tk.LEFT)
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
@@ -3406,11 +3432,11 @@ class GUI_FaderLayout():
                 frameS.pack(fill=tk.BOTH, side=tk.TOP)
                 p=j//pb+1
                 txt="BANK:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=15)
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=15,font=font8 )
                 self.header.append(self.b)
 
                 self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11)
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
 
                 frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
@@ -3431,14 +3457,14 @@ class GUI_FaderLayout():
 
 
     def open_fixture_list(self):
-        name = "LOAD-SHOW"
+        name = "FIXTURE-LIB"
         line1="Fixture Library"
         line2="CHOOS to EDIT >> DEMO MODUS"
         cb = LOAD_FIXTURE
         #cb.master=self
-        pw = PopupList(name,cb=cb)
+        pw = PopupList(name,cb=cb,left=800,bg="red")
         frame = pw.sframe(line1=line1,line2=line2)
-        _load_fixture_list(frame,cb=cb,master=self)
+        r=_load_fixture_list(frame,cb=cb,master=self,bg="red")
 
 
         #self.elem["bg"] = "red"

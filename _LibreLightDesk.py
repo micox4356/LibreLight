@@ -601,9 +601,10 @@ class Xevent():
                 base = Base()
                 line1 = "PATH: "+base.show_path1 +base.show_name
                 line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
-                pw = PopupList(name)
+                cb = LOAD_SHOW_AND_RESTAT #(j).cb
+                pw = PopupList(name,cb=cb)
                 frame = pw.sframe(line1=line1,line2=line2)
-                _load_show_list(frame)
+                _load_show_list(frame,cb=cb)
 
     
                 self.elem["bg"] = "red"
@@ -2124,6 +2125,21 @@ def draw_live(gui,xframe):
             c=0
             r+=1
 
+class LOAD_FIXTURE():
+    def __init__(self,name="",master=None):
+        self.name=name
+        self.master=master
+
+    def cb(self,event=None):
+        print("LOAD_FIXTURE",self.name,event)
+        if self.master is not None:
+            #for i in dir(self.master): #.load_MH2()
+            #    print(i)
+            if "SPARX" in self.name:
+                self.master.load_MH2()
+            else:
+                self.master.load_DIM()
+
 class LOAD_SHOW_AND_RESTAT():
     def __init__(self,fname=""):
         self.fname=fname
@@ -2158,11 +2174,13 @@ class LOAD_SHOW_AND_RESTAT():
         sys.exit()
                 
 class PopupList():
-    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100):
+    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100,cb=None):
         self.name = name
         self.frame = None
-
-        w = GUIWindow(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top)
+        self.cb = cb
+        if cb is None: 
+            cb = DummyCallback #("load_show_list.cb")
+        w = GUIWindow(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
         self.w = w
 
     def sframe(self,line1="<line1>",line2="<line2>",data=[]):
@@ -2196,7 +2214,14 @@ class PopupList():
         return frame
 
 
-def _load_show_list(frame):
+class DummyCallback():
+    def __init__(self,name="name"):
+        self.name = name
+    def cb(self,event=None):
+        print("DummyCallback.cb",[self.name,event])
+
+
+def _load_show_list(frame,cb=None):
     c=0
     r=0
     base = Base()
@@ -2208,6 +2233,9 @@ def _load_show_list(frame):
     blist = base._list()
     for i in range(10):
         blist.append(["",""])
+
+    if cb is None: 
+        cb = DummyCallback #("load_show_list.cb")
 
     for i in blist:
         #print(i)
@@ -2228,9 +2256,8 @@ def _load_show_list(frame):
             else:
                 if base.show_name == i[0]:
                     bg="green"
-
-                cb = LOAD_SHOW_AND_RESTAT(j).cb
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=cb)
+                _cb = cb(j)
+                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb.cb)
 
                 if base.show_name == i[0]:
                     b.config(activebackground=bg)
@@ -2239,7 +2266,7 @@ def _load_show_list(frame):
         r+=1
 
 
-def _load_fixture_list(frame):
+def _load_fixture_list(frame,cb=None,master=None):
     c=0
     r=0
     base = Base()
@@ -2261,6 +2288,10 @@ def _load_fixture_list(frame):
     for i in range(10):
         blist.append(["",""])
 
+
+    if cb is None: 
+        cb = DummyCallback #("load_show_list.cb")
+
     for i in blist:
         #print(i)
         c=0
@@ -2281,9 +2312,9 @@ def _load_fixture_list(frame):
                 if base.show_name == i[0]:
                     bg="green"
 
-                #cb = LOAD_SHOW_AND_RESTAT(j).cb
-                #b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=cb)
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg) #,command=cb)
+                _cb=cb(j)
+                _cb.master=master
+                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb.cb)
 
                 if base.show_name == i[0]:
                     b.config(activebackground=bg)
@@ -3403,9 +3434,11 @@ class GUI_FaderLayout():
         name = "LOAD-SHOW"
         line1="Fixture Library"
         line2="CHOOS to EDIT >> DEMO MODUS"
-        pw = PopupList(name)
+        cb = LOAD_FIXTURE
+        #cb.master=self
+        pw = PopupList(name,cb=cb)
         frame = pw.sframe(line1=line1,line2=line2)
-        _load_fixture_list(frame)
+        _load_fixture_list(frame,cb=cb,master=self)
 
 
         #self.elem["bg"] = "red"
@@ -3419,20 +3452,21 @@ class GUI_FaderLayout():
     def load_DIM(self,_event=None,attr=[]):
         attr = ["DIM"]
         mode = ["F"]
-        self._load_mh(None,attr,mode)
+        self._load_fix(None,attr,mode)
     def load_LED(self,_event=None,attr=[]):
         attr = ["DIM","RED","GREEN","BLUE"]
         mode = ["F","F","F","F"]
-        self._load_mh(None,attr,mode)
+        self._load_fix(None,attr,mode)
     def load_MH(self,_event=None,attr=[]):
         attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
         mode = ["F","F","F","F","S","F","F","F","F","S"]
-        self._load_mh(None,attr,mode)
+        self._load_fix(None,attr,mode)
     def load_MH2(self,_event=None,attr=[]):
         attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO","G-ROT","PRISM","P-ROT","ZOOM","CONTR"]
         mode = ["F","F","F","F","S","F","F","F","F","S","S","S","S","F","S"]
-        self._load_mh(None,attr,mode)
-    def _load_mh(self,_event=None,attr=[],mode=[]):
+        self._load_fix(None,attr,mode)
+
+    def _load_fix(self,_event=None,attr=[],mode=[]):
         print("load_fixture",[_event,self])
         #for i,e in enumerate(self.elem):
         for i,e in enumerate(self.elem):
@@ -3551,10 +3585,11 @@ lf_nr = 0
 from tkinter import PhotoImage 
 
 class GUIWindow():
-    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0):
+    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None):
         global lf_nr
         #ico_path="/opt/LibreLight/Xdesk/icon/"
         ico_path="./icon/"
+        self.cb = cb
         if master: 
             self.tk = tkinter.Tk()
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
@@ -3571,8 +3606,8 @@ class GUIWindow():
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
-            if not exit:
-                self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            
             try:
                 if "COLORPICKER" in title:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
@@ -3607,6 +3642,16 @@ class GUIWindow():
         self.tk.geometry(geo)
     def close_app_win(self,event=None):
         print("close_app_win",self,event)
+        if exit:
+            #self.tk.quit()
+            self.tk.destroy()
+            #for i in dir(self.tk):
+            #    print("i",i)
+        try:
+            self.cb("<exit>").cb()
+        except Exception as e:
+            print("EXCETPION close_app",e)
+
     def title(self,title=None):
         if title is None:
             return self.tk.title()

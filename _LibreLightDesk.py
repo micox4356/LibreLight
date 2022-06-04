@@ -929,8 +929,8 @@ class Xevent():
             return 0
     def encoder(self,event):
         if self.mode == "ENCODER":
-            cprint("ENC",self.fix,self.attr,self.mode)
-            cprint(self.data)
+            cprint("Xevent","ENC",self.fix,self.attr,self.mode)
+            #cprint(self.data)
             val=""
             if event.num == 1:
                 val ="click"
@@ -1952,7 +1952,7 @@ def draw_enc(gui,xframe):
 
     if len(eat) < 23:
         for i in range(23-len(eat)):
-            eat.append("xx")
+            eat.append("")
     for attr in eat:
         if attr.endswith("-FINE"):
             continue
@@ -2860,23 +2860,8 @@ class Fixtures():
             return 0
 
         if attr == "ALL":
-            if fix in self.fixtures:
-                data = self.fixtures[fix]
-                x=0
-                for a in data["ATTRIBUT"]:
-                    print("SELECT ALL",fix,a)
-                    if "-FINE" in a.upper():
-                        pass
-                    else:
-                        x+=self.select(fix,a,mode="on")
-                if not x:
-                    for a in data["ATTRIBUT"]:
-                        print("SELECT ALL",fix,a)
-                        if "-FINE" in a.upper():
-                            pass
-                        else:
-                            x+=self.select(fix,a,mode="off")
-            return 0
+            x=self.select(fix,attr,mode="toggle")
+            return x
 
         if fix not in self.fixtures:
             jdata=[{"MODE":"---"}]
@@ -2949,7 +2934,7 @@ class Fixtures():
         return v2
 
     def get_active(self):
-        cprint("get_active",self,"get_active")
+        cprint("get_active",self)
         CFG = OrderedDict()
         sdata = OrderedDict()
         sdata["CFG"] = CFG # OrderedDict()
@@ -2980,14 +2965,48 @@ class Fixtures():
     
         return sdata
 
+    def _deselect_all(self,fix=None):
+        cprint("FIXTURES._deselect_all()",fix,"ALL",color="yellow")
+        c=0
+        if fix in self.fixtures:
+            data = self.fixtures[fix]
 
-    def select(self,fix=None,attr=None,mode="on"):
-        cprint("FIXTURES.select()",fix,attr,mode,color="yellow")
+            for attr in data["ATTRIBUT"]:
+                #print("SELECT ALL",fix,attr)
+                if "-FINE" in attr.upper():
+                    pass
+                else:
+                    c+=self.select(fix,attr,mode="off",mute=1)
+        
+        return c
+
+    def _select_all(self,fix=None,mode="toggle"):
+        cprint("FIXTURES._select_all()",fix,"ALL",mode,color="yellow")
+        c=0
+        if fix in self.fixtures:
+            data = self.fixtures[fix]
+            for attr in data["ATTRIBUT"]:
+                #print("SELECT ALL",fix,attr)
+                if "-FINE" in attr.upper():
+                    pass
+                else:
+                    c+=self.select(fix,attr,mode="on",mute=1)
+
+            if not c and mode == "toggle": # unselect all
+                c= self._deselect_all(fix=fix)
+        return c 
+
+    def select(self,fix=None,attr=None,mode="on",mute=0):
+        if not mute:
+            cprint("FIXTURES.select()",fix,attr,mode,color="yellow")
         out = 0
 
         if fix in self.fixtures:
             data = self.fixtures[fix]
-            if attr in data["ATTRIBUT"]:
+            if attr.upper() == "ALL":
+                x=self._select_all(fix=fix,mode=mode)
+                return x
+            elif attr in data["ATTRIBUT"]:
                 if mode == "on":
                     if not data["ATTRIBUT"][attr]["ACTIVE"]:
                         data["ATTRIBUT"][attr]["ACTIVE"] = 1
@@ -3009,11 +3028,11 @@ class Fixtures():
         for fix in self.fixtures:
             data = self.fixtures[fix]
             for attr in data["ATTRIBUT"]:
-                if attr.endswith("-FINE"):
-                    continue
+                #if attr.endswith("-FINE"):
+                #    continue
                 if data["ATTRIBUT"][attr]["ACTIVE"]:
                     out +=1
-                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                data["ATTRIBUT"][attr]["ACTIVE"] = 0
         return out
 
 class Presets():
@@ -3044,36 +3063,37 @@ class Presets():
         self.label_presets = l
 
     def check_cfg(self,nr=None):
-        cprint("PRESETS.check_cfg()",nr)
+        cprint("PRESETS.check_cfg()",nr)#,color="red")
         ok = 0
         if nr is not None:
-            ok += self._check_cfg(nr)
+            if nr in self.val_presets:
+                sdata = self.val_presets[nr]
+                ok += self._check_cfg(sdata)
+            else:
+                cprint("nr not in data ",nr,color="red")
         else:
             for nr in self.val_presets:
-                ok += self._check_cfg(nr)
+                sdata = self.val_presets[nr]
+                ok += self._check_cfg(sdata)
         return ok
 
-    def _check_cfg(self,nr):
-        #cprint("PRESETS._check_cfg()",nr)
+    def _check_cfg(self,sdata):
+        cprint("PRESETS._check_cfg()")#,color="red")
         ok=0
-        if nr in self.val_presets:
-            sdata = self.val_presets[nr]
-            if "CFG" not in sdata:
-                sdata["CFG"] = OrderedDict()
-                ok += 1
-            if "FADE" not in sdata["CFG"]:
-                sdata["CFG"]["FADE"] = 4
-                ok += 1
-            if "DELAY" not in sdata["CFG"]:
-                sdata["CFG"]["DELAY"] = 0
-                ok += 1
-            if "BUTTON" not in sdata["CFG"]:
-                sdata["CFG"]["BUTTON"] = "GO"
-                ok += 1
-            if ok:
-                cprint("REPAIR CFG's",nr,sdata["CFG"],color="red")
-        else:
-            cprint("nr not in data ",nr,color="red")
+        if "CFG" not in sdata:
+            sdata["CFG"] = OrderedDict()
+            ok += 1
+        if "FADE" not in sdata["CFG"]:
+            sdata["CFG"]["FADE"] = 4
+            ok += 1
+        if "DELAY" not in sdata["CFG"]:
+            sdata["CFG"]["DELAY"] = 0
+            ok += 1
+        if "BUTTON" not in sdata["CFG"]:
+            sdata["CFG"]["BUTTON"] = "GO"
+            ok += 1
+        if ok:
+            cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")
         return ok
         
     def backup_presets(self):
@@ -3276,8 +3296,15 @@ class Presets():
         return ok
 
     def rec(self,nr,data,arg=""):
-        print("rec",self,"rec()",data,arg)
+        cprint("rec",self,"rec()",len(data),arg)
         self.check_cfg(nr)
+        self._check_cfg(data) #by ref
+
+        odata=self.val_presets[nr]
+        #print("odata",odata)
+        if "CFG" in odata:
+            if "BUTTON" in odata["CFG"]:
+                data["CFG"]["BUTTON"] = odata["CFG"]["BUTTON"]  
         self.val_presets[nr] = data
         return 1
            
@@ -3630,7 +3657,11 @@ class GUI_menu():
                 if attr == "bg":
                     if value == "":
                         value = "lightgrey"
-                    v["elem"]["bg"] = str(value)
+                    v["elem"][attr] = str(value)
+                if attr == "activebackground":
+                    if value == "":
+                        value = "lightgrey"
+                    v["elem"][attr] = str(value)
 
 lf_nr = 0
         

@@ -2745,6 +2745,36 @@ class Fixtures():
         self.fixtures = OrderedDict()
         for i in l:
             sdata = d[i]
+            new_f = OrderedDict()
+            print("++++")
+            for k,j in sdata.items():
+                overide=0 # only for repair
+                if overide:
+                    if k in ["TYPE","VENDOR"]: #ignor
+                        continue
+                new_f[k] = j
+                if k =="NAME":
+                    #print("AAAADDDDDD")
+                    if "TYPE" not in sdata and not overide:
+                        if len( sdata["ATTRIBUT"]) == 1:
+                            new_f["TYPE"] = "DIMMER"
+                        elif "PAN" in sdata["ATTRIBUT"]:
+                            new_f["TYPE"] = "MOVER"
+                        elif "RED" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 3:
+                            new_f["TYPE"] = "RGB"
+                        elif "RED" in sdata["ATTRIBUT"]:
+                            new_f["TYPE"] = "LED"
+                        elif "CYAN" in sdata["ATTRIBUT"]:
+                            new_f["TYPE"] = "COLOR"
+                        else:
+                            new_f["TYPE"] = ""
+                    if "VENDOR" not in sdata and not overide:
+                        new_f["VENDOR"] = ""
+
+                print(k,j)#,sdata)
+            sdata = new_f
+            if "ACTIVE" not in sdata:
+                sdata["ACTIVE"] = 0
             for attr in sdata["ATTRIBUT"]:
                 sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
             #print("load",filename,sdata)

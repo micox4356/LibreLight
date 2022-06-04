@@ -1502,7 +1502,7 @@ class GUI():
                 txt = txt.split("\n")[0]
             if "SEL" in txt:
                 b.configure(fg= "black")
-                b.configure(bg = "#5555ff")
+                b.configure(bg = "#55f")
                 b.config(activebackground="#6666ff")
 
             elif "ON" in txt:
@@ -1896,8 +1896,8 @@ def draw_fix(gui,xframe,yframe=None):
             b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
-            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
+            b.bind("<Button>",Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             #r+=1
@@ -2853,10 +2853,29 @@ class Fixtures():
         return cmd
 
     def encoder(self,fix,attr,xval="",xfade=0):
-        #cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
+        cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
 
         if attr == "CLEAR":
             self.clear()
+            return 0
+
+        if attr == "ALL":
+            if fix in self.fixtures:
+                data = self.fixtures[fix]
+                x=0
+                for a in data["ATTRIBUT"]:
+                    print("SELECT ALL",fix,a)
+                    if "-FINE" in a.upper():
+                        pass
+                    else:
+                        x+=self.select(fix,a,mode="on")
+                if not x:
+                    for a in data["ATTRIBUT"]:
+                        print("SELECT ALL",fix,a)
+                        if "-FINE" in a.upper():
+                            pass
+                        else:
+                            x+=self.select(fix,a,mode="off")
             return 0
 
         if fix not in self.fixtures:
@@ -2867,7 +2886,12 @@ class Fixtures():
                 ii+=1
                 #cprint(fix,attr,xval)
                 data = self.fixtures[fix]
-                if attr in data["ATTRIBUT"]:
+                if "-FINE" in attr.upper():
+                    continue
+                elif attr == "ALL":
+                    pass
+
+                elif (attr in data["ATTRIBUT"] or attr == "ALL") and "-FINE" not in attr.upper()   :
                     if xval == "click":
                         self.select(fix,attr,mode="on")
                     elif data["ATTRIBUT"][attr]["ACTIVE"]:

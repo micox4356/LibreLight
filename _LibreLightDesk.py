@@ -1453,7 +1453,8 @@ class GUI():
                 label = PRESETS.label_presets[k]
                 #print([label])
             b = self.elem_presets[k]
-
+            
+            ifval = 0
             if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
                 sdata = PRESETS.val_presets[k]
                 #print("sdata7654",sdata)
@@ -1467,6 +1468,7 @@ class GUI():
                 b.configure(bg="yellow")
                 b.config(activebackground="yellow")
                 if len(sdata) > 1:
+                    ifval = 1
                     fx_color = 0
                     val_color = 0
                     for fix in sdata:
@@ -1500,19 +1502,24 @@ class GUI():
 
             if "\n" in txt:
                 txt = txt.split("\n")[0]
-            if "SEL" in txt:
-                b.configure(fg= "black")
-                b.configure(bg = "#55f")
-                b.config(activebackground="#6666ff")
 
-            elif "ON" in txt:
-                b.configure(bg = "#ffcc00")
-                b.configure(fg = "#00c")
+            if ifval:
+                if "SEL" in txt:
+                    b.configure(fg= "black")
+                    b.configure(bg = "#55f")
+                    b.config(activebackground="#6666ff")
 
-            elif "GO" in txt:
+                elif "ON" in txt:
+                    b.configure(bg = "#ffcc00")
+                    b.configure(fg = "#00c")
+
+                elif "GO" in txt:
+                    b.configure(fg="black")
+                elif "FL" in txt:
+                    b.configure(fg = "#7f00ff")
+            else: 
+                b.configure(bg="grey")
                 b.configure(fg="black")
-            elif "FL" in txt:
-                b.configure(fg = "#7f00ff")
 
 
     def refresh_fix(self):
@@ -1563,16 +1570,21 @@ class GUI():
             c_a2 = round(c_a/c_f,2)
             if c_a2 % 1 > 0:
                 gui_menu.config("FIXTURES","bg","orange")
+                gui_menu.config("FIXTURES","activebackground","orange")
             else:
                 gui_menu.config("FIXTURES","bg","yellow")
+                gui_menu.config("FIXTURES","activebackground","yellow")
         else:
             gui_menu.config("FIXTURES","bg","")
+            gui_menu.config("FIXTURES","activebackground","")
         gui_menu.update("FIXTURES","{} : {}".format(c_f,c_a2))
 
         if c_d > 0:
             gui_menu.config("DIMMER","bg","yellow")
+            gui_menu.config("DIMMER","activebackground","yellow")
         else:
             gui_menu.config("DIMMER","bg","")
+            gui_menu.config("DIMMER","activebackground","")
         gui_menu.update("DIMMER","{}".format(c_d))
 
     def preset_rec(self,nr):

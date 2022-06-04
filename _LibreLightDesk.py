@@ -2175,7 +2175,7 @@ class LOAD_SHOW_AND_RESTAT():
         sys.exit()
                 
 class PopupList():
-    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100,cb=None,bg=""):
+    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100,cb=None,bg="black"):
         self.name = name
         self.frame = None
         self.bg=bg
@@ -2690,6 +2690,8 @@ def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
     aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
 
     canvas=tk.Canvas(aframe,width=width-24,height=height)
+    if bg == "":
+        bg="orange"
     canvas["bg"] = bg # "black" #"green"
     bframe=tk.Frame(canvas,width=width,height=height)
     bframe["bg"] = "blue"

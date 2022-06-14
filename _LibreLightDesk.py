@@ -49,6 +49,7 @@ import traceback
 import tkinter
 import tkinter as tk
 from tkinter import font
+space_font = None
 import tkinter.simpledialog
 
 
@@ -233,7 +234,7 @@ FADE = ValueBuffer()  #2 #0.1 #1.13
 fx_prm_move = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_prm      = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
-fx_mo       = ["sinus","on","rnd","bump","bump2","fade","cosinus"]
+fx_mo       = ["fade","on","rnd","bump","bump2","cosinus","sinus"]
 
 class FX_handler():
     def __init__():
@@ -436,7 +437,8 @@ class Xevent():
                         else:
                             if ":DIM" in self.attr:
                                 base=""
-                                ffxb= fx_mo[fx_prm["MO"]] 
+                                ffxb=fx_mo[fx_prm["MO"]] 
+                                #ffxb= "cosinus" 
                                 if attr == "DIM":
                                     if fx_prm["SPEED"] < 0:
                                         fx = "off"
@@ -1345,10 +1347,10 @@ class GUI():
         self.elem_attr = {}
         
         self.fx_commands =["REC-FX","FX OFF","\n"
-                ,"FX:CIR","FX:PAN","FX:TILT","MO:ON""\n"
-                ,"MSZ:","MSP:","MST:","MOF:","MBS:-","\n"
+                ,"FX:CIR","FX:PAN","FX:TILT","MWD:","MD:","MWI","\n"
+                ,"MMO:","MSZ:","MSP:","MST:","MOF:","MBS:-","\n","\n\n"
                 ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","WING:\n2","\n"
-                ,"SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
+                ,"MO:\ncosinus","SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
                 , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:RND" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","\n"
                 ,"SELECT","FLASH","GO","-","MOVE","\n"
@@ -1997,6 +1999,13 @@ def draw_fx(gui,xframe):
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
     for comm in gui.fx_commands:
+        if comm == "\n\n":
+            b = tk.Label(frame,bg="black", text="-",font=space_font)
+            #b.pack(pady = 1)
+            b.grid(row=r, column=c,pady=0,padx=0, sticky=tk.W+tk.E)
+            c=0
+            r+=1
+            continue
         if comm == "\n":
             c=0
             r+=1
@@ -2007,7 +2016,7 @@ def draw_fx(gui,xframe):
         else:
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         if comm not in gui.elem_fx_commands:
-            comm = comm.replace("\n","")
+            #comm = comm.replace("\n","")
             gui.elem_fx_commands[comm] = b
             gui.val_fx_commands[comm] = 0
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="FX").cb)
@@ -2024,25 +2033,22 @@ def draw_fx(gui,xframe):
         elif comm[:3] == "FX:":
             b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
             b["bg"] = "#ffbf00"
-        elif comm == "MO:on":
+        elif comm[:3] == "MO:":
             b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
             b["bg"] = "lightgreen"
-        elif comm == "MO:on":
-            b["text"] = comm #"BS:{}".format(fx_prm["BASE"])
-            b["bg"] = "lightgreen"
-        elif comm == "SZ:":
+        elif comm[:3] == "SZ:":
             b["text"] = "SZ:\n{:0.0f}".format(fx_prm["SIZE"])
             b["bg"] = "lightgreen"
-        elif comm == "SP:":
+        elif comm[:3] == "SP:":
             b["text"] = "SP:\n{:0.0f}".format(fx_prm["SPEED"])
             b["bg"] = "lightgreen"
-        elif comm == "ST:":
+        elif comm[:3] == "ST:":
             b["bg"] = "lightgreen"
             b["text"] = "ST:\n{:0.0f}".format(fx_prm["START"])
-        elif comm == "OF:":
+        elif comm[:3] == "OF:":
             b["bg"] = "lightgreen"
             b["text"] = "OF:\n{:0.0f}".format(fx_prm["OFFSET"])
-        elif comm == "BS:-":
+        elif comm[:3] == "BS:":
             b["bg"] = "lightgreen"
             b["text"] = "BS:\n{}".format(fx_prm["BASE"])
         elif comm[0] == "M":
@@ -4012,17 +4018,17 @@ draw_setup(master,w.tk)
 window_manager.new(w,name)
 
 name = "COMMAND"
-w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=98)
+w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=96)
 draw_command(master,w.tk)
 window_manager.new(w,name)
 
 name = "LIVE"
-w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=255)
+w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=250)
 draw_live(master,w.tk)
 window_manager.new(w,name)
 
 name="FX"
-w = GUIWindow(name,master=0,width=415,height=250,left=10+L1+W1,top=328)
+w = GUIWindow(name,master=0,width=415,height=260,left=10+L1+W1,top=317)
 #frame_fx = w.tk
 draw_fx(master,w.tk)
 window_manager.new(w,name)
@@ -4044,6 +4050,7 @@ window_manager.new(w,name)
 name="TableA"
 w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
 w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
 x=TableFrame(root=w.tk)#,left=80,top=620)
 data =[]
 for a in range(40):

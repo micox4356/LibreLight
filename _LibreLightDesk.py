@@ -3394,11 +3394,6 @@ class ELEM_FADER():
         jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
         j.append(jdata)
         jclient_send(j)
-    def set_nr(self,nr,btn=1):
-        self.nr=nr
-        try:
-            self.elem[btn]["text"]="{} D:{}".format(self.id,nr)
-        except:pass
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
@@ -3409,7 +3404,9 @@ class ELEM_FADER():
         if type(txt) is str:
             self.attr["text"] = "{}".format(txt)
             print("_set_attr",[self])
-
+    def set_label(self,name=""):
+        #print("set_label",self.b,name)
+        self.label["text"] = name
     def set_mode(self,_event=None):
         txt= self.mode["text"]
         txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
@@ -3436,6 +3433,7 @@ class ELEM_FADER():
 
         self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.label = self.b
         self.elem.append(self.b)
         self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
         self.attr=self.b
@@ -3468,6 +3466,8 @@ class GUI_FaderLayout():
     def __init__(self,root,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
+        self.dmx=1
+        self.univ=0
         r=0
         c=0
         i=1
@@ -3491,18 +3491,22 @@ class GUI_FaderLayout():
         self.b = tk.Label(self.frame,bg="lightblue",text="UNIV:")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
-        self.entry=self.b
-        self.b["command"] = self.event
-        self.b.pack( side=tk.LEFT)
+        self.b_univ = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
+        
+        self.entry_univ=self.b_univ
+        self.b_univ["command"] = self.event_univ
+        self.b_univ.pack( side=tk.LEFT)
 
         self.b = tk.Label(self.frame,bg="lightblue",text="DMX:")
         self.b.pack(fill=None, side=tk.LEFT)
 
         self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
-        self.entry=self.b
-        self.b["command"] = self.event
+        self.entry_dmx=self.b
+        self.b["command"] = self.event_dmx
         self.b.pack( side=tk.LEFT)
+
+        self.b_xdmx = tk.Label(self.frame,bg="lightgreen",text="5")
+        self.b_xdmx.pack(fill=None, side=tk.LEFT)
 
         self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
         self.b.pack(fill=None, side=tk.LEFT)
@@ -3544,6 +3548,7 @@ class GUI_FaderLayout():
             c+=1
             i+=1
         self.frame.pack()
+        self._event_redraw()
     def set_name(self,_event=None):
         txt = self.name["text"]
         txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
@@ -3600,28 +3605,56 @@ class GUI_FaderLayout():
             if len(mode) > i:
                 e._set_mode( mode[i])
 
-    def event(self,_event=None):
-        nr=1
-        txt="dd"
-        txt= self.entry["text"]
-        txt = tkinter.simpledialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
+    def event_univ(self,_event=None):
+        nr=self.univ
+        txt= self.entry_univ["text"]
+        txt = tkinter.simpledialog.askstring("Universe","Univ 0-15",initialvalue=txt)
         try:
             nr = int(txt)
         except TypeError:
             print("--- abort ---")
             return 0
-        self.entry["text"] = "{}".format(nr)
+        self.univ = nr
+        self._event_redraw(_event)
+
+    def event_dmx(self,_event=None):
+        nr=self.dmx
+        txt= self.entry_dmx["text"]
+        txt = tkinter.simpledialog.askstring("DMX","ArtNet 1-512 (7680 max)",initialvalue=txt)
+        try:
+            nr = int(txt)
+        except TypeError:
+            print("--- abort ---")
+            return 0
+        self.dmx = nr
+        if self.dmx <= 0:
+            self.dmx = 1
+        if self.dmx > 512:
+            self.univ = (self.dmx-1)//512
+            self.dmx = (self.dmx-1)%512+1
+        self._event_redraw(_event)
+
+        
+    def _event_redraw(self,_event=None):
+        self.entry_dmx["text"] = "{}".format(self.dmx)
+        self.entry_univ["text"] = "{}".format(self.univ)
+        nr = self.univ*(512)+self.dmx
+        self.b_xdmx["text"] = " {}  ".format(nr)
+
         print("change_dmx",[_event,self])
-        for i,e in enumerate(self.elem):
-            #print(self,"event",_event,e)
-            print("event",_event,e)
-            e.set_nr(nr+i)
+        for i,btn in enumerate(self.elem):
+            #print("event",_event,btn)
+            #print("btn",btn)
+            dmx=nr+i
+            nr2 = dmx%512 
+            btn.set_label("{} D:{}\n{}.{}".format(i+1,dmx,self.univ,nr2))
+            btn.nr = nr+i
 
         pb=self.pb
         for j,e in enumerate(self.header):
             p=j+1
             #p=nr/pb
-            txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr-1) 
+            txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
             print("---",j,txt,e)
             e["text"] = txt
             

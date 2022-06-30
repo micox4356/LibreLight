@@ -437,7 +437,7 @@ class FX():
                     v = v-1
             else:
                 v = (t%1-0.5)
-        elif self.__xtype == "bump":
+        elif self.__xtype == "ramp" or self.__xtype == "ramp":
             v = (t%1) 
             base = 0
             if self.__base == "-": # sub
@@ -453,7 +453,7 @@ class FX():
                 v = (t%1-0.5)
 
 
-        elif self.__xtype == "bump2":
+        elif self.__xtype == "ramp2" or self.__xtype == "bump2":
             v = (t%1) 
             v = 1-v  
             if v == 1:

@@ -234,7 +234,7 @@ FADE = ValueBuffer()  #2 #0.1 #1.13
 fx_prm_move = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_prm      = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
 fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
-fx_mo       = ["fade","on","rnd","bump","bump2","cosinus","sinus"]
+fx_mo       = ["fade","on","rnd","ramp","ramp2","cosinus","sinus"]
 
 class FX_handler():
     def __init__():
@@ -424,10 +424,11 @@ class Xevent():
                             fx = "rnd"
                         elif "ON" in self.attr:
                             fx = "on"
-                        elif "BUM2" in self.attr:
+                        elif "RAMP2" in self.attr:
                             fx = "bump2"
-                        elif "BUM" in self.attr:
-                            fx = "bump"
+                            fx = "ramp2"
+                        elif "RAMP" in self.attr:
+                            fx = "ramp"
                         elif "COS" in self.attr:
                             fx = "cosinus"
 
@@ -699,7 +700,7 @@ class Xevent():
 
                 self.data.elem_fx_commands[self.attr]["text"] = "ST:\n{:0.0f}".format(fx_prm[k])
                 cprint(fx_prm)
-            elif self.attr.startswith("MO:"):# on,sinus,bump
+            elif self.attr.startswith("MO:"):# on,sinus,ramp
                 #global fx_prm
                 k = "MO"
                 if event.num == 1:
@@ -1351,7 +1352,7 @@ class GUI():
                 ,"MMO:","MSZ:","MSP:","MST:","MOF:","MBS:-","\n","\n\n"
                 ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","WING:\n2","\n"
                 ,"MO:\ncosinus","SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
-                , "FX:SIN","FX:COS","FX:BUM","FX:BUM2","FX:FD","FX:ON","FX:RND" ]
+                , "FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON","FX:RND" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","\n"
                 ,"SELECT","FLASH","GO","-","MOVE","\n"
                 ,"BLIND","CLEAR","REC","EDIT","COPY","\n" 

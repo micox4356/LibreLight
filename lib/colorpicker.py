@@ -80,6 +80,7 @@ def colorpicker(xframe,width=600,height=100,xcb=None):
     b=1
     mode = 0
     count = 0
+    grey = 0
     while 1:
         #print("-",[r,g,b],mode)
         for xx in range(d,0,-1):
@@ -92,6 +93,12 @@ def colorpicker(xframe,width=600,height=100,xcb=None):
             y+=22
         color = '#%02x%02x%02x' % (255,255,255) 
         canvas.create_rectangle(x, y, x+20, y+20, fill=color)
+        
+        y+=22
+        if grey <= 255:
+            color = '#%02x%02x%02x' % (grey,grey,grey) 
+            canvas.create_rectangle(x, y, x+20, y+20, fill=color)
+        grey +=255//25
         #print()
         if count == 1 and mode == 3:
             #print("-------")

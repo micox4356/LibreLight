@@ -232,7 +232,7 @@ class ValueBuffer():
 
 FADE = ValueBuffer()  #2 #0.1 #1.13
 fx_prm_move = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
-fx_prm      = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":25}
+fx_prm      = {"SIZE":100,"SPEED":30,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"RND":0,"WING":2,"WIDTH":25}
 fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
 fx_mo       = ["fade","on","rnd","ramp","ramp2","cosinus","sinus"]
 
@@ -373,6 +373,10 @@ class Xevent():
                 return 0
             wings = []
             l = len(xfixtures)
+            #if fx_prm["RND"]:
+            #    tmp_fix = xfixtures[:]
+            #    random.shuffle(tmp_fix)
+            #    wings.append( tmp_fix)
             if fx_prm["WING"] and l > 1:
                 w = l // fx_prm["WING"]
                 teiler = l//w
@@ -392,10 +396,13 @@ class Xevent():
                 wings.append(xfixtures)
 
             for wing in wings:
+                if fx_prm["RND"]:
+                    wing = wing[:]
+                    random.shuffle(wing)
 
                 wlen = len(wing)
                 coffset= 0 # 1024/wlen * (offset/255)
-
+            
                 for fix in wing:
                     data = FIXTURES.fixtures[fix]
                     for attr in data["ATTRIBUT"]:
@@ -774,6 +781,21 @@ class Xevent():
                     fx_prm[k] =-1
                 txt = fx_prm[k] 
                 self.data.elem_fx_commands[self.attr]["text"] = "DIR:\n{}".format(fx_prm[k])
+                cprint(fx_prm)
+            elif self.attr.startswith("RND:"):#SIN":
+                #global fx_prm
+                k = "RND"
+                if event.num == 1:
+                    fx_prm[k] = 0
+                elif event.num == 3:
+                    fx_prm[k] = 1
+                elif event.num == 4:
+                    fx_prm[k] = 1
+                elif event.num == 5:
+                    fx_prm[k] =0
+                if fx_prm[k] == 6: #bug ?
+                    fx_prm[k] =5
+                self.data.elem_fx_commands[self.attr]["text"] = k+":\n{}".format(fx_prm[k])
                 cprint(fx_prm)
             elif self.attr.startswith("INVERT:"):#SIN":
                 #global fx_prm
@@ -1350,7 +1372,7 @@ class GUI():
         self.fx_commands =["REC-FX","FX OFF","\n"
                 ,"FX:CIR","FX:PAN","FX:TILT","MWD:","MD:","MWI","\n"
                 ,"MMO:","MSZ:","MSP:","MST:","MOF:","MBS:-","\n","\n\n"
-                ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","WING:\n2","\n"
+                ,"FX:DIM","FX:\nRED", "WIDTH:\n25","DIR:\n1","INVERT:\n0","RND:0\n","WING:\n2","\n"
                 ,"MO:\ncosinus","SZ:\n","SP:\n","ST:\n","OF:\n","BS:\n-","\n"
                 , "FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON","FX:RND" ]
         self.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","\n"
@@ -2535,6 +2557,8 @@ def draw_colorpicker(gui,xframe):
                 cr=None
                 cg=None
                 cb=None
+                cw=0
+                ca=0
                 if event.num == 1: 
                     set_fade=FADE.val() #fade
                     cr = color[0]
@@ -2549,6 +2573,8 @@ def draw_colorpicker(gui,xframe):
                     cr= "click"
                     cg= "click"
                     cb= "click"
+                    cw= "click"
+                    ca= "click"
                 elif event.state == 256:
                     cr = color[0]
                     cg = color[1]
@@ -2565,14 +2591,16 @@ def draw_colorpicker(gui,xframe):
                     FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade)
                 if cb is not None:
                     FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade)
+                FIXTURES.encoder(fix=0,attr="WHITE",xval=cw,xfade=set_fade)
+                FIXTURES.encoder(fix=0,attr="AMBER",xval=ca,xfade=set_fade)
                 master.refresh_fix()
                  
                 print("PICK COLOR:",data["color"])
     _cb=_CB()
-    colp.colorpicker(xframe,width=600,height=100, xcb=_cb.cb)
+    colp.colorpicker(xframe,width=600,height=113, xcb=_cb.cb)
     return 0
 
-    canvas=tk.Canvas(xframe,width=600,height=100)
+    canvas=tk.Canvas(xframe,width=600,height=113)
     canvas["bg"] = "yellow" #"green"
     canvas.pack()
     # RGB
@@ -4077,7 +4105,7 @@ window_manager.new(w,name)
 
 #LibreLightDesk
 name="COLORPICKER"
-w = GUIWindow(name,master=0,width=580,height=100,left=L1,top=20+HTB*2+H1)
+w = GUIWindow(name,master=0,width=580,height=113,left=L1,top=20+HTB*2+H1)
 draw_colorpicker(master,w.tk)
 window_manager.new(w,name)
 

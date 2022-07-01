@@ -27,8 +27,10 @@ def _cb(event,data={}):
     print("dummy cb",event)
 
 class cb():
-    def __init__(self,win,cb=None):
+    def __init__(self,win,cb=None,scale=None):
+        self.scale=scale
         self.win = win
+        self.int_color = [255,255,255]
         if cb:
             self.cb = cb
         else:
@@ -40,23 +42,40 @@ class cb():
         print( "colorpicker._callback",repr(undermouse))
     def callback(self,event):
         cnv = self.win
-        item = cnv.find_closest(cnv.canvasx(event.x), cnv.canvasy(event.y))[0]
-        tags = cnv.gettags(item)
-        #cnv.itemconfigure(self.tag, text=tags[0])
-        print("colorpicker callback",tags,item)
-        color = cnv.itemcget(item, "fill")
-        cnv.itemconfig("all", width=1)#filla="green")
-        cnv.itemconfig(item, width=3)#filla="green")
-        print("picker",color)
-        int_color= hex_to_rgb(color[1:])
-        print("picker",int_color)
-        self.cb(event,{"canvas":cnv,"color":int_color})
+
+        try:
+            item = cnv.find_closest(cnv.canvasx(event.x), cnv.canvasy(event.y))[0]
+            tags = cnv.gettags(item)
+            #cnv.itemconfigure(self.tag, text=tags[0])
+            print("colorpicker callback",tags,item)
+            color = cnv.itemcget(item, "fill")
+            cnv.itemconfig("all", width=1)#filla="green")
+            cnv.itemconfig(item, width=3)#filla="green")
+            print("picker",color)
+            self.int_color= hex_to_rgb(color[1:])
+        except AttributeError as e:
+            print("except colorpicker ",e)
+            print("take old last",self.int_color)
+        print("picker",self.int_color)
+        int_color2 = []
+        for c in self.int_color:
+            if self.scale is not None:
+                x = int(c *self.scale.get()/255)
+                print(c,x)
+                int_color2.append(x)
+            else:
+                int_color2.append(c)
 
 
-def colorpicker(xframe,width=600,height=100,xcb=None):
+        self.cb(event,{"canvas":cnv,"color":int_color2})
+
+
+def colorpicker(xframe,width=500,height=100,xcb=None):
     canvas=tk.Canvas(xframe,width=width,height=height)
     canvas["bg"] = "grey" #"green"
-    _callback = cb(canvas,xcb)
+    _scale = tk.Scale(xframe,bg="lightblue", width=8,from_=255,to=0)##,command=self.event)
+    _scale.set(255)
+    _callback = cb(canvas,xcb,_scale)
 
     #canvas.bind("<Key>", key)
     canvas.bind("<Key>", _callback.callback)
@@ -70,7 +89,14 @@ def colorpicker(xframe,width=600,height=100,xcb=None):
     canvas.bind("<B3-Motion>", _callback.callback)
     canvas.bind("<B4-Motion>", _callback.callback)
     canvas.bind("<B5-Motion>", _callback.callback)
-    canvas.pack()
+    canvas.pack(side="left")
+    def scale_callback(data=[]):
+        #_last_scale = time.time()
+        print("scale_callback",data)
+        _callback.callback(None) #data)
+    #_scale.config(command=_callback.callback)
+    _scale.config(command=scale_callback) 
+    _scale.pack(side="left")
 
     x=2
     y=2
@@ -146,6 +172,14 @@ def colorpicker(xframe,width=600,height=100,xcb=None):
             g=0
         if b < 0:
             b=0
+
+    #print(dir(_b))
+    #input()
+    #b.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
+    #b = canvas.create_window(10, 10, anchor="nw", window=f)
+
+    #self.b.pack(fill=tk.Y, side=tk.TOP)
+    #self.elem.append(self.b)
     
 if __name__ == "__main__":
     xframe = tk.Tk() 

@@ -2539,43 +2539,64 @@ def draw_colorpicker(gui,xframe):
         def __init__(gui):
             gui.old_color = (0,0,0)
         def cb(gui,event,data):
+            print("CB.cb",gui,event,data)
             cprint("colorpicker CB")
             if "color" in data and gui.old_color != data["color"] or event.num==2:
                 gui.old_color = data["color"]
             else:
                 return 0
             color = data["color"]
-
+            
             print("e",event,data)
             print("e",dir(event))#.keys())
             try:
                 print("e.state",event.state)
             except:pass
             set_fade = FADE.val() #fade
-            
-            if "color" in data and (event.num == 1 or event.num == 3 or event.num==2 or event.state in [256,1024]):
+
+            event_ok = 0
+            event_num = 0
+            event_state = 0
+            if event is None:
+                event_ok = 1
+                event_num = 3
+            elif event.num == 1:
+                event_ok = 1
+                event_num = event.num 
+            elif event.num == 3:
+                event_ok = 1
+                event_num = event.num 
+            elif event.num==2:
+                event_ok = 1
+                event_num = event.num 
+            elif event.state in [256,1024]:
+                event_ok = 1
+                event_state = event.state
+
+
+            if "color" in data and event_ok:
                 cr=None
                 cg=None
                 cb=None
                 cw=0
                 ca=0
-                if event.num == 1: 
+                if event_num == 1: 
                     set_fade=FADE.val() #fade
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
-                elif event.num == 3: 
+                elif event_num == 3: 
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
                     set_fade=0
-                elif event.num == 2: 
+                elif event_num == 2: 
                     cr= "click"
                     cg= "click"
                     cb= "click"
                     cw= "click"
                     ca= "click"
-                elif event.state == 256:
+                elif event_state == 256:
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
@@ -2597,7 +2618,7 @@ def draw_colorpicker(gui,xframe):
                  
                 print("PICK COLOR:",data["color"])
     _cb=_CB()
-    colp.colorpicker(xframe,width=600,height=113, xcb=_cb.cb)
+    colp.colorpicker(xframe,width=580,height=113, xcb=_cb.cb)
     return 0
 
     canvas=tk.Canvas(xframe,width=600,height=113)
@@ -4105,7 +4126,7 @@ window_manager.new(w,name)
 
 #LibreLightDesk
 name="COLORPICKER"
-w = GUIWindow(name,master=0,width=580,height=113,left=L1,top=20+HTB*2+H1)
+w = GUIWindow(name,master=0,width=620,height=113,left=L1,top=20+HTB*2+H1)
 draw_colorpicker(master,w.tk)
 window_manager.new(w,name)
 

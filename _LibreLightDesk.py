@@ -2566,7 +2566,8 @@ def draw_preset(gui,xframe):
     for k in PRESETS.val_presets:
         if i%(10*8)==0 or i ==0:
             c=0
-            b = tk.Label(frame,bg="black", text="" )
+            #b = tk.Label(frame,bg="black", text="" )
+            b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             r+=1
             c=0

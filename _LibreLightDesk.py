@@ -1134,7 +1134,7 @@ class Xevent():
                         
                 if event.num == 3:
                     if not modes.val("REC"):
-                        self.data.preset_go(nr,xfade=0,event=event,val=255)
+                        self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=255)
                         
                 return 0
             elif self.mode == "INPUT":
@@ -1458,8 +1458,8 @@ class GUI():
 
         self.fx = Elem_Container()
         self.fx.commands =[
-                "FX:DIM","FX:\nRED","BASE:\n-", "WIDTH:\n25","DIR:\n1","INVERT:\n1","\n","SHUFFLE:\n0"
-                ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","WING:\n2"
+                "FX:DIM","FX:\nRED", "WIDTH:\n25","WING:\n2","DIR:\n1","INVERT:\n1","\n","SHUFFLE:\n0"
+                ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","BASE:\n-" 
                 ]
         self.fx_generic = Elem_Container()
         self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON"] 
@@ -2100,9 +2100,9 @@ def draw_enc(gui,xframe):
             continue
         v=0
         
-        b = tk.Button(frame,bg="orange", text=str(attr)+'',width=6)
+        b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=6)
         if attr == "DIM":
-            b = tk.Button(frame,bg="yellow", text=str(attr)+'',width=6)
+            b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=6)
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
@@ -3990,6 +3990,9 @@ class GUIWindow():
 
         #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
+    def update_idle_task(self):
+        tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+        pass
     def close_app_win(self,event=None):
         print("close_app_win",self,event)
         if exit:
@@ -4175,6 +4178,9 @@ class Refresher():
     def loop(self,args={}):
         while 1:
             self.refresh()
+            try:
+                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+            except Exception as e:print("loop exc",e)
             time.sleep(0.2)
 
 refresher = Refresher()

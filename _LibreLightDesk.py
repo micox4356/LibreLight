@@ -953,17 +953,23 @@ class Xevent():
 
             return 0
     def encoder(self,event):
+        global _shift_key
         if self.mode == "ENCODER":
             cprint("Xevent","ENC",self.fix,self.attr,self.mode)
+            cprint("SHIFT_KEY",_shift_key,"??????????")
             #cprint(self.data)
             val=""
             if event.num == 1:
                 val ="click"
             elif event.num == 4:
-                val ="+"
+                val ="++"
+                if _shift_key:
+                    val = "+"
             elif event.num == 5:
-                val ="-"
-
+                val ="-+"
+                if _shift_key:
+                    val = "-"
+            print("SHIFT",val,_shift_key)
             if val:
                 if self.attr == "DIM" and self.fix == 0 and val == "click":
                     pass    
@@ -2995,11 +3001,21 @@ class Fixtures():
         change=0
         increment = 4.11
         jdata = {"MODE":"ENC"}
-        if xval == "+":
+        if xval == "++":
+            v2+= increment
+            jdata["INC"] = increment
+            change=1
+        elif xval == "--":
+            jdata["INC"] = increment*-1
+            v2-= increment
+            change=1
+        elif xval == "+":
+            increment = 0.5
             v2+= increment
             jdata["INC"] = increment
             change=1
         elif xval == "-":
+            increment = 0.5
             jdata["INC"] = increment*-1
             v2-= increment
             change=1
@@ -3779,7 +3795,7 @@ class GUI_menu():
             if button == k:
                 v["elem"]["text"] = k+"\n"+text
     def config(self,button,attr,value):
-        print(self,button,attr,value)
+        #print("config",self,button,attr,value)
         for k in self.data2:
             v=self.data2[k]
             #print(self,k,v)
@@ -3797,6 +3813,8 @@ class GUI_menu():
 lf_nr = 0
         
 from tkinter import PhotoImage 
+
+_shift_key = 0
 
 class GUIWindow():
     def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None):
@@ -3879,6 +3897,7 @@ class GUIWindow():
         finally:
             self.tk.quit()
     def callback(self,event,data={}):#value=255):
+        global _shift_key
         print()
         print()
         cprint("<GUI>",event,color="yellow")
@@ -3891,6 +3910,14 @@ class GUIWindow():
                 FIXTURES.clear()
                 modes.val("ESC",1)
                 master.refresh_fix()
+            elif event.keysym in ["Shift_L","Shift_R"]:
+                cprint(event.type)
+                if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
+                    _shift_key = 0
+                else:
+                    _shift_key = 1
+                cprint("SHIFT_KEY",_shift_key,"??????????")
+
             elif event.keysym in "ebfclrms" and value: 
                 if "e" == event.keysym:
                     modes.val("EDIT",1)

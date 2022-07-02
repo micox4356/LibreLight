@@ -60,7 +60,7 @@ class cb():
         int_color2 = []
         for c in self.int_color:
             if self.scale is not None:
-                x = int(c *self.scale.get()/255)
+                x = int(c *self.scale.get()/99)
                 print(c,x)
                 int_color2.append(x)
             else:
@@ -73,7 +73,7 @@ class cb():
 def colorpicker(xframe,width=500,height=100,xcb=None):
     canvas=tk.Canvas(xframe,width=width,height=height)
     canvas["bg"] = "grey" #"green"
-    _scale = tk.Scale(xframe,bg="lightblue", width=8,from_=255,to=0)##,command=self.event)
+    _scale = tk.Scale(xframe,repeatdelay=1000,resolution=5,showvalue=0,bg="black", width=10,length=110,from_=99,to=0)##,command=self.event)
     _scale.set(255)
     _callback = cb(canvas,xcb,_scale)
 

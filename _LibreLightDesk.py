@@ -231,6 +231,8 @@ class ValueBuffer():
         return 0
 
 FADE = ValueBuffer()  #2 #0.1 #1.13
+FADE_move = ValueBuffer()  #2 #0.1 #1.13
+FADE_move.val(4)
 
 fx_prm_move = {"SIZE":40,"SPEED":8,"OFFSET":100,"BASE":"0","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":100}
 
@@ -245,10 +247,9 @@ class FX_handler():
 
 
 
-def reshape_preset(data ,value=None,xfade=0,flash=0):
+def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
 
-    if flash:
-        xfade = 0
+    f=0 #fade
 
     out = []
     for row in data:
@@ -276,15 +277,25 @@ def reshape_preset(data ,value=None,xfade=0,flash=0):
                 else:
                     line["VALUE"]  = v
 
+        if row["ATTR"] in ["PAN","TILT"]:
+            f = ptfade 
 
-        v = xfade 
-        if type( v ) is float:
-            line["FADE"] = round(v,4)
+        for a in ["DIM","ZOOM","FOCUS","RED","GREEN","BLUE","WHITE","AMBER","IRIS","BLADE"]: 
+            #FADE ATTRIBUTES
+            if a in row["ATTR"]:
+                f = xfade 
+                break
+
+        if flash:
+            xfade = 0
+        if type( f ) is float:
+            line["FADE"] = round(f,4)
         else:
-            line["FADE"] = v
+            line["FADE"] = f
         
         if 0:
             cprint("reshape_preset j",line,color="red") 
+        cprint("reshape_preset",line)
         out.append(line)
     return out
 
@@ -935,11 +946,18 @@ class Xevent():
     def live(self,event):       
         if self.mode == "LIVE":
                     
-            if self.attr == "FADE":
-                fade = FADE.val()
-                print("EVENT CHANGE FADE",fade)
+            if "FADE" in self.attr:
+               
+                if self.attr == "FADE":
+                    ct = FADE
+                if "PAN/TILT" in self.attr:
+                    ct = FADE_move
+
+                fade = ct.val()
+                print("EVENT CHANGE FADE",[self.attr])
+                print("EVENT CHANGE FADE",fade,self.attr)
                 if fade < 0.01:
-                    FADE.val(0.01)
+                    ct.val(0.01)
                 elif fade > 100.0:
                     pass #fade = 100
                 if event.num == 4:
@@ -947,12 +965,12 @@ class Xevent():
                 elif event.num == 5:
                     fade /= 1.1
                 elif event.num == 1:
-                    if FADE._is():
-                        FADE.off()# = 0
+                    if ct._is():
+                        ct.off()# = 0
                         self.data.commands.elem[self.attr]["bg"] = "grey"
                         self.elem.config(activebackground="grey")
                     else:
-                        FADE.on()# = 1
+                        ct.on()# = 1
                         self.data.commands.elem[self.attr]["bg"] = "green"
                         self.elem.config(activebackground="lightgreen")
                 elif event.num == 2:
@@ -969,8 +987,15 @@ class Xevent():
                     elif fade < 1:
                         fade = 1.1
                 fade = round(fade,3)
-                fade = FADE.val(fade)
-                self.data.commands.elem[self.attr]["text"] = "Fade{:0.2f}".format(fade)
+                fade = ct.val(fade)
+
+                if self.attr == "FADE":
+                    self.data.commands.elem[self.attr]["text"] = "FADE:{:0.2f}".format(fade)
+                if "PAN/TILT" in self.attr:
+                    self.data.commands.elem[self.attr]["text"] = "PAN\TILT\nFADE:{:0.2f}".format(fade)
+
+
+
     def command(self,event):       
         if self.mode == "COMMAND":
             
@@ -1711,15 +1736,18 @@ class GUI():
                 v2_fx = sdata[fix][attr]["FX"]
                 #print( self.data.elem_attr)
                 if fix in self.elem_attr:
-                    elem = self.elem_attr[fix][attr]
-                    FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
-                    elem["bg"] = "yellow"
+                    if attr in self.elem_attr[fix]:
+                        elem = self.elem_attr[fix][attr]
+                        FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                        elem["bg"] = "yellow"
 
-    def preset_go(self,nr,val=None,xfade=None,event=None,button=""):
+    def preset_go(self,nr,val=None,xfade=None,event=None,button="",ptfade=None):
         t_start = time.time()
         if xfade is None and FADE._is():
             xfade = FADE.val()
         
+        if ptfade is None and FADE_move._is():
+            ptfade = FADE_move.val()
 
         print("GO PRESET FADE",nr,val)
 
@@ -1760,7 +1788,7 @@ class GUI():
             self._preset_go(rdata,cfg,fcmd,value,xfade=0,xFLASH=xFLASH)
         elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
-            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
+            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade)
 
 
 
@@ -1769,13 +1797,19 @@ class GUI():
             self.refresh_fix()
         cprint("preset_go",time.time()-t_start)
 
-    def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0):
+    def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0):
         if xfade is None and FADE._is():
             xfade = FADE.val()
 
-        cprint("PRESETS._preset_go()",len(rdata))
+        if ptfade is None and FADE_move._is():
+            ptfade = FADE_move.val()
+        cprint("PRESETS._preset_go() len=",len(rdata),cfg)
+        if xfade is None:
+            xfade = cfg["FADE"]
+        if ptfade is None:
+            ptfade = cfg["FADE"]
         #vcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
-        vcmd = reshape_preset( rdata ,value,xfade=xfade) 
+        vcmd = reshape_preset( rdata ,value,xfade=xfade,ptfade=ptfade) 
 
         cmd = []
 
@@ -2232,7 +2266,7 @@ def draw_live(gui,xframe):
     frame.pack(fill=tk.X, side=tk.TOP)
    
     c+=1
-    for comm in ["FADE","DELAY:0.0","PAN/TILT\nFADE:x.x","PAN/TILT\nDELAY:0.0"]:
+    for comm in ["FADE","DELAY:0.0","PAN/TILT\nFADE:4.0","PAN/TILT\nDELAY:0.0"]:
         if comm == "\n":
             c=0
             r+=1
@@ -2503,7 +2537,7 @@ def draw_command(gui,xframe):
         if comm == "SPEED:":
             b["text"] = "SPEED:{:0.0f}".format(fx_prm["SPEED"])
         if comm == "FADE":
-            b["text"] = "FADE:{:0.02f}".format(FADE.val())
+            b["text"] = "FADE:\n{:0.02f}".format(FADE.val())
         if comm == "START:":
             b["text"] = "START:{:0.0f}".format(fx_prm["START"])
         if comm == "OFFSET:":

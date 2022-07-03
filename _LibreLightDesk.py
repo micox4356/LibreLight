@@ -22,6 +22,7 @@ import random
 rnd_id = str(random.randint(1000,9000))
 rnd_id += " Beta 22.05 "
 import subprocess
+import string
 try:
     rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 except:
@@ -963,15 +964,38 @@ class Xevent():
                 base = Base()
                 line1 = "PATH: "+base.show_path1 +base.show_name
                 line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
-                cb = LOAD_SHOW_AND_RESTAT #(j).cb
+                class cb():
+                    def __init__(self,name=""):
+                        self.name=name
+                        print("cb",name)
+                    def cb(self,event=None,**args):
+                        print("cdb",self.name,event,args)
+                        if self.name != "<exit>":
+                            print("-----------------------:")
+                            LOAD_SHOW_AND_RESTAT(self.name).cb()
+                        #self.elem["bg"] = "lightgrey"
+                        #self.elem.config(activebackground="lightgrey")
+
                 pw = PopupList(name,cb=cb)
                 frame = pw.sframe(line1=line1,line2=line2)
                 r = _load_show_list(frame,cb=cb)
 
     
-                self.elem["bg"] = "red"
-                self.elem.config(activebackground="red")
+                #self.elem["bg"] = "red"# "lightgrey"
+                #self.elem.config(activebackground="red")
+                #self.elem.config(activebackground="lightgrey")
                 #w.tk.attributes('-topmost',False)
+            elif self.attr == "SAVE\nSHOW AS":
+                base = Base()
+                fname = tkinter.simpledialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
+                fpath,fname = base.build_path(fname)
+                cprint("SAVE AS",fpath,fname)
+                if base._create_path(fpath):
+                    a=PRESETS.backup_presets(save_as=fpath)
+                    b=FIXTURES.backup_patch(save_as=fpath)
+                    #base._set(fname)
+                    
+                    LOAD_SHOW_AND_RESTAT(fname).cb() 
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
@@ -1203,10 +1227,7 @@ class Base():
         self._init()
 
     def _init(self):
-        show_name = "GloryCamp2021"
-        #show_name = "JMS"
         show_name = "DemoShow"
-        #show_name = "Dimmer"
         self.home = os.environ['HOME'] 
         self.show_path0 = self.home +"/LibreLight/"
         self.show_path  = self.show_path0 
@@ -1271,13 +1292,13 @@ class Base():
         return out
 
     def _load(self,filename):
-        #self._init()
-        #self._check()
         xfname = self.show_path+"/"+str(filename)+".sav"
         print("load",xfname)
+
         f = open(xfname,"r")
         lines = f.readlines()
         f.close()    
+
         data   = OrderedDict()
         labels = OrderedDict()
         
@@ -1285,36 +1306,11 @@ class Base():
             
             key,label,rdata = line.split("\t",2)
             key = int(key)
-            #print(xfname,"load",key,label)
-            #print(line)
+
             jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
             nrnull = 0
-            #print(jdata)
-            #if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
-            #    for attr in jdata["ATTRIBUT"]:
-            #        row = jdata["ATTRIBUT"][attr]
-            #        if type(row) is OrderedDict:
-            #            #print(row)
-            #            if "VALUE" in row:
-            #                v = row["VALUE"]
-            #                if type(v) is float:
-            #                    v = round(v,4)
-            #                    jdata["ATTRIBUT"][attr]["VALUE"] = round(v,4)
-            #                    print("preset v",key,label,attr,v)
-            if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
-                for attr in jdata["ATTRIBUT"]:
-                    pass
-                    #if "VALUE" in jdata["ATTRIBUT"][attr]:
-                    #    v = jdata["ATTRIBUT"][attr]["VALUE"]
-                    #    if type(v) is float:
-                    #        jdata["ATTRIBUT"][attr]["VALUE"] = round(v,4)
-                    #        #print("fix v",attr,v)
 
-                    #if "NR" in jdata["ATTRIBUT"][attr]:
-                    #    nr = jdata["ATTRIBUT"][attr]["NR"]
-                    #    if nr == 0:
-                    #        nrnull = 1
-                    #        break
+            if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
 
                 if nrnull:
                     print("DMX NR IS NULL",attr,"CHANGE +1")
@@ -1329,11 +1325,39 @@ class Base():
             
         return data,labels
 
-    def _backup(self,filename,data,labels):
-        #self._init()
-        #fixture
-        #xfname = "show/"+show_name+"/"+str(filename)+".sav"
-        xfname = self.show_path+"/"+str(filename)+".sav"
+    def _clean_path(self,fpath):
+        _path=[]
+        for i in fpath:
+            fpath = fpath.replace(" ","_")
+            if i in string.ascii_letters+string.digits+"äöüßÖÄÜ_-":
+                _path.append(i)
+        path = "".join(_path)
+        return path
+
+    def build_path(self,save_as):
+        save_as = self._clean_path(save_as)
+        path = self.show_path.split("/")
+        path = "/".join(path[:-2])
+        fpath = path+"/"+save_as
+        return fpath,save_as
+
+    def _create_path(self,fpath):
+        if os.path.isdir(fpath):
+            cprint("STOP SHOW EXIST !",color="red")
+            return 0
+        else:
+            cprint("CREATE DIR ",fpath,color="green")
+            os.mkdir(fpath)
+        #self._set(save_as)
+        return fpath
+
+    def _backup(self,filename,data,labels,save_as):
+
+        if save_as:
+            xfname = save_as +"/"+str(filename)+".sav"
+        else:
+            xfname = self.show_path+"/"+str(filename)+".sav"
+
         print("backup",xfname)
         f = open(xfname,"w")
         for key in data:
@@ -1349,6 +1373,7 @@ class Base():
             f.write( "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) )
         f.close()
 
+        return 1
 
 class Event():
     def __init__(self,name):
@@ -2318,6 +2343,8 @@ def draw_setup(gui,xframe):
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "LOAD\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        elif comm == "SAVE\nSHOW AS":
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         else:
             b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
         if comm not in gui.commands.elem:
@@ -2404,24 +2431,10 @@ class LOAD_SHOW_AND_RESTAT():
             cprint("filename is the same",self.fname)
             return 0
         self.base._set(self.fname)
-        #base = Base()
-        #show_path = base.show_path1 + base.show_name
+
         print("LOAD SHOW:",event,self.fname)
-        if 0: #disable load show ... error gui[elem] ..
-            LOAD_SHOW()
-            refresher.reset() # = Refresher()
-            master._refresh_fix()
-            master._refresh_exec()
-            draw_patch(master,main_preset_frame)
-        #os.system('''kill "$(ps aux | grep -i  'python3 LibreLightDesk.py' | head -n1 | awk '{print $2}')"''')
-        import os,sys
 
         print(sys.executable, os.path.abspath(__file__), *sys.argv)
-        #input()
-        #ok /usr/bin/python3 /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
-        #err /opt/LibreLight/Xdesk/_LibreLightDesk.py /opt/LibreLight/Xdesk/_LibreLightDesk.py _LibreLightDesk.py
-
-        #os.execl(sys.executable, os.path.abspath(__file__), *sys.argv)
         os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
         sys.exit()
                 
@@ -3038,7 +3051,7 @@ class Fixtures():
                     if "VENDOR" not in sdata and not overide:
                         new_f["VENDOR"] = ""
 
-                print(k,j)#,sdata)
+                #print(k,j)#,sdata)
             sdata = new_f
             if "ACTIVE" not in sdata:
                 sdata["ACTIVE"] = 0
@@ -3050,14 +3063,14 @@ class Fixtures():
             self.fixtures[str(i)] = sdata
         #PRESETS.label_presets = l
 
-    def backup_patch(self):
+    def backup_patch(self,save_as=""):
         filename = "patch"
         data  = self.fixtures
         labels = {}
         for k in data:
             labels[k] = k
         #self.base._init()
-        self.base._backup(filename,data,labels)
+        self.base._backup(filename,data,labels,save_as)
 
     def fx_get(self,fix=None):
         out={}
@@ -3433,12 +3446,12 @@ class Presets():
             cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")
         return ok
         
-    def backup_presets(self):
+    def backup_presets(self,save_as=""):
         filename = "presets"
         data   = self.val_presets
         labels = self.label_presets
         #self.base._init()
-        self.base._backup(filename,data,labels)
+        self.base._backup(filename,data,labels,save_as)
         
 
     def get_cfg(self,nr):

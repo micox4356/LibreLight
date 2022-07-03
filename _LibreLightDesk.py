@@ -231,8 +231,13 @@ class ValueBuffer():
         return 0
 
 FADE = ValueBuffer()  #2 #0.1 #1.13
+FADE.val(2.0)
 FADE_move = ValueBuffer()  #2 #0.1 #1.13
-FADE_move.val(4)
+FADE_move.val(4.0)
+
+DELAY = ValueBuffer()  #2 #0.1 #1.13
+DELAY.off()
+DELAY.val(0.2)
 
 fx_prm_move = {"SIZE":40,"SPEED":8,"OFFSET":100,"BASE":"0","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":100}
 
@@ -252,9 +257,11 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
     f=0 #fade
 
     out = []
+    delay=0
     for row in data:
         cprint("reshape_preset",row)
         line = {}
+        line["DELAY"]=delay
         if type(value) is float:
             line["VALUE"] = value #round(value,3)
         else:
@@ -297,6 +304,8 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
             cprint("reshape_preset j",line,color="red") 
         cprint("reshape_preset",line)
         out.append(line)
+        if DELAY._is():
+            delay+=DELAY.val()/100 #0.02
     return out
 
 class dummy_event():
@@ -946,24 +955,26 @@ class Xevent():
     def live(self,event):       
         if self.mode == "LIVE":
                     
-            if "FADE" in self.attr:
+            if "FADE" in self.attr or "DELAY" in self.attr:
                
                 if self.attr == "FADE":
                     ct = FADE
-                if "PAN/TILT" in self.attr:
+                if self.attr == "DELAY":
+                    ct = DELAY
+                if "PAN/TILT\nFADE" in self.attr:
                     ct = FADE_move
 
-                fade = ct.val()
-                print("EVENT CHANGE FADE",[self.attr])
-                print("EVENT CHANGE FADE",fade,self.attr)
-                if fade < 0.01:
+                value = ct.val()
+                #print("EVENT CHANGE ",[self.attr])
+                print("EVENT CHANGE:",self.mode,value,self.attr)
+                if value < 0.01:
                     ct.val(0.01)
-                elif fade > 100.0:
-                    pass #fade = 100
+                elif value > 100.0:
+                    pass #value = 100
                 if event.num == 4:
-                    fade *= 1.1
+                    value *= 1.1
                 elif event.num == 5:
-                    fade /= 1.1
+                    value /= 1.1
                 elif event.num == 1:
                     if ct._is():
                         ct.off()# = 0
@@ -974,25 +985,27 @@ class Xevent():
                         self.data.commands.elem[self.attr]["bg"] = "green"
                         self.elem.config(activebackground="lightgreen")
                 elif event.num == 2:
-                    if fade > 1 and fade < 4:
-                        fade = 4
-                    elif fade > 3 and fade < 6:
-                        fade = 6
-                    elif fade > 5 and fade < 7:
-                        fade = 8
-                    elif fade > 7 and fade < 9:
-                        fade = 10
-                    elif fade > 9:
-                        fade = 0.01
-                    elif fade < 1:
-                        fade = 1.1
-                fade = round(fade,3)
-                fade = ct.val(fade)
+                    if value > 1 and value < 4:
+                        value = 4
+                    elif value > 3 and value < 6:
+                        value = 6
+                    elif value > 5 and value < 7:
+                        value = 8
+                    elif value > 7 and value < 9:
+                        value = 10
+                    elif value > 9:
+                        value = 0.01
+                    elif value < 1:
+                        value = 1.1
+                value = round(value,3)
+                value = ct.val(value)
 
                 if self.attr == "FADE":
-                    self.data.commands.elem[self.attr]["text"] = "FADE:{:0.2f}".format(fade)
-                if "PAN/TILT" in self.attr:
-                    self.data.commands.elem[self.attr]["text"] = "PAN\TILT\nFADE:{:0.2f}".format(fade)
+                    self.data.commands.elem[self.attr]["text"] = "FADE:\n{:0.2f}".format(value)
+                if self.attr == "DELAY":
+                    self.data.commands.elem[self.attr]["text"] = "DELAY:\n{:0.3f}".format(value)
+                if "PAN/TILT\nFADE" in self.attr:
+                    self.data.commands.elem[self.attr]["text"] = "PAN/TILT\nFADE:{:0.2f}".format(value)
 
 
 
@@ -1162,6 +1175,7 @@ class Element():
         
 class Base():
     def __init__(self):
+        cprint("Base.init()",color="red")
         self._init()
 
     def _init(self):
@@ -1812,7 +1826,7 @@ class GUI():
         vcmd = reshape_preset( rdata ,value,xfade=xfade,ptfade=ptfade) 
 
         cmd = []
-
+        delay=0
         for i,v in enumerate(fcmd):
             print("go",i,v)
             if xFLASH:
@@ -2266,7 +2280,7 @@ def draw_live(gui,xframe):
     frame.pack(fill=tk.X, side=tk.TOP)
    
     c+=1
-    for comm in ["FADE","DELAY:0.0","PAN/TILT\nFADE:4.0","PAN/TILT\nDELAY:0.0"]:
+    for comm in ["FADE","DELAY","PAN/TILT\nFADE","PAN/TILT\nDELAY"]:
         if comm == "\n":
             c=0
             r+=1
@@ -2278,8 +2292,14 @@ def draw_live(gui,xframe):
             gui.commands.elem[comm] = b
             gui.commands.val[comm] = 0
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="LIVE").cb)
+
         if "FADE" == comm:
-            b["text"] = "FADE:2.0"
+            b["text"] = "FADE:\n{:0.2}".format(FADE.val())
+        if "DELAY" == comm:
+            b["text"] = "DELAY:\n{:0.2}".format(DELAY.val())
+        if "PAN/TILT\nFADE" == comm:
+            b["text"] = "PAN/TILT\nFADE:{:0.2}".format(FADE_move.val())
+
         if "FADE" in comm:
             b["bg"] = "green"
             b.config(activebackground="lightgreen")
@@ -2536,6 +2556,8 @@ def draw_command(gui,xframe):
             b["text"] = "SIZE:{:0.0f}".format(fx_prm["SIZE"])
         if comm == "SPEED:":
             b["text"] = "SPEED:{:0.0f}".format(fx_prm["SPEED"])
+        if comm == "DELAY":
+            b["text"] = "FADE:\n{:0.02f}".format(DELAY.val())
         if comm == "FADE":
             b["text"] = "FADE:\n{:0.02f}".format(FADE.val())
         if comm == "START:":
@@ -2704,8 +2726,11 @@ def draw_colorpicker(gui,xframe):
                 cb=None
                 cw=0
                 ca=0
+                set_fade=0
+
                 if event_num == 1: 
-                    set_fade=FADE.val() #fade
+                    if FADE._is():
+                        set_fade=FADE.val() #fade
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
@@ -2713,7 +2738,6 @@ def draw_colorpicker(gui,xframe):
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
-                    set_fade=0
                 elif event_num == 2: 
                     cr= "click"
                     cg= "click"
@@ -2724,10 +2748,6 @@ def draw_colorpicker(gui,xframe):
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
-                    set_fade=0
-
-                else:
-                    set_fade=0
 
 
                 if cr is not None:
@@ -2980,6 +3000,7 @@ class Fixtures():
                 for attr in data["ATTRIBUT"]:
                     data["ATTRIBUT"][attr]["FX"] = ""
                     data["ATTRIBUT"][attr]["FX2"] = OrderedDict()
+
     def get_attr(self,fix,attr):
         if fix in self.fixtures:
             data = self.fixtures[fix]
@@ -3074,7 +3095,7 @@ class Fixtures():
         #cprint("update_raw",cmd,color="red")
         return cmd
 
-    def encoder(self,fix,attr,xval="",xfade=0):
+    def encoder(self,fix,attr,xval="",xfade=0,xdelay=0):
         cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
 
         if attr == "CLEAR":
@@ -3089,6 +3110,7 @@ class Fixtures():
             jdata=[{"MODE":"---"}]
             ii =0
             jclient_send(jdata)
+            delay=0
             for fix in self.fixtures:
                 ii+=1
                 #cprint(fix,attr,xval)
@@ -3103,7 +3125,9 @@ class Fixtures():
                         self.select(fix,attr,mode="on")
                     elif data["ATTRIBUT"][attr]["ACTIVE"]:
                         if fix: # prevent endless recursion
-                            self.encoder(fix,attr,xval,xfade)
+                            self.encoder(fix,attr,xval,xfade,delay)
+                if DELAY._is():
+                    delay += DELAY.val()/100
             jdata=[{"MODE":ii}]
             jclient_send(jdata)
             return 0
@@ -3158,6 +3182,9 @@ class Fixtures():
             jdata["FADE"] = 0
             if xfade:
                 jdata["FADE"] = xfade
+            if xdelay:
+                #if attr not in ["PAN","TILT"] and 1:
+                jdata["DELAY"] = xdelay
 
             if not modes.val("BLIND"):
                 jdata = [jdata]

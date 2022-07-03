@@ -3059,6 +3059,17 @@ class Fixtures():
         #self.base._init()
         self.base._backup(filename,data,labels)
 
+    def fx_get(self,fix=None):
+        out={}
+        if not fix or fix == "all":
+            #self.data.fx.elem[self.attr]["bg"] = "magenta"
+            for fix in self.fixtures:
+                data = self.fixtures[fix]
+                for attr in data["ATTRIBUT"]:
+                    out[str(fix)+"."+str(attr)+".fx"] =  data["ATTRIBUT"][attr]["FX"] 
+                    out[str(fix)+"."+str(attr)+".fx"] =  data["ATTRIBUT"][attr]["FX2"]
+
+        return out
     def fx_off(self,fix=None):
         if not fix or fix == "all":
             #self.data.fx.elem[self.attr]["bg"] = "magenta"
@@ -4237,6 +4248,11 @@ class Console():
             jclient_send(j)
             return 0
 
+def test_1():
+    #LibreLight --no-gui --show=unitest --dmx-out=on --exec="sel fix 1-10; go preset 2; encoder DIM sel; encoder DIM ++"
+    pass
+
+
 
 window_manager = WindowManager()
 
@@ -4277,144 +4293,161 @@ class Refresher():
             except Exception as e:print("loop exc",e)
             time.sleep(0.2)
 
+
+print("main",__name__)
+
+
+__run_main = 0
+if __name__ == "__main__":
+    __run_main = 1
+else:
+    import __main__ 
+    if "unittest" not in dir(__main__):
+        __run_main = 1
+
+
+
+
 refresher = Refresher()
-thread.start_new_thread(refresher.loop,())
+if __run_main:
+    print("main")
+    thread.start_new_thread(refresher.loop,())
 
-TOP = 15
-L1 = 95
-L2 = 920 
-W1 = 810
-H1 = 550
-HTB = 23 # hight of the titlebar from window manager
+    TOP = 15
+    L1 = 95
+    L2 = 920 
+    W1 = 810
+    H1 = 550
+    HTB = 23 # hight of the titlebar from window manager
 
-w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=0,top=TOP)
-gui_menu_gui = w
-data = []
-#data.append({"text":"COMMAND"})
-data.append({"text":"PATCH"})
-data.append({"text":"DIMMER"})
-data.append({"text":"FIXTURES"})
-data.append({"text":"EXEC"})
-gui_menu = GUI_menu(w.tk,data)
+    w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=0,top=TOP)
+    gui_menu_gui = w
+    data = []
+    #data.append({"text":"COMMAND"})
+    data.append({"text":"PATCH"})
+    data.append({"text":"DIMMER"})
+    data.append({"text":"FIXTURES"})
+    data.append({"text":"EXEC"})
+    gui_menu = GUI_menu(w.tk,data)
 
-window_manager.new(w)
+    window_manager.new(w)
 
-name="EXEC"
-w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-w1 = ScrollFrame(w.tk,width=W1,height=H1)
-#frame_exe = w.tk
-draw_preset(master,w1)#w.tk)
-window_manager.new(w,name)
+    name="EXEC"
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #frame_exe = w.tk
+    draw_preset(master,w1)#w.tk)
+    window_manager.new(w,name)
 
-name="DIMMER"
-w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-w2 = ScrollFrame(w.tk,width=W1,height=H1)
-#frame_dim = w1 # w.tk
-#master.draw_dim(w1.tk)
-window_manager.new(w,name)
+    name="DIMMER"
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w2 = ScrollFrame(w.tk,width=W1,height=H1)
+    #frame_dim = w1 # w.tk
+    #master.draw_dim(w1.tk)
+    window_manager.new(w,name)
 
-name="FIXTURES"
-w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-w1 = ScrollFrame(w.tk,width=W1,height=H1)
-#frame_fix = w1 #w.tk
-draw_fix(master,w1,w2)#.tk)
-window_manager.new(w,name)
-
-
-name="FIXTURE-EDITOR"
-w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-w1 = ScrollFrame(w.tk,width=W1,height=H1)
-data=[]
-for i in range(24+12):
-    data.append({"text"+str(i):"test"})
-GUI_FaderLayout(w1,data)
-#frame_fix = w1 #w.tk
-#master.draw_fix(w1,w2)#.tk)
-
-window_manager.new(w,name)
-
-name="ENCODER"
-ww = GUIWindow(name,master=0,width=560,height=113,left=770,top=HTB*2+TOP+H1)
-_ENCODER_WINDOW = ww
-Xroot = ww.tk
-w = None
-
-#root = tk.Frame(Xroot,bg="black",width="10px")
-#print("print pack",root)
-#root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-#root3 = tk.Frame(Xroot,bg="black",width="20px")
-#root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-#root2 = tk.Frame(Xroot,bg="black",width="1px")
-draw_enc(master,Xroot)
-#root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-
-name = "SETUP"
-w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=TOP)
-w.tk.title("SETUP   SHOW:"+master.base.show_name)
-draw_setup(master,w.tk)
-window_manager.new(w,name)
-
-name = "COMMAND"
-w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=96)
-draw_command(master,w.tk)
-window_manager.new(w,name)
-
-name = "LIVE"
-w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=250)
-draw_live(master,w.tk)
-window_manager.new(w,name)
-
-name="FX"
-w = GUIWindow(name,master=0,width=415,height=260,left=10+L1+W1,top=317)
-#frame_fx = w.tk
-draw_fx(master,w.tk)
-window_manager.new(w,name)
+    name="FIXTURES"
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #frame_fix = w1 #w.tk
+    draw_fix(master,w1,w2)#.tk)
+    window_manager.new(w,name)
 
 
-name="PATCH"
-w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-w1 = ScrollFrame(w.tk,width=W1,height=H1)
-main_preset_frame = w1
-draw_patch(master,main_preset_frame)
-window_manager.new(w,name)
+    name="FIXTURE-EDITOR"
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    data=[]
+    for i in range(24+12):
+        data.append({"text"+str(i):"test"})
+    GUI_FaderLayout(w1,data)
+    #frame_fix = w1 #w.tk
+    #master.draw_fix(w1,w2)#.tk)
 
-#LibreLightDesk
-name="COLORPICKER"
-w = GUIWindow(name,master=0,width=600,height=113,left=L1,top=20+HTB*2+H1)
-draw_colorpicker(master,w.tk)
-window_manager.new(w,name)
+    window_manager.new(w,name)
 
-name="TableA"
-w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
-w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
-x=TableFrame(root=w.tk)#,left=80,top=620)
-data =[]
-for a in range(40):
-    data.append(["E","E{}".format(a+1)])
+    name="ENCODER"
+    ww = GUIWindow(name,master=0,width=560,height=113,left=770,top=HTB*2+TOP+H1)
+    _ENCODER_WINDOW = ww
+    Xroot = ww.tk
+    w = None
 
-x.draw(data=data,head=["E","C"],config=[12,5,5])
-w=x.bframe
-#window_manager.new(w,name)
+    #root = tk.Frame(Xroot,bg="black",width="10px")
+    #print("print pack",root)
+    #root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+    #root3 = tk.Frame(Xroot,bg="black",width="20px")
+    #root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+    #root2 = tk.Frame(Xroot,bg="black",width="1px")
+    draw_enc(master,Xroot)
+    #root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+
+    name = "SETUP"
+    w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=TOP)
+    w.tk.title("SETUP   SHOW:"+master.base.show_name)
+    draw_setup(master,w.tk)
+    window_manager.new(w,name)
+
+    name = "COMMAND"
+    w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=96)
+    draw_command(master,w.tk)
+    window_manager.new(w,name)
+
+    name = "LIVE"
+    w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=250)
+    draw_live(master,w.tk)
+    window_manager.new(w,name)
+
+    name="FX"
+    w = GUIWindow(name,master=0,width=415,height=260,left=10+L1+W1,top=317)
+    #frame_fx = w.tk
+    draw_fx(master,w.tk)
+    window_manager.new(w,name)
+
+
+    name="PATCH"
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    main_preset_frame = w1
+    draw_patch(master,main_preset_frame)
+    window_manager.new(w,name)
+
+    #LibreLightDesk
+    name="COLORPICKER"
+    w = GUIWindow(name,master=0,width=600,height=113,left=L1,top=20+HTB*2+H1)
+    draw_colorpicker(master,w.tk)
+    window_manager.new(w,name)
+
+    name="TableA"
+    w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
+    x=TableFrame(root=w.tk)#,left=80,top=620)
+    data =[]
+    for a in range(40):
+        data.append(["E","E{}".format(a+1)])
+
+    x.draw(data=data,head=["E","C"],config=[12,5,5])
+    w=x.bframe
+    #window_manager.new(w,name)
 
 
 
-#Xroot = tk.Tk()
-#Xroot["bg"] = "black" #white
-#Xroot.title( xtitle+" "+str(rnd_id) )
-#Xroot.geometry("1024x800+130+65")
+    #Xroot = tk.Tk()
+    #Xroot["bg"] = "black" #white
+    #Xroot.title( xtitle+" "+str(rnd_id) )
+    #Xroot.geometry("1024x800+130+65")
 
 
-master.render()
-window_manager.top("Table")
-#w = frame_fix #GUIWindow("OLD",master=0,width=W1,height=500,left=130,top=TOP)
-window_manager.new(w,name)
+    master.render()
+    window_manager.top("Table")
+    #w = frame_fix #GUIWindow("OLD",master=0,width=W1,height=500,left=130,top=TOP)
+    window_manager.new(w,name)
 
-try:
-    #root.mainloop()
-    #tk.mainloop()
-    window_manager.mainloop()
-    
-finally:
-    master.exit()
+    try:
+        #root.mainloop()
+        #tk.mainloop()
+        window_manager.mainloop()
+        
+    finally:
+        master.exit()
 

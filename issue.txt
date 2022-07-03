@@ -10,6 +10,7 @@ no fx fade off time
 no ArtNet in triggering
 
 latency on fast flushing in exec window
+- is now better ... gui.refresh.loop
 
 no MIDI in triggering
 

@@ -349,6 +349,266 @@ def cprint(*text,color="blue",space=" ",end="\n"):
 
 cprint("________________________________")
  
+def process_wings(xfixtures):
+    """process the wing's of selected fixtures
+    input: [1,2,3,4,10,12,13,14]
+    if WING = 2 return: [[1,2,3,4][14,13,12,10]]
+    """
+    wing_buffer = []
+    fix_count = len(xfixtures)
+    prm = fx_prm # ToDo:  global WING for PAN/TILE !? ATTRIBUT is not availible in this moment 
+
+    if prm["WING"] > 1 and fix_count > 1:
+        wing_count = fix_count // prm["WING"]
+        number_of_fix_in_wing = fix_count // wing_count
+
+        if number_of_fix_in_wing < 2:
+            number_of_fix_in_wing = 2
+
+        for i in range(number_of_fix_in_wing):
+            j = i*wing_count
+            wing = xfixtures[j:j+wing_count]
+            if i%2!=0:
+                wing = wing[::-1]
+            print("wing",i,"j",j,"wing_count:",wing_count,"wing",wing)
+            wing_buffer.append(wing)
+
+        if fix_count > j+wing_count: # append Fixtures Left over
+            wing = xfixtures[j+wing_count:]
+            wing_buffer.append(wing)
+    else:
+        wing_buffer.append(xfixtures)
+
+    for wing in wing_buffer:
+        if prm["SHUFFLE"]:
+            wing = wing[:]
+            random.shuffle(wing)
+    return wing_buffer
+
+def process_effect(wing_buffer,fx_name=""):
+    jdatas = []
+    offset = 0
+    offset_move = 0
+    start = fx_prm["START"]
+    base  = fx_prm["BASE"]
+
+    for wing in wing_buffer:
+        count_of_fix_in_wing = len(wing)
+        coffset= 0 # 1024/count_of_fix_in_wing * (offset/255)
+        coffset_move=0
+    
+        for fix in wing:
+            data = FIXTURES.fixtures[fix]
+            for attr in data["ATTRIBUT"]:
+                jdata = {"MODE":"FX"}
+                jdata["VALUE"] = None
+                jdata["FIX"] = fix
+                jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
+                jdata["ATTR"] =attr
+                if attr.endswith("-FINE"):
+                    continue
+                if attr in ["PAN","TILT"]:
+                    csize  = fx_prm_move["SIZE"]
+                    cspeed = fx_prm_move["SPEED"]
+                    cstart = fx_prm_move["START"]
+                    cbase  = fx_prm_move["BASE"]
+                    width  = fx_prm_move["WIDTH"]
+                    invert = fx_prm_move["INVERT"]
+                    coffset_move= round(offset_move,1)
+                else:
+                    csize  = fx_prm["SIZE"]
+                    cspeed = fx_prm["SPEED"]
+                    cstart = fx_prm["START"]
+                    cbase  = fx_prm["BASE"]
+                    width  = fx_prm["WIDTH"]
+                    invert = fx_prm["INVERT"]
+                    coffset= round(offset,1)
+
+                fx=""
+                if "SIN" in fx_name:
+                    fx = "sinus"
+                elif "FD" in fx_name:
+                    fx = "fade"
+                elif "RND" in fx_name:
+                    fx = "rnd"
+                elif "ON" in fx_name:
+                    fx = "on"
+                elif "RAMP2" in fx_name:
+                    fx = "bump2"
+                    fx = "ramp2"
+                elif "RAMP" in fx_name:
+                    fx = "ramp"
+                elif "COS" in fx_name:
+                    fx = "cosinus"
+
+                if fx:
+                    if attr in ["PAN","TILT"]:
+                        cprint("SKIP FX attr:{} fix:{} " .format(attr,fix) )
+                        continue
+
+                if fx:
+                    if fx_prm["SPEED"] < 0:
+                        fx = "off"
+                else:
+                    if ":DIM" in fx_name:
+                        base=""
+                        ffxb=fx_mo[fx_prm["MO"]] 
+                        #ffxb= "cosinus" 
+                        if attr == "DIM":
+                            if fx_prm["SPEED"] < 0:
+                                fx = "off"
+                            else:
+                                fx = ffxb #"fade"
+                    elif ":TILT" in fx_name:
+                        base=""
+                        if attr == "PAN":
+                            fx = "off"
+                        if attr == "TILT":
+                            if fx_prm["SPEED"] < 0:
+                                fx = "off"
+                            else:
+                                fx = "sinus"
+                    elif ":PAN" in fx_name:
+                        base=""
+                        if attr == "PAN":
+                            if fx_prm_move["SPEED"] < 0:
+                                fx = "off"
+                            else:
+                                fx = "cosinus" 
+                        if attr == "TILT":
+                           fx = "off"
+                    elif ":CIR" in fx_name:
+                        base=""
+                        if attr == "PAN":
+                            if fx_prm_move["SPEED"] < 0:
+                                fx = "off"
+                            else:
+
+                                fx = "cosinus" 
+                        if attr == "TILT":
+                            if fx_prm["SPEED"] < 0:
+                                fx = "off"
+                            else:
+                                fx = "sinus"
+                    elif ":RED" in fx_name:
+
+                        ffxb= fx_mo[fx_prm["MO"]] 
+                        ffx= "off" #fx_mo[fx_prm["MO"]] 
+                        if "RED" in fx_modes[fx_prm["MODE"]]:#
+                            base="-"
+                            if attr == "RED":
+                                fx=ffx
+                            if attr == "GREEN":
+                                fx = ffxb# "off"
+                            if attr == "BLUE":
+                                fx =  ffxb#"off"
+                        elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in fx_name:
+                            base="-"
+                            if attr == "RED":
+                                fx =  ffxb#"off" 
+                        elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in fx_name:
+                            if attr == "GREEN":
+                                fx = ffxb# "off"
+                                fx=ffx
+                            if attr == "BLUE":
+                                fx =  ffxb#"off"
+                        elif "BLUE" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                            base="-"
+                            if attr == "RED":
+                                fx = ffxb# "off" 
+                            if attr == "GREEN":
+                                fx = ffxb# "off"
+                            if attr == "BLUE":
+                                fx = ffxb# "off"
+                                fx=ffx
+                        elif "YELLOW" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                            base="-"
+                            if attr == "RED":
+                                fx = ffxb# "off" 
+                                fx=ffx
+                            if attr == "GREEN":
+                                fx = ffxb# "off"
+                                fx=ffx
+                            if attr == "BLUE":
+                                fx = "off"
+                        elif "CYAN" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                            base="-"
+                            if attr == "RED":
+                                fx = ffxb# "off" 
+                            if attr == "GREEN":
+                                fx = ffxb# "off"
+                                fx=ffx
+                            if attr == "BLUE":
+                                fx = ffxb# "off"
+                                fx=ffx
+                        elif "MAG" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                            base="-"
+                            if attr == "RED":
+                                fx = ffxb# "off" 
+                                fx=ffx
+                            if attr == "GREEN":
+                                fx = ffxb# "off"
+                            if attr == "BLUE":
+                                fx = ffxb# "off"
+                                fx=ffx
+                        else:
+                            cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
+
+                    fxtype = fx
+
+                fxtype = fx
+
+                if "FX" not in data["ATTRIBUT"][attr]:
+                    data["ATTRIBUT"][attr]["FX"] =""
+                if "FX2" not in data["ATTRIBUT"][attr]:
+                    data["ATTRIBUT"][attr]["FX2"] ={}
+
+                if data["ATTRIBUT"][attr]["ACTIVE"] and fxtype:
+                    #print("++ADD FX",fix,attr,fx)
+                    #data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
+                    fjdata = {}
+                    if cspeed < 0.1:
+                        fjdata["TYPE"]  = "off"
+                    else:
+                        fjdata["TYPE"]  = fxtype
+                    fjdata["SIZE"] = round(csize,2)
+                    fjdata["SPEED"] = round(cspeed,2)
+                    fjdata["WIDTH"] = int(width)
+                    fjdata["START"] = cstart
+                    if attr in ["PAN","TILT"]:
+                        fjdata["OFFSET"]= round(coffset_move,2)
+                    else:
+                        fjdata["OFFSET"]= round(coffset,2)
+                    fjdata["INVERT"]= int(invert)
+                    fjdata["BASE"]  = cbase
+                    jdata["FX2"] = fjdata
+                    data["ATTRIBUT"][attr]["FX2"] = fjdata
+                    jdatas.append(jdata)
+
+            
+            if fx_prm_move["OFFSET"] > 0.5: # and 
+                aoffset_move = (100/count_of_fix_in_wing) * (fx_prm_move["OFFSET"]/100) 
+                if fx_prm_move["DIR"] <= 0:
+                    offset_move -= aoffset_move 
+                else:
+                    offset_move += aoffset_move 
+                offset_move = round(offset_move,2)
+
+            if fx_prm["OFFSET"] > 0.5: # and 
+                aoffset = (100/count_of_fix_in_wing) * (fx_prm["OFFSET"]/100) 
+                if fx_prm["DIR"] <= 0:
+                    offset -= aoffset 
+                else:
+                    offset += aoffset 
+                offset = round(offset,2)
+
+    if jdatas and not modes.val("BLIND"):
+        jclient_send(jdatas)
+    master.refresh_fix()
+
+    return jdatas
+
+
 class Xevent_fx():
     """ global input event Handeler for short cut's ... etc
     """
@@ -361,7 +621,6 @@ class Xevent_fx():
 
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
-        jdatas = []
         fx2 = {}
         if event.num == 4:
             cprint("FX:COLOR CHANGE",fx_prm,color="red")
@@ -381,257 +640,22 @@ class Xevent_fx():
             txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
             master.fx.elem["FX:RED"]["text"] = txt
         elif event.num == 1:
-            offset = 0
-            offset_move = 0
-            start = fx_prm["START"]
-            base  = fx_prm["BASE"]
             xfixtures = []
             fix_active =FIXTURES.get_active() 
             for fix in fix_active:
                 if fix == "CFG":
                     continue
                 xfixtures.append(fix)
-            x=0
+
             if not xfixtures:
                 cprint("470 fx() ... init no fixture selected",color="red")
                 return 0
-            wings = []
-            l = len(xfixtures)
-
-            if fx_prm["WING"] and l > 1:
-                w = l // fx_prm["WING"]
-                teiler = l//w
-                if teiler < 2:
-                    teiler = 2
-                for i in range(teiler):
-                    j = i*w
-                    wing = xfixtures[j:j+w]
-                    if i%2==0:
-                        wing = wing[::-1]
-                    print("wing",i,"j",j,"w",w,"wing",wing)
-                    wings.append(wing)
-                if l > j+w:
-                    wing = xfixtures[j+w:]
-                    wings.append(wing)
-            else:
-                wings.append(xfixtures)
-
-            for wing in wings:
-                if fx_prm["SHUFFLE"]:
-                    wing = wing[:]
-                    random.shuffle(wing)
-
-                wlen = len(wing)
-                coffset= 0 # 1024/wlen * (offset/255)
-                coffset_move=0
             
-                for fix in wing:
-                    data = FIXTURES.fixtures[fix]
-                    for attr in data["ATTRIBUT"]:
-                        jdata = {"MODE":"FX"}
-                        jdata["VALUE"] = None
-                        jdata["FIX"] = fix
-                        jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
-                        jdata["ATTR"] =attr
-                        if attr.endswith("-FINE"):
-                            continue
-                        if attr in ["PAN","TILT"]:
-                            csize  = fx_prm_move["SIZE"]
-                            cspeed = fx_prm_move["SPEED"]
-                            cstart = fx_prm_move["START"]
-                            cbase  = fx_prm_move["BASE"]
-                            width  = fx_prm_move["WIDTH"]
-                            invert = fx_prm_move["INVERT"]
-                            coffset_move= round(offset_move,1)
-                        else:
-                            csize  = fx_prm["SIZE"]
-                            cspeed = fx_prm["SPEED"]
-                            cstart = fx_prm["START"]
-                            cbase  = fx_prm["BASE"]
-                            width  = fx_prm["WIDTH"]
-                            invert = fx_prm["INVERT"]
-                            coffset= round(offset,1)
+            
 
-                        fx=""
-                        if "SIN" in self.attr:
-                            fx = "sinus"
-                        elif "FD" in self.attr:
-                            fx = "fade"
-                        elif "RND" in self.attr:
-                            fx = "rnd"
-                        elif "ON" in self.attr:
-                            fx = "on"
-                        elif "RAMP2" in self.attr:
-                            fx = "bump2"
-                            fx = "ramp2"
-                        elif "RAMP" in self.attr:
-                            fx = "ramp"
-                        elif "COS" in self.attr:
-                            fx = "cosinus"
+            wing_buffer = process_wings(xfixtures)
+            process_effect(wing_buffer,fx_name=self.attr)
 
-                        if fx:
-                            if attr in ["PAN","TILT"]:
-                                cprint("SKIP FX attr:{} fix:{} " .format(attr,fix) )
-                                continue
-                        if fx:
-                            if fx_prm["SPEED"] < 0:
-                                fx = "off"
-                        else:
-                            if ":DIM" in self.attr:
-                                base=""
-                                ffxb=fx_mo[fx_prm["MO"]] 
-                                #ffxb= "cosinus" 
-                                if attr == "DIM":
-                                    if fx_prm["SPEED"] < 0:
-                                        fx = "off"
-                                    else:
-                                        fx = ffxb #"fade"
-                            elif ":TILT" in self.attr:
-                                base=""
-                                if attr == "PAN":
-                                    fx = "off"
-                                if attr == "TILT":
-                                    if fx_prm["SPEED"] < 0:
-                                        fx = "off"
-                                    else:
-                                        fx = "sinus"
-                            elif ":PAN" in self.attr:
-                                base=""
-                                if attr == "PAN":
-                                    if fx_prm_move["SPEED"] < 0:
-                                        fx = "off"
-                                    else:
-                                        fx = "cosinus" 
-                                if attr == "TILT":
-                                   fx = "off"
-                            elif ":CIR" in self.attr:
-                                base=""
-                                if attr == "PAN":
-                                    if fx_prm_move["SPEED"] < 0:
-                                        fx = "off"
-                                    else:
-
-                                        fx = "cosinus" 
-                                if attr == "TILT":
-                                    if fx_prm["SPEED"] < 0:
-                                        fx = "off"
-                                    else:
-                                        fx = "sinus"
-                            elif ":RED" in self.attr:
-
-                                ffxb= fx_mo[fx_prm["MO"]] 
-                                ffx= "off" #fx_mo[fx_prm["MO"]] 
-                                if "RED" in fx_modes[fx_prm["MODE"]]:#
-                                    base="-"
-                                    if attr == "RED":
-                                        fx=ffx
-                                    if attr == "GREEN":
-                                        fx = ffxb# "off"
-                                    if attr == "BLUE":
-                                        fx =  ffxb#"off"
-                                elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
-                                    base="-"
-                                    if attr == "RED":
-                                        fx =  ffxb#"off" 
-                                elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in self.attr:
-                                    if attr == "GREEN":
-                                        fx = ffxb# "off"
-                                        fx=ffx
-                                    if attr == "BLUE":
-                                        fx =  ffxb#"off"
-                                elif "BLUE" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
-                                    base="-"
-                                    if attr == "RED":
-                                        fx = ffxb# "off" 
-                                    if attr == "GREEN":
-                                        fx = ffxb# "off"
-                                    if attr == "BLUE":
-                                        fx = ffxb# "off"
-                                        fx=ffx
-                                elif "YELLOW" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
-                                    base="-"
-                                    if attr == "RED":
-                                        fx = ffxb# "off" 
-                                        fx=ffx
-                                    if attr == "GREEN":
-                                        fx = ffxb# "off"
-                                        fx=ffx
-                                    if attr == "BLUE":
-                                        fx = "off"
-                                elif "CYAN" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
-                                    base="-"
-                                    if attr == "RED":
-                                        fx = ffxb# "off" 
-                                    if attr == "GREEN":
-                                        fx = ffxb# "off"
-                                        fx=ffx
-                                    if attr == "BLUE":
-                                        fx = ffxb# "off"
-                                        fx=ffx
-                                elif "MAG" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#self.attr:
-                                    base="-"
-                                    if attr == "RED":
-                                        fx = ffxb# "off" 
-                                        fx=ffx
-                                    if attr == "GREEN":
-                                        fx = ffxb# "off"
-                                    if attr == "BLUE":
-                                        fx = ffxb# "off"
-                                        fx=ffx
-                                else:
-                                    cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
-
-                            fxtype = fx
-
-                        fxtype = fx
-
-                        if "FX" not in data["ATTRIBUT"][attr]:
-                            data["ATTRIBUT"][attr]["FX"] =""
-                        if "FX2" not in data["ATTRIBUT"][attr]:
-                            data["ATTRIBUT"][attr]["FX2"] ={}
-
-                        if data["ATTRIBUT"][attr]["ACTIVE"] and fxtype:
-                            #print("++ADD FX",fix,attr,fx)
-                            #data["ATTRIBUT"][attr]["FX"] = fx #"sinus:40:100:10"
-                            fjdata = {}
-                            if cspeed < 0.1:
-                                fjdata["TYPE"]  = "off"
-                            else:
-                                fjdata["TYPE"]  = fxtype
-                            fjdata["SIZE"] = round(csize,2)
-                            fjdata["SPEED"] = round(cspeed,2)
-                            fjdata["WIDTH"] = int(width)
-                            fjdata["START"] = cstart
-                            if attr in ["PAN","TILT"]:
-                                fjdata["OFFSET"]= round(coffset_move,2)
-                            else:
-                                fjdata["OFFSET"]= round(coffset,2)
-                            fjdata["INVERT"]= int(invert)
-                            fjdata["BASE"]  = cbase
-                            jdata["FX2"] = fjdata
-                            data["ATTRIBUT"][attr]["FX2"] = fjdata
-                            jdatas.append(jdata)
-
-                    
-                    if fx_prm_move["OFFSET"] > 0.5: # and 
-                        aoffset_move = (100/wlen) * (fx_prm_move["OFFSET"]/100) 
-                        if fx_prm_move["DIR"] <= 0:
-                            offset_move -= aoffset_move 
-                        else:
-                            offset_move += aoffset_move 
-                        offset_move = round(offset_move,2)
-
-                    if fx_prm["OFFSET"] > 0.5: # and 
-                        aoffset = (100/wlen) * (fx_prm["OFFSET"]/100) 
-                        if fx_prm["DIR"] <= 0:
-                            offset -= aoffset 
-                        else:
-                            offset += aoffset 
-                        offset = round(offset,2)
-
-            if jdatas and not modes.val("BLIND"):
-                jclient_send(jdatas)
-            master.refresh_fix()
 
     def command(self,event,mode=""):       
         cprint("fx_command",self.mode)

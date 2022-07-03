@@ -1223,6 +1223,8 @@ class Base():
             self.show_name = show_name
         except Exception as e:
             cprint("show name exception",color="red")
+        finally:
+            f.close()
 
         self._check()
     def _set(self,fname):
@@ -1394,6 +1396,45 @@ class MiniButton:
         self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
         self.bb.configure(width=width, height=height)
 
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+
+        # !! BLOCK's other bindings like GO
+        #self.bind("<Button-1>", self.on_b1)
+        #self.bind("<ButtonPress>", self.on_press)
+        #self.bind("<ButtonRelease>", self.on_release)
+        #self.bind("<ButtonRelease-1>", self.on_release)
+
+        self.activebackground="lightgrey"
+        self.defaultBackground="grey"
+
+    def on_b1(self, e):
+        print("on_b1",e)
+        #self.bb.config(background=self.activebackground)
+        self.bb.config(relief=tk.SUNKEN)#abackground=self.activebackground)
+        return 1
+    def on_press(self, e):
+        print("on_press",e)
+        #self.bb.config(background=self.activebackground)
+        self.bb.config(relief=tk.SUNKEN)#abackground=self.activebackground)
+        return 1
+    def on_release(self, e):
+        print("on_release",e)
+        #self.bb.config(background=self.activebackground)
+        self.bb.config(relief=tk.RAISED)#abackground=self.activebackground)
+        return 1
+    def on_enter(self, e):
+        #print("on_enter",e)
+        #self.bb.config(background=self.activebackground)
+        self.bb.config(relief=tk.FLAT)#abackground=self.activebackground)
+        return 1
+
+    def on_leave(self, e):
+        #print("on_leave",e)
+        self.bb.config(background=self.defaultBackground)
+        self.bb.config(relief=tk.RAISED)#abackground=self.activebackground)
+        return 1
+
     def _label(self,text="1\n2\n3\n"):
         z = 0
         self.bb.delete("label")
@@ -1408,6 +1449,7 @@ class MiniButton:
         if "bg" in args:
             #print(dir(self.bb))
             self.bb.configure(bg=args["bg"])
+            self.defaultBackground=args["bg"]
     def config(self,**args):
         self.configure(**args)
     def bind(self,etype="<Button>",cb=None):
@@ -1490,7 +1532,7 @@ class GUI():
         self.fx_moves = Elem_Container()
         self.fx_moves.commands =["REC-FX","FX OFF","\n"
                 ,"FX:CIR","FX:PAN","FX:TILT", "WIDTH:\n100","DIR:\n0","INVERT:\n0","\n",
-                "SHUFFLE:\n0","SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","WING:\n2","\n"
+                "SHUFFLE:\n0","SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","\n"
                 ]
                 #, "FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON","BASE:\n-"] #,"FX:RND" ]
 
@@ -2612,7 +2654,8 @@ def draw_preset(gui,xframe):
     for k in PRESETS.val_presets:
         if i%(10*8)==0 or i ==0:
             c=0
-            b = tk.Label(frame,bg="black", text="" )
+            #b = tk.Label(frame,bg="black", text="" )
+            b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             r+=1
             c=0

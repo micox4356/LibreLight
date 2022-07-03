@@ -5,6 +5,7 @@ no fx offset/wing grid
 no group select grid with order
 
 no fx fade off time
+- partial
 
 no ArtNet in triggering
 
@@ -14,11 +15,7 @@ no MIDI in triggering
 
 no cuelists
 
-no showfile management
-
 no stage layout-grid
-
-fx are not working good
 
 no fixture patching
 

@@ -380,10 +380,13 @@ def process_wings(xfixtures):
     else:
         wing_buffer.append(xfixtures)
 
-    for wing in wing_buffer:
-        if prm["SHUFFLE"]:
+    if prm["SHUFFLE"]:
+        _wing_buffer = []
+        for wing in wing_buffer:
             wing = wing[:]
             random.shuffle(wing)
+            _wing_buffer.append(wing)
+        wing_buffer = _wing_buffer
     return wing_buffer
 
 def process_effect(wing_buffer,fx_name=""):

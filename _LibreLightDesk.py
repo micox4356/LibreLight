@@ -1566,7 +1566,7 @@ class GUI():
 
         self.fx = Elem_Container()
         self.fx.commands =[
-                "FX:DIM","FX:\nRED", "WIDTH:\n25","WING:\n2","DIR:\n1","INVERT:\n1","\n","SHUFFLE:\n0"
+                "FX:DIM","FX:RED", "WIDTH:\n25","WING:\n2","DIR:\n1","INVERT:\n1","\n","SHUFFLE:\n0"
                 ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","BASE:\n-" 
                 ]
         self.fx_generic = Elem_Container()

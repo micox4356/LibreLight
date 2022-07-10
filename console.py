@@ -242,7 +242,7 @@ class Fade():
 
 class MASTER_FX():
     def __init__(self):
-        cprint(self,"MASTER_FX INIT !",color="green")
+        #cprint(self,"MASTER_FX INIT !",color="green")
 
         self.__data = []
         self.__ok = []
@@ -256,7 +256,7 @@ class MASTER_FX():
             #cprint(self,"ADD TO MASTER !",color="green")
             self.__data.append(fx)
             info = fx._get_info()
-            cprint(self,"ADD" ,info,color="green")
+            #cprint(self,"ADD" ,info,color="green")
             offset = 0
             if "offset" in info:
                 offset = info["offset"]
@@ -341,13 +341,14 @@ class FX():
             self.__master = MASTER_FX()
             self.__master.add(self)
         else:
-            cprint( "MASTER_FX OK",master,color="red")
+            #cprint( "MASTER_FX OK",master,color="red")
             self.__master = master
             self.__master.add(self)
         if self.__xtype == "rnd":
             self.__offset = self.__master.get(self,-2)
             self.__offset = self.__master.next(self)#,count)
-        print("init FX",self)
+        self.next()
+        #print("init FX",self)
     def _get_info(self):
         print(self.__offset)
         return {"offset":self.__offset,"xtype":self.__xtype}
@@ -624,7 +625,7 @@ def JCB(data): #json client input
         if not j:
             continue
         try:
-            cprint("JCB",j)
+            cprint("JCB::")#,j)
             jdata = j #jdatas[j]
             jtxt = jdata
             #jtxt = zlib.decompress(jtxt) #jtxt.decode())
@@ -716,13 +717,15 @@ def JCB(data): #json client input
                     else:
                         CB({"cmd":"fx"+ccm})
 
-            print(time.time()-t_start)
-            print(time.time())
-            return
+            cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
+            cprint("{:0.04} t.".format(time.time()),color="yellow")
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")
             cprint("----",jdata,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+    cprint()
+    cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
+    cprint("{:0.04} t.".format(time.time()),color="yellow")
             
 def CB(data): # raw/text client input 
     #print("CB",data)

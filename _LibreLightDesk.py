@@ -61,6 +61,30 @@ from collections import OrderedDict
 
 
 
+def showwarning(msg="<ERROR>",title="<TITLE>"):
+    _main = tkinter.Tk()
+    defaultFont = tkinter.font.nametofont("TkDefaultFont")
+    print(defaultFont)
+    defaultFont.configure(family="FreeSans",
+                           size=10,
+                           weight="normal")
+    
+    geo ="{}x{}".format(20,20)
+    _main.geometry(geo)
+    def _quit():
+        time.sleep(.02)
+        _main.quit()
+    thread.start_new_thread(_main.mainloop,())
+    #_main.quit()
+
+    #msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
+    #msg += "please check\n"
+    #msg += "-{}init.txt\n".format(self.show_path0)
+    #msg += "-{}".format(self.show_path1)
+
+    r=tkinter.messagebox.showwarning(message=msg,title=title,parent=None)
+
+
 CUES    = OrderedDict()
 groups  = OrderedDict()
 
@@ -191,8 +215,9 @@ def jclient_send(data):
     jtxt = jtxt.encode()
     #jtxt = zlib.compress(jtxt)
     jclient.send(b"\00 "+ jtxt +b"\00 ")
-    print(round((time.time()-t_start)*1000,4),"milis")
-    cprint(round(time.time(),4),color="yellow")
+    #print(round((time.time()-t_start)*1000,4),"milis")
+    cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
+    cprint("{:0.04} tick".format(time.time()),color="yellow")
 
 class ValueBuffer():
     def __init__(self,_min=0,_max=255):
@@ -1234,7 +1259,7 @@ class Base():
         self.home = os.environ['HOME'] 
         self.show_path0 = self.home +"/LibreLight/"
         self.show_path  = self.show_path0 
-        self.show_path1 = self.show_path0 + "/show/"
+        self.show_path1 = self.show_path0 + "show/"
         try:
             f = open(self.show_path+"init.txt","r")
             for line in f.readlines():
@@ -1247,8 +1272,23 @@ class Base():
             self.show_name = show_name
         except Exception as e:
             cprint("show name exception",color="red")
+            msg="Error Exception:{}".format(e)
+            r=tkinter.messagebox.showwarning(message=msg,parent=None)
         finally:
             f.close()
+        
+        fpath = self.show_path1 +show_name 
+        if not os.path.isdir(fpath):
+            cprint(fpath)
+            print( os.path.isdir(fpath))
+
+            msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
+            msg += "please check\n"
+            msg += "-{}init.txt\n".format(self.show_path0)
+            msg += "-{}".format(self.show_path1)
+
+            showwarning(msg=msg,title="Show Error")
+            exit()
 
         self._check()
     def _set(self,fname):
@@ -1298,15 +1338,24 @@ class Base():
         xfname = self.show_path+"/"+str(filename)+".sav"
         print("load",xfname)
 
-        f = open(xfname,"r")
-        lines = f.readlines()
-        f.close()    
+        try:
+            f = open(xfname,"r")
+            lines = f.readlines()
+            f.close()    
+        except Exception as e:
+            msg = "Exception: {}".format(e)
+            msg += "\n\ncheck\n-init.txt"
+            cprint(msg,color="red")
+            showwarning(msg=msg,title="load Error")
 
         data   = OrderedDict()
         labels = OrderedDict()
-        
+        i=0
         for line in lines:
-            
+            if line.count("\t") < 2:
+                cprint("Error line.count('\\t') < 2  (is:{})".format(line.count("\t")),color="red",end=" ")
+                cprint("file:{}".format(xfname),color="red")
+                continue
             key,label,rdata = line.split("\t",2)
             key = int(key)
 
@@ -2770,10 +2819,12 @@ def draw_colorpicker(gui,xframe):
         def cb(gui,event,data):
             print("CB.cb",gui,event,data)
             cprint("colorpicker CB")
-            if "color" in data and gui.old_color != data["color"] or event.num==2:
-                gui.old_color = data["color"]
-            else:
+            if "color" not in data:
                 return 0
+            if gui.old_color == data["color"]:
+                pass #return 0
+            
+            #gui.old_color = data["color"]
             color = data["color"]
             
             print("e",event,data)
@@ -3029,7 +3080,7 @@ class Fixtures():
         for i in l:
             sdata = d[i]
             new_f = OrderedDict()
-            print("++++")
+            #print("++++")
             for k,j in sdata.items():
                 overide=0 # only for repair
                 if overide:
@@ -3395,7 +3446,7 @@ class Presets():
         #self.load()
         self._last_copy = None
         self._last_move = None
-
+        self.fx_buffer = {}
 
     def load_presets(self): 
         #self._load()

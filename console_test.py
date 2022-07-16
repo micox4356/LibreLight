@@ -2,7 +2,7 @@
 import time
 
 import unittest
-import console
+import _console as console
 
 print(dir())
 

@@ -195,36 +195,44 @@ class Client():
         self.close()
 
 tcp_sender = Client
-
 if __name__ == "__main__":
     if "client" in sys.argv:
         c = Client()
+        if "test" in sys.argv: # test server/client
+            import random 
+            import string
+            client = c
+            try:
+                for i in range(100):
+                    x=random.choice(string.printable)
+                    msg=bytes("hi"+str(x*random.randint(10,9999)),"utf-8")
+                    print(x,sys.getsizeof(msg),len(msg))
+                    client.send(msg)
+                    time.sleep(0.01)
+                client = Client()
+                for i in range(100):
+                    x=random.choice(string.printable)
+                    msg=bytes(x,"ho "+str(x*random.randint(10,9999)),"utf-8")
+                    print(sys.getsizeof(msg),len(msg))
+                    msg=zlib.compress(msg)
+                    print(sys.getsizeof(msg),len(msg))
+                    client.send(msg)
+                    time.sleep(0.01)
+            except Exception as e:
+                print("e",e)
+        time.sleep(1)
         while 1:
-            i = input("cmd:")
-            c.send(bytes(i,"utf8"))
+            try:
+                i=""
+                i = input("cmd:")
+                c.send(bytes(i,"utf8"))
+            except Exception as e:
+                print("e",e)
     else: 
         server = Server()
         while 1:
             server.poll()
             time.sleep(0.00001)
-else:
-    pass
 
-if 0:
-    import random
-    client = Client()
-    for i in range(10):
-        msg=bytes("hi"+str("x"*random.randint(10,9999)),"utf-8")
-        print(sys.getsizeof(msg),len(msg))
-        client.send(msg)
-        time.sleep(0.01)
-    client = Client()
-    for i in range(10):
-        msg=bytes("ho "+str("x"*random.randint(10,9999)),"utf-8")
-        print(sys.getsizeof(msg),len(msg))
-        msg=zlib.compress(msg)
-        print(sys.getsizeof(msg),len(msg))
-        client.send(msg)
-        time.sleep(0.01)
 
 

@@ -47,7 +47,7 @@ import math
 
 from collections import OrderedDict
  
-import lib.chat as chat
+import lib.zchat as chat
 import lib.ArtNetNode as ANN
 import _thread as thread  
 #thread.start_new_thread

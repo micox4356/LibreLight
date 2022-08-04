@@ -54,7 +54,7 @@ space_font = None
 import tkinter.simpledialog
 
 
-import lib.chat as chat
+import lib.zchat as chat
 import lib.motion as motion
 
 from collections import OrderedDict

@@ -82,8 +82,9 @@ class Server():
         return clients
     def _recv(self,sock):
         xmsg=b""
+        msg =b""
+
         try:
-            msg = b""
             xmsg = sock.recv(1)#1024)#5120)
             while xmsg:
                 #print(xmsg)
@@ -107,7 +108,7 @@ class Server():
             except Exception as e:
                 print("SERVER decompress err",e)
 
-        return xmsg
+        return msg
     def check_client(self):
         if self._last_check+1 < time.time():
             self._last_check = time.time()
@@ -195,6 +196,8 @@ class Client():
         self.close()
 
 tcp_sender = Client
+
+
 if __name__ == "__main__":
     if "client" in sys.argv:
         c = Client()
@@ -202,6 +205,7 @@ if __name__ == "__main__":
             import random 
             import string
             client = c
+
             try:
                 for i in range(100):
                     x=random.choice(string.printable)
@@ -209,6 +213,12 @@ if __name__ == "__main__":
                     print(x,sys.getsizeof(msg),len(msg))
                     client.send(msg)
                     time.sleep(0.01)
+            except Exception as e:
+                print("e",e)
+            finally:
+                client.close()
+
+            try:
                 client = Client()
                 for i in range(100):
                     x=random.choice(string.printable)
@@ -220,6 +230,8 @@ if __name__ == "__main__":
                     time.sleep(0.01)
             except Exception as e:
                 print("e",e)
+            finally:
+                client.close()
         time.sleep(1)
         while 1:
             try:
@@ -230,6 +242,7 @@ if __name__ == "__main__":
                 print("e",e)
     else: 
         server = Server()
+        
         while 1:
             server.poll()
             time.sleep(0.00001)

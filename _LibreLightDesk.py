@@ -214,7 +214,7 @@ def jclient_send(data):
     jtxt = json.dumps(jtxt)
     jtxt = jtxt.encode()
     #jtxt = zlib.compress(jtxt)
-    jclient.send(b"\00 "+ jtxt +b"\00 ")
+    jclient.send( jtxt ) #b"\00 ")
     #print(round((time.time()-t_start)*1000,4),"milis")
     cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
     cprint("{:0.04} tick".format(time.time()),color="yellow")
@@ -1971,7 +1971,7 @@ class GUI():
         cmd = []
         delay=0
         for i,v in enumerate(fcmd):
-            print("go",i,v)
+            #print("go",i,v)
             if xFLASH:
                 vcmd[i]["FLASH"] = 1
 
@@ -3333,8 +3333,9 @@ class Fixtures():
 
             if not modes.val("BLIND"):
                 jdata = [jdata]
-                #print(jdata)
+                #print("ENC",jdata)
                 jclient_send(jdata)
+                time.sleep(0.001)
         return v2
 
     def get_active(self):
@@ -4194,8 +4195,8 @@ class GUIWindow():
         global _shift_key
         print()
         print()
-        cprint("<GUI>",event,color="yellow")
-        cprint("<GUI>",event.state,data,[event.type],color="yellow")
+        #cprint("<GUI>",event,color="yellow")
+        #cprint("<GUI>",event.state,data,[event.type],color="yellow")
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
             value = 0
@@ -4205,13 +4206,13 @@ class GUIWindow():
                 modes.val("ESC",1)
                 master.refresh_fix()
             elif event.keysym in ["Shift_L","Shift_R"]:
-                cprint(event.type)
+                #cprint(event.type)
                 if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
                     _shift_key = 0
                 else:
                     _shift_key = 1
-                cprint("SHIFT_KEY",_shift_key,"??????????")
-                cprint("SHIFT_KEY",_shift_key,"??????????")
+                #cprint("SHIFT_KEY",_shift_key,"??????????")
+                #cprint("SHIFT_KEY",_shift_key,"??????????")
                 global _ENCODER_WINDOW
                 if _shift_key:
                     _ENCODER_WINDOW.title("SHIFT/FINE ")

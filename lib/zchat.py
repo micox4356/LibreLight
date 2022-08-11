@@ -87,27 +87,34 @@ class Server():
         try:
             xmsg = sock.recv(1)#1024)#5120)
             while xmsg:
-                #print(xmsg)
+                if xmsg == b"\x00":
+                    break
                 msg += xmsg
                 xmsg = sock.recv(1)
+
             idle = 0
         except ConnectionResetError as e:
             pass
         except BlockingIOError as e:
             pass
         
-        if xmsg:
+        if msg:
+            #print("msg**",msg)
             print("B64",sys.getsizeof(msg),len(msg))
             msg = base64.b64decode(msg)
-            #msg = msg.decode("utf8")
+            ##print("msg**",msg)
+            ##msg = msg.decode("utf8")
             print("str",sys.getsizeof(msg),len(msg))
 
             try:
                 msg=zlib.decompress(msg)
                 print("uzip",sys.getsizeof(msg),len(msg))
+                print("msg",msg)
             except Exception as e:
                 print("SERVER decompress err",e)
+                #msg = b"decompression error"
 
+        
         return msg
     def check_client(self):
         if self._last_check+1 < time.time():
@@ -186,7 +193,7 @@ class Client():
                 nachricht=zlib.compress(nachricht)
             #nachricht = bytes(nachricht,"utf-8")
             nachricht = base64.b64encode(nachricht)
-            self.xs.send(nachricht)
+            self.xs.send(nachricht + b"\00")
         except socket.error as e:
             self.connect()
         time.sleep(0.0001)

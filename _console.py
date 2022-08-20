@@ -160,6 +160,7 @@ if __run_main:
     #thread.start_new_thread(artnet_loop,())
     thread.start_new_thread(main.loop,())
 
+
 class CLOCK():
     def __init__(self):
         self.__time = 0
@@ -179,6 +180,8 @@ class CLOCK():
             #print(self.__time)
             #for i in range(10):
             time.sleep(self.__tick)
+
+
 class CLOCK_REAL():
     def __init__(self):
         self.__time = 0
@@ -250,6 +253,30 @@ class Fade():
     def ctl(self,cmd="",value=None): # if x-fade cmd="%" value=50
         # start,stop,fwd,bwd,revers
         pass
+
+class _MASTER():
+    def __init__(self):
+        self.__data = {}
+    def val(self,name,value=None):
+        value = 100 #% 
+        if name in self.__data:
+            if value is not None:
+                self.__data[name] = value
+            else:
+                value = self.__data[name] 
+        return value 
+        
+class SPEED_MASTER(_MASTER):
+    def __init__(self):
+        super().__init__()
+
+class SIZE_MASTER(_MASTER):
+    def __init__(self):
+        super().__init__()
+
+
+size_master  = SIZE_MASTER()
+speed_master = SPEED_MASTER()
 
 class MASTER_FX():
     def __init__(self):
@@ -335,6 +362,7 @@ class FX():
             width = 200
         if width <= 0:
             width = 1
+        self.__fade_in_master = 0
         self.__width = width
         self.__invert = invert
         self.__base = base
@@ -500,17 +528,19 @@ class FX():
 
         if self.__invert:
             v *=-1
-
-        out = v *size +base
+    
+        #if self.__fade_in_master < 255:
+        #    self.__fade_in_master += v*size
+        out = v *size +base 
         self.out = out
         self.count = count
-        return out
+        return out #* (self.__fade_in_master /255.)
 
 class DMXCH(object):
     def __init__(self):
         self._base_value = 0
         self._fade  = None
-        self._fx    = None
+        self._fx    = [None,None] # None
         self._fx_value = 0
 
         self._flash    = None
@@ -528,17 +558,18 @@ class DMXCH(object):
                 print( "Except:fade",e,target,ftime,clock)
     def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
         print([self,xtype,size,speed,start,offset,base, clock])
+        self._fx[0] = self._fx[1]
         if str(xtype).lower() == "off":
             fx_value = self._fx_value
             if fx_value != 0:
                 cprint("???????______ FX OFF AS FADE",fx_value,0,255)
-                self._fx = Fade(fx_value,0,ftime=0.5,clock=clock)#,delay=delay)
+                self._fx[1] = Fade(fx_value,0,ftime=0.5,clock=clock) 
             else:
-                #self._fx = Fade(self._fx_value,target=0,ftime=2,clock=clock) 
-                self._fx = None
+                self._fx[1] = None
                 self._fx_value = 0 
         else:
-            self._fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
+            self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master) 
+
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
             self._flash = None
@@ -595,11 +626,15 @@ class DMXCH(object):
         
         if self._flash_fx is not None:# is FX:
             fx_value = self._flash_fx.next(clock)
-        elif self._fx is not None and self._flash is None:# is FX:
-            self._fx_value = self._fx.next(clock)
+        else:
+            self._fx_value = 0
+            if self._fx[-1] is not None and self._flash is None:# is FX:
+                self._fx_value += self._fx[-1].next(clock)
+            #if self._fx[0] is not None and self._flash is None:# is FX:
+            #    self._fx_value += self._fx[0].next(clock)
             fx_value = self._fx_value
 
-        self._last_val = value+fx_value
+        self._last_val = value + fx_value
         return self._last_val
 
 Bdmx = []
@@ -645,94 +680,100 @@ def JCB(data): #json client input
             for x in cmds:
                 #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
                 #cprint("json", x,type(x),color="yellow")#,cmds[x])
+                if "CMD" in x:
+                    print("CMD:",x)
+                    if "SPEED-MASTER" == x["CMD"]:
+                        speed_master.val("SPEED-{}".format(x["NR"]),x["VALUE"])
+                    if "SIZE-MASTER" == x["CMD"]:
+                        size_master.val("SIZE-{}".format(x["NR"]),x["VALUE"])
+                else:
+                    if "DMX" in x:
+                        DMX = int(x["DMX"])
+                    else:continue
+                    if DMX > 0:
+                        DMX -=1
+                    else:continue
 
-                if "DMX" in x:
-                    DMX = int(x["DMX"])
-                else:continue
-                if DMX > 0:
-                    DMX -=1
-                else:continue
+                    if "VALUE" in x:# and x["VALUE"] is not None:
+                        v = x["VALUE"]
+                    else:continue
+                    if "FX" in x:# and x["VALUE"] is not None:
+                        fx = x["FX"]
+                    else:fx=""
+                    if "FX2" in x:# and x["VALUE"] is not None:
+                        fx2 = x["FX2"]
+                    else:fx2={}
+                    if "FADE" in x:
+                        ftime = x["FADE"]
+                    else:ftime=0
+                    if "DELAY" in x:
+                        delay = x["DELAY"]
+                    else:delay=0
 
-                if "VALUE" in x:# and x["VALUE"] is not None:
-                    v = x["VALUE"]
-                else:continue
-                if "FX" in x:# and x["VALUE"] is not None:
-                    fx = x["FX"]
-                else:fx=""
-                if "FX2" in x:# and x["VALUE"] is not None:
-                    fx2 = x["FX2"]
-                else:fx2={}
-                if "FADE" in x:
-                    ftime = x["FADE"]
-                else:ftime=0
-                if "DELAY" in x:
-                    delay = x["DELAY"]
-                else:delay=0
-
-                if len(Bdmx) < DMX:
-                    continue
-                
-                if v is not None:
-                    if "FLASH" in x:
-                        #print("FLASH")
-                        Bdmx[DMX].flash(target=v,ftime=ftime, clock=c,delay=delay)
-                    else:
-                        #print("FADE")
-                        Bdmx[DMX].fade(target=v,ftime=ftime, clock=c,delay=delay)
-                
-                if type(fx2) is dict and fx2:
-
-                    #cprint("FX2",DMX,fx2,color="green")
-                    xtype="fade"
-                    size  = 10
-                    speed = 10
-                    start = 0
-                    offset= 0
-                    width=100
-                    invert=0
-                    base = "-"
-                    if "TYPE" in fx2:
-                        xtype = fx2["TYPE"]
-                    if "SIZE" in fx2:
-                        size = fx2["SIZE"]
-                    if "SPEED" in fx2:
-                        speed = fx2["SPEED"]
-                    if "OFFSET" in fx2:
-                        offset = fx2["OFFSET"]
-                    if "BASE" in fx2:
-                        base = fx2["BASE"]
-                    if "INVERT" in fx2:
-                        invert = fx2["INVERT"]
-                    if "WIDTH" in fx2:
-                        width = fx2["WIDTH"]
+                    if len(Bdmx) < DMX:
+                        continue
                     
-                    if "off" == x["VALUE"]: #fix fx flash off
-                        xtype= "off"
+                    if v is not None:
+                        if "FLASH" in x:
+                            #print("FLASH")
+                            Bdmx[DMX].flash(target=v,ftime=ftime, clock=c,delay=delay)
+                        else:
+                            #print("FADE")
+                            Bdmx[DMX].fade(target=v,ftime=ftime, clock=c,delay=delay)
+                    
+                    if type(fx2) is dict and fx2:
 
-                    if "alloff" == xtype.lower():
-                        for i in Bdmx:
-                            if i is not None:
-                                i.flash_fx(xtype="off",clock=c)
-                                i.fx(xtype="off",clock=c)
+                        #cprint("FX2",DMX,fx2,color="green")
+                        xtype="fade"
+                        size  = 10
+                        speed = 10
+                        start = 0
+                        offset= 0
+                        width=100
+                        invert=0
+                        base = "-"
+                        if "TYPE" in fx2:
+                            xtype = fx2["TYPE"]
+                        if "SIZE" in fx2:
+                            size = fx2["SIZE"]
+                        if "SPEED" in fx2:
+                            speed = fx2["SPEED"]
+                        if "OFFSET" in fx2:
+                            offset = fx2["OFFSET"]
+                        if "BASE" in fx2:
+                            base = fx2["BASE"]
+                        if "INVERT" in fx2:
+                            invert = fx2["INVERT"]
+                        if "WIDTH" in fx2:
+                            width = fx2["WIDTH"]
+                        
+                        if "off" == x["VALUE"]: #fix fx flash off
+                            xtype= "off"
 
-                    if "FLASH" in x:
-                        Bdmx[DMX].flash_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
-                    else:
-                        Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                        if "alloff" == xtype.lower():
+                            for i in Bdmx:
+                                if i is not None:
+                                    i.flash_fx(xtype="off",clock=c)
+                                    i.fx(xtype="off",clock=c)
 
-                elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
-                    ccm = str(DMX+1)+":"+fx
-                    print("fx",ccm)
-                    if "FLASH" in x:
-                        CB({"cmd":"fxf"+ccm})
-                    else:
-                        CB({"cmd":"fx"+ccm})
+                        if "FLASH" in x:
+                            Bdmx[DMX].flash_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                        else:
+                            Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+
+                    elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
+                        ccm = str(DMX+1)+":"+fx
+                        print("fx",ccm)
+                        if "FLASH" in x:
+                            CB({"cmd":"fxf"+ccm})
+                        else:
+                            CB({"cmd":"fx"+ccm})
 
             cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
             cprint("{:0.04} t.".format(time.time()),color="yellow")
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")
-            cprint("----",jdata,color="red")
+            cprint("----",str(jdata)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
     cprint()
     cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")

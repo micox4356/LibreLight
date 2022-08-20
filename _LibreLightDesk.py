@@ -199,7 +199,14 @@ def jclient_send(data):
     jtxt = data
     jdatas = []
     for jdata in data:
-        if "DMX" in jdata:
+        if "CMD" in jdata:
+            try:
+                jdatas.append(jdata)
+            except Exception as e:
+                cprint("jclient_send, Exception DMX ",color="red")
+                cprint("",jdata,color="red")
+                cprint("-----",color="red")
+        elif "DMX" in jdata:
             try:
                 if int(jdata["DMX"]) >= 1: # ignore DMX lower one
                      jdatas.append(jdata)
@@ -3716,7 +3723,6 @@ class Presets():
 def test(a1="",a2=""):
     print([a1,a2])
 
-
 class FixtureEditor():
     def __init__(self,dmx=1):
         pass
@@ -3731,6 +3737,20 @@ class FixtureEditor():
 
         jclient_send(j)
 
+class MasterWing():
+    def __init__(self,dmx=1):
+        pass
+        self.elem=[]
+        self.dmx=dmx
+        print("init MasterWing",dmx)
+    def event(self,a1="",a2=""):
+        print([self.dmx,a1,a2])
+        jdata = {'CMD': "MASTER", 'NAME': str(a1),'VALUE':str(a2) }
+
+        j=[]
+        j.append(jdata)
+        jclient_send(j)
+
 class BufferVar():
     def __init__(self,elem):
         self.elem = elem
@@ -3741,22 +3761,26 @@ class BufferVar():
         print("change_dmx",[event,self])
 
 class ELEM_FADER():
-    def __init__(self,frame,nr,**args):
+    def __init__(self,frame,nr,cb=None,**args):
         self.frame = frame
         self.nr= nr
         self.id=nr
         self.elem = []
+        self._cb = cb
         width=11
         frameS = tk.Frame(self.frame,bg="#005",width=width)
         frameS.pack(fill=tk.Y, side=tk.LEFT)
         self.frame=frameS
 
     def event(self,a1="",a2=""):
-        print(self,"event",[self.nr,a1,a2])
-        j=[]
-        jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
-        j.append(jdata)
-        jclient_send(j)
+        if self._cb is not None:
+            self._cb(a1,a2,nr=self.nr)
+        else:
+            print(self,"event",[self.nr,a1,a2])
+            j=[]
+            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
+            j.append(jdata)
+            jclient_send(j)
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
@@ -3783,15 +3807,17 @@ class ELEM_FADER():
             print("_set_attr",[self])
     def _refresh(self):
         pass
-    def pack(self,**args):
+    def pack(self,init=None,from_=255,to=0,**args):
         width=11
         r=0
         c=0
         j=0
         font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=255,to=0,command=self.event)
+        self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=from_,to=to,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
+        if init is not None:
+            self.b.set(init)
         self.elem.append(self.b)
 
         self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=font8 )
@@ -3825,6 +3851,101 @@ class ELEM_FADER():
         self.elem.append(self.b)
 
 
+class GUI_MasterWingLayout():
+    def __init__(self,root,data,title="tilte",width=800):
+        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
+        font8 = ("FreeSans",8)
+        self.dmx=1
+        self.univ=0
+        r=0
+        c=0
+        i=1
+        self.elem=[]
+        self.header=[]
+        self.data = data
+        #self.frame = tk.Frame(root,bg="black",width=width)
+        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+
+        #self.b = tk.Label(self.frame,bg="#fff",text="Master Wing") #,font=font8 )
+        #self.b.pack(fill=None, side=tk.LEFT)
+        #self.frame = tk.Frame(root,bg="black",width=width)
+        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+
+        #self.b = tk.Label(self.frame,bg="black",text="") # spacer
+        #self.b.pack(fill=tk.Y, side=tk.LEFT)
+
+        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
+        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        r=0
+        c=0
+        pb=12
+        self.pb=pb
+        for j,row in enumerate(data):
+            if c % pb == 0 or c==0:
+                h=hex(j*10)[2:].rjust(2,"0")
+                frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
+                frameS.pack(fill=tk.BOTH, side=tk.TOP)
+                p=j//pb+1
+                if p == 1:
+                    txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                else:
+                    txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
+                self.header.append(self.b)
+
+                self.b.pack(fill=None, side=tk.LEFT)
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
+                self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+
+                frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
+                c=0
+            #print(frameS)
+            e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
+            e.pack(from_=200,to=0,init=100)
+            self.elem.append(e)
+            frameS.pack(fill=tk.X, side=tk.TOP)
+            c+=1
+            i+=1
+        self.frame.pack()
+        self._event_redraw()
+    def event_cb(self,a1="",a2="",nr=None,**args):
+        print("event_cb:",nr,a1,a2,args)
+        nr += 1
+        jdata= {"CMD":"SPEED-MASTER","NR":nr,"VALUE":int(a1)}
+        if nr > 12:
+            jdata["CMD"] = "SIZE-MASTER" 
+            jdata["NR"] = nr-12 
+        j = [jdata]
+        jclient_send(j)
+    def set_name(self,_event=None):
+        txt = self.name["text"]
+        txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
+        self.name["text"] = "{}".format(txt)
+        print("change_dmx",[_event,self])
+
+    def event_value(self,_event=None):
+        nr=self.dmx
+        txt= self.entry_dmx["text"]
+        
+    def _event_redraw(self,_event=None):
+        nr = 0
+        print("change_dmx",[_event,self])
+        for i,btn in enumerate(self.elem):
+            btn.set_label("{} D:{}".format(i+1,nr))
+            btn.nr = nr+i
+
+        pb=self.pb
+        for j,e in enumerate(self.header):
+            p=j+1
+            #p=nr/pb
+            if p == 1:
+                txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+            else:
+                txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+            #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
+            print("---",j,txt,e)
+            e["text"] = txt
+            
 class GUI_FaderLayout():
     def __init__(self,root,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
@@ -4429,9 +4550,15 @@ if __run_main:
     for i in range(24+12):
         data.append({"text"+str(i):"test"})
     GUI_FaderLayout(w1,data)
-    #frame_fix = w1 #w.tk
-    #master.draw_fix(w1,w2)#.tk)
+    window_manager.new(w,name)
 
+    name="MASTER-WING"
+    w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    data=[]
+    for i in range(12*2):
+        data.append({"MASTER"+str(i):"MASTER"})
+    GUI_MasterWingLayout(w1,data)
     window_manager.new(w,name)
 
     name="ENCODER"

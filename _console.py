@@ -255,24 +255,34 @@ class Fade():
         pass
 
 class _MASTER():
-    def __init__(self):
+    def __init__(self,name="None"):
         self.__data = {}
+        self.name = name
     def val(self,name,value=None):
-        value = 100 #% 
-        if name in self.__data:
-            if value is not None:
-                self.__data[name] = value
-            else:
-                value = self.__data[name] 
-        return value 
+        _value = 100 #% 
+        name = str(name)
+
+        if name not in self.__data:
+            self.__data[name] = 100
+
+
+        _value = self.__data[name] 
+        if value is not None:
+            if _value != value:
+                print(self.name,"CHANGE MASTER",name,_value)
+            self.__data[name] = value
+
+        _value = self.__data[name] 
+
+        return _value /100.
         
 class SPEED_MASTER(_MASTER):
     def __init__(self):
-        super().__init__()
+        super().__init__("SPEED")
 
 class SIZE_MASTER(_MASTER):
     def __init__(self):
-        super().__init__()
+        super().__init__("SIZE")
 
 
 size_master  = SIZE_MASTER()
@@ -346,7 +356,6 @@ class MASTER_FX():
             #print( count)
             self.count=count
             
-
         idx = self.__data.index(child) 
         offset = self.offsets[idx]
 
@@ -354,10 +363,11 @@ class MASTER_FX():
         
 
 class FX():
-    def __init__(self,xtype="sinus",size=10,speed=10,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
+    def __init__(self,xtype="sinus",size=10,speed=10,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None,master_id=1):
         self.__xtype=xtype
         self.__size  = size
         self.__start = start
+        self.__master_id = master_id
         if width > 200:
             width = 200
         if width <= 0:
@@ -370,6 +380,8 @@ class FX():
         self.__offset = offset
         self.__clock = clock
         self.__clock_curr = clock
+        self.__clock_delta = 0
+        self.__clock_old = self.__clock_curr
         self.out = 0
         self.old_v = -1
         self.run = 1
@@ -400,9 +412,19 @@ class FX():
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
-        t = self.__clock_curr  * self.__speed / 60
+        
+        self.__clock_delta += (self.__clock_curr - self.__clock_old) * ( speed_master.val(self.__master_id)-1)
+        #print(self.__clock_delta )
+        self.__clock_old = self.__clock_curr
+
+        
+        t = self.__clock_curr
+        t += self.__clock_delta
+        t *= self.__speed / 60 
         t += self.__offset / 100 #255 #1024 #255
         t += self.__start  / 1024 #255
+        #t = t*speed_master.val(self.__master_id)
+
         tw = t%1
         count = t//1
         t = t * (100/self.__width)
@@ -534,7 +556,8 @@ class FX():
         out = v *size +base 
         self.out = out
         self.count = count
-        return out #* (self.__fade_in_master /255.)
+        return out * size_master.val(self.__master_id)  #* (self.__fade_in_master /255.)
+        #= master_id
 
 class DMXCH(object):
     def __init__(self):
@@ -683,9 +706,9 @@ def JCB(data): #json client input
                 if "CMD" in x:
                     print("CMD:",x)
                     if "SPEED-MASTER" == x["CMD"]:
-                        speed_master.val("SPEED-{}".format(x["NR"]),x["VALUE"])
+                        speed_master.val(x["NR"],x["VALUE"])
                     if "SIZE-MASTER" == x["CMD"]:
-                        size_master.val("SIZE-{}".format(x["NR"]),x["VALUE"])
+                        size_master.val(x["NR"],x["VALUE"])
                 else:
                     if "DMX" in x:
                         DMX = int(x["DMX"])

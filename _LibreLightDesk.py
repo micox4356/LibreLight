@@ -3814,7 +3814,7 @@ class ELEM_FADER():
         j=0
         font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=11,from_=from_,to=to,command=self.event)
+        self.b = tk.Scale(frameS,bg="lightblue", width=18,from_=from_,to=to,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)
@@ -3886,10 +3886,10 @@ class GUI_MasterWingLayout():
                 frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
                 frameS.pack(fill=tk.BOTH, side=tk.TOP)
                 p=j//pb+1
-                if p == 1:
-                    txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                if j < 12:
+                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
                 else:
-                    txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
                 self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
                 self.header.append(self.b)
 
@@ -3901,22 +3901,31 @@ class GUI_MasterWingLayout():
                 c=0
             #print(frameS)
             e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
-            e.pack(from_=200,to=0,init=100)
+            if j >= 12:
+                e.pack(from_=400,to=0,init=100)
+            else:
+                e.pack(from_=200,to=0,init=100)
             self.elem.append(e)
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
             i+=1
         self.frame.pack()
         self._event_redraw()
+
     def event_cb(self,a1="",a2="",nr=None,**args):
         print("event_cb:",nr,a1,a2,args)
         nr += 1
         jdata= {"CMD":"SPEED-MASTER","NR":nr,"VALUE":int(a1)}
-        if nr > 12:
-            jdata["CMD"] = "SIZE-MASTER" 
-            jdata["NR"] = nr-12 
+        if nr <= 12:
+            jdata["CMD"] = "SIZE-MASTER"
+            jdata["NR"] = nr
+        else:
+            jdata["NR"] = nr-12
+
+        print("event_cb",jdata)
         j = [jdata]
         jclient_send(j)
+
     def set_name(self,_event=None):
         txt = self.name["text"]
         txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
@@ -3939,9 +3948,9 @@ class GUI_MasterWingLayout():
             p=j+1
             #p=nr/pb
             if p == 1:
-                txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-            else:
                 txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+            else:
+                txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
             print("---",j,txt,e)
             e["text"] = txt
@@ -4553,7 +4562,8 @@ if __run_main:
     window_manager.new(w,name)
 
     name="MASTER-WING"
-    w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    w = GUIWindow(name,master=0,width=90,height=405,left=0,top=TOP+H1-220)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
     for i in range(12*2):

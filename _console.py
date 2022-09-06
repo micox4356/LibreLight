@@ -363,7 +363,7 @@ class MASTER_FX():
         
 
 class FX():
-    def __init__(self,xtype="sinus",size=10,speed=10,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None,master_id=1):
+    def __init__(self,xtype="sinus",size=10,speed=10,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None,master_id=0):
         self.__xtype=xtype
         self.__size  = size
         self.__start = start
@@ -591,7 +591,7 @@ class DMXCH(object):
                 self._fx[1] = None
                 self._fx_value = 0 
         else:
-            self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master) 
+            self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=1) 
 
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
@@ -619,7 +619,7 @@ class DMXCH(object):
             self._flash_fx = None 
             self._flash_fx_value = 0 
         else:
-            self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master)
+            self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=0)
 
     def fx_ctl(self,cmd=""):#start,stop,off
         pass

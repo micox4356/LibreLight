@@ -13,7 +13,7 @@ print( """
 
 <body>
 
-  <h3> Sample CGI Script </h3>
+  <h3> Licht WEB  </h3>
 """)
 
 
@@ -58,6 +58,24 @@ function xGET(){
     fade = document.getElementById("FADE").value;
     xget(dmx,val,fade)
 }
+
+function cmd2(){
+    xcmd2 = document.getElementById("cmd2").value;
+     _cmd2(xcmd2)
+}
+
+function _cmd2(xcmd2=""){
+    const http = new XMLHttpRequest();
+
+    url = './licht.cgi?&CMD2=' + xcmd2
+    http.open("GET", url);
+    http.send();
+
+    http.onreadystatechange = (e) => {
+      console.log('done',e)
+    }
+}
+
 
 function xget(dmx=1,val=100,fade=1){
     const http = new XMLHttpRequest();
@@ -126,6 +144,11 @@ Highlight
 <br>
 <br>
 <br>
+CMD2:
+<input id=cmd2 value=10 size=5 type=text value='10,200;11,200'>
+<input type=button value="GO" onclick=cmd2() size=10>
+<br>
+<br>
 """)
 
 print("<br>")
@@ -151,7 +174,31 @@ if "CMD" in ARGS:
         l=l.replace(">","&gt;")
         print(">",l,"<br>")
 
+if "CMD2" in ARGS:
+    import lib.zchat as zchat
+    import json
 
+    c = zchat.Client()
+    cmd2 = ARGS["CMD2"]
+    print("<br>")
+    print("CMD2",cmd2)
+    print("<br>")
+    for j in cmd2.split(";"):
+
+        if "," in j:
+            fade= 0.3
+            dmx,val = j.split(",")
+            val = int(val)
+            try:
+                data =[{"VALUE": val, "args": [], "FADE": fade, "DMX": str(dmx)}]
+
+                i = json.dumps(data)
+                print("i",i)
+                print("<br>")
+                #i = input("cmd:")
+                c.send(bytes(i,"utf8"))
+            except Exception as e:
+                print("e",e)
 
 
 print( """

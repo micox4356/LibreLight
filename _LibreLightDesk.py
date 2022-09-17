@@ -3896,8 +3896,10 @@ class GUI_MasterWingLayout():
                 self.b.pack(fill=None, side=tk.LEFT)
                 self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-
-                frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
+                try:
+                    frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
+                except:
+                    frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 c=0
             #print(frameS)
             e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
@@ -4031,7 +4033,10 @@ class GUI_FaderLayout():
                 self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
 
-                frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
+                try:
+                    frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
+                except:
+                    frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 c=0
             #print(frameS)
             e= ELEM_FADER(frameS,nr=j+1)
@@ -4556,7 +4561,7 @@ if __run_main:
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
-    for i in range(24+12):
+    for i in range((24+12)*15):
         data.append({"text"+str(i):"test"})
     GUI_FaderLayout(w1,data)
     window_manager.new(w,name)

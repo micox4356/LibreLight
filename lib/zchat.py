@@ -206,7 +206,17 @@ tcp_sender = Client
 
 
 if __name__ == "__main__":
-    if "client" in sys.argv:
+    if "data" in sys.argv:
+        i = sys.argv.index("data")
+        data = sys.argv[i+1]
+        print( i ,data)
+        data = data.encode("utf-8")
+        c = Client()
+        client = c
+        time.sleep(0.05)
+        client.send(data)
+        time.sleep(0.05)
+    elif "client" in sys.argv:
         c = Client()
         if "test" in sys.argv: # test server/client
             import random 

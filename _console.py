@@ -276,17 +276,62 @@ class _MASTER():
 
         return _value /100.
         
-class SPEED_MASTER(_MASTER):
+
+size_master  = _MASTER("SIZE")
+speed_master = _MASTER("SPEED")
+
+
+class HTP_MASTER():
+    """functional implementation as class for namespace encapsulation
+
+    """
     def __init__(self):
-        super().__init__("SPEED")
+        self.data = OrderedDict() 
+        #self.data[1] = {"DMX":[22,23,24],"VALUE":80}
+        #self.data[2] = {"DMX":[42,43,44],"VALUE":70}
+        #self.data[3] = {"DMX":[22,23,24],"VALUE":99}
 
-class SIZE_MASTER(_MASTER):
-    def __init__(self):
-        super().__init__("SIZE")
+    def _list_by_dmx(self,_dmx=0):
+        data = OrderedDict()
+        for i,link in self.data.items(): # enumerate(self.data):
+            if _dmx in link["DMX"]:
+                #print( "_list_by_dmx",i,link)
+                data[i] = link
+        return data
 
 
-size_master  = SIZE_MASTER()
-speed_master = SPEED_MASTER()
+    def dmx_by_id(self,_id=0):
+        #print("dmx by master-id:",_id)
+
+        if _id in self.data:
+            for i,link in self.data[_id].items():
+                #print("dmx_by_id", i,link)
+                return (i,link)
+
+        return 0,{}
+
+    def master_by_dmx(self,dmx=0):
+        #print("master of dmx:",dmx)
+        val=0
+        flag = 0
+        data = self._list_by_dmx(dmx)
+        for i,link in data.items():
+
+            #print("master_by_dmx", i,link)
+            if link["VALUE"] > val:
+                #print("master_by_dmx", i,link)
+                val = link["VALUE"]
+                flag=1
+        if flag:
+            return val
+        else:
+            return 100.  # default
+
+
+exe_master = []
+exe_master.append({"SIZE":100,"SPEED":100,"id":12,"link-ids":[2]})
+
+
 
 class MASTER_FX():
     def __init__(self):

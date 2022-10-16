@@ -726,14 +726,8 @@ class Main():
                     artnet = self.artnet[str(univ)]
                     artnet.dmx = xx
                 
+                htp_master._list_by_dmx(ii)
                 v = dmxch.next(t)
-                if i == 0:
-                    #print(dmxch)
-                    if int(xx[i]*100) != int( v*100):
-                        #print("----v",x[i],v,t)
-                        pass
-                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
-                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
                 xx[i] = int(v)
             try:    
                 artnet.next()

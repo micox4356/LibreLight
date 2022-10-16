@@ -19,6 +19,10 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 (c) 2012 micha@uxsrv.de
 """
 import sys
+import time
+import json
+import zlib
+    
 rnd_id = ""
 rnd_id += " Beta 22.02 "
 import subprocess
@@ -101,64 +105,6 @@ def artnet_loop():
         #artnet._test_frame()
         artnet.next()
         time.sleep(0.01)
-
-class Main():
-    def __init__(self):
-        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=12)
-        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=0)
-        #artnet = ANN.ArtNetNode(to="2.0.0.255",univ=0)
-        #artnet = ANN.ArtNetNode(to="10.10.10.255",univ=1)
-        self.artnet = {}
-        #self.artnet["0"] = ANN.ArtNetNode(to="10.10.10.255",univ=0)
-        #self.artnet["0"].dmx[512-1] = 10
-        #self.artnet["1"] = ANN.ArtNetNode(to="10.10.10.255",univ=1)
-        #self.artnet["1"].dmx[512-1] = 11
-        self.fx = {} # key is dmx address
-    def loop(self):
-        #dmx[205] = 255 #205 BLUE
-        #self.artnet.send()
-        xx = [0]*512
-        #artnet = self.artnet["0"]
-        #artnet.dmx = xx# [:] #dmx #[0]*512
-        old_univ = -1
-        while 1:
-            t = clock.time()
-            ii = 0
-            for ii,dmxch in enumerate(Bdmx):
-                i = ii%512
-                univ = ii//512
-                if str(univ) not in self.artnet:
-                    print("add uiv",univ)
-                    self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
-                    self.artnet[str(univ)].dmx[512-1] = 100+univ
-
-                if univ != old_univ:
-                    old_univ = univ
-                    #print("UNIV",ii/512)
-                    try:
-                        artnet.next()
-                    except:pass
-                    artnet = self.artnet[str(univ)]
-                    artnet.dmx = xx
-                
-                v = dmxch.next(t)
-                if i == 0:
-                    #print(dmxch)
-                    if int(xx[i]*100) != int( v*100):
-                        #print("----v",x[i],v,t)
-                        pass
-                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
-                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
-                xx[i] = int(v)
-            try:    
-                artnet.next()
-            except:pass
-            time.sleep(0.01)
-
-main = Main()
-if __run_main:
-    #thread.start_new_thread(artnet_loop,())
-    thread.start_new_thread(main.loop,())
 
 
 class CLOCK():
@@ -720,10 +666,68 @@ def split_cmd(data):
             cmds = [cmd]
     return cmds
 
-import time
-import json
-import zlib
-    
+
+
+
+class Main():
+    def __init__(self):
+        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=12)
+        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=0)
+        #artnet = ANN.ArtNetNode(to="2.0.0.255",univ=0)
+        #artnet = ANN.ArtNetNode(to="10.10.10.255",univ=1)
+        self.artnet = {}
+        #self.artnet["0"] = ANN.ArtNetNode(to="10.10.10.255",univ=0)
+        #self.artnet["0"].dmx[512-1] = 10
+        #self.artnet["1"] = ANN.ArtNetNode(to="10.10.10.255",univ=1)
+        #self.artnet["1"].dmx[512-1] = 11
+        self.fx = {} # key is dmx address
+    def loop(self):
+        #dmx[205] = 255 #205 BLUE
+        #self.artnet.send()
+        xx = [0]*512
+        #artnet = self.artnet["0"]
+        #artnet.dmx = xx# [:] #dmx #[0]*512
+        old_univ = -1
+        while 1:
+            t = clock.time()
+            ii = 0
+            for ii,dmxch in enumerate(Bdmx):
+                i = ii%512
+                univ = ii//512
+                if str(univ) not in self.artnet:
+                    print("add uiv",univ)
+                    self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
+                    self.artnet[str(univ)].dmx[512-1] = 100+univ
+
+                if univ != old_univ:
+                    old_univ = univ
+                    #print("UNIV",ii/512)
+                    try:
+                        artnet.next()
+                    except:pass
+                    artnet = self.artnet[str(univ)]
+                    artnet.dmx = xx
+                
+                v = dmxch.next(t)
+                if i == 0:
+                    #print(dmxch)
+                    if int(xx[i]*100) != int( v*100):
+                        #print("----v",x[i],v,t)
+                        pass
+                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
+                        #print("i:{:0.2f} xx:{:0.2f} v:{:0.2f} {:0.2f}----v {}".format(i,xx[i],v,t+100,dmxch))
+                xx[i] = int(v)
+            try:    
+                artnet.next()
+            except:pass
+            time.sleep(0.01)
+
+main = Main()
+if __run_main:
+    #thread.start_new_thread(artnet_loop,())
+    thread.start_new_thread(main.loop,())
+
+
 def JCB(data): #json client input
     t_start = time.time()
     #jdatas = data["cmd"].split("\x00")
@@ -953,3 +957,7 @@ if __run_main:
     #chat.cmd(JCB,port=50001) # server listener
 
     #input("END")
+
+
+
+

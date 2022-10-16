@@ -233,9 +233,9 @@ class HTP_MASTER():
     """
     def __init__(self):
         self.data = OrderedDict() 
-        #self.data[1] = {"DMX":[22,23,24],"VALUE":80}
-        #self.data[2] = {"DMX":[42,43,44],"VALUE":70}
-        #self.data[3] = {"DMX":[22,23,24],"VALUE":99}
+        #self.data[1] = {"DMX":[1,2,3],"VALUE":80, "LIMIT":255}
+        #self.data[2] = {"DMX":[12,13,22],"VALUE":70, "LIMIT":255}
+        #self.data[3] = {"DMX":[22,23,24],"VALUE":99, "LIMIT":255}
 
     def _list_by_dmx(self,_dmx=0):
         data = OrderedDict()
@@ -256,23 +256,24 @@ class HTP_MASTER():
 
         return 0,{}
 
-    def master_by_dmx(self,dmx=0):
-        #print("master of dmx:",dmx)
-        val=0
-        flag = 0
-        data = self._list_by_dmx(dmx)
-        for i,link in data.items():
+#    def master_by_dmx(self,dmx=0):
+#        #print("master of dmx:",dmx)
+#        val=0
+#        flag = 0
+#        data = self._list_by_dmx(dmx)
+#        for i,link in data.items():
+#
+#            #print("master_by_dmx", i,link)
+#            if link["VALUE"] > val:
+#                #print("master_by_dmx", i,link)
+#                val = link["VALUE"]
+#                flag=1
+#        if flag:
+#            return val/255.
+#        else:
+#            return 1.  # default
 
-            #print("master_by_dmx", i,link)
-            if link["VALUE"] > val:
-                #print("master_by_dmx", i,link)
-                val = link["VALUE"]
-                flag=1
-        if flag:
-            return val
-        else:
-            return 100.  # default
-
+htp_master = HTP_MASTER()
 
 exe_master = []
 exe_master.append({"SIZE":100,"SPEED":100,"id":12,"link-ids":[2]})
@@ -551,16 +552,21 @@ class FX():
         #= master_id
 
 class DMXCH(object):
-    def __init__(self):
+    def __init__(self,dmx=-1):
         self._base_value = 0
         self._fade  = None
         self._fx    = [None,None] # None
         self._fx_value = 0
 
+        self._dmx = dmx
+
         self._flash    = None
         self._flash_fx = None
         self._flash_fx_value = 0
         self._last_val = None
+        #self.next(clock)
+        #print("init",self)
+    
     def fade(self,target,ftime=0,clock=0,delay=0):
         if target != self._base_value:
             try:
@@ -570,6 +576,9 @@ class DMXCH(object):
                 #self._fade.next()
             except Exception as e:
                 print( "Except:fade",e,target,ftime,clock)
+        self.next(clock)
+        print("init",self)
+
     def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
         print([self,xtype,size,speed,start,offset,base, clock])
         self._fx[0] = self._fx[1]
@@ -583,6 +592,8 @@ class DMXCH(object):
                 self._fx_value = 0 
         else:
             self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=1) 
+        self.next(clock)
+        print("init",self)
 
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
@@ -593,33 +604,31 @@ class DMXCH(object):
                 self._flash = Fade(self._last_val,target,ftime=ftime,clock=clock,delay=delay)
             except Exception as e:
                 print( "Except:flash",target,ftime,clock,__name__,e,)
+        self.next(clock)
+        print("init",self)
+
     def flash_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
-
-        #if self._flash_fx is not None :
-        #    cprint("flash_fx",xtype)
-
         if str(xtype).lower() == "off":
             fx_value = self._fx_value
-            #if fx_value != 0:
-            #    cprint("???????______ FX OFF AS FADE",fx_value,0,255)
-            #    self._flash_fx = Fade(fx_value,0,ftime=0.5,clock=clock)#,delay=delay)
-            #    self._flash_fx = None 
-            #else:
-            #    self._flash_fx = None 
-            #    self._flash_fx_value = 0 
             self._flash_fx = None 
             self._flash_fx_value = 0 
         else:
             self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=0)
+        self.next(clock)
+        print("init",self)
 
-    def fx_ctl(self,cmd=""):#start,stop,off
+    def fx_ctl(self,cmd=""): #start,stop,off
         pass
+    
     def __str__(self):
         return self.__repr__()
+    
     def __repr__(self):
-        return "< DMXCH {:0.2f} > {} {}".format( self._last_val,self._fx,self._fade)
-    def fade_ctl(self,cmd=""):#start,stop,backw,fwd,bounce
+        return "<DMXCH {} {:0.2f} > [{}] {}".format(self._dmx, self._last_val,self._fx,self._fade)
+    
+    def fade_ctl(self,cmd=""): #start,stop,backw,fwd,bounce
         pass
+    
     def next(self,clock=0):
         value = self._base_value
         if self._last_val is None:
@@ -633,8 +642,7 @@ class DMXCH(object):
             fx_value = 0
         elif self._fade is not None:#is Fade:# is Fade:
             self._base_value = self._fade.next(clock)
-            #flicker bug ?!
-            self._base_value = self._fade.next(clock)
+            self._base_value = self._fade.next(clock) #flicker bug ?!
             value = self._base_value
 
         
@@ -644,17 +652,27 @@ class DMXCH(object):
             self._fx_value = 0
             if self._fx[-1] is not None and self._flash is None:# is FX:
                 self._fx_value += self._fx[-1].next(clock)
-            #if self._fx[0] is not None and self._flash is None:# is FX:
-            #    self._fx_value += self._fx[0].next(clock)
             fx_value = self._fx_value
 
         self._last_val = value + fx_value
-        return self._last_val
+
+        #out = self._last_val * htp_master.master_by_dmx(self._dmx)
+        out = self._last_val
+        return out
+
+
 
 Bdmx = []
 for i in range(512*3):
-    Bdmx.append( DMXCH() )
+    Bdmx.append( DMXCH(i) )
     #print(type(dmx[i]))
+
+Vdmx = OrderedDict() # virtual dmx chanel
+_id = 1
+htp_master.data[_id] = {"DMX":[1,2,3],"VALUE":80, "LIMIT":255}
+Vdmx[_id] = DMXCH(_id) # v-master 1
+
+
 
 def split_cmd(data):
     if "cmd" in data:

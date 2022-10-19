@@ -226,55 +226,6 @@ class _MASTER():
 size_master  = _MASTER("SIZE")
 speed_master = _MASTER("SPEED")
 
-
-class HTP_MASTER():
-    """functional implementation as class for namespace encapsulation
-
-    """
-    def __init__(self):
-        self.data = OrderedDict() 
-        #self.data[1] = {"DMX":[1,2,3],"VALUE":80, "LIMIT":255}
-        #self.data[2] = {"DMX":[12,13,22],"VALUE":70, "LIMIT":255}
-        #self.data[3] = {"DMX":[22,23,24],"VALUE":99, "LIMIT":255}
-
-    def _list_by_dmx(self,_dmx=0):
-        data = OrderedDict()
-        for i,link in self.data.items(): # enumerate(self.data):
-            if _dmx in link["DMX"]:
-                #print( "_list_by_dmx",i,link)
-                data[i] = link
-        return data
-
-
-    def dmx_by_id(self,_id=0):
-        #print("dmx by master-id:",_id)
-
-        if _id in self.data:
-            for i,link in self.data[_id].items():
-                #print("dmx_by_id", i,link)
-                return (i,link)
-
-        return 0,{}
-
-#    def master_by_dmx(self,dmx=0):
-#        #print("master of dmx:",dmx)
-#        val=0
-#        flag = 0
-#        data = self._list_by_dmx(dmx)
-#        for i,link in data.items():
-#
-#            #print("master_by_dmx", i,link)
-#            if link["VALUE"] > val:
-#                #print("master_by_dmx", i,link)
-#                val = link["VALUE"]
-#                flag=1
-#        if flag:
-#            return val/255.
-#        else:
-#            return 1.  # default
-
-htp_master = HTP_MASTER()
-
 exe_master = []
 exe_master.append({"SIZE":100,"SPEED":100,"id":12,"link-ids":[2]})
 
@@ -667,10 +618,7 @@ for i in range(512*3):
     Bdmx.append( DMXCH(i) )
     #print(type(dmx[i]))
 
-Vdmx = OrderedDict() # virtual dmx chanel
 _id = 1
-htp_master.data[_id] = {"DMX":[1,2,3],"VALUE":80, "LIMIT":255}
-Vdmx[_id] = DMXCH(_id) # v-master 1
 
 
 
@@ -684,6 +632,117 @@ def split_cmd(data):
             cmds = [cmd]
     return cmds
 
+
+class VDMX():
+    """functional implementation as class for namespace encapsulation
+
+    """
+    def __init__(self):
+        self.data = OrderedDict() 
+        self.data[4] = {"DMX":[21,22,23],"VALUE":99, "LIMIT":255} #,"DMXCH":DMXCH("V4")}
+        for k,v in self.data.items():
+            pass
+            #dmxch = v["DMXCH"]
+            #dmxch.fade(10,0)
+            #dmxch.fx(size=200,speed=200,base="-") #self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
+
+    def _list_by_dmx(self,_dmx=0):
+        data = OrderedDict()
+        for i,link in self.data.items(): # enumerate(self.data):
+            if _dmx in link["DMX"]:
+                #print( "_list_by_dmx",i,link)
+                data[i] = link
+        return data
+
+
+    def dmx_by_id(self,_id=0):
+        #print("dmx by master-id:",_id)
+
+        if _id in self.data:
+            for i,link in self.data[_id].items():
+                #print("dmx_by_id", i,link)
+                return (i,link)
+
+        return 0,{}
+
+    def by_dmx(self,clock,dmx):
+        #print("master of dmx:",dmx)
+        val=0
+        flag = 0
+        data = self._list_by_dmx(dmx)
+        for i,row in data.items():
+            if "DMXCH" not in row:
+                row["DMXCH"] = DMXCH("V{}".format(i))
+                row["DMXCH"].fade(255,0)
+
+            v = row["DMXCH"].next(clock)
+            #row["DMXCH"].fade(200,20)
+            if v >= val:
+                val = v
+                flag = 1
+        out = 1.
+        if val > 256:
+            val = 256
+        
+        if flag:
+            out = val/256.
+        else: 
+            out = 1
+        return out
+
+vdmx = VDMX()
+
+
+class HTP_MASTER():
+    """functional implementation as class for namespace encapsulation
+
+    """
+    def __init__(self):
+        self.data = OrderedDict() 
+        #self.data[1] = {"DMX":[1,2,3],"VALUE":80, "LIMIT":255}
+        #self.data[2] = {"DMX":[12,13,22],"VALUE":70, "LIMIT":255}
+        #self.data[3] = {"DMX":[22,23,24],"VALUE":99, "LIMIT":255}
+        self.data[4] = {"DMX":[22,23,24],"VALUE":99, "LIMIT":255,"DMXCH":DMXCH(4)}
+
+    def _list_by_dmx(self,_dmx=0):
+        data = OrderedDict()
+        for i,link in self.data.items(): # enumerate(self.data):
+            if _dmx in link["DMX"]:
+                #print( "_list_by_dmx",i,link)
+                data[i] = link
+        return data
+
+
+    def dmx_by_id(self,_id=0):
+        #print("dmx by master-id:",_id)
+
+        if _id in self.data:
+            for i,link in self.data[_id].items():
+                #print("dmx_by_id", i,link)
+                return (i,link)
+
+        return 0,{}
+
+    def val_by_dmx(self,dmx=0):
+        #print("master of dmx:",dmx)
+        val=0
+        flag = 0
+        data = self._list_by_dmx(dmx)
+        for i,link in data.items():
+
+            #print("master_by_dmx", i,link)
+            if link["VALUE"] > val:
+                #print("master_by_dmx", i,link)
+                val = link["VALUE"]
+                flag=1
+        out = 1.
+        if flag:
+            out = val/255.
+        
+        return out
+htp_master = HTP_MASTER()
+
+#htp_master.data[_id] = {"DMX":[1,2,3],"VALUE":80, "LIMIT":255,"DMXCH":DMXCH()}
 
 
 
@@ -726,8 +785,9 @@ class Main():
                     artnet = self.artnet[str(univ)]
                     artnet.dmx = xx
                 
-                htp_master._list_by_dmx(ii)
                 v = dmxch.next(t)
+                vv = vdmx.by_dmx(clock=i,dmx=ii+1)
+                v = v*vv
                 xx[i] = int(v)
             try:    
                 artnet.next()
@@ -768,6 +828,11 @@ def JCB(data): #json client input
                     print("CMD:",x)
                     if "SPEED-MASTER" == x["CMD"]:
                         speed_master.val(x["NR"],x["VALUE"])
+                        if x["NR"] == 2:
+                            vdmx.data[4]["DMXCH"].fade(x["VALUE"],3)#,clock=clock.time())
+                        if x["NR"] == 3:
+                            vdmx.data[4]["DMXCH"].fx(size=255,speed=x["VALUE"],base="-",offset=0)#xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+
                     if "SIZE-MASTER" == x["CMD"]:
                         size_master.val(x["NR"],x["VALUE"])
                 else:

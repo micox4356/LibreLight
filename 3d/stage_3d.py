@@ -1,6 +1,25 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
 
+"""
+This file is part of LibreLight.
 
+LibreLight is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 2 of the License.
 
+LibreLight is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
+
+(c) 2012 micha@uxsrv.de
+"""
+
+import sys
 import pygame as pg
 #from pygame.locals import *
 import OpenGL.GL  as gl
@@ -71,11 +90,12 @@ class Spot():
         self.v2 = [v[0],v[1]+5,v[2]+3]
         self.dir = random.randint(0,1)
         self.delta = 0
+        self.delta2 = random.random()/100
     def draw(self):
         if self.dir:
-            self.delta += 0.01
+            self.delta += (0.01 +self.delta2)
         else:
-            self.delta -= 0.01
+            self.delta -= (0.01 +self.delta2)
 
         if self.delta < -0.5:
             self.dir = 1
@@ -130,8 +150,10 @@ def event_read():
         rot_y = 0
         rot_z = 0
         if event.type== pg.QUIT:
+            print("quit")
             pg.quit()
             quit()
+            sys.exit()
         if event.type == pg.KEYDOWN:
             print(event.key,event)
             print(event.mod)
@@ -173,8 +195,10 @@ def event_read():
             gl.glRotatef(d,a,1,0)
             a += 1
     
-
-pg.init()
+#pg.init()   #pulseaudio assert error after some time
+#pg.font.init()
+#pg.mixer.init() #pulsaudio assert error after some time
+pg.display.init()
 pg.key.set_repeat(1,100)
 pg.display.set_caption('LibreLight 3D Stage')
 display= (400,400)
@@ -197,23 +221,28 @@ for z in [1,3,5]:
     s = Spot(v=(4,z,0))
     spots.append(s)
 frame = 0
+
 while True:
-    pg.display.set_caption('LibreLight 3D Stage {: 10} frame'.format(frame))
-    frame += 1
-    event_read()
-    
-    #gl.glRotatef(1,1,1,1)
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT)
+    try:
+        pg.display.set_caption('LibreLight 3D Stage {: 10} frame'.format(frame))
+        frame += 1
+        event_read()
+        
+        #gl.glRotatef(1,1,1,1)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT)
 
-    floor(v=(0,-2.2,20),size=(30,30),rgb=(.1,.1,.1)) # hall
-    wall(v=(0,5,-8),size=(20,8),rgb=(.2,.2,.3))   # backdrop
-    wall(v=(0,-1.2,8),size=(10,1),rgb=(.3,.2,.2))   # stage-border
-    #floor(v=(0,-2.2,20),size=(10,10),rgb=(.3,.2,.2))
-    floor() # stage-plain
-    zerror() # zerror-cross
+        floor(v=(0,-2.2,20),size=(30,30),rgb=(.1,.1,.1)) # hall
+        wall(v=(0,5,-8),size=(20,8),rgb=(.2,.2,.3))   # backdrop
+        wall(v=(0,-1.2,8),size=(10,1),rgb=(.3,.2,.2))   # stage-border
+        #floor(v=(0,-2.2,20),size=(10,10),rgb=(.3,.2,.2))
+        floor() # stage-plain
+        zerror() # zerror-cross
 
-    for s in spots:
-        s.draw()
-    pg.display.flip()
-    pg.time.wait(10)
-
+        for s in spots:
+            s.draw()
+        pg.display.flip()
+        pg.time.wait(10)
+    except Exception as e:
+        print("Exception ",e)
+#finally:
+#    print("end -- frame:",frame)

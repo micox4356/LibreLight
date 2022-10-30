@@ -59,6 +59,40 @@ import lib.motion as motion
 
 from collections import OrderedDict
 
+_POS_LEFT = 0
+_POS_TOP  = 15
+_config = []
+try: 
+    h = os.environ["HOME"]
+    lines = [{}]
+    try: 
+        f = open(h +"/LibreLight/config.json")
+        lines = f.readlines()
+
+    except FileNotFoundError as e: #Exception as e:
+        f = open(h +"/LibreLight/config.json","w")
+        f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
+        f.close()
+        print("Exception:",e)
+
+    for line in lines:
+        line=line.strip()
+        print("config read",line)
+        row = json.loads(line) 
+        _config.append(row)
+
+except Exception as e:
+    print("Exception:",e)
+
+try: 
+    for row in _config:
+        print("config:",row)
+        if "POS_LEFT" in row:
+           _POS_LEFT = int(row["POS_LEFT"]) 
+        if "POS_TOP" in row:
+           _POS_TOP = int(row["POS_TOP"]) 
+except Exception as e:
+    print("Exception:",e)
 
 
 def showwarning(msg="<ERROR>",title="<TITLE>"):
@@ -2498,7 +2532,7 @@ class LOAD_SHOW_AND_RESTAT():
         sys.exit()
                 
 class PopupList():
-    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=400,top=100,cb=None,bg="black"):
+    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=_POS_LEFT+400,top=_POS_TOP+100,cb=None,bg="black"):
         self.name = name
         self.frame = None
         self.bg=bg
@@ -4512,40 +4546,6 @@ else:
 
 
 refresher = Refresher()
-_POS_LEFT = 0
-_POS_TOP  = 15
-_config = []
-try: 
-    h = os.environ["HOME"]
-    lines = [{}]
-    try: 
-        f = open(h +"/LibreLight/config.json")
-        lines = f.readlines()
-
-    except Exception as e:
-        f = open(h +"/LibreLight/config.json","w")
-        f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
-        f.close()
-        print("Exception:",e)
-
-    for line in lines:
-        line=line.strip()
-        print("config read",line)
-        row = json.loads(line) 
-        _config.append(row)
-
-except Exception as e:
-    print("Exception:",e)
-
-try: 
-    for row in _config:
-        print("config:",row)
-        if "POS_LEFT" in row:
-           _POS_LEFT = int(row["POS_LEFT"]) 
-        if "POS_TOP" in row:
-           _POS_TOP = int(row["POS_TOP"]) 
-except Exception as e:
-    print("Exception:",e)
 
 if __run_main:
     print("main")

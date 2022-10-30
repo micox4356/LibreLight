@@ -4512,18 +4512,55 @@ else:
 
 
 refresher = Refresher()
+_POS_LEFT = 0
+_POS_TOP  = 15
+_config = []
+try: 
+    h = os.environ["HOME"]
+    lines = [{}]
+    try: 
+        f = open(h +"/LibreLight/config.json")
+        lines = f.readlines()
+
+    except Exception as e:
+        f = open(h +"/LibreLight/config.json","w")
+        f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
+        f.close()
+        print("Exception:",e)
+
+    for line in lines:
+        line=line.strip()
+        print("config read",line)
+        row = json.loads(line) 
+        _config.append(row)
+
+except Exception as e:
+    print("Exception:",e)
+
+try: 
+    for row in _config:
+        print("config:",row)
+        if "POS_LEFT" in row:
+           _POS_LEFT = int(row["POS_LEFT"]) 
+        if "POS_TOP" in row:
+           _POS_TOP = int(row["POS_TOP"]) 
+except Exception as e:
+    print("Exception:",e)
+
 if __run_main:
     print("main")
     thread.start_new_thread(refresher.loop,())
+    
 
-    TOP = 15
-    L1 = 95
-    L2 = 920 
+    TOP = _POS_TOP + 15
+    L0 = _POS_LEFT 
+    L1 = _POS_LEFT + 95
+    L2 = _POS_LEFT + 920 
     W1 = 810
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
-    w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=0,top=TOP)
+    w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=L0,top=TOP)
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
@@ -4568,7 +4605,7 @@ if __run_main:
 
     name="MASTER-WING"
     #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = GUIWindow(name,master=0,width=90,height=405,left=0,top=TOP+H1-220)
+    w = GUIWindow(name,master=0,width=90,height=405,left=L0,top=TOP+H1-220)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
     for i in range(12*2):
@@ -4577,38 +4614,28 @@ if __run_main:
     window_manager.new(w,name)
 
     name="ENCODER"
-    ww = GUIWindow(name,master=0,width=560,height=113,left=770,top=HTB*2+TOP+H1)
-    _ENCODER_WINDOW = ww
-    Xroot = ww.tk
-    w = None
-
-    #root = tk.Frame(Xroot,bg="black",width="10px")
-    #print("print pack",root)
-    #root.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-    #root3 = tk.Frame(Xroot,bg="black",width="20px")
-    #root3.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
-    #root2 = tk.Frame(Xroot,bg="black",width="1px")
-    draw_enc(master,Xroot)
-    #root2.pack(fill=tk.BOTH,expand=0, side=tk.LEFT)
+    w = GUIWindow(name,master=0,width=560,height=113,left=L0+770,top=TOP+H1+HTB*2)
+    _ENCODER_WINDOW = w
+    draw_enc(master,w.tk)#Xroot)
 
     name = "SETUP"
-    w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=TOP)
+    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP)
     w.tk.title("SETUP   SHOW:"+master.base.show_name)
     draw_setup(master,w.tk)
     window_manager.new(w,name)
 
     name = "COMMAND"
-    w = GUIWindow(name,master=0,width=415,height=130,left=10+L1+W1,top=96)
+    w = GUIWindow(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81)#+96)
     draw_command(master,w.tk)
     window_manager.new(w,name)
 
     name = "LIVE"
-    w = GUIWindow(name,master=0,width=415,height=42,left=10+L1+W1,top=250)
+    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235)#250)
     draw_live(master,w.tk)
     window_manager.new(w,name)
 
     name="FX"
-    w = GUIWindow(name,master=0,width=415,height=260,left=10+L1+W1,top=317)
+    w = GUIWindow(name,master=0,width=415,height=260,left=L1+10+W1,top=TOP+302)#317)
     #frame_fx = w.tk
     draw_fx(master,w.tk)
     window_manager.new(w,name)
@@ -4623,12 +4650,11 @@ if __run_main:
 
     #LibreLightDesk
     name="COLORPICKER"
-    w = GUIWindow(name,master=0,width=600,height=113,left=L1,top=20+HTB*2+H1)
+    w = GUIWindow(name,master=0,width=600,height=113,left=L1,top=TOP+5+HTB*2+H1)
     draw_colorpicker(master,w.tk)
     window_manager.new(w,name)
 
     name="TableA"
-    w# = GUIWindow(name,master=0,width=580,height=100,left=80,top=620)
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
     x=TableFrame(root=w.tk)#,left=80,top=620)

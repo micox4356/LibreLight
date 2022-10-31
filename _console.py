@@ -679,15 +679,15 @@ class VDMX():
             #row["DMXCH"].fade(200,20)
             if v >= val:
                 val = v
-                flag = 1
+            flag = 1
         out = 1.
-        if val > 256:
-            val = 256
+        if val > 255:
+            val = 255
         
         if flag:
-            out = val/256.
+            out = val/255.
         else: 
-            out = 1
+            out = 1.
         return out
 
 vdmx = VDMX()
@@ -829,9 +829,11 @@ def JCB(data): #json client input
                     if "SPEED-MASTER" == x["CMD"]:
                         speed_master.val(x["NR"],x["VALUE"])
                         if x["NR"] == 2:
-                            vdmx.data[4]["DMXCH"].fade(x["VALUE"],3)#,clock=clock.time())
+                            pass
+                            #vdmx.data[4]["DMXCH"].fade(x["VALUE"],3)#,clock=clock.time())
                         if x["NR"] == 3:
-                            vdmx.data[4]["DMXCH"].fx(size=255,speed=x["VALUE"],base="-",offset=0)#xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                            pass
+                            #vdmx.data[4]["DMXCH"].fx(size=255,speed=x["VALUE"],base="-",offset=0)#xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
 
                     if "SIZE-MASTER" == x["CMD"]:
                         size_master.val(x["NR"],x["VALUE"])

@@ -639,7 +639,7 @@ class VDMX():
     """
     def __init__(self):
         self.data = OrderedDict() 
-        self.data[4] = {"DMX":[21,22,23],"VALUE":99, "LIMIT":255} #,"DMXCH":DMXCH("V4")}
+        self.data[4] = {"DMX":[21,22,23],"VALUE":255, "LIMIT":255} #,"DMXCH":DMXCH("V4")}
         for k,v in self.data.items():
             pass
             #dmxch = v["DMXCH"]
@@ -787,7 +787,7 @@ class Main():
                 
                 v = dmxch.next(t)
                 vv = vdmx.by_dmx(clock=i,dmx=ii+1)
-                v = v*vv
+                v = v*vv # disable v-master
                 xx[i] = int(v)
             try:    
                 artnet.next()

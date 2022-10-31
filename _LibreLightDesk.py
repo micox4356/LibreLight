@@ -1549,7 +1549,8 @@ class MiniButton:
         self.rb = tk.Frame(root, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
         self.bb.configure(width=width, height=height)
-
+        self.fg = "#002"
+        self.label = []
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
 
@@ -1592,11 +1593,14 @@ class MiniButton:
     def _label(self,text="1\n2\n3\n"):
         z = 0
         self.bb.delete("label")
-
+        self.label = []
         for t in text.split("\n"):
             self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
+            #self.l["color"] = self.fg
+            self.label.append(self.l)
+            
             z+=1
-    def configure(self,**args):
+    def _configure(self,**args):
         if "text" in args:
             self.text = args["text"]
             self._label(self.text)
@@ -1604,8 +1608,16 @@ class MiniButton:
             #print(dir(self.bb))
             self.bb.configure(bg=args["bg"])
             self.defaultBackground=args["bg"]
+        if "fg" in args:
+            #print(dir(self.bb))
+            self.fg=args["fg"]
+            #if len(self.label):
+            #    self.label[0].configure(color="red") #args["fg"])
+            #self.defaultBackground=args["fg"]
+    def configure(self,**args):
+        self._configure(**args)
     def config(self,**args):
-        self.configure(**args)
+        self._configure(**args)
     def bind(self,etype="<Button>",cb=None):
         #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
         if cb:
@@ -1617,9 +1629,18 @@ class MiniButton:
 class ExecButton(MiniButton):
     def __init__(self,root,width=72,height=38,text="button"):
         super().__init__(root,width,height,text)
-
-    def _label(self,text="1\n2\n3\n"):
-        z = 0
+        self.text = "1\n2\n3\n"
+    def config(self,**args):
+        self._configure(**args)
+        self._label()
+    def configure(self,**args):
+        self._configure(**args)
+        self._label()
+    def _label(self,text=None):
+        if type(text) is str:
+            self.text = text
+        else:
+            text = self.text
         self.bb.delete("label")
         txt2 = text
         try:
@@ -1661,9 +1682,9 @@ class ExecButton(MiniButton):
             self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag="label")
 
         text = txt2
+        z = 0
         for t in text.split("\n"):
-            #print(t)
-            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
+            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             z+=1
 
 
@@ -1754,6 +1775,7 @@ class GUI():
             PRESETS.btn_cfg(nr,txt)
             self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
         modes.val("CFG-BTN",0)
+        master._refresh_exec()
     def label(self,nr):
         txt = PRESETS.label(nr) 
         txt = tkinter.simpledialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
@@ -1761,6 +1783,8 @@ class GUI():
             PRESETS.label(nr,txt) 
             self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
         modes.val("LABEL", 0)
+
+        master._refresh_exec()
     def xcb(self,mode,value=None):
         cprint("MODE CALLBACK",mode,value,color="green",end="")
         #cprint(self,"xcb","MODE CALLBACK",mode,value,color="green")
@@ -1810,6 +1834,7 @@ class GUI():
             b = self.elem_presets[k]
             
             ifval = 0
+            fx_only = 0
             if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
                 sdata = PRESETS.val_presets[k]
                 #print("sdata7654",sdata)
@@ -1817,7 +1842,8 @@ class GUI():
                 if "CFG" in sdata:#["BUTTON"] = "GO"
                     if "BUTTON" in sdata["CFG"]:
                         BTN = sdata["CFG"]["BUTTON"]
-                txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+                #txt=str(k+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+label
+                txt="{} {} {}\n{}".format(k+1,BTN,len(sdata)-1,label)
                 #txt+=str(self._XX)
                 b.configure(text= txt)
                 b.configure(bg="yellow")
@@ -1849,33 +1875,36 @@ class GUI():
                             b.configure(fg = "blue")
                     else:   
                         if fx_color:
-                            b.configure(bg = "cyan")
-                            b.config(activebackground="#55d4ff")
+                            fx_only = 1
                 else:
                     b.configure(bg="grey")
-                    b.config(activebackground="#aaaaaa")
+                    b.config(activebackground="#aaa")
+
 
             if "\n" in txt:
-                txt = txt.split("\n")[0]
+                txt1 = txt.split("\n")[0]
 
             if ifval:
-                if "SEL" in txt:
-                    b.configure(fg= "black")
-                    b.configure(bg = "#55f")
-                    b.config(activebackground="#6666ff")
+                if fx_only:
+                    b.configure(bg = "cyan")
+                    b.config(activebackground="#55d4ff")
 
-                elif "ON" in txt:
-                    b.configure(bg = "#ffcc00")
-                    b.configure(fg = "#00c")
-
-                elif "GO" in txt:
+                if "SEL" in txt1:
                     b.configure(fg="black")
-                elif "FL" in txt:
-                    b.configure(fg = "#7f00ff")
+                    #b.configure(bg="#77f")
+                    #b.config(activebackground="#fff")
+                elif "ON" in txt1:
+                    b.configure(fg="#040")
+                    #b.configure(bg="#cca")
+                elif "GO" in txt1:
+                    b.configure(fg="black")
+                elif "FL" in txt1:
+                    #b.configure(fg="#7f00ff")
+                    b.configure(fg="#00e")
+                    #b.configure(bg="#f0a000")
             else: 
                 b.configure(bg="grey")
                 b.configure(fg="black")
-
 
     def refresh_fix(self):
         refresher.reset() # = Refresher()
@@ -1954,7 +1983,7 @@ class GUI():
         sdata=data
         PRESETS.val_presets[nr] = sdata
         
-        master.refresh_exec()
+        master._refresh_exec()
         return 1
 
 
@@ -2558,13 +2587,13 @@ def draw_setup(gui,xframe):
         elif comm == "LOAD\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
         elif comm == "SAVE\nSHOW AS":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "SAVE &\nRESTART":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "DRAW\nGUI":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         else:
-            b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
+            b = tk.Button(frame,bg="grey", text=str(comm),width=5,height=2)
 
         if comm not in gui.commands.elem:
             gui.commands.elem[comm] = b
@@ -2939,7 +2968,8 @@ def draw_preset(gui,xframe):
             r+=1
     time.sleep(0.1)
     gui._refresh_exec()
-    #gui.refresh_exec()
+    gui.refresh_exec()
+    gui.refresh_exec()
 
 
 def draw_input(gui):

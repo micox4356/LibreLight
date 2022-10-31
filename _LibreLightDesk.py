@@ -3763,7 +3763,7 @@ class Presets():
 
     def copy(self,nr,overwrite=1):
         cprint("PRESETS._copy",nr,"last",self._last_copy)
-        if nr:
+        if nr >= 0:
             if self._last_copy is not None:
                 if modes.val("COPY"):
                     modes.val("COPY",3)

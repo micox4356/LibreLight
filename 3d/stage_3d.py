@@ -208,7 +208,9 @@ glu.gluPerspective( 45, (display[0]/display[1]), 0.1, 80.0)
 gl.glTranslatef(0.0,0.0,-50)
 gl.glRotatef(25,2,1,0)
 gl.glRotatef(25,0,1,0)
-
+gl.glEnable(gl.GL_TEXTURE_2D)
+gl.glEnable(gl.GL_DEPTH_TEST)
+gl.glDepthFunc(gl.GL_LEQUAL)
 
 spots = []
 for z in [1,3,5]:

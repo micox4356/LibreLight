@@ -4650,7 +4650,7 @@ if __run_main:
 
     #LibreLightDesk
     name="COLORPICKER"
-    w = GUIWindow(name,master=0,width=600,height=113,left=L1,top=TOP+5+HTB*2+H1)
+    w = GUIWindow(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
     draw_colorpicker(master,w.tk)
     window_manager.new(w,name)
 

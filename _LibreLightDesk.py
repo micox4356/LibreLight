@@ -1013,7 +1013,7 @@ class Xevent():
     def setup(self,event):       
         cprint("xevent.SETUP",[self.mode,self.attr],color="red")
         if self.mode == "SETUP":
-            if self.attr == "BACKUP\nSHOW":
+            if self.attr == "SAVE\nSHOW":
                 self.elem["bg"] = "orange"
                 self.elem["text"] = "SAVING..."
                 self.elem["bg"] = "red"
@@ -1065,6 +1065,22 @@ class Xevent():
                     #base._set(fname)
                     
                     LOAD_SHOW_AND_RESTAT(fname).cb() 
+            elif self.attr == "SAVE &\nRESTART":
+                self.elem["bg"] = "orange"
+                self.elem["text"] = "SAVING..."
+                self.elem["bg"] = "red"
+                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                #self.elem["fg"] = "orange"
+                self.elem.config(activebackground="orange")
+                modes.val(self.attr,1)
+                PRESETS.backup_presets()
+                FIXTURES.backup_patch()
+                #time.sleep(1)
+                #modes.val(self.attr,0)
+                self.elem["bg"] = "lightgrey"
+                #self.elem["fg"] = "lightgrey"
+                self.elem.config(activebackground="lightgrey")
+                LOAD_SHOW_AND_RESTAT("").cb(force=1)
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
@@ -1137,7 +1153,7 @@ class Xevent():
                     modes.val(self.attr,0)
 
 
-            elif self.attr == "BACKUP":
+            elif self.attr == "SAVE":
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
@@ -2087,6 +2103,59 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
 
 
 
+class _SET_PATCH():
+    def __init__(self,k,v,fix,data):
+        self.v = v
+        self.button = None
+        self.k = k
+        self.fix = fix
+        self.data = data
+    def attr(self,_event=None):
+        k = self.k
+        data = self.data
+        fix = self.fix
+        txt = "k={} v={}".format(self.k,self.v)
+        print(txt)
+        print( "fix", self.fix )
+        print( "row data",self.data)
+        val = ""
+        if k in self.data:
+            val = self.data[k]
+        txt = tkinter.simpledialog.askstring("ATTR","set attr:",initialvalue=val)
+        print("_SET.attr",txt)
+        v = txt
+        if v is not None:
+            err = 1
+            if k in self.data:
+                if k == "NAME":
+                    self.data[k] = v
+                    err = 0
+                if k == "DMX":
+                    v = int(v)
+                    if v <= 512 and v >= 0:
+                        self.data[k] = v
+                        err = 0
+                if k == "UNIVERS":
+                    v = int(v)
+                    if v > 15:
+                        v=15
+                    if v < 0:
+                        v=0
+                    self.data[k] = v
+                    err = 0
+
+            if self.button:
+
+                if err:
+                    self.button["bg"] = "red"
+                else:
+                    self.button["bg"] = "#fff"
+                    self.button["text"] = "{}".format(v)
+        print( "row data",self.data)
+
+    def set_button(self,button):
+        self.button = button 
+
 def draw_patch(gui,yframe):
     #print(dir(yframe))
     #yframe.clear()
@@ -2134,7 +2203,10 @@ def draw_patch(gui,yframe):
         #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w")
+
+        command = _SET_PATCH("NAME",data["NAME"],fix,data)
+        b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w",command=command.attr)
+        command.set_button(b)
         #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
@@ -2166,7 +2238,12 @@ def draw_patch(gui,yframe):
         for k in patch:
             v=data[k]
             #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
-            b = tk.Button(xframe,bg="grey", text=str(v),width=2)
+
+            command = _SET_PATCH(k,v,fix,data)
+            b = tk.Button(xframe,bg="grey", text=str(v),width=2,command=command.attr)
+            command.set_button(b)
+            
+
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             if c >=8:
@@ -2425,24 +2502,28 @@ def draw_setup(gui,xframe):
     #b.grid(row=r, column=c, sticky=tk.W+tk.E)
     #r+=1
     c+=1
-    for comm in ["BACKUP\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS"]:
+    for comm in ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART"]:
         if comm == "\n":
             c=0
             r+=1
             continue
         v=0
         
-        if comm == "BACKUP\nSHOW":
+        if comm == "SAVE\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "LOAD\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "SAVE\nSHOW AS":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        elif comm == "SAVE &\nRESTART":
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         else:
             b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
+
         if comm not in gui.commands.elem:
             gui.commands.elem[comm] = b
             gui.commands.val[comm] = 0
+
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
 
         if comm == "BASE:":
@@ -2450,7 +2531,7 @@ def draw_setup(gui,xframe):
         if comm:
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        if c >=5:
+        if c >=7:
             c=0
             r+=1
 
@@ -2517,13 +2598,15 @@ class LOAD_SHOW_AND_RESTAT():
         self.fname=fname
         self.base = Base()
 
-    def cb(self,event=None):
-        if not self.fname:
+    def cb(self,event=None,force=0):
+        print("LOAD_SHOW_AND_RESTART.cb force={} name={}".format(force,self.fname) )
+        if not self.fname and not force:
             return 0
-        if self.base.show_name == self.fname:
+        if self.base.show_name == self.fname and not force:
             cprint("filename is the same",self.fname)
             return 0
-        self.base._set(self.fname)
+        if not force:
+            self.base._set(self.fname)
 
         print("LOAD SHOW:",event,self.fname)
 

@@ -170,7 +170,7 @@ class Modes():
         if value:
             for m in self.modes:
                 if m not in protected and mode not in protected and m != mode:
-                    cprint("-#-# clear mode",mode,m,value,color="red")
+                    #cprint("-#-# clear mode",mode,m,value,color="red")
                     if self.modes[m]:
                         self.modes[m]= 0
                         self.callback(m)
@@ -3779,9 +3779,10 @@ class Presets():
     def _copy(self,nr_from,nr_to,overwrite=1):
         cprint("PRESETS._copy",nr_from,"to",nr_to)
         self.check_cfg(nr_from)
-        if self._last_copy is None:
-            cprint("PRESETS._copy last nr is None")
+        if type(self._last_copy) is None:
+            cprint("PRESETS._copy last nr is None",color="red")
             return 0
+        cprint("------ PRESETS._copy", nr_from in self.val_presets , nr_to in self.val_presets)
         if nr_from in self.val_presets and nr_to in self.val_presets:
             fdata = self.val_presets[nr_from]
             tdata = self.val_presets[nr_to]
@@ -3796,12 +3797,12 @@ class Presets():
                 self.label_presets[nr_from] = tlabel
             #self.label_presets[nr_from] = "MOVE"
             self.clear_copy()
-            cprint("PRESETS.copy OK",color="red")
+            cprint("PRESETS.copy OK",color="green")
             return 1
 
     def move(self,nr):
         cprint("PRESETS.move",self._last_copy,"to",nr)
-        if nr: 
+        if nr >= 0: 
             last = self._last_copy
             if modes.val("MOVE"):
                 modes.val("MOVE",2)

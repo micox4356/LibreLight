@@ -1075,12 +1075,32 @@ class Xevent():
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
+                self.elem["text"] = "RESTARTING..."
                 #time.sleep(1)
                 #modes.val(self.attr,0)
                 self.elem["bg"] = "lightgrey"
                 #self.elem["fg"] = "lightgrey"
                 self.elem.config(activebackground="lightgrey")
                 LOAD_SHOW_AND_RESTAT("").cb(force=1)
+            elif self.attr == "DRAW\nGUI":
+                #self.elem["bg"] = "orange"
+                old_text = self.elem["text"]
+                self.elem["text"] = "DRAWING..."
+                #self.elem["bg"] = "red"
+                #time.sleep(0.05)
+                #print("redraw",name)
+                #if name == "PATCH":
+                #    gui_patch.draw()
+                #if name == "DIMMER":
+                #    gui_fix.draw()
+                self.elem["text"] = "PATCH..."
+                window_manager.top("PATCH")
+                gui_patch.draw()
+                self.elem["text"] = "FIX..."
+                gui_fix.draw()
+                window_manager.top("FIXTURES")
+                master._refresh_exec()
+                self.elem["text"] = old_text  
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
@@ -2121,7 +2141,7 @@ class _SET_PATCH():
         val = ""
         if k in self.data:
             val = self.data[k]
-        txt = tkinter.simpledialog.askstring("ATTR","set attr:",initialvalue=val)
+        txt = tkinter.simpledialog.askstring("SET","SET: {}={}".format(self.k,self.v),initialvalue=val)
         print("_SET.attr",txt)
         v = txt
         if v is not None:
@@ -2156,186 +2176,125 @@ class _SET_PATCH():
     def set_button(self,button):
         self.button = button 
 
-def draw_patch(gui,yframe):
-    #print(dir(yframe))
-    #yframe.clear()
-    for widget in yframe.winfo_children():
-        widget.destroy()
 
-    xframe = tk.Frame(yframe,bg="black")
-    xframe.pack()
-    def yview(event):
-        print("yevent",event)
-        yyy=20.1
-        xframe.yview_moveto(yyy)
+class GUI_PATCH():
+    def __init__(self,gui,yframe):
+        self.gui = gui
+        self.yframe = yframe
+    def draw(self): #,gui,yframe):
+        gui = self.gui
+        yframe = self.yframe
 
-    i=0
-    c=0
-    r=0
-    b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
-    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
-    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
+        #print(dir(yframe))
+        #yframe.clear()
+        for widget in yframe.winfo_children():
+            widget.destroy()
 
-    c=0
-    r+=1
-    for fix in FIXTURES.fixtures:
-        i+=1
-        data = FIXTURES.fixtures[fix]
-                        
-        b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
+        xframe = tk.Frame(yframe,bg="black")
+        xframe.pack()
+        def yview(event):
+            print("yevent",event)
+            yyy=20.1
+            xframe.yview_moveto(yyy)
+
+        i=0
+        c=0
+        r=0
+        b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
         #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-
-        command = _SET_PATCH("NAME",data["NAME"],fix,data)
-        b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w",command=command.attr)
-        command.set_button(b)
+        b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
         #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        if len(data["ATTRIBUT"]) == 1:
-            b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
-        elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
-            b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
-        else:
-            b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
-        #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+        b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
-        b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+        b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
-        b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+        b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        #r+=1
+        b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
 
-        start_c=3
-        c=start_c
-        if fix not in gui.elem_attr:
-            gui.elem_attr[fix] = {}
-            
-        patch = ["UNIVERS","DMX"]
-        for k in patch:
-            v=data[k]
-            #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
-
-            command = _SET_PATCH(k,v,fix,data)
-            b = tk.Button(xframe,bg="grey", text=str(v),width=2,command=command.attr)
-            command.set_button(b)
-            
-
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=8:
-                c=start_c
-                r+=1
-        b = tk.Button(xframe,bg="grey", text="{}".format(len(data["ATTRIBUT"])),width=3)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        if 0: #for attr in data["ATTRIBUT"]:
-            
-            if attr not in gui.all_attr:
-                gui.all_attr.append(attr)
-            if attr not in gui.elem_attr[fix]:
-                gui.elem_attr[fix][attr] = []
-            if attr.endswith("-FINE"):
-                continue
-            v= data["ATTRIBUT"][attr]["VALUE"]
-            
-            b = tk.Button(xframe,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
-            #gui.elem_attr[fix][attr] = b
-            #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if c >=8:
-                c=start_c
-                r+=1
         c=0
         r+=1
-           
+        for fix in FIXTURES.fixtures:
+            i+=1
+            data = FIXTURES.fixtures[fix]
+                            
+            b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
 
-
-def draw_fix(gui,xframe,yframe=None):
-    r=0
-    c=0
-    frame_dim=xframe
-    if yframe:
-        frame_dim=yframe
-    frame_fix=xframe
-    root = frame_dim
-    dim_frame = tk.Frame(root,bg="black")
-    dim_frame.pack(fill=tk.X, side=tk.TOP)
-    root = frame_fix
-    fix_frame = tk.Frame(root,bg="black")
-    fix_frame.pack(fill=tk.X, side=tk.TOP)
-    i=0
-    c=0
-    r=0
-    dim_end=0
-    for fix in FIXTURES.fixtures:
-        i+=1
-        data = FIXTURES.fixtures[fix]
-        #print("draw_fix", fix ,data )
-        
-        if(len(data["ATTRIBUT"].keys()) <= 1):
-            c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
-        else:
-            if not dim_end:
-                dim_end=1
-                c=0
-                r=0
-            #gui._draw_fix(fix,data,root=fix_frame)
-            frame = fix_frame
-        
-            b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
+            command = _SET_PATCH("NAME",data["NAME"],fix,data)
+            b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w",command=command.attr)
+            command.set_button(b)
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            if len(data["ATTRIBUT"]) == 1:
+                b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
+            elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
+                b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
+            else:
+                b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
+            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
             b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
-            b.bind("<Button>",Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
+            b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
+            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             #r+=1
+
             start_c=3
             c=start_c
             if fix not in gui.elem_attr:
                 gui.elem_attr[fix] = {}
                 
-            for attr in data["ATTRIBUT"]:
+            patch = ["UNIVERS","DMX"]
+            for k in patch:
+                v=data[k]
+                #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
+
+                command = _SET_PATCH(k,v,fix,data)
+                b = tk.Button(xframe,bg="grey", text=str(v),width=2,command=command.attr)
+                command.set_button(b)
                 
-                if attr.endswith("-FINE"):
-                    continue
+
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                if c >=8:
+                    c=start_c
+                    r+=1
+            b = tk.Button(xframe,bg="grey", text="{}".format(len(data["ATTRIBUT"])),width=3)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            if 0: #for attr in data["ATTRIBUT"]:
+                
                 if attr not in gui.all_attr:
                     gui.all_attr.append(attr)
                 if attr not in gui.elem_attr[fix]:
-                    gui.elem_attr[fix][attr] = ["line1348",fix,attr]
+                    gui.elem_attr[fix][attr] = []
+                if attr.endswith("-FINE"):
+                    continue
                 v= data["ATTRIBUT"][attr]["VALUE"]
                 
-                b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
-                gui.elem_attr[fix][attr] = b
-                b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
+                b = tk.Button(xframe,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                #gui.elem_attr[fix][attr] = b
+                #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
                 c+=1
                 if c >=8:
@@ -2343,8 +2302,93 @@ def draw_fix(gui,xframe,yframe=None):
                     r+=1
             c=0
             r+=1
-            
+           
 
+class GUI_FIX():
+    def __init__(self,gui,xframe,yframe=None):
+        self.gui = gui
+        self.xframe = xframe
+        self.yframe = yframe
+    def draw(self):
+        gui=self.gui
+        xframe=self.xframe
+        yframe=self.yframe
+
+        r=0
+        c=0
+        frame_dim=xframe
+        if yframe:
+            frame_dim=yframe
+            for widget in yframe.winfo_children():
+                widget.destroy()
+        frame_fix=xframe
+        for widget in xframe.winfo_children():
+            widget.destroy()
+
+
+        root = frame_dim
+        dim_frame = tk.Frame(root,bg="black")
+        dim_frame.pack(fill=tk.X, side=tk.TOP)
+        root = frame_fix
+        fix_frame = tk.Frame(root,bg="black")
+        fix_frame.pack(fill=tk.X, side=tk.TOP)
+        i=0
+        c=0
+        r=0
+        dim_end=0
+        for fix in FIXTURES.fixtures:
+            i+=1
+            data = FIXTURES.fixtures[fix]
+            #print("draw_fix", fix ,data )
+            
+            if(len(data["ATTRIBUT"].keys()) <= 1):
+                c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
+            else:
+                if not dim_end:
+                    dim_end=1
+                    c=0
+                    r=0
+                #gui._draw_fix(fix,data,root=fix_frame)
+                frame = fix_frame
+            
+                b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
+                b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
+                b.bind("<Button>",Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+                #r+=1
+                start_c=3
+                c=start_c
+                if fix not in gui.elem_attr:
+                    gui.elem_attr[fix] = {}
+                    
+                for attr in data["ATTRIBUT"]:
+                    
+                    if attr.endswith("-FINE"):
+                        continue
+                    if attr not in gui.all_attr:
+                        gui.all_attr.append(attr)
+                    if attr not in gui.elem_attr[fix]:
+                        gui.elem_attr[fix][attr] = ["line1348",fix,attr]
+                    v= data["ATTRIBUT"][attr]["VALUE"]
+                    
+                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                    gui.elem_attr[fix][attr] = b
+                    b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                    c+=1
+                    if c >=8:
+                        c=start_c
+                        r+=1
+                c=0
+                r+=1
+                
+
+        #master._refresh_exec()
+        #master.refresh_exec()
 
 
 def draw_enc(gui,xframe):
@@ -2502,7 +2546,7 @@ def draw_setup(gui,xframe):
     #b.grid(row=r, column=c, sticky=tk.W+tk.E)
     #r+=1
     c+=1
-    for comm in ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART"]:
+    for comm in ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]:
         if comm == "\n":
             c=0
             r+=1
@@ -2510,12 +2554,14 @@ def draw_setup(gui,xframe):
         v=0
         
         if comm == "SAVE\nSHOW":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
         elif comm == "LOAD\nSHOW":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
         elif comm == "SAVE\nSHOW AS":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
         elif comm == "SAVE &\nRESTART":
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        elif comm == "DRAW\nGUI":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         else:
             b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
@@ -2891,7 +2937,9 @@ def draw_preset(gui,xframe):
         if c >=10:
             c=0
             r+=1
-    gui.refresh_exec()
+    time.sleep(0.1)
+    gui._refresh_exec()
+    #gui.refresh_exec()
 
 
 def draw_input(gui):
@@ -4179,7 +4227,7 @@ class GUI_FaderLayout():
         line2="CHOOS to EDIT >> DEMO MODUS"
         cb = LOAD_FIXTURE
         #cb.master=self
-        pw = PopupList(name,cb=cb,left=800,bg="red")
+        pw = PopupList(name,cb=cb,left=_POS_LEFT+820,bg="red")
         frame = pw.sframe(line1=line1,line2=line2)
         r=_load_fixture_list(frame,cb=cb,master=self,bg="red")
 
@@ -4546,6 +4594,11 @@ class WindowManager():
         if name in self.windows:
             self.windows[name].tk.attributes('-topmost',True)
             self.windows[name].tk.attributes('-topmost',False)
+            #print("redraw",name)
+            #if name == "PATCH":
+            #    gui_patch.draw()
+            #if name == "DIMMER":
+            #    gui_fix.draw()
         else:
             print(name,"not in self.windows",self.windows.keys())
 
@@ -4613,8 +4666,9 @@ class Refresher():
         master._refresh_exec()
     def loop(self,args={}):
         while 1:
-            self.refresh()
+
             try:
+                self.refresh()
                 tkinter.Tk.update_idletasks(gui_menu_gui.tk)
             except Exception as e:print("loop exc",e)
             time.sleep(0.2)
@@ -4679,7 +4733,9 @@ if __run_main:
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_fix = w1 #w.tk
-    draw_fix(master,w1,w2)#.tk)
+    #draw_fix(master,w1,w2)#.tk)
+    gui_fix = GUI_FIX(master,w1,w2)
+    gui_fix.draw()
     window_manager.new(w,name)
 
 
@@ -4734,7 +4790,8 @@ if __run_main:
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     main_preset_frame = w1
-    draw_patch(master,main_preset_frame)
+    gui_patch = GUI_PATCH(master,main_preset_frame)
+    gui_patch.draw()
     window_manager.new(w,name)
 
     #LibreLightDesk

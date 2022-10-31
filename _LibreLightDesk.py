@@ -2624,7 +2624,7 @@ class PopupList():
             cb = DummyCallback #("load_show_list.cb")
         w = GUIWindow(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
         self.w = w
-
+        w.show()
     def sframe(self,line1="<line1>",line2="<line2>",data=[]):
 
         xframe=self.w.tk
@@ -3919,6 +3919,7 @@ class ELEM_FADER():
         w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
         #w.pack()
         self._set_mode(txt)
+        w.show()
     def _set_mode(self,txt=""):
         if type(txt) is str:
             self.mode["text"] = "{}".format(txt[0].upper())
@@ -4368,6 +4369,7 @@ class GUIWindow():
         self.cb = cb
         if master: 
             self.tk = tkinter.Tk()
+            self.tk.withdraw() # do not draw
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             print(defaultFont)
             defaultFont.configure(family="FreeSans",
@@ -4382,6 +4384,7 @@ class GUIWindow():
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
+            self.tk.withdraw() # do not draw
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
             
             try:
@@ -4416,6 +4419,7 @@ class GUIWindow():
 
         #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
+        self.show()
     def update_idle_task(self):
         tkinter.Tk.update_idletasks(gui_menu_gui.tk)
         pass
@@ -4438,6 +4442,7 @@ class GUIWindow():
             #return self.tk.title(title)
             return self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
     def show(self):
+        self.tk.deiconify()
         pass
     def mainloop(self):
         try:
@@ -4742,12 +4747,14 @@ if __run_main:
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
     x=TableFrame(root=w.tk)#,left=80,top=620)
+    w.show()
     data =[]
     for a in range(40):
         data.append(["E","E{}".format(a+1)])
 
     x.draw(data=data,head=["E","C"],config=[12,5,5])
     w=x.bframe
+
     #window_manager.new(w,name)
 
 

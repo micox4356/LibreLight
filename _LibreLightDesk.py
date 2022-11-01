@@ -1891,7 +1891,7 @@ class GUI():
 
                 if "SEL" in txt1:
                     b.configure(fg="black")
-                    #b.configure(bg="#77f")
+                    b.configure(bg="#77f")
                     #b.config(activebackground="#fff")
                 elif "ON" in txt1:
                     b.configure(fg="#040")

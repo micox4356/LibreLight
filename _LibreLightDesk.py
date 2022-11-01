@@ -2051,7 +2051,7 @@ class GUI():
             self._preset_go(rdata,cfg,fcmd,value,xfade=0,xFLASH=xFLASH)
         elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
-            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade)
+            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade,nr=nr)
 
 
 
@@ -2060,7 +2060,7 @@ class GUI():
             self.refresh_fix()
         cprint("preset_go",time.time()-t_start)
 
-    def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0):
+    def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0,nr=None):
         if xfade is None and FADE._is():
             xfade = FADE.val()
 
@@ -2072,6 +2072,7 @@ class GUI():
         if ptfade is None:
             ptfade = cfg["FADE"]
         #vcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
+        #cprint(rdata,color="red")
         vcmd = reshape_preset( rdata ,value,xfade=xfade,ptfade=ptfade) 
 
         cmd = []
@@ -2098,6 +2099,9 @@ class GUI():
                     DMX = fcmd[i]["VIRTUAL"][a]
                     if DMX and vcmd[i]:
                         vcmd[i]["DMX"] = DMX
+            if type(nr) is not None:
+                vcmd[i]["EXEC"] = str(nr)
+            #cprint(vcmd[i],color="red")
             cmd.append(vcmd[i])
 
         if cmd and not modes.val("BLIND"):

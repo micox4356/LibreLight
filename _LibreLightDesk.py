@@ -2100,7 +2100,7 @@ class GUI():
                     if DMX and vcmd[i]:
                         vcmd[i]["DMX"] = DMX
             if type(nr) is not None:
-                vcmd[i]["EXEC"] = str(nr)
+                vcmd[i]["EXEC"] = str(nr+1)
             #cprint(vcmd[i],color="red")
             cmd.append(vcmd[i])
 
@@ -4052,7 +4052,7 @@ class ELEM_FADER():
         self.elem.append(self.b)
 
 
-class GUI_MasterWingLayout():
+class GUI_ExecWingLayout():
     def __init__(self,root,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
@@ -4118,11 +4118,14 @@ class GUI_MasterWingLayout():
     def event_cb(self,a1="",a2="",nr=None,**args):
         print("event_cb:",nr,a1,a2,args)
         nr += 1
-        jdata= {"CMD":"SPEED-MASTER","NR":nr,"VALUE":int(a1)}
-        if nr <= 12:
-            jdata["CMD"] = "SIZE-MASTER"
+        jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
+
+        if nr >= 1 and nr <= 12:
+            jdata["CMD"] = "EXEC-SIZE-MASTER"
             jdata["NR"] = nr
-        else:
+
+        if nr >= 13 and nr <= 24:
+            jdata["CMD"] = "EXEC-SPEED-MASTER"
             jdata["NR"] = nr-12
 
         print("event_cb",jdata)
@@ -4154,6 +4157,114 @@ class GUI_MasterWingLayout():
                 txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             else:
                 txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+            #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
+            print("---",j,txt,e)
+            e["text"] = txt
+            
+class GUI_MasterWingLayout():
+    def __init__(self,root,data,title="tilte",width=800):
+        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
+        font8 = ("FreeSans",8)
+        self.dmx=1
+        self.univ=0
+        r=0
+        c=0
+        i=1
+        self.elem=[]
+        self.header=[]
+        self.data = data
+        #self.frame = tk.Frame(root,bg="black",width=width)
+        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+
+        #self.b = tk.Label(self.frame,bg="#fff",text="Master Wing") #,font=font8 )
+        #self.b.pack(fill=None, side=tk.LEFT)
+        #self.frame = tk.Frame(root,bg="black",width=width)
+        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+
+        #self.b = tk.Label(self.frame,bg="black",text="") # spacer
+        #self.b.pack(fill=tk.Y, side=tk.LEFT)
+
+        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
+        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        r=0
+        c=0
+        pb=1
+        self.pb=pb
+        for j,row in enumerate(data):
+            if c % pb == 0 or c==0:
+                h=hex(j*10)[2:].rjust(2,"0")
+                frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
+                frameS.pack(fill=tk.BOTH, side=tk.TOP)
+                p=j//pb+1
+                if j < 1:
+                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                else:
+                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
+                self.header.append(self.b)
+
+                self.b.pack(fill=None, side=tk.LEFT)
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
+                self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+                try:
+                    frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
+                except:
+                    frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
+                c=0
+            #print(frameS)
+            e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
+            if j >= 2:
+                e.pack(from_=400,to=0,init=100)
+            else:
+                e.pack(from_=200,to=0,init=100)
+            self.elem.append(e)
+            frameS.pack(fill=tk.X, side=tk.TOP)
+            c+=1
+            i+=1
+        self.frame.pack()
+        self._event_redraw()
+
+    def event_cb(self,a1="",a2="",nr=None,**args):
+        print("event_cb:",nr,a1,a2,args)
+        nr += 1
+        jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
+        if nr == 1:
+            jdata["CMD"] = "SIZE-MASTER"
+            jdata["NR"] = 1 #nr
+        if nr == 2:
+            jdata["CMD"] = "SPEED-MASTER"
+            jdata["NR"] = 1 #nr 
+
+
+        print("event_cb",jdata)
+        j = [jdata]
+        jclient_send(j)
+
+    def set_name(self,_event=None):
+        txt = self.name["text"]
+        txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
+        self.name["text"] = "{}".format(txt)
+        print("change_dmx",[_event,self])
+
+    def event_value(self,_event=None):
+        nr=self.dmx
+        txt= self.entry_dmx["text"]
+        
+    def _event_redraw(self,_event=None):
+        nr = 0
+        print("change_dmx",[_event,self])
+        for i,btn in enumerate(self.elem):
+            btn.set_label("{} D:{}".format(i+1,nr))
+            btn.nr = nr+i
+
+        pb=self.pb
+        for j,e in enumerate(self.header):
+            p=j+1
+            #p=nr/pb
+            if p == 1:
+                txt="SIZE-MASTER-GLOBAL:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+            else:
+                txt="SPEED-MASTER-GLOBAL:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
             print("---",j,txt,e)
             e["text"] = txt
@@ -4784,13 +4895,28 @@ if __run_main:
 
     name="MASTER-WING"
     #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = GUIWindow(name,master=0,width=90,height=405,left=L0,top=TOP+H1-220)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    w = GUIWindow(name,master=0,width=75,height=405,left=L0,top=TOP+H1-220)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    w1 = tk.Frame(w.tk,width=W1,height=H1)
+    w1.pack()
     data=[]
-    for i in range(12*2):
+    for i in range(2):
         data.append({"MASTER"+str(i):"MASTER"})
     GUI_MasterWingLayout(w1,data)
     window_manager.new(w,name)
+
+    name="EXEC-WING"
+    #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    w = GUIWindow(name,master=0,width=700,height=415,left=L1,top=TOP+H1+HTB*2)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    w1 = tk.Frame(w.tk,width=W1,height=H1)
+    w1.pack()
+    data=[]
+    for i in range(12*2):
+        data.append({"EXEC"+str(i):"EXEC"})
+    GUI_ExecWingLayout(w1,data)
+    window_manager.new(w,name)
+
 
     name="ENCODER"
     w = GUIWindow(name,master=0,width=560,height=113,left=L0+770,top=TOP+H1+HTB*2)

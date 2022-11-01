@@ -167,7 +167,7 @@ class Fade():
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "<Fade Next:{:0.2f} Start:{:0.2f} Target:{:0.2f} T{:0.2f} Clock:{:0.2f} run:{} delay:{:0.2f}>".format( 
+        return "<FADE Next:{:0.2f} from:{:0.2f} to:{:0.2f} ft:{:0.2f} Clock:{:0.2f} run:{} delay:{:0.2f}>".format( 
                     self.__last, self.__start,self.__target,self.__ftime,self.__clock_curr,self.run,self.__delay )
     def next(self,clock=None):
         if self.__ftime <= 0 and self.__delay <= 0:
@@ -215,13 +215,16 @@ class _MASTER():
         _value = self.__data[name] 
         if value is not None:
             if _value != value:
-                print(self.name,"CHANGE MASTER",name,_value)
+                print(self.name,"CHANGE MASTER:",name,"from:",_value,"to:",value)
             self.__data[name] = value
 
         _value = self.__data[name] 
 
         return _value /100.
         
+
+exec_size_master  = _MASTER("EXEC-SIZE")
+exec_speed_master = _MASTER("EXEC-SPEED")
 
 size_master  = _MASTER("SIZE")
 speed_master = _MASTER("SPEED")
@@ -341,8 +344,16 @@ class FX():
         if self.__xtype == "rnd":
             self.__offset = self.__master.get(self,-2)
             self.__offset = self.__master.next(self)#,count)
+        
+        self._exec_id = None
+
         self.next()
         #print("init FX",self)
+    def exec_id(self,_id=None):
+        if type(_id) is not type(None):
+            self._exec_id = str(_id)
+        return self._exec_id
+
     def _get_info(self):
         print(self.__offset)
         return {"offset":self.__offset,"xtype":self.__xtype}
@@ -350,13 +361,30 @@ class FX():
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} base:{} Clock:{:0.2f} run:{}>".format( 
-                    self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run )
+        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} base:{} Clock:{:0.2f} run:{} EXEC:{}>".format( 
+                    self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run,self._exec_id )
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
         
-        self.__clock_delta += (self.__clock_curr - self.__clock_old) * ( speed_master.val(self.__master_id)-1)
+        d  = (self.__clock_curr - self.__clock_old) 
+
+        #print()
+        #print("A",d)
+        
+        m1 = ( speed_master.val(self.__master_id)) # global speed-master
+        #print("B {:0.4}".format(m1))
+
+        m2 = ( exec_speed_master.val(self._exec_id)) # exec start by 0
+        #print("C {:0.4}".format(m2))
+
+        shift  = 0
+        m = (m1 * m2)  -1
+        shift += d * m
+        #print("D",shift)
+
+        self.__clock_delta += shift
+
         #print(self.__clock_delta )
         self.__clock_old = self.__clock_curr
 
@@ -499,8 +527,11 @@ class FX():
         out = v *size +base 
         self.out = out
         self.count = count
-        return out * size_master.val(self.__master_id)  #* (self.__fade_in_master /255.)
-        #= master_id
+
+        out = out * size_master.val(self.__master_id)  # master 
+        out = out * exec_size_master.val(self._exec_id)  # master 
+        #* (self.__fade_in_master /255.)
+        return out 
 
 class DMXCH(object):
     def __init__(self,dmx=-1):
@@ -515,6 +546,7 @@ class DMXCH(object):
         self._flash_fx = None
         self._flash_fx_value = 0
         self._last_val = None
+        self._exec_id = None
         #self.next(clock)
         #print("init",self)
     
@@ -543,6 +575,8 @@ class DMXCH(object):
                 self._fx_value = 0 
         else:
             self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=1) 
+            self._fx[1].exec_id(self._exec_id)
+
         self.next(clock)
         print("init",self)
 
@@ -565,6 +599,7 @@ class DMXCH(object):
             self._flash_fx_value = 0 
         else:
             self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=0)
+            self._flash_fx.exec_id(self._exec_id)
         self.next(clock)
         print("init",self)
 
@@ -573,9 +608,13 @@ class DMXCH(object):
     
     def __str__(self):
         return self.__repr__()
-    
+    def exec_id(self,_id=None):
+        if type(id) is not type(None):
+            self._exec_id = _id
+        return self._exec_id
+
     def __repr__(self):
-        return "<DMXCH {} {:0.2f} > [{}] {}".format(self._dmx, self._last_val,self._fx,self._fade)
+        return "<BUFFER {} v:{:0.2f} EXEC:{}> fx:[{}] fd:{}".format(self._dmx, self._last_val,self._exec_id,self._fx,self._fade)
     
     def fade_ctl(self,cmd=""): #start,stop,backw,fwd,bounce
         pass
@@ -826,6 +865,11 @@ def JCB(data): #json client input
                 #cprint("json", x,type(x),color="yellow")#,cmds[x])
                 if "CMD" in x:
                     print("CMD:",x)
+                    if "EXEC-SPEED-MASTER" == x["CMD"]:
+                        exec_speed_master.val(x["NR"],x["VALUE"])
+                    if "EXEC-SIZE-MASTER" == x["CMD"]:
+                        exec_size_master.val(x["NR"],x["VALUE"])
+
                     if "SPEED-MASTER" == x["CMD"]:
                         speed_master.val(x["NR"],x["VALUE"])
                         if x["NR"] == 2:
@@ -844,6 +888,10 @@ def JCB(data): #json client input
                     if DMX > 0:
                         DMX -=1
                     else:continue
+                    
+                    exec_id = None
+                    if "EXEC" in x:
+                        exec_id = x["EXEC"]
 
                     if "VALUE" in x:# and x["VALUE"] is not None:
                         v = x["VALUE"]
@@ -864,6 +912,7 @@ def JCB(data): #json client input
                     if len(Bdmx) < DMX:
                         continue
                     
+                    Bdmx[DMX].exec_id(exec_id)
                     if v is not None:
                         if "FLASH" in x:
                             #print("FLASH")

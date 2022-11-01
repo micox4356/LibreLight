@@ -225,6 +225,7 @@ class _MASTER():
 
 exec_size_master  = _MASTER("EXEC-SIZE")
 exec_speed_master = _MASTER("EXEC-SPEED")
+exec_offset_master = _MASTER("EXEC-OFFSET")
 
 size_master  = _MASTER("SIZE")
 speed_master = _MASTER("SPEED")
@@ -392,7 +393,10 @@ class FX():
         t = self.__clock_curr
         t += self.__clock_delta
         t *= self.__speed / 60 
-        t += self.__offset / 100 #255 #1024 #255
+        offset2 = self.__offset 
+        offset2 *= exec_offset_master.val(self._exec_id) 
+        #t += self.__offset / 100 #255 #1024 #255
+        t += offset2 / 100 
         t += self.__start  / 1024 #255
         #t = t*speed_master.val(self.__master_id)
 
@@ -869,6 +873,8 @@ def JCB(data): #json client input
                         exec_speed_master.val(x["NR"],x["VALUE"])
                     if "EXEC-SIZE-MASTER" == x["CMD"]:
                         exec_size_master.val(x["NR"],x["VALUE"])
+                    if "EXEC-OFFSET-MASTER" == x["CMD"]:
+                        exec_offset_master.val(x["NR"],x["VALUE"])
 
                     if "SPEED-MASTER" == x["CMD"]:
                         speed_master.val(x["NR"],x["VALUE"])

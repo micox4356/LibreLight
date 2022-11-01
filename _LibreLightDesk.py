@@ -2033,7 +2033,7 @@ class GUI():
         elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL") and not button: #FLASH
             xFLASH = 1
             xfade = 0
-            if type(val) is not None and val == 0 :
+            if type(val) is not type(None) and val == 0 :
                 value = "off"
             if event:
                 if str(event.type) == "ButtonRelease" or event.type == '5' :
@@ -2083,7 +2083,7 @@ class GUI():
                 vcmd[i]["FLASH"] = 1
 
             DMX = fcmd[i]["DMX"]
-            if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is float:
+            if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is type(float):
                 vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
             if value is not None:
                 vcmd[i]["VALUE"] = value 
@@ -2099,8 +2099,8 @@ class GUI():
                     DMX = fcmd[i]["VIRTUAL"][a]
                     if DMX and vcmd[i]:
                         vcmd[i]["DMX"] = DMX
-            if type(nr) is not None:
-                vcmd[i]["EXEC"] = str(nr+1)
+            if type(nr) is not type(None):
+                vcmd[i]["EXEC"] = str(int(nr)+1)
             #cprint(vcmd[i],color="red")
             cmd.append(vcmd[i])
 
@@ -2408,10 +2408,10 @@ class GUI_FIX():
                         gui.elem_attr[fix][attr] = ["line1348",fix,attr]
                     v= data["ATTRIBUT"][attr]["VALUE"]
                     
-                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
+                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
                     gui.elem_attr[fix][attr] = b
                     b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E,ipadx=0,ipady=0,padx=0,pady=0)
                     c+=1
                     if c >=8:
                         c=start_c
@@ -2452,11 +2452,11 @@ def draw_enc(gui,xframe):
             continue
         v=0
         
-        b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=6)
+        b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=6, anchor="w")
         if attr == "DIM":
-            b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=6)
+            b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=6, anchor="w")
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER").cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E ,ipadx=0,ipady=0,padx=0,pady=0)#,expand=True)
         c+=1
         if c >=8:
             c=0
@@ -4053,11 +4053,12 @@ class ELEM_FADER():
 
 
 class GUI_ExecWingLayout():
-    def __init__(self,root,data,title="tilte",width=800):
+    def __init__(self,root,data,title="tilte",width=800,start=81):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
         self.dmx=1
         self.univ=0
+        self.start=start-1
         r=0
         c=0
         i=1
@@ -4122,11 +4123,15 @@ class GUI_ExecWingLayout():
 
         if nr >= 1 and nr <= 12:
             jdata["CMD"] = "EXEC-SIZE-MASTER"
-            jdata["NR"] = nr
+            jdata["NR"] = nr +self.start
 
         if nr >= 13 and nr <= 24:
             jdata["CMD"] = "EXEC-SPEED-MASTER"
-            jdata["NR"] = nr-12
+            jdata["NR"] = nr-12 +self.start
+
+        if nr >= 25 and nr <= 37:
+            jdata["CMD"] = "EXEC-OFFSET-MASTER"
+            jdata["NR"] = nr-24 +self.start
 
         print("event_cb",jdata)
         j = [jdata]
@@ -4154,9 +4159,13 @@ class GUI_ExecWingLayout():
             p=j+1
             #p=nr/pb
             if p == 1:
-                txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                txt="SIZE-MASTER:{} {}-{}".format(p,1+self.start,12+self.start)#p*pb-pb+1,p*pb) 
+            elif p == 2:
+                txt="SPEED-MASTER:{} {}-{}".format(p,1+self.start,12+self.start)#p*pb-pb+1,p*pb) 
+            elif p == 3:
+                txt="OFFSET-MASTER:{} {}-{}".format(p,1+self.start,12+self.start)#p*pb-pb+1,p*pb) 
             else:
-                txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                txt="X-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
             print("---",j,txt,e)
             e["text"] = txt
@@ -4262,9 +4271,9 @@ class GUI_MasterWingLayout():
             p=j+1
             #p=nr/pb
             if p == 1:
-                txt="SIZE-MASTER-GLOBAL:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             else:
-                txt="SPEED-MASTER-GLOBAL:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
+                txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
             print("---",j,txt,e)
             e["text"] = txt
@@ -4912,7 +4921,7 @@ if __run_main:
     w1 = tk.Frame(w.tk,width=W1,height=H1)
     w1.pack()
     data=[]
-    for i in range(12*2):
+    for i in range(12*3):
         data.append({"EXEC"+str(i):"EXEC"})
     GUI_ExecWingLayout(w1,data)
     window_manager.new(w,name)

@@ -2157,7 +2157,8 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
 
 
 class _SET_PATCH():
-    def __init__(self,k,v,fix,data):
+    def __init__(self,k,v,fix,data,_cb=None):
+        self._cb = _cb
         self.v = v
         self.button = None
         self.k = k
@@ -2204,6 +2205,8 @@ class _SET_PATCH():
                 else:
                     self.button["bg"] = "#fff"
                     self.button["text"] = "{}".format(v)
+                    if self._cb:
+                        self._cb()
         print( "row data",self.data)
 
     def set_button(self,button):
@@ -2253,10 +2256,25 @@ class GUI_PATCH():
         b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
+        b = tk.Button(xframe,bg="#ddd", text="from - to",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="DMX-SUM",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(xframe,bg="#ddd", text="DMX Collision!",width=12)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
 
         c=0
         r+=1
+
+        dmx_ch_sum = 0
+        dmx_collision = []
+        z=0
         for fix in FIXTURES.fixtures:
+            z+=1
+            collision = []
             i+=1
             data = FIXTURES.fixtures[fix]
                             
@@ -2300,7 +2318,7 @@ class GUI_PATCH():
                 v=data[k]
                 #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
 
-                command = _SET_PATCH(k,v,fix,data)
+                command = _SET_PATCH(k,v,fix,data,_cb=self.draw)
                 b = tk.Button(xframe,bg="grey", text=str(v),width=2,command=command.attr)
                 command.set_button(b)
                 
@@ -2310,31 +2328,46 @@ class GUI_PATCH():
                 if c >=8:
                     c=start_c
                     r+=1
-            b = tk.Button(xframe,bg="grey", text="{}".format(len(data["ATTRIBUT"])),width=3)
+
+            max_dmx = 0
+            for a in data["ATTRIBUT"]:
+                attr = data["ATTRIBUT"][a]
+                if "NR" in attr:
+                    try:
+                        _n = int(attr["NR"])
+                        if _n > max_dmx:
+                            max_dmx=_n
+                    except ValueError:pass
+            
+            dmx_ch_sum += max_dmx
+            for i in range(data["DMX"],data["DMX"]+max_dmx):
+                if i in dmx_collision:
+                    collision.append(i)
+                else:
+                    dmx_collision.append(i)
+            b = tk.Button(xframe,bg="grey", text="{:3} ({})".format(max_dmx , len(data["ATTRIBUT"])),width=4) #a,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
+            #b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
+            b = tk.Button(xframe,bg="#aaa", text="{:03} - {:03}".format(data["DMX"],max_dmx+(data["DMX"]-1)),width=8,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            if 0: #for attr in data["ATTRIBUT"]:
-                
-                if attr not in gui.all_attr:
-                    gui.all_attr.append(attr)
-                if attr not in gui.elem_attr[fix]:
-                    gui.elem_attr[fix][attr] = []
-                if attr.endswith("-FINE"):
-                    continue
-                v= data["ATTRIBUT"][attr]["VALUE"]
-                
-                b = tk.Button(xframe,bg="grey", text=str(attr)+' '+str(round(v,2)),width=8)
-                #gui.elem_attr[fix][attr] = b
-                #b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,data=data).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                if c >=8:
-                    c=start_c
-                    r+=1
+
+            c+=1
+            b = tk.Button(xframe,bg="#aaa",fg="#225", text="{} : {:03}".format(z,dmx_ch_sum),width=6,anchor="w")
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+
+            c+=1
+            bg = "#252"
+            if collision:
+                bg = "#f22"
+            else: 
+                collision = ""
+            b = tk.Button(xframe,bg=bg, text="{}".format(str(collision)),width=14,anchor="w")
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+
             c=0
             r+=1
+
            
 
 class GUI_FIX():
@@ -2452,9 +2485,9 @@ def draw_enc(gui,xframe):
             continue
         v=0
         
-        b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=6, anchor="w")
+        b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=7)#, anchor="w")
         if attr == "DIM":
-            b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=6, anchor="w")
+            b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=7)#, anchor="w")
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E ,ipadx=0,ipady=0,padx=0,pady=0)#,expand=True)
         c+=1
@@ -4928,7 +4961,7 @@ if __run_main:
 
 
     name="ENCODER"
-    w = GUIWindow(name,master=0,width=560,height=113,left=L0+770,top=TOP+H1+HTB*2)
+    w = GUIWindow(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+HTB*2)
     _ENCODER_WINDOW = w
     draw_enc(master,w.tk)#Xroot)
 

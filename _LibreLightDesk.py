@@ -20,7 +20,7 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 """
 import random
 rnd_id = str(random.randint(1000,9000))
-rnd_id += " Beta 22.08 "
+rnd_id += " Beta 22.10 "
 import subprocess
 import string
 try:

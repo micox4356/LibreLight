@@ -4113,7 +4113,7 @@ class GUI_ExecWingLayout():
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
         r=0
         c=0
-        pb=12
+        pb=10
         self.pb=pb
         for j,row in enumerate(data):
             if c % pb == 0 or c==0:
@@ -4121,7 +4121,7 @@ class GUI_ExecWingLayout():
                 frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
                 frameS.pack(fill=tk.BOTH, side=tk.TOP)
                 p=j//pb+1
-                if j < 12:
+                if j < 10:
                     txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
                 else:
                     txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
@@ -4138,7 +4138,7 @@ class GUI_ExecWingLayout():
                 c=0
             #print(frameS)
             e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
-            if j >= 12:
+            if j >= 10:
                 e.pack(from_=400,to=0,init=100)
             else:
                 e.pack(from_=200,to=0,init=100)
@@ -4154,17 +4154,17 @@ class GUI_ExecWingLayout():
         nr += 1
         jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
 
-        if nr >= 1 and nr <= 12:
+        if nr >= 1 and nr <= 10:
             jdata["CMD"] = "EXEC-SIZE-MASTER"
             jdata["NR"] = nr +self.start
 
-        if nr >= 13 and nr <= 24:
+        if nr >= 11 and nr <= 20:
             jdata["CMD"] = "EXEC-SPEED-MASTER"
-            jdata["NR"] = nr-12 +self.start
+            jdata["NR"] = nr-10 +self.start
 
-        if nr >= 25 and nr <= 37:
+        if nr >= 21 and nr <= 30:
             jdata["CMD"] = "EXEC-OFFSET-MASTER"
-            jdata["NR"] = nr-24 +self.start
+            jdata["NR"] = nr-20 +self.start
 
         print("event_cb",jdata)
         j = [jdata]
@@ -4949,12 +4949,12 @@ if __run_main:
 
     name="EXEC-WING"
     #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = GUIWindow(name,master=0,width=700,height=415,left=L1,top=TOP+H1+HTB*2)
+    w = GUIWindow(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
     #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     w1 = tk.Frame(w.tk,width=W1,height=H1)
     w1.pack()
     data=[]
-    for i in range(12*3):
+    for i in range(10*3):
         data.append({"EXEC"+str(i):"EXEC"})
     GUI_ExecWingLayout(w1,data)
     window_manager.new(w,name)

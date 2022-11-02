@@ -3993,6 +3993,100 @@ class BufferVar():
         txt = tkinter.simpledialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
         print("change_dmx",[event,self])
 
+class EXEC_FADER():
+    def __init__(self,frame,nr,cb=None,**args):
+        self.frame = frame
+        self.nr= nr
+        self.id=nr
+        self.elem = []
+        self._cb = cb
+        width=11
+        frameS = tk.Frame(self.frame,bg="#005",width=width)
+        frameS.pack(fill=tk.Y, side=tk.LEFT)
+        self.frame=frameS
+
+    def event(self,a1="",a2=""):
+        if self._cb is not None:
+            self._cb(a1,a2,nr=self.nr)
+        else:
+            print(self,"event",[self.nr,a1,a2])
+            j=[]
+            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
+            j.append(jdata)
+            jclient_send(j)
+
+    def set_attr(self,_event=None):
+        txt= self.attr["text"]
+        txt = tkinter.simpledialog.askstring("ATTR","set attr:",initialvalue=txt)
+        
+        self._set_attr(txt)
+    def _set_attr(self,txt=""):
+        if type(txt) is str:
+            self.attr["text"] = "{}".format(txt)
+            print("_set_attr",[self])
+    def set_label(self,name=""):
+        #print("set_label",self.b,name)
+        self.label["text"] = name
+    def set_mode(self,_event=None):
+        txt= self.mode["text"]
+        txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
+
+        w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
+        #w.pack()
+        self._set_mode(txt)
+        w.show()
+    def _set_mode(self,txt=""):
+        if type(txt) is str:
+            self.mode["text"] = "{}".format(txt[0].upper())
+            print("_set_attr",[self])
+    def _refresh(self):
+        pass
+    def pack(self,init=None,from_=255,to=0,**args):
+        width=11
+        r=0
+        c=0
+        j=0
+        font8 = ("FreeSans",8)
+        frameS=self.frame
+        self.b = tk.Scale(frameS,bg="lightblue", width=18,from_=from_,to=to,command=self.event)
+        self.b.pack(fill=tk.Y, side=tk.TOP)
+        if init is not None:
+            self.b.set(init)
+        self.elem.append(self.b)
+
+        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=5,command=test,font=font8 )
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.label = self.b
+        if 1: #self.nr <= 10:
+
+            self.elem.append(self.b)
+            self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
+            self.attr=self.b
+            self.b.pack(fill=tk.BOTH, side=tk.TOP)
+            self.elem.append(self.b)
+            f = tk.Frame(frameS)
+        ##f.pack()
+        #self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=font8 )
+        #self.mode=self.b
+        ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        #self.elem.append(self.b)
+
+        #self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=font8 )
+        #self.mode=self.b
+        #self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        #self.elem.append(self.b)
+
+        #self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=font8 )
+        #self.mode=self.b
+        ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        #self.elem.append(self.b)
+
+        self.b = tk.Label(frameS,bg="black",text="", width=4,font=font8 )
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.elem.append(self.b)
+
+
 class ELEM_FADER():
     def __init__(self,frame,nr,cb=None,**args):
         self.frame = frame
@@ -4137,7 +4231,8 @@ class GUI_ExecWingLayout():
                     frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 c=0
             #print(frameS)
-            e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
+            #e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
+            e= EXEC_FADER(frameS,nr=j+1,cb=self.event_cb)
             if j >= 10:
                 e.pack(from_=400,to=0,init=100)
             else:
@@ -4192,11 +4287,11 @@ class GUI_ExecWingLayout():
             p=j+1
             #p=nr/pb
             if p == 1:
-                txt="SIZE-MASTER:{} {}-{}".format(p,1+self.start,12+self.start)#p*pb-pb+1,p*pb) 
+                txt="SIZE-MASTER:{} {}-{}".format(p,1+self.start,10+self.start)#p*pb-pb+1,p*pb) 
             elif p == 2:
-                txt="SPEED-MASTER:{} {}-{}".format(p,1+self.start,12+self.start)#p*pb-pb+1,p*pb) 
+                txt="SPEED-MASTER:{} {}-{}".format(p,1+self.start,10+self.start)#p*pb-pb+1,p*pb) 
             elif p == 3:
-                txt="OFFSET-MASTER:{} {}-{}".format(p,1+self.start,12+self.start)#p*pb-pb+1,p*pb) 
+                txt="OFFSET-MASTER:{} {}-{}".format(p,1+self.start,10+self.start)#p*pb-pb+1,p*pb) 
             else:
                 txt="X-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
             #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 

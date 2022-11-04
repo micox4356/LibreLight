@@ -4993,6 +4993,7 @@ if __run_main:
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})
     data.append({"text":"EXEC"})
+    data.append({"text":"EXEC-WING"})
     gui_menu = GUI_menu(w.tk,data)
 
     window_manager.new(w)

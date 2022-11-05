@@ -2270,7 +2270,18 @@ class GUI_PATCH():
         r+=1
 
         dmx_ch_sum = 0
-        dmx_collision = []
+        dmx_collision = {}
+
+        for fix in FIXTURES.fixtures:
+            data = FIXTURES.fixtures[fix]
+
+            max_dmx = FIXTURES.get_max_dmx_nr(fix) 
+            
+            for i in range(data["DMX"],data["DMX"]+max_dmx[1]):
+                if i in dmx_collision:
+                    dmx_collision[i] += 1
+                else:
+                    dmx_collision[i] = 0
         z=0
         for fix in FIXTURES.fixtures:
             z+=1
@@ -2329,27 +2340,19 @@ class GUI_PATCH():
                     c=start_c
                     r+=1
 
-            max_dmx = 0
-            for a in data["ATTRIBUT"]:
-                attr = data["ATTRIBUT"][a]
-                if "NR" in attr:
-                    try:
-                        _n = int(attr["NR"])
-                        if _n > max_dmx:
-                            max_dmx=_n
-                    except ValueError:pass
+            max_dmx = FIXTURES.get_max_dmx_nr(fix) 
             
-            dmx_ch_sum += max_dmx
-            for i in range(data["DMX"],data["DMX"]+max_dmx):
+            dmx_ch_sum += max_dmx[1]
+            for i in range(data["DMX"],data["DMX"]+max_dmx[1]):
                 if i in dmx_collision:
-                    collision.append(i)
-                else:
-                    dmx_collision.append(i)
-            b = tk.Button(xframe,bg="grey", text="{:3} ({})".format(max_dmx , len(data["ATTRIBUT"])),width=4) #a,anchor="w")
+                    if dmx_collision[i]:
+                        collision.append(i)
+
+            b = tk.Button(xframe,bg="grey", text="{:3} ({})".format(max_dmx[1] , max_dmx[0]),width=4) #a,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             #b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
-            b = tk.Button(xframe,bg="#aaa", text="{:03} - {:03}".format(data["DMX"],max_dmx+(data["DMX"]-1)),width=8,anchor="w")
+            b = tk.Button(xframe,bg="#aaa", text="{:03} - {:03}".format(data["DMX"],max_dmx[1]+(data["DMX"]-1)),width=8,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
             c+=1
@@ -3391,6 +3394,24 @@ class Fixtures():
             if "ATTRIBUT" in data:
                 if attr in data["ATTRIBUT"]:
                     return data["ATTRIBUT"][attr]
+
+    def get_max_dmx_nr(self,fix):
+        max_dmx = 0
+        used_dmx = 0
+        if fix not in self.fixtures:
+            return (used_dmx,max_dmx)
+
+        data = self.fixtures[fix]
+        used_dmx = len(data["ATTRIBUT"])
+        for a in data["ATTRIBUT"]:
+            attr = data["ATTRIBUT"][a]
+            if "NR" in attr:
+                try:
+                    _n = int(attr["NR"])
+                    if _n > max_dmx:
+                        max_dmx=_n
+                except ValueError:pass
+        return (used_dmx,max_dmx)
 
     def get_dmx(self,fix,attr):
         #cprint("get_dmx",[fix,attr])

@@ -1,4 +1,9 @@
+
+
 import pygame
+import pygame.gfxdraw
+import math
+
 pg = pygame
 pygame.init()
 #window = pygame.display.set_mode((600, 300))#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
@@ -54,11 +59,12 @@ class Grid():
         self.blue_dir = 1
     def draw(self):
         pixA = self.pixA
-        pixel_array = pygame.PixelArray(window)
+        #pixel_array = pygame.PixelArray(window)
+        pixel_array = {} # pygame.PixelArray(window)
         #pixel_array.open()
 
-        a_x_max = len(pixel_array[0])
-        a_y_max = len(pixel_array)
+        a_x_max = 600 #pixel_array[0])
+        a_y_max = 300 #pixel_array)
         
         b_x_max = len(pixA[0])
         b_y_max = len(pixA)
@@ -89,31 +95,61 @@ class Grid():
                 x = r*b_w
                 y = c*b_h
                 #pixel_array[r*b_w][c*b_h] = color 
-                pixel_array[x:x+b_w-1,y:y+b_h-1] = color 
+                #pixel_array[x:x+b_w-1,y:y+b_h-1] = color 
+                k = "{}:{},{}:{} {}".format(x,x+b_w-1,y,y+b_h-1,color) #x,x+10,y,y+10)
+                pixel_array[k] = (x,x+b_w-1,y,y+b_h-1,color)
 
 
 
 
-        pixel_array.close()
+        #pixel_array.close()
         #one = 0
         
         if self.blue_dir:
-            self.blue += 2
+            self.blue += 10
         else:
-            self.blue -= 2
+            self.blue -= 10
+        return pixel_array
+
+class _planet():
+    def __init__(self,x,y):
+        self._pos_center = (x,y)
+        self._ang = 0 
+        self._r  = 10 # 
+        self._r2 = 10 # orbit,umlaufbahn 
+        self._color = [255,255,255]
+        self._x=0
+        self._y=0
+        self.ix = math.sin(math.radians(0))*self.r
+        self.iy = math.sqrt(self.r**2 - ix**2) 
+    def ang(self):
+        pass
+    def draw():
+        pass
+        return (self._x,self._y,self._color)
+
 
 class Gobo1():
-    def __init__(self,x=20,y=20):
-        self.pos_x = 10 
+    def __init__(self,x=20,y=20,speed=5):
+        self.pos_x=x
         self.pos_x_dir = 1 
-        self.pos_y = 30
+        self.pos_y=y
         self.pos_y_dir = 1 
         self.r = 7
         self.r_dir = 1
-        self.pos_x=x
-        self.pos_y=y
+        self.speed = speed
+        self.ang = 0
+        self.ix=0
+        self.iy=0
+    def rotate(self):
+        self.ix = math.sin(math.radians(0))*self.r
+        self.iy = math.sqrt(self.r**2 - self.ix**2) 
+        self.ang+=1
+        if self.ang >= 360:
+            self.ang = 0
+        
     def draw(self,color=[255,255,255]):
-
+        self.rotate()
         #pixel_array = pygame.PixelArray(window)
         pixel_array = {}
         self.color = pygame.Color(color[0],color[1],color[2])
@@ -123,23 +159,27 @@ class Gobo1():
 
         x-=self.r
         y-=self.r
-        pixel_array[x:x+10,y:y+10] = self.color 
+        k = "{}:{},{}:{}".format(x,x+10,y,y+10)
+        pixel_array[k] = (x,x+10,y,y+10 , self.color )
+
         x+=self.r*2
-        pixel_array[x:x+10,y:y+10] = self.color 
+        k = "{}:{},{}:{}".format(x,x+10,y,y+10)
+        pixel_array[k] = (x,x+10,y,y+10 , self.color )
         y+=self.r*2
         x-=self.r
-        pixel_array[x:x+10,y:y+10] = self.color 
-        pixel_array.close()
+        k = "{}:{},{}:{}".format(x,x+10,y,y+10)
+        pixel_array[k] = (x,x+10,y,y+10 , self.color )
+        #pixel_array.close()
 
         if self.pos_x > 300:
             self.pos_x_dir = 0
-        if self.pos_x <= 10:
+        if self.pos_x <= self.speed:
             self.pos_x_dir = 1
 
         if self.pos_x_dir:
-            self.pos_x += 1
+            self.pos_x += self.speed
         else:
-            self.pos_x -= 1
+            self.pos_x -= self.speed
 
         if self.r > 20:
             self.r_dir = 0
@@ -150,6 +190,7 @@ class Gobo1():
             self.r+=1
         else:
             self.r-=1
+        return pixel_array
 
 run = True
 one = 1
@@ -158,24 +199,53 @@ blue_dir = 1
 pos_x_dir = 1
 #pixel_array = pygame.PixelArray(window)
 import time
-time.sleep(1)
+#time.sleep(1)
 grid = Grid()
 gobo1 = Gobo1()
-gobo2 = Gobo1(20,150)
+gobo2 = Gobo1(200,150,speed=8)
 
 while run:
     event_read()
     if one:
         window.fill(0)
-        grid.draw()
-        rect = pygame.Rect(window.get_rect().center, (0, 0)).inflate(*([min(window.get_size())//2]*2))
-        pygame.display.flip()
+        d=grid.draw()
+        d1=gobo1.draw()#20,10)
+        d2=gobo2.draw()#20,10)
+        pixel_array = pygame.PixelArray(window)
 
-        #gobo1.draw()#20,10)
+        for k in d:
+            i = d[k]
+            print( k,"i",i)
+            #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
+            #rect = pygame.Rect(window.get_rect().center, (10, 10)) #.inflate(*([min(window.get_size())//2]*2))
+            #rect = pygame.draw.circle(window,pg.Color(200,0,200) , (10,10) ,10) 
+            rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
+            rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])
+            #rect = pygame.draw.Rect(window,i[4] , (i[0],i[2]) ,10) #(10, 10)) 
+
+        #rect = pygame.Rect(window.get_rect().center, (0, 0)).inflate(*([min(window.get_size())//2]*2))
+        #pygame.display.flip()
+
+        for k in d1:
+            i = d1[k]
+            print( k,"i",i)
+            #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
+            rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
+            rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])
+
+        for k in d2:
+            i = d2[k]
+            print( k,"i",i)
+            #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
+            rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
+            rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])
+
+        pixel_array.close()
         #pygame.display.flip()
         #gobo2.draw(color=[255,0,0])
         #pygame.display.flip()
         
+    pg.time.wait(10)
     pygame.display.flip()
     pg.time.wait(10)
 

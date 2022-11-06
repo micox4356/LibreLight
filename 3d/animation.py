@@ -113,9 +113,14 @@ class Grid():
         return pixel_array
 
 class Planet():
-    def __init__(self,x,y):
+    def __init__(self,x,y,ang=0):
         self._pos_center = (x,y)
-        self._ang = 0 
+        self._quadrant = 0
+        if ang > 90:
+            self._quadrant = ang//90
+            ang -= self._quadrant * 90
+            
+        self._ang = ang 
         self._ang_dir = 1 
         self._r  = 10 # 
         self._orbit = 30 # orbit,umlaufbahn 
@@ -124,12 +129,11 @@ class Planet():
         self._y=0
         self._ix = 0
         self._iy = 0 
-        self._quadrant = 0
 
     def rotate(self):
         q = 0
         if self._ang_dir: 
-            self._ang += 1 # degree
+            self._ang += 5 # degree
             if self._ang > 90:
                 self._ang = 0
                 self._quadrant += 1
@@ -187,7 +191,12 @@ class Gobo1():
         self.ix=0
         self.iy=0
         self.planetes = []
-        self.planetes.append(Planet(self.pos_x,self.pos_y) )
+        p = Planet(self.pos_x,self.pos_y,ang=10) 
+        self.planetes.append(p)
+        p = Planet(self.pos_x,self.pos_y,ang=240) 
+        self.planetes.append(p)
+        p = Planet(self.pos_x,self.pos_y,ang=120) 
+        self.planetes.append(p)
     def rotate(self):
         self.ix = math.sin(math.radians(0))*self.r
         self.iy = math.sqrt(self.r**2 - self.ix**2) 
@@ -203,24 +212,11 @@ class Gobo1():
         
         x=self.pos_x
         y=self.pos_y
-        for planet in self.planetes:
+        for i,planet in enumerate(self.planetes):
             px,py,pcolor = planet.draw(x,y)
-            k = "{}:{},{}:{}".format(px,px+10,py,py+10)
+            k = "{}.{}:{},{}:{}".format(i,px,px+10,py,py+10)
             pixel_array[k] = (px,px,py,py , pcolor )
 
-        x-=self.r
-        y-=self.r
-        k = "{}:{},{}:{}".format(x,x+10,y,y+10)
-        pixel_array[k] = (x,x+10,y,y+10 , self.color )
-
-        x+=self.r*2
-        k = "{}:{},{}:{}".format(x,x+10,y,y+10)
-        pixel_array[k] = (x,x+10,y,y+10 , self.color )
-        y+=self.r*2
-        x-=self.r
-        k = "{}:{},{}:{}".format(x,x+10,y,y+10)
-        pixel_array[k] = (x,x+10,y,y+10 , self.color )
-        #pixel_array.close()
 
         if self.pos_x > 300:
             self.pos_x_dir = 0
@@ -252,8 +248,8 @@ pos_x_dir = 1
 import time
 #time.sleep(1)
 grid = Grid()
-gobo1 = Gobo1(speed=0)
-gobo2 = Gobo1(200,150,speed=0)
+gobo1 = Gobo1(speed=5)
+gobo2 = Gobo1(200,150,speed=2)
 
 while run:
     event_read()

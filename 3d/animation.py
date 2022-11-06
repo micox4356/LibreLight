@@ -3,6 +3,7 @@
 import pygame
 import pygame.gfxdraw
 import math
+import random
 
 pg = pygame
 pygame.init()
@@ -111,26 +112,70 @@ class Grid():
             self.blue -= 10
         return pixel_array
 
-class _planet():
+class Planet():
     def __init__(self,x,y):
         self._pos_center = (x,y)
         self._ang = 0 
+        self._ang_dir = 1 
         self._r  = 10 # 
-        self._r2 = 10 # orbit,umlaufbahn 
-        self._color = [255,255,255]
+        self._orbit = 30 # orbit,umlaufbahn 
+        self._color = [255,255,0]
         self._x=0
         self._y=0
-        self.ix = math.sin(math.radians(0))*self.r
-        self.iy = math.sqrt(self.r**2 - ix**2) 
-    def ang(self):
-        pass
-    def draw():
-        pass
+        self._ix = 0
+        self._iy = 0 
+        self._quadrant = 0
+
+    def rotate(self):
+        q = 0
+        if self._ang_dir: 
+            self._ang += 1 # degree
+            if self._ang > 90:
+                self._ang = 0
+                self._quadrant += 1
+            #    q = 1
+            #if self._ang < 0:
+            #    self._ang = 0
+            #    q = 1
+        else:
+            self._ang -= 1 # degree
+
+        if q:
+            r1 = random.randint(0,255)
+            r2 = random.randint(0,255)
+            self._color = [255,r1,r2]
+        
+        self._ix = math.sin(math.radians(self._ang))*self._orbit
+        #self._ix = math.sin(self._ang)*self._orbit
+        #self._ix = math.sin(math.degrees(self._ang))*self._orbit
+        self._iy = math.sqrt(self._orbit**2 - self._ix**2) 
+    
+        y = self._iy 
+        x = self._ix 
+        if self._quadrant == 1:
+            self._iy = -x
+            self._ix = y
+        elif self._quadrant == 2:
+            self._iy = -y
+            self._ix = -x
+        elif self._quadrant == 3:
+            self._iy = x
+            self._ix = -y
+        else: 
+            self._quadrant = 0
+
+
+    def draw(self,x,y):
+        self._pos_center = (x,y)
+        self.rotate()
+        self._x = int(self._pos_center[0] + self._ix)
+        self._y = int(self._pos_center[1] + self._iy)
+        print("ang {} {} {:3} {:3} {}".format( self._ang,self._quadrant,self._x,self._y,self._color))
         return (self._x,self._y,self._color)
 
 
 class Gobo1():
-    def __init__(self,x=20,y=20,speed=5):
+    def __init__(self,x=20,y=20,speed=1):
         self.pos_x=x
         self.pos_x_dir = 1 
         self.pos_y=y
@@ -141,6 +186,8 @@ class Gobo1():
         self.ang = 0
         self.ix=0
         self.iy=0
+        self.planetes = []
+        self.planetes.append(Planet(self.pos_x,self.pos_y) )
     def rotate(self):
         self.ix = math.sin(math.radians(0))*self.r
         self.iy = math.sqrt(self.r**2 - self.ix**2) 
@@ -156,6 +203,10 @@ class Gobo1():
         
         x=self.pos_x
         y=self.pos_y
+        for planet in self.planetes:
+            px,py,pcolor = planet.draw(x,y)
+            k = "{}:{},{}:{}".format(px,px+10,py,py+10)
+            pixel_array[k] = (px,px,py,py , pcolor )
 
         x-=self.r
         y-=self.r
@@ -201,8 +252,8 @@ pos_x_dir = 1
 import time
 #time.sleep(1)
 grid = Grid()
-gobo1 = Gobo1()
-gobo2 = Gobo1(200,150,speed=8)
+gobo1 = Gobo1(speed=0)
+gobo2 = Gobo1(200,150,speed=0)
 
 while run:
     event_read()
@@ -215,27 +266,22 @@ while run:
 
         for k in d:
             i = d[k]
-            print( k,"i",i)
-            #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
-            #rect = pygame.Rect(window.get_rect().center, (10, 10)) #.inflate(*([min(window.get_size())//2]*2))
-            #rect = pygame.draw.circle(window,pg.Color(200,0,200) , (10,10) ,10) 
-            rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
-            rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])
-            #rect = pygame.draw.Rect(window,i[4] , (i[0],i[2]) ,10) #(10, 10)) 
+            #rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
+            #rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])
 
         #rect = pygame.Rect(window.get_rect().center, (0, 0)).inflate(*([min(window.get_size())//2]*2))
         #pygame.display.flip()
 
         for k in d1:
             i = d1[k]
-            print( k,"i",i)
+            #print( k,"i",i)
             #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
             rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
             rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])
 
         for k in d2:
             i = d2[k]
-            print( k,"i",i)
+            #print( k,"i",i)
             #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
             rect = pygame.draw.circle(window,i[4] , (i[0]+10,i[2]) ,10) 
             rect = pygame.gfxdraw.aacircle(window, i[0]+10,i[2] ,10,i[4])

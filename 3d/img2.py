@@ -5,34 +5,44 @@ import os
 import time
 
 
-#def SCREEN():
-img = PIL.Image.new("RGB", (200, 200))
-img.show() # see a black image
-pixels = [(255,0,0)]*(200*200)
-
-for i in range(10):
-    x = (i+20)* (200 )
-    print(pixels[x])
-    for j in range(10):
-        y = j +10
-        pixels[x+y] = (255,255,255)
-
-img.putdata(pixels)
-
-#print( img)
-#image = img
-
-#mode = image.mode
-#size = image.size
-#data = image.tostring()
-
-#img.show() # see a red image
-#input()
-
-
 import pygame
-
 pg = pygame
+
+
+
+class IMG():
+    def __init__(self,w=300,h=200,color=[255,0,0]):
+        self.w = w
+        self.h = h
+        img = PIL.Image.new("RGB", (w, h))
+        pixels = (color[0],color[1],color[2])*(w*h)
+        img.putdata(pixels)
+
+    def draw(self,x=10,y=10,b=10,w=10):
+        img = PIL.Image.new("RGB", (200, 200))
+    
+        #img.show() # see a black image
+        pixels = [(255,0,0)]*(200*200)
+
+        for i in range(10):
+            x = (i+20)* (200 )
+            print(pixels[x])
+            for j in range(10):
+                y = j +10
+                pixels[x+y] = (255,255,255)
+
+        img.putdata(pixels)
+        self.img = img
+    
+    def get(self):
+        t = self.img.tobytes()
+        s = self.img.size
+        m = self.img.mode
+        out = pygame.image.fromstring( t,s,m).convert()
+        return out
+
+
+img = IMG()
 pygame.init()
 
 main_size=(600,300)
@@ -40,25 +50,8 @@ window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN
 #window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 pg.display.set_caption('LibreLight PIL')
 
-
-this_image = img #pygame.image.fromstring(data, size, mode)
-
-
-img2 = pygame.image.load(os.path.join( 'brush.png'))
-img2 = pygame.transform.scale(img2, (25, 25))
-img2.set_colorkey([0,0,0] ) #pygame.image.BLACK)
-player_rect2 = img2.get_rect(center=(20, 20))
-#window.blit(img2, player_rect2)
-
-#window.blit(img, player_rect2)
-
-    #window.blit(img2, player_rect2)
-
-def pilImageToSurface(pilImage):
-    return pygame.image.fromstring(
-        pilImage.tobytes(), pilImage.size, pilImage.mode).convert()
-
-pygameSurface = pilImageToSurface(img)
+img.draw()
+pygameSurface = img.get()
 
 run = True
 while run:
@@ -73,16 +66,3 @@ while run:
 
 exit()
 
-
-run = 1
-while run:
-    #event_read()
-    window.fill(0) #[255,0,0])
-
-
-
-    pygame.display.flip()
-    pg.time.wait(10)
-
-pygame.quit()
-exit()

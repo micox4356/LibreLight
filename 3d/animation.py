@@ -5,6 +5,8 @@ import pygame.gfxdraw
 import math
 import random
 
+import os 
+
 pg = pygame
 pygame.init()
 
@@ -19,6 +21,21 @@ window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN
 # pygame.display.set_mode((self.width, int(self.height+(self.height*0.15))) ,pygame.FULLSCREEN)
 #pg.display.set_mode(window,pg.DOUBLEBUF) #|pg.OPENGL)
 pg.display.set_caption('LibreLight Animation')
+
+
+def colorize(image, newColor):
+    image = image.copy()
+    image.fill((0, 0, 0, 255), None, pygame.BLEND_RGBA_MULT)
+    image.fill(newColor[0:4] , None, pygame.BLEND_RGBA_ADD)
+    return image
+
+img2 = pygame.image.load(os.path.join( 'brush.png'))
+img2 = pygame.transform.scale(img2, (25, 25))
+img2.set_colorkey([0,0,0] ) #pygame.image.BLACK)
+#player_rect2 = img2.get_rect(center=(200, 200))
+#window.blit(img2, player_rect2)
+
+
 
 class _Particale():
     def __init__(self,x,y,xvel,yvel,radius,color):
@@ -41,12 +58,27 @@ class _Particale():
             self.y += self.yvel
             self.time = time.time()
         if self.start+self.start2 < time.time():
-            self.radius -= 1
+            self.radius -= 0.1
         #if time.time() > self.time+0.2:
         #pygame.draw.circle(win, color, (int(self.x),int(self.y)),self.radius)
         color = self.color
-        pygame.gfxdraw.filled_circle(win, int(self.x),int(self.y) ,self.radius,color )#[0,0,255])
-        pygame.gfxdraw.aacircle(win, int(self.x),int(self.y) ,self.radius,color )#[0,0,255])
+        x= round(self.x)
+        y= round(self.y)
+        r = round(self.radius)
+        if len(color) == 3:
+            color = list(color)
+            color.append(0)
+        #pygame.gfxdraw.filled_circle(win, x,y ,r,color )#[0,0,255])
+        #pygame.gfxdraw.aacircle(win, x,y ,r,color )#[0,0,255])
+        r = round(r*5)
+
+        #img3 = img2.copy()
+        #img3 = colorize(img2, color ) #(0, 0, 255,15) )
+        #img3 = colorize(img2,(255, 120, 255,15) )
+        img3 = colorize(img2,color )
+        img3 = pygame.transform.scale(img3, (r, r))
+        player_rect3 = img3.get_rect(center=(x,y))
+        window.blit(img3, player_rect3)
 
 class Particales():
     def __init__(self):
@@ -442,15 +474,23 @@ grid = Grid()
 gobo1 = Gobo1(main_size[0],main_size[1]/3,speed=3)
 gobo2 = Gobo1(200,150,speed=0,_dir=0)
 anim1 = Animation(main_size[0]/2,main_size[1]/2,speed=1)
+
+#eg. 
+img = pygame.image.load(os.path.join( 'brush.png'))
+img = pygame.transform.scale(img, (25, 25))
+img.set_colorkey([0,0,0] ) #pygame.image.BLACK)
+player_rect = img.get_rect(center=(200, 200))
+#window.blit(img, player_rect)
+
 while run:
     event_read()
     if one:
-        window.fill(0)
         if 0:
             d=grid.draw()
             d1=gobo1.draw()#20,10)
             d2=gobo2.draw()#20,10)
             a1=anim1.draw()#20,10)
+            window.fill(0) #[255,0,0])
             pixel_array = pygame.PixelArray(window)
             vd = 255#80 
             for k in d:
@@ -512,6 +552,8 @@ while run:
             #window.fill(10)
             vd =255
             d1=gobo1.draw()#20,10)
+            a1=anim1.draw()#20,10)
+            window.fill(0) #[255,0,0])
             for k in d1:
                 i = d1[k]
                 #print( k,"i",i)
@@ -520,8 +562,8 @@ while run:
                 i[4] = vdim(i[4],vd)
                 #arect = pygame.draw.circle(window,i[4] , (i[0],i[2]) ,10) 
                 ##rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,i[4])
-                rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
-                rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
+                #rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
+                #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
                 particales.add(i[0],i[2])
                 particales.draw(window)
 
@@ -532,7 +574,6 @@ while run:
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2]+1,i[4])
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2]-1,i[4])
-            a1=anim1.draw()#20,10)
             for k in a1:
                 i = a1[k]
                 #print( k,"i",i)
@@ -554,6 +595,7 @@ while run:
                 particales.add(i[0],i[2])
                 particales.draw(window)
 
+
                 #pygame.gfxdraw.pixel(window,i[0],i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]+1,i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]+1,i[2]+1,i[4])
@@ -561,13 +603,16 @@ while run:
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2]+1,i[4])
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2]-1,i[4])
+                
+                window.blit(img, player_rect)
+
         #pygame.display.flip()
         #gobo2.draw(color=[255,0,0])
         #pygame.display.flip()
         
     #pg.time.wait(10)
     pygame.display.flip()
-    #pg.time.wait(10)
+    pg.time.wait(10)
 
 pygame.quit()
 exit()

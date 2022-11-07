@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-
+import time
 """
 This file is part of LibreLight.
 
@@ -200,7 +200,7 @@ def event_read():
 #pg.mixer.init() #pulsaudio assert error after some time
 pg.display.init()
 pg.key.set_repeat(1,100)
-pg.display.set_caption('LibreLight 3D Stage')
+pg.display.set_caption('LibreLight 3D Stage (Demo!)')
 display= (400,400)
 display= (800,600)
 pg.display.set_mode(display,pg.DOUBLEBUF|pg.OPENGL)
@@ -223,11 +223,16 @@ for z in [1,3,5]:
     s = Spot(v=(4,z,0))
     spots.append(s)
 frame = 0
-
+frame_time = time.time()
+fps = 0
 while True:
     try:
-        pg.display.set_caption('LibreLight 3D Stage {: 10} frame'.format(frame))
-        frame += 1
+        pg.display.set_caption('LibreLight 3D Stage {: 10} frame (DEMO!)'.format(fps))
+        if frame_time+1 < time.time():
+            frame_time = time.time()
+            fps = frame
+            frame = 0
+        
         event_read()
         
         #gl.glRotatef(1,1,1,1)
@@ -244,7 +249,11 @@ while True:
             s.draw()
         pg.display.flip()
         pg.time.wait(10)
+        pg.time.wait(10)
+
+        frame += 1
     except Exception as e:
         print("Exception ",e)
+        time.sleep(1)
 #finally:
 #    print("end -- frame:",frame)

@@ -437,7 +437,7 @@ def send_cmd(ip=(2,0,0,91),cmd=""):
     _ip = [  2,   0,   0, 91]  # CLASS A NET
     #_ip = [192, 168,   0,  91]
     _ip = [  2,   0,  0, 255] # CLASS C NET
-    _ip = [  2,   255,  255, 255] # CLASS C NET
+    #_ip = [  2,   255,  255, 255] # CLASS C NET
     
     print("OLD NODE _ip:", _ip)
     #OLD _ip , Target Node to change
@@ -472,45 +472,44 @@ def send_cmd(ip=(2,0,0,91),cmd=""):
     sock.sendto(data ,(ip,port))
 
 
+def pack_ip(_ip):
+    data = [b"\x00",b"\x00", b"\x00", b"\x00"]
+    if _ip:
+        data[0] = struct.pack('<B', int(_ip[0]))
+        data[1] = struct.pack('<B', int(_ip[1]))
+        data[2] = struct.pack('<B', int(_ip[2]))
+        data[3] = struct.pack('<B', int(_ip[3]))
+    return data
 
-def send_node_cmd(ip="",cmd=""):
-    node_nr = 1
+def send_node_cmd(ip="",ip2="",cmd=""):
+    print()
+    print()
     port = 7600
-    if not ip:
-        ip = (2,255,255,255)
     data = []
-    _ip = ip #[2, 0, 0 ,  91]  #CLASS C funkioniert nicht
     
-    print("OLD NODE _ip:", _ip)
-    #OLD _ip , Target Node to change
-    data.append(struct.pack('<B', int(_ip[0])))
-    data.append(struct.pack('<B', int(_ip[1])))
-    data.append(struct.pack('<B', int(_ip[2])))
-    data.append(struct.pack('<B', int(_ip[3])))
+    print("OLD NODE _ip:", ip)
+    data = pack_ip(ip)
     
-    ip = ""
-    ip = ".".join(str(x) for x in _ip)
+    if ip2:
+        ip = ".".join(str(x) for x in ip2)
+    else:
+        ip = ".".join(str(x) for x in ip)
     print("send to ip:", ip)
     data2=""
     if not cmd:
         data2 = 'CMD GT'
-        #data2 = 'CMD ST'
-        #data2 = 'DMX OUT STORE'
-        data2 = 'CMD  DMX=IN '
-        #data2 = 'CMD DMX=IN '
+        data2 = 'CMD ST'
+        data2 = 'DMX OUT STORE'
+        data2 = 'CMD DMX=IN '
         data2 = 'CMD DMX=OUT '
         data2 = 'CMD DMX=PIN '
-    else:
-        pass#data2 = str(cmd)
-    if type(data2) is str:
-        data2 = bytes(data2,"ascii")
+
+    data2 = bytes(cmd,"ascii")
     print([data2],type(data2)    )
     data2 = data2.ljust(20,b" ") + b"".join(data)
-    print("SENDING COMMAND TO ",(ip,port))
-    print([data2],type(data2)    )
-        
+
+    print("SENDING COMMAND TO ",[data2],(ip,port))
     sock.sendto(data2 ,(ip,port))
-    #sock.sendto(bytes(data2,"ascii") ,(ip,port))
     
 
 node_cmd_buf_list = []
@@ -540,6 +539,16 @@ def node_cmd_recive():
 #send_node_cmd(ip="",cmd="CMD DMX=OUT")
 #send_node_cmd(ip=(2,0,0,91),cmd="CMD DMX=PIN")
 #send_node_cmd(ip=(2,0,0,91),cmd="DMX OUT STORE")
+
+#send_node_cmd(ip=(2,0,0,255),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(2,0,0,201),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(2,0,0,255),ip2=(2,255,255,255),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(2,0,0,201),ip2=(2,255,255,255),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(2,0,0,255),ip2=(2,0,0,201),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(2,0,0,201),ip2=(2,0,0,201),cmd="DMX OUT STORE")
+send_node_cmd(ip=(2,0,0,201),ip2=(255,255,255,255),cmd="DMX OUT STORE")
+send_node_cmd(ip=(255,255,255,255),ip2=(255,255,255,255),cmd="DMX OUT STORE")
+#exit()
 #   
 if __name__ == "__main__":        
 

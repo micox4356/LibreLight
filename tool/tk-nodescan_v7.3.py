@@ -248,7 +248,7 @@ def _send_cmd(event=None,cmd=""):
     except:pass
     cmd = cmd[:-1] #.append(value)
     cmd.append(value)
-    print("ERRRRR",cmd)
+    print("_send_cmd:",cmd)
     cmd=" ".join(cmd )
     a = e_ip.get().replace("[","").replace("]","")
     cur_ip = []

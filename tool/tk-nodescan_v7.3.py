@@ -21,11 +21,12 @@ along with librelight.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import time
-import tkinter as Tkinter
-import sys
-import _thread as thread
-import nodescan_v6_2 as nodscaner 
 import struct
+import sys
+import tkinter as Tkinter
+import _thread as thread
+
+import nodescan_v6_2 as nodscaner 
 
 title = "TK-ArtNet-Nodscaner"
 sys.stdout.write("\x1b]2;"+title+"\x07")
@@ -181,12 +182,11 @@ def _scan():
             
         time.sleep(0.2)
     
-def scan():
-    thread.start_new_thread(_scan, () )
 
 def get_new_ip(event=None):
     b = e_ip_new.get().replace("[","").replace("]","")
     return b
+
 def get_new_ip_str(event=None):
     x = get_new_ip()
     #x = x[1:-1]
@@ -251,8 +251,13 @@ def _send_cmd(event=None,cmd=""):
     print("ERRRRR",cmd)
     cmd=" ".join(cmd )
     a = e_ip.get().replace("[","").replace("]","")
-    cur_ip = []    
-    for i in a.split(","):
+    cur_ip = []
+    sep = "xx"
+    if "," in a:
+        sep = ","
+    if "." in a:
+        sep = "."
+    for i in a.split(sep):
         cur_ip +=[int(i)]
     print("SEND:",cur_ip,cmd)
     nodscaner.send_node_cmd(cur_ip,cmd)
@@ -494,21 +499,58 @@ e_cmd5.bind("<Return>", send_cmd5 )
 e_cmd5.pack(side="left")
 
 
-#poll_loop(1)
-#thread.start_new_thread(poll_loop,(1,))
-scan()
+thread.start_new_thread(_scan, () )
 nodscaner.bind_cmd_node()
+
 def read_cmd_buf():
     b_scan.insert("end", "buf read\n" )
     while 1:
         if nodscaner.node_cmd_buf_list:
             msg = str(nodscaner.node_cmd_buf_list)
+            print("read_cmd_buf msg",msg)
             nodscaner.node_cmd_buf_list = []
             b_scan.insert("end",str(time.time())+"\n")
             b_scan.insert("end", msg +"\n")
             
             b_scan.see("end")
         time.sleep(0.1)
-thread.start_new_thread(nodscaner.node_cmd_recive, () )
-thread.start_new_thread(read_cmd_buf, () )
+
+#thread.start_new_thread(nodscaner.node_cmd_recive, () )
+#thread.start_new_thread(read_cmd_buf, () )
+
+def X():
+    thread.start_new_thread(nodscaner.node_cmd_recive, () )
+    thread.start_new_thread(read_cmd_buf, () )
+    #thread.start_new_thread(node_cmd_recive, () )
+    #send_node_cmd(ip=(2,0,0,91),cmd="DMX OUT STORE")
+    send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
+   
+
+    rx = ArtNetNodes()
+    rx.loop()
+    z = 0
+    while 1:
+        
+        nodes = rx.get()
+        #print(len(nodes))
+        
+        if z % 10 == 0:
+            print()
+            pass
+            
+        
+            print("node count",len(nodes))
+            #for i in nodes:
+            #print(i)
+        z += 1
+        time.sleep(0.2)
+        
+    print()
+    print("time out")
+    raw_input("ENDE")
+
+thread.start_new_thread(X,()) #node_cmd_recive, () )
 root.mainloop()
+
+
+

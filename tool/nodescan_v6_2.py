@@ -198,6 +198,7 @@ class ArtNetNodes():
         #for i in add_node:
         #    print(i,[add_node[i]])
         #print()
+        print("add",add_node)
         try:
             self.__lock.acquire()
             update_node = 0
@@ -245,10 +246,10 @@ class ArtNetNodes():
                         print("NODE NOT CHANGE".ljust(16," "),info)
                         node["REFRESHSTAMP"] = time.time()
                         update_node = 1
-                            
+            print("x-node:",update_node,add_node)                
             if not update_node: # ADD NEW NODE
-                
                 node = add_node
+                print("add_node",node)
                 node["BOOT"] = BOOT
                 info = node["MAC"],node["IP"].ljust(16," "),[node["SwIn"],node["SwOut"],node["PortTypes"]]
                 
@@ -276,15 +277,17 @@ class ArtNetNodes():
         if self.__nodes:
             out = copy.deepcopy(self.__nodes)                
         self.__lock.release()
-        return out    
+        return out
+
     def recive(self):
         print("-- NODE SCAN START ---")
         print()
         while 1:
             data, addr = sock.recvfrom(500)
             new_node = ArtNet_decode_pollreplay( data )            
+            print("rvc loop",addr)
             if new_node:
-                #print(new_node)
+                print("rcv",new_node)
                 self.add(new_node)
             time.sleep(0.001)
         print("-- NODE SCAN STOP ---")
@@ -292,14 +295,14 @@ class ArtNetNodes():
         
     def loop(self):
         thread.start_new_thread(self.recive, () )
-        time.sleep(1)
+        time.sleep(5)
         poll()
         
 Reciver = ArtNetNodes
     
 
 def ArtNet_decode_pollreplay(data):
-    debug = 0
+    debug = 1
     node = {}
     if len(data) >= 10: #min opcode
     
@@ -308,14 +311,15 @@ def ArtNet_decode_pollreplay(data):
         #if opcode != struct.pack("<H",0x5000): #OpPollReplay
         if opcode == struct.pack("<H",0x2100): #OpPollReplay
             if len(data) >= 207: #Mal
-            
+                print("decode",data[:13])           
                 if debug:print("-----------------------------------------")
                 if debug:print([opcode] ,"OpPollReplay")
                 _ip = []
-                _ip.append( ord(data[10]) )
-                _ip.append( ord(data[11]) )
-                _ip.append( ord(data[12]) )
-                _ip.append( ord(data[13]) )
+                print(data[10])
+                _ip.append( data[10] )
+                _ip.append( data[11] )
+                _ip.append( data[12] )
+                _ip.append( data[13] )
                 node["IP"] = str(_ip)
                 
                 if debug:print([_ip])
@@ -347,69 +351,6 @@ def ArtNet_decode_pollreplay(data):
                 node["status"] = stat
                 if debug:print("Status1 ",[stat])
                 esta = data[24:25+1]
-                node["esta"] = esta
-                if debug:print("esta Manuf",[esta])
-                
-                
-                sname = data[26:26+17]
-                #if debug:print(len(sname) #17+1)
-                sname = sname.strip("\x00")
-                node["sname"] = sname
-                
-                lname = data[44:44+43]
-                #if debug:print(len(lname) #43+1)
-                lname = lname.strip("\x00")
-                node["lname"] = lname
-                
-                NodeReport = data[108:108+20]
-                NodeReport = NodeReport.strip("\x00")
-                #if debug:print("Node",node_nr,addr)
-                if debug:print([sname,lname,NodeReport])
-                
-                NumPort = ord( data[173]) 
-                node["NumPort"] = NumPort
-                if debug:print("NumPort",[NumPort])
-                
-                PortTypes = data[174:174+4]
-                node["PortTypes"] = PortTypes
-                if debug:print("PortTypes",[PortTypes])
-                
-                GoodInput = data[178:178+4]
-                node["GoodInput"] = GoodInput
-                if debug:print("GoodInput",[GoodInput])
-                GoodOutput = data[182:182+4]
-                node["GoodOutput"] = GoodOutput
-                if debug:print("GoodOutput",[GoodOutput])
-                
-                SwIn = data[186:186+4]
-                node["SwIn"] = SwIn
-                if debug:print("SwIn",[SwIn])
-                
-                SwOut = data[190:190+4]
-                node["SwOut"] = SwOut
-                if debug:print("SwOut",[SwOut])
-                
-                msg = data[108:108+40]
-                node["MSG"] = msg.replace("\x00","")
-                if debug:print("MSG",[msg])
-                
-                
-                MAC = data[201:201+6]
-                _MAC = []
-                for x in MAC:
-                    x = hex(ord(x))[2:]
-                    x = x.rjust(2,"0")
-                    _MAC.append(x)
-                #hex(ord("\xf9"))[2:]
-                if debug:print("MAC",[":".join(_MAC)])
-                node["MAC"] = ":".join(_MAC)
-                
-                #node_nr += 1
-                #if debug:print([addr,data])
-                #print()
-            else:
-                print(opcode, len(data))
-    return node
 
 def set_ip4(cur_ip=(2,0,0,91),new_ip=(2,0,0,201),new_netmask=(255,0,0,0)):
     
@@ -465,7 +406,7 @@ def set_ip4(cur_ip=(2,0,0,91),new_ip=(2,0,0,201),new_netmask=(255,0,0,0)):
     
     
     print("------------------------------")
-    data = 'CMD IP '+ "".join(data)
+    data = b'CMD IP '+ b"".join(data)
     
     print("SENDING TO ",(ip,port))
     print([data]) #,    cur_ip=(2,0,0,91))

@@ -17,8 +17,8 @@ print( """
 """)
 
 
-form = cgi.FieldStorage()
-message = form.getvalue("message", "(no message)")
+#form = cgi.FieldStorage()
+#message = form.getvalue("message", "(no message)")
 
 print("<br>")
 
@@ -49,7 +49,7 @@ if "QUERY_STRING" in ENV:
             ARGS[k]=v
             print("{} = {} <br>".format(k,v))
 
-print("""
+js = """
 <script>
 
 function xGET(){
@@ -67,7 +67,7 @@ function cmd2(){
 function _cmd2(xcmd2=""){
     const http = new XMLHttpRequest();
 
-    url = './licht.cgi?&CMD2=' + xcmd2
+    url = './light.cgi?&CMD2=' + xcmd2
     http.open("GET", url);
     http.send();
 
@@ -80,7 +80,7 @@ function _cmd2(xcmd2=""){
 function xget(dmx=1,val=100,fade=1){
     const http = new XMLHttpRequest();
 
-    url = './licht.cgi?&CMD=[{"VALUE": '+val+', "args": [], "FADE": '+fade+', "DMX": "'+dmx+'"}]'
+    url = './light.cgi?&CMD=[{"VALUE": '+val+', "args": [], "FADE": '+fade+', "DMX": "'+dmx+'"}]'
     http.open("GET", url);
     http.send();
 
@@ -149,12 +149,19 @@ CMD2:
 <input type=button value="GO" onclick=cmd2() size=10>
 <br>
 <br>
-""")
+"""
 
-print("<br>")
-print("beispiel <br>")
-print('&CMD=[{"VALUE": 55, "args": [], "FADE": 3, "DMX": "1"}]')
-print("<br>")
+#if "CMD" not in ARGS:
+#    pass
+#elif "CMD2" not in ARGS:
+#    pass
+#else:
+if 1:
+    print(js)
+    print("<br>")
+    print("beispiel <br>")
+    print('&CMD=[{"VALUE": 55, "args": [], "FADE": 3, "DMX": "1"}]')
+    print("<br>")
 
 if "CMD" in ARGS:
     CMD = ARGS["CMD"]

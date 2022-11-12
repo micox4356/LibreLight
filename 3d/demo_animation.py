@@ -491,6 +491,9 @@ while run:
             d2=gobo2.draw()#20,10)
             a1=anim1.draw()#20,10)
             window.fill(0) #[255,0,0])
+            pg.time.wait(10)
+            pg.time.wait(10)
+            pg.time.wait(10)
             pixel_array = pygame.PixelArray(window)
             vd = 255#80 
             for k in d:
@@ -563,9 +566,10 @@ while run:
                 #arect = pygame.draw.circle(window,i[4] , (i[0],i[2]) ,10) 
                 ##rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,i[4])
                 #rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
-                #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
-                particales.add(i[0],i[2])
-                particales.draw(window)
+                rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
+                
+                #particales.add(i[0],i[2])
+                #particales.draw(window)
 
                 #pygame.gfxdraw.pixel(window,i[0],i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]+1,i[2],i[4])
@@ -592,8 +596,8 @@ while run:
                 rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,_v )#[0,0,255])
                 rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
                 #print(i)
-                particales.add(i[0],i[2])
-                particales.draw(window)
+                #particales.add(i[0],i[2])
+                #particales.draw(window)
 
 
                 #pygame.gfxdraw.pixel(window,i[0],i[2],i[4])

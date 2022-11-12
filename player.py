@@ -5,13 +5,13 @@ import vlc
 import time
  
 media_path = "/home/user/LibreLight/music/"  
-
+fname = "1.mp3"
 def play(): 
     # creating vlc media player object
     media_player = vlc.MediaPlayer()
      
     # media object
-    media = vlc.Media(media_path+"1.mp3")#death_note.mkv")
+    media = vlc.Media(media_path+fname)#death_note.mkv")
      
     # setting media to the media player
     media_player.set_media(media)
@@ -32,7 +32,8 @@ media_player = play()
 ##input() 
 while 1:
     t = media_player.get_time()
-    print([t,media_player.get_length(),media_player.get_state()])
+    print([t,media_player.get_length(),media_player.get_state()],end=" ")
+    print( media_path,fname)
     if t > 1000:
         if vlc.State.Playing == media_player.get_state():
             media_player.pause()

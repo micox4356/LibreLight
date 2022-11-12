@@ -77,58 +77,12 @@ def get_touch_id():
     return odata
 
 
-def system(cmd):
-    print( "EXECUTE ",cmd)
-    os.system(cmd)
-    print( "END PROCESS",cmd)
-    
-def start_xinput(filename):
-    
-    print()
-    print( "START suprocess")
-    input_id0 = 14 #touch digitizer
-    input_id = 15 #touch digitizer
-    #input_id = 12 #mouse
-    input_ids = get_touch_id()
-    
-    for i in input_ids:
-        system("xinput map-to-output %s VGA1" % str(i) )
-        #system("xinput map-to-output %s VGA1" % str(input_id0) )
-    
-        cmd = ["xinput", "test",str(i),">",filename]
-        print( cmd)
-        #os.system( " ".join(cmd) )
-        start_new_thread( system, ( " ".join(cmd), ) )
-    
-    
-    #subprocess.Popen(cmd)
-    #stdoutdata, stderrdata = p.communicate()
-    #print stdoutdata, stderrdata
-    #subprocess.run(["tail", "-l"])
-    print( "end suprocess")
 
-def start_evtest(filename):
-    
-    print()
-    print("START suprocess")
-    input_id0 = 14 #touch digitizer
-    input_id = 15 #touch digitizer
-    input_id = 23 #touch digitizer
-    input_id = 5 #touch digitizer
-    #input_id = 12 #mouse
-    #input_ids = get_touch_id()
-    
-    
-    cmd = ["evtest", "/dev/input/event3",">",filename]
-    #cmd = ["evtest", "/dev/input/by-id/usb-eGalax_Inc._USB_TouchController-event-mouse",">",filename]
-    cmd = ["evtest", "/dev/input/event23",">",filename]
-    #cmd = ["cat", "/dev/input/event23",">",filename]
-    cmd = ["evtest", "/dev/input/event5",">",filename]
-    cmd = ["evtest", "/dev/input/event24",">",filename]
-    #xrandr --listmonitors
-    print( cmd)
-    start_new_thread( system, ( " ".join(cmd), ) )
-    print( "end suprocess")
+def enabel_xinput_touch(name,output):
+    # not implemented
+    # cmd = "xinput map-to-output {} VGA1".format( i )
+    # cmd = "xinput test {} > {} ".format(str(i),filename)
+    pass
 
 def disable_xinput_touch(name):
     cmd="xinput list"
@@ -150,49 +104,6 @@ def disable_xinput_touch(name):
                 os.system(cmd)
     #exit()
 
-def read(filename):
-    #filename = "eventlog"
-    import fcntl
-    print()
-    print( "START readinloop",filename)
-    #stream = open(filename,"rt", )
-    stream = open(filename,"rb", buffering=0)
-    
-    # NON BLOCKING FILE
-    fd = stream.fileno()
-    flag = fcntl.fcntl(fd,fcntl.F_GETFL)
-    #print flag
-    fcntl.fcntl(fd,fcntl.F_SETFL,flag | os.O_NONBLOCK)
-    flag = fcntl.fcntl(fd,fcntl.F_GETFL)
-    #print flag
-        
-    #stream.seek(0 ,2)
-    line =""
-    A = Action()
-    A.mode = "touchpad" # or touchscreen
-    A.mode = "touchscreen"
-    while 1:
-        stream_read = ""
-        try:
-            stream_read = stream.read()
-        except IOError as err:
-            if err.errno == 11: # no data
-                pass                
-            else:
-                raise err
-                
-        for ch in stream_read:
-            #print [ch ]
-            if ch:
-                if "\n" == ch:
-                    if debug:print( "------", len(line))
-                    if line:
-                        if debug:print( [line])
-                        A.action(line)
-                        line = ""
-                else:    
-                     line += ch
-        time.sleep(0.01)
                      
 def cleanup_multipointer(prefix="multipointer_"):
     import os
@@ -256,6 +167,9 @@ class Action():
         self.refresh_screen_config()
 
         self.refresh_multipointer_config(cleanup=1)
+
+
+
     def refresh_multipointer_config(self,cleanup=0):
         print("==============")
         self.pointer_config = []
@@ -280,35 +194,38 @@ class Action():
             self.pointer_config.append( cfg )
 
 
-        create = []
-        for i in range(1,5+1):
-            ok = 0
-            n = "{}{}".format(prefix,i)
-            for j in self.pointer_config:
-                print("pt",i,j)
-                print("pt",n, j["name"]) 
-                if n == j["name"]: 
-                    ok = 1
-                    break
+        if 0: 
+            # creat 5 pointer on screen for Mutlitouch input
+            # pointer jump's around on X11 
+
+            create = []
+            for i in range(1,5+1):
+                ok = 0
+                n = "{}{}".format(prefix,i)
+                for j in self.pointer_config:
+                    print("pt",i,j)
+                    print("pt",n, j["name"]) 
+                    if n == j["name"]: 
+                        ok = 1
+                        break
 
 
-            if not ok:
-                 create.append(n)
+                if not ok:
+                     create.append(n)
 
-        
-        if 0: #for i in create:
-            cmd = "xinput create-master '{}'".format(i)
-            print("CMD:",cmd)
-            os.system(cmd)
+            
+            for i in create:
+                cmd = "xinput create-master '{}'".format(i)
+                print("CMD:",cmd)
+                os.system(cmd)
 
-        if len(create) and self.pointer_create_count < 10: # recursion !!
-            print("self.refresh_multipointer_config() # recursion !!!")
-            self.pointer_create_count += 1
-            #print(self.pointer_create_count)
+            if len(create) and self.pointer_create_count < 10: # recursion !!
+                print("self.refresh_multipointer_config() # recursion !!!")
+                self.pointer_create_count += 1
+                #print(self.pointer_create_count)
 
-            self.refresh_multipointer_config()
+                self.refresh_multipointer_config()
 
-        #exit()
 
 
     def refresh_screen_config(self):
@@ -622,18 +539,6 @@ class Action():
             
             
             
-def main():
-    pipe = PIPE()
-    time.sleep(0.1)
-    filename = pipe.init()
-    time.sleep(0.2)
-    #start_xinput(filename)
-    start_evtest(filename) 
-    time.sleep(0.2)
-    #time.sleep(2)
-    
-     #read from evtest or xinput and redirekt std output into file(fifo pipe)
-    read(filename)
     
 
 
@@ -661,28 +566,9 @@ def touch_filter(name,lines):
     return out
     
 
-#touch_list =  get_touch_list()
-
-#name="ELAN Touchscreen"
-#x= touch_filter(name,touch_list)
-#print(x)
-#
-#name = "iSolution multitouch"
-#x= touch_filter(name,touch_list)
-#print(x)
 
 
-def main_threading():
-    
-    pipe = PIPE()
-    filename = pipe.init()
-    start_xinput(filename)
-    #start_evtest(filename)
-    #time.sleep(2)
-    read(filename)
-
-
-def main2(cmd="",output=""):
+def main(cmd="",output=""):
     a = Action(output)
     line = ""
     #cmd="evtest /dev/input/event5"
@@ -694,7 +580,6 @@ def main2(cmd="",output=""):
         a.action(line)
     
 if __name__ == "__main__":
-    #main()
     
     touch_list =  get_touch_list()
 
@@ -709,7 +594,7 @@ if __name__ == "__main__":
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event24"
         cmd="evtest {}".format(x[1])
-        start_new_thread(main2,(cmd,"DP-2"))
+        start_new_thread(main,(cmd,"DP-2"))
         touchscreen_count +=1
 
 
@@ -722,9 +607,8 @@ if __name__ == "__main__":
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event5"
         cmd="evtest {}".format(x[1])
-        start_new_thread(main2,(cmd,"eDP-1"))
+        start_new_thread(main,(cmd,"eDP-1"))
         touchscreen_count +=1
 
-    #main2()
     while 1:
         time.sleep(1)

@@ -7,7 +7,7 @@ CMD="python3 $path/Xdesk/LibreLightDesk.py "
 
 echo "- STARTING $SES"
 
-cd "$path"
+cd "$path/Xdesk/"
 screen -XS "$SES" quit | echo ""
 CMD="screen -d -m -S $SES $CMD"
 #echo "$CMD"

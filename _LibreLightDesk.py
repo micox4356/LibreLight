@@ -23,10 +23,13 @@ rnd_id = str(random.randint(1000,9000))
 rnd_id += " Beta 22.10 "
 import subprocess
 import string
+_gcmd=['git', 'rev-parse', '--short', 'HEAD']
 try:
-    rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
-except:
-    rnd_id += " no git"
+    r = subprocess.check_output(_gcmd)
+    rnd_id += r.decode('ascii').strip()
+except Exception as e:
+    rnd_id += " no git" 
+    #rnd_id += " ".join(_gcmd) +str(e)
 
 try:
     xtitle = __file__

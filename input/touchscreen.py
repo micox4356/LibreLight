@@ -20,12 +20,16 @@ def mapFromTo_(x,a,b,c,d):
     return y
 
 def mapFromTo(value,in_min,in_max,out_min,out_max):
+    #out_max -= 10
+    #out_min += 10
     #y=(value-in_min)/(in_max-in_min)*(out_max-out_min)+out_min
     y= (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-    if y < out_min:
-        y = out_min
-    if y > out_max:
-        y = out_max
+
+    padding = 8 #px
+    if y < out_min+padding:
+        y = out_min+padding
+    if y > out_max-padding:
+        y = out_max-padding
     return y
    
 class PIPE():

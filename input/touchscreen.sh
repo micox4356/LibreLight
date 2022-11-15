@@ -1,4 +1,7 @@
 #!/usr/bin/bash
+# xte is in part of xautomation
+# apt install xautomation
+
 #set -a
 SESSION="touch.py"
 CMD="/usr/bin/python3 /opt/LibreLight/Xdesk/input/touchscreen.py"

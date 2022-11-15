@@ -2,6 +2,9 @@
 
 #cat touchscreen_pointer_mapping_5.py 
 
+# xte is in part of xautomation
+# apt install xautomation
+
 import os, tempfile
 import time
 import subprocess

@@ -473,7 +473,7 @@ import time
 grid = Grid()
 gobo1 = Gobo1(main_size[0],main_size[1]/3,speed=3)
 gobo2 = Gobo1(200,150,speed=0,_dir=0,r=5)
-gobo3 = Gobo1(main_size[0]/2,main_size[1]/3,speed=0,r=30)
+gobo3 = Gobo1(main_size[0]/2,main_size[1]/2,speed=0,r=30)
 anim1 = Animation(main_size[0]/2,main_size[1]/2,speed=1)
 
 #eg. 
@@ -483,9 +483,14 @@ img.set_colorkey([0,0,0] ) #pygame.image.BLACK)
 player_rect = img.get_rect(center=(200, 200))
 #window.blit(img, player_rect)
 
+_start = time.time()
 while run:
     event_read()
     if one:
+        if _start+0.1 < time.time():
+            time.sleep(0.01)
+            continue
+        _start = time.time()
         if 0:
             d=grid.draw()
             d1=gobo1.draw()#20,10)
@@ -571,6 +576,7 @@ while run:
             d3=gobo3.draw()#20,10)
             a1=anim1.draw()#20,10)
             window.fill(0) #[255,0,0])
+            z = 0
             for k in d1:
                 i = d1[k]
                 #print( k,"i",i)
@@ -581,10 +587,10 @@ while run:
                 ##rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,i[4])
                 #rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
                 rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
-                
-                #particales.add(i[0],i[2])
-                #particales.draw(window)
-
+                if 1:#z % 33 == 0:
+                    particales.add(i[0],i[2])
+                    particales.draw(window)
+                z+=1
                 #pygame.gfxdraw.pixel(window,i[0],i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]+1,i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]+1,i[2]+1,i[4])
@@ -606,7 +612,7 @@ while run:
                 i[4] = vdim(i[4],vd)
                 #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,30,i[4] )#[0,0,255])
                 rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,30,i[4] )#[0,0,255])
-                pygame.gfxdraw.box(window,(i[0]-10,i[2]-10,20,20),(255,255,0))
+                pygame.gfxdraw.box(window,(i[0]-20,i[2]-5,40,10),(255,255,0))
             for k in a1:
                 i = a1[k]
                 #print( k,"i",i)

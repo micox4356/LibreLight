@@ -392,12 +392,12 @@ class Animation():
         return pixel_array
 
 class Gobo1():
-    def __init__(self,x=20,y=20,speed=1,_dir=1):
+    def __init__(self,x=20,y=20,speed=1,_dir=1,r=17):
         self.pos_x=x
         self.pos_x_dir = 1 
         self.pos_y=y
         self.pos_y_dir = 1 
-        self.r = 17
+        self.r = r
         self.r_dir = 1
         self.speed = speed
         self.ang = 0
@@ -472,7 +472,8 @@ import time
 #time.sleep(1)
 grid = Grid()
 gobo1 = Gobo1(main_size[0],main_size[1]/3,speed=3)
-gobo2 = Gobo1(200,150,speed=0,_dir=0)
+gobo2 = Gobo1(200,150,speed=0,_dir=0,r=5)
+gobo3 = Gobo1(main_size[0]/2,main_size[1]/3,speed=0,r=30)
 anim1 = Animation(main_size[0]/2,main_size[1]/2,speed=1)
 
 #eg. 
@@ -489,6 +490,7 @@ while run:
             d=grid.draw()
             d1=gobo1.draw()#20,10)
             d2=gobo2.draw()#20,10)
+            d3=gobo3.draw()#20,10)
             a1=anim1.draw()#20,10)
             window.fill(0) #[255,0,0])
             pg.time.wait(10)
@@ -529,6 +531,16 @@ while run:
                 #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,[0,0,255])
                 rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
                 rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
+            for k in d3:
+                i = d2[k]
+                i = list(i)
+                i[4] = vdim(i[4],vd)
+                #print( k,"i",i)
+                #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
+                #rect = pygame.draw.circle(window,i[4] , (i[0],i[2]) ,10) 
+                #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,[0,0,255])
+                rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,10,i[4] )#[0,0,255])
+                rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,i[4] )#[0,0,255])
 
             for k in a1:
                 i = a1[k]
@@ -555,6 +567,8 @@ while run:
             #window.fill(10)
             vd =255
             d1=gobo1.draw()#20,10)
+            d2=gobo2.draw()#20,10)
+            d3=gobo3.draw()#20,10)
             a1=anim1.draw()#20,10)
             window.fill(0) #[255,0,0])
             for k in d1:
@@ -578,6 +592,21 @@ while run:
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2]+1,i[4])
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2],i[4])
                 #pygame.gfxdraw.pixel(window,i[0]-1,i[2]-1,i[4])
+            for k in d2:
+                i = d2[k]
+                #print( k,"i",i)
+                #pixel_array[i[0]:i[1],i[2]:i[3]] = i[4] #(x,x+10,y,y+10 , self.color )
+                i = list(i)
+                i[4] = vdim(i[4],vd)
+                #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,i[4] )#[0,0,255])
+                pygame.gfxdraw.line(window,i[0],i[2]-10,i[0],i[2]+10,(255,0,255))
+            for k in d3:
+                i = d3[k]
+                i = list(i)
+                i[4] = vdim(i[4],vd)
+                #rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,30,i[4] )#[0,0,255])
+                rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,30,i[4] )#[0,0,255])
+                pygame.gfxdraw.box(window,(i[0]-10,i[2]-10,20,20),(255,255,0))
             for k in a1:
                 i = a1[k]
                 #print( k,"i",i)

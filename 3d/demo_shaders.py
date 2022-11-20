@@ -22,146 +22,145 @@ void main(){
 """
 
 
-fragment_shader = """
-#version 430
 
+fragment_shader = """
+#version 450
+
+#define PI 3.1415926538
 out vec4 fragColor;
 
 uniform vec2 resolution;
 uniform float time;
 
-vec2 rotate2D(vec2 uv, float a){
-    float s = sin(a);
-    float c = cos(a);
-    return mat2(c,-s,s,c) * uv;
-}
-vec3 ring(vec3 col,vec2 uv, int z,float ang, float speed,float scaleX, float scaleY){
+vec4 ring(vec4 col,vec2 uv, int z,float ang, float speed,float scaleX, float scaleY){
     //z =1; //count of star's
     //ang = 270;
+    float t = time;
     for( float i=0.0; i < z; i++){
 
         float a = 0;
-        a = ang/z * i * (3.1415/180)  ;
-	    a += time*speed;
+        a = ang/z * i * (PI/180)  ;
+	    //a += time*speed;
+        a += time/100*speed;
 
-        float dy = cos(a)/2;
-        float dx = sin(a)/2;
+        float dy = cos(a);
+        float dx = sin(a);
 
 	    dy = dy * scaleY; // *.4; // scale y
 	    dx = dx * scaleX; //*.9; // scale x
-        col += 0.01  / length(uv+vec2(dx+0.1,dy) );
+        if( i== 0){
+            //col = vec2(dx,dy);
+        }else{
+            col += .30  / length(uv+vec2(dx,dy) );
+        }
     }
-    col *=  sin(vec3(0.2,0.8,0.9)  * time) * 0.15  +0.25;
-    fragColor = vec4(col, 1.0);
+        col *=  sin(vec4(0.4,0.8,0.9,1)  * time) * .35  +0.25;
+    fragColor = col ;//vec4(col, 1.0);
     return col;
     //return fragColor;
 }
+vec4 block(vec2 uv,vec4 col, vec2 a, vec2 b){
+    if( uv.x > a.x && uv.x < a.x+b.x ){
+        if( uv.y > a.y && uv.y < a.y+b.y ){
+            col.r = 0 ;//time ;//vec4(0,time, 0,1);
+            col.g = 0.5 ;//time ;//vec4(0,time, 0,1);
+            col.b = 0.9 ;//time ;//vec4(0,time, 0,1);
+            //col[3] += time*10 ;//vec4(0,time, 0,1);
+        }
+    }
+    return col;
+}
 
-void main() {
-    vec2 uv = (gl_FragCoord.xy - resolution.xy/2) / resolution.y;
-    vec3 col = vec3(0.0);
-    
-    //uv = rotate2D(uv, 3.14/2.0+3.2);
-    //uv = rotate2D(uv, 3.14/2.0);
-
+void main1(){;
+    vec2 uv = gl_FragCoord.xy ; //vUV.st ;
+    //vec2 uv = (gl_FragCoord.xy - resolution.xy/2) / resolution.y;
+    uv -= resolution.xy/2;
     float r = 0.17;
+
+    vec2 a = vec2(200,0);
+    vec2 b = vec2(50,50);
     
     int z = 10;
     float ang = 360;
     float speed = .9;
+    uv.x = uv.x * 2 -1;
+    uv.y = uv.y * 2 -1;
+    uv += vec2(0,1);
+    uv.x += 1;
+    vec4 col = vec4(0,0,0,1);
 
-    z = 50; //count of star's
-    ang = 270;
-    speed = -.1;
-    col = ring(col,uv, z, ang, speed, .9, .4);
+    col += 0.1 / length(uv+vec2(.6,.8) ); sun
+
+    # background animation
+    float mysin = sin(uv.x/3.14/20*time);
+    float mysin2 = sin(uv.y/3.14/20*time*4);
+    float mycos = cos(uv.x/3.14/10*time);
+    col += vec4(mysin2,0, 0,1);
+    //col += vec4(mysin-mysin2,0, 0,1);
+
+
+    # BOX
+    a.x += sin(time*2)*100*3;
+    a.y += cos(time*2)*100*3;
+    //b.y += 150+time*100;
+    col = block(uv,col,a,b);
+
+    a = vec2(0,0);
+    b = vec2(100,200);
     
-    z = 10;
-    //col = ring(col,uv, z, 270,0.1, .7, .7);
+    a.x += cos(time*2)*100*3;
+    a.y += sin(-1*time*2)*100*3;
+    //b.y += 150+time*100;
+    col = block(uv,col,a,b);
+    //col.r -= 0.1; 
 
+    
+    float dist = distance(uv , vec2(10,10));
+    float circle = smoothstep((10-0.01),(10+0.01),1.0-dist );
 
-    z =2; //count of star's
-    ang = 90;
-    speed = 10;
-    col = ring(col,uv, z, ang, speed, .6, .2);
-
-
-
+    # Planet's
     z = 20; //count of star's
     ang = 360;
-    speed = 0.5;
-    col = ring(col,uv, z, ang, speed, .5, .5);
+    speed = 50;
+    col = ring(col,uv, z, ang, speed, 180, 180)*4;
 
+    z = 80; //count of star's
+    ang = 360;
+    speed = 50;
+    col = ring(col,uv, z, ang, -speed, 280, 280/2)*2;
 
-/*
-    float i = 0;
-    float a = time+i;
-    a = ang/z * i * (3.1415/180)  ;
-    a += time/4;
-    float dx = 0.1;//cos(a)/2;
-    float dy = 0.1;//sin(a)/2;
-    //col += 0.01 / length(uv+vec2(dx+0.1,dy) );
-    col += 0.03 / length(uv+vec2(dx+0.5,dy) );
-    //col *= sin(vec3(0.8,0.2,0.9) * time) * 0.15 +0.25;
-    fragColor = vec4(col, 1.0);
-    dx = 0.2;
-    dy = 0.42;
-    col += 0.01 / length(uv+vec2(dx+0.5,dy) );
-    fragColor = vec4(col, 1.0);
-
-    uv + vec2(0,0);
-    col = vec3(0.0);
-    //fragColor = vec4(vec3(0,0,1), 1.0);
-    //fragColor[0] = [0,0,1,1];
-*/
+    
+    # blue background
+    if( uv.x > -100 && uv.x < 100 ){
+        col.b = 1 ;//length(uv+vec2(2.9,0.9) )/200;
+    }
+    
+    fragColor = col ;//vec4(col,1);
 }
+void main2(){
+    vec2 uv = gl_FragCoord.xy ; //vUV.st ;
+    uv -= resolution.xy/2;
+    vec4 col = vec4(0,0,0,1);
 
-
-
-"""
-
-vertex_shader2 = """
-#version 450
-
-in vec3 in_position;
+    if( uv.x > -100 && uv.x < 100 ){
+        col.b = 1 ;//length(vec2(2.9,0.9) )/200;
+    }
+    fragColor = col ;//vec4(col,1);
+}
 
 void main(){
-    gl_Position = vec4(in_position, 0.9);
-
-    const vec3 positions[3] = vec3[3](
-		vec3(1.f,1.f, 0.0f),
-		vec3(-1.f,1.f, 0.0f),
-		vec3(0.f,-1.f, 0.0f)
-	);
-
-	//output the position of each vertex
-	//gl_Position = vec4(positions, 1.0f);
-	//gl_Position = vec4(1.f,1.f, 0.0f, 1.0f);
-	//gl_Position = vec4(-1.f,1.f, 0.0f, 1.0f);
-	//gl_Position = vec4(1.f,-1.f, 0.0f, 1.0f);
-	//gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
+    main1();
+    //main2();
 }
 """
 
-fragment_shader2 = """
-#version 450
-
-out vec4 fragColor;
-
-uniform vec2 resolution;
-uniform float time;
-
-void main(){
-    vec2 uv = (gl_FragCoord.xy - resolution.xy/2) / resolution.y;
-    vec3 col = vec3(0.0);
-	fragColor = vec4(1.f,0.f,0.f,1.0f);
-
-}
-"""
-
+import math
 
 class Screen(mglw.WindowConfig):
     window_size = 600, 300
     window_size = 900, 506
+    #window_size = 1200, 900
+    #window_size = 1900, 1070
     #resource_dir = 'programms'
 
     def __init__(self,**args):
@@ -177,6 +176,8 @@ class Screen(mglw.WindowConfig):
 
         self.set_uniform('resolution',self.window_size)
         self.t = time.time()
+        self.ANG = 0
+        self.ANG_DIR = 1
 
     def set_uniform(self,u_name, u_value):
         try:
@@ -186,11 +187,29 @@ class Screen(mglw.WindowConfig):
 
     def render(self,_time,frame_time):
         self.ctx.clear()
-        self.set_uniform('time',_time)
-        if self.t+10 < time.time():
-            print(_time)
-            self.t = time.time()
+        _t = _time % 600 # max cycle time 10minutes 
+        
+        #self.set_uniform('time',_t)
+        if self.ANG_DIR:
+            self.ANG += 0.01
+        else:
+            self.ANG -= 0.01
+
+        if self.ANG <= -2:
+            self.ANG_DIR = 1
+            self.ANG = -2
+        elif self.ANG >= 3.1415:
+            #self.ANG_DIR = 0
+            self.ANG = 0
+        a = self.ANG
+        #a = math.sin(a ) #math.radians(a) )
+
+        self.set_uniform('time',a)
         self.quad.render(self.prog)
+
+        if self.t+1 < time.time():
+            print(_time,_t,self.ANG)
+            self.t = time.time()
 
 if __name__ == "__main__":
     mglw.run_window_config(Screen)

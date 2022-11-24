@@ -100,16 +100,16 @@ class Server():
         
         if msg:
             #print("msg**",msg)
-            print("B64",sys.getsizeof(msg),len(msg))
+            #print("B64",sys.getsizeof(msg),len(msg))
             msg = base64.b64decode(msg)
             ##print("msg**",msg)
             ##msg = msg.decode("utf8")
-            print("str",sys.getsizeof(msg),len(msg))
+            #print("str",sys.getsizeof(msg),len(msg))
 
             try:
                 msg=zlib.decompress(msg)
-                print("uzip",sys.getsizeof(msg),len(msg))
-                print("msg",str(msg)[:150],"...")
+                #print("uzip",sys.getsizeof(msg),len(msg))
+                #print("msg",str(msg)[:150],"...")
             except Exception as e:
                 print("SERVER decompress err",e)
                 #msg = b"decompression error"

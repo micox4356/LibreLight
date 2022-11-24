@@ -2281,10 +2281,11 @@ class GUI_PATCH():
             max_dmx = FIXTURES.get_max_dmx_nr(fix) 
             
             for i in range(data["DMX"],data["DMX"]+max_dmx[1]):
-                if i in dmx_collision:
-                    dmx_collision[i] += 1
+                k = "{}.{}".format(data["UNIVERS"],i)
+                if k in dmx_collision:
+                    dmx_collision[k] += 1
                 else:
-                    dmx_collision[i] = 0
+                    dmx_collision[k] = 0
         z=0
         for fix in FIXTURES.fixtures:
             z+=1
@@ -2347,9 +2348,10 @@ class GUI_PATCH():
             
             dmx_ch_sum += max_dmx[1]
             for i in range(data["DMX"],data["DMX"]+max_dmx[1]):
-                if i in dmx_collision:
-                    if dmx_collision[i]:
-                        collision.append(i)
+                k = "{}.{}".format(data["UNIVERS"],i)
+                if k in dmx_collision:
+                    if dmx_collision[k]:
+                        collision.append(k)
 
             b = tk.Button(xframe,bg="grey", text="{:3} ({})".format(max_dmx[1] , max_dmx[0]),width=4) #a,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -2368,7 +2370,7 @@ class GUI_PATCH():
                 bg = "#f22"
             else: 
                 collision = ""
-            b = tk.Button(xframe,bg=bg, text="{}".format(str(collision)),width=14,anchor="w")
+            b = tk.Button(xframe,bg=bg, text="{}".format(",".join(collision)),width=14,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
             c=0

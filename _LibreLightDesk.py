@@ -1633,6 +1633,11 @@ class ExecButton(MiniButton):
     def __init__(self,root,width=72,height=38,text="button"):
         super().__init__(root,width,height,text)
         self.text = "1\n2\n3\n"
+        self.x9font = tk.font.Font(family="FreeSans", size=9, weight="bold")
+        self.x8font = tk.font.Font(family="FreeSans", size=8, weight="bold")
+        self.x7font = tk.font.Font(family="FreeSans", size=7, weight="bold")
+        self.x6font = tk.font.Font(family="FreeSans", size=6, weight="bold")
+        self.x5font = tk.font.Font(family="FreeSans", size=5, weight="bold")
     def config(self,**args):
         self._configure(**args)
         self._label()
@@ -1687,7 +1692,30 @@ class ExecButton(MiniButton):
         text = txt2
         z = 0
         for t in text.split("\n"):
-            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+            ts = 10
+            _max = 7
+            if z==1 and len(t) >= _max:
+                ts = int(10 - (len(t)-_max)/1.5)
+                if ts < 5:
+                    ts = 5
+                xfont = self.x9font
+                if 1:
+                    if ts == 9:
+                        xfont = self.x9font
+                    elif ts == 8:
+                        xfont = self.x8font
+                    elif ts == 7:
+                        xfont = self.x7font
+                    elif ts == 6:
+                        xfont = self.x6font
+                    elif ts == 5:
+                        xfont = self.x5font
+
+                
+                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
+                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+            else:
+                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             z+=1
 
 

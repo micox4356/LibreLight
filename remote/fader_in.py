@@ -9,7 +9,8 @@ import lib.zchat as chat
 import time
 data = "hi"
 data = data.encode("utf-8")
-c = chat.Client(port=30002)
+#c = chat.Client(port=30002)
+c = chat.Client()
 client = c
 time.sleep(0.05)
 client.send(data)
@@ -36,7 +37,7 @@ mc.set("another_key", 3)
 mc.delete("another_key")
 
 import time
-
+import json
 data = {}
 while 1:
     send = 0
@@ -60,19 +61,23 @@ while 1:
         #data = input("<")
 
         v = x[ch]
-        cmd="DMX:{} VAL:{}".format(ch,v)
-        print(cmd)
+        cmd={"iDMX":ch,"iVAL":v,"iT":round(time.time(),2)} #".format(ch,v)
+        cmd = json.dumps([cmd])
         if ch in data:
-            if data[ch] != cmd:
-                data[ch] = cmd
+            if data[ch] != v:
+                data[ch] = v
                 send = 1
         else:
             data[ch] = cmd
             send = 1
 
         if send:
+            print("+",cmd)
             _data = bytes(cmd,"utf-8")
             client.send(_data)
+        else:
+            pass
+            #print("-",cmd)
 
     time.sleep(0.01)
 

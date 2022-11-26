@@ -56,11 +56,12 @@ while 1:
 
     if type(x) is list and len(x) == 512: 
         ch = 140
-        print(x[ch])
+        #print(ch,x[ch])
         #data = input("<")
 
         v = x[ch]
-        cmd="VAL: {} {}".format(ch,v)
+        cmd="DMX:{} VAL:{}".format(ch,v)
+        print(cmd)
         if ch in data:
             if data[ch] != cmd:
                 data[ch] = cmd

@@ -12,23 +12,23 @@ apt update
 echo ""
 echo "-- system tools"
 pkg="vim lm-sensors htop nmap tcpdump rsync git psmisc screen git gitk" 
-apt install $pkg 
+apt install -y $pkg 
 
 echo ""
 echo "-- touchscreen tools"
 #xautomation -> xte mouse  #xrand -> x11-xserver-utils
 pkg="xdotool x11-xserver-utils xinput xautomation" 
-apt install $pkg 
+apt install -y $pkg 
 
 echo ""
 echo "-- python pkg's"
 pkg="python3-tk python3-pygame memcached python3-memcache python3-pip python3-pyglet "
-apt install $pkg 
+apt install -y $pkg 
 
 echo ""
 echo "-- python 3d pkg's"
 pkg="python3-opengl python3-pyglet python3-pil "
-apt install $pkg 
+apt install -y $pkg 
 #exit
 
 echo ""

@@ -39,6 +39,9 @@ mc.delete("another_key")
 import time
 import json
 data = {}
+start = time.time()
+delta = start
+
 while 1:
     send = 0
     try:
@@ -61,7 +64,8 @@ while 1:
         #data = input("<")
 
         v = x[ch]
-        cmd={"iDMX":ch,"iVAL":v,"iT":round(time.time(),2)} #".format(ch,v)
+        delta = time.time()-start
+        cmd={"iDMX":ch,"iVAL":v,"iT":round(delta,2)} #".format(ch,v)
         cmd = json.dumps([cmd])
         if ch in data:
             if data[ch] != v:

@@ -9,8 +9,8 @@ import lib.zchat as chat
 import time
 data = "hi"
 data = data.encode("utf-8")
-#c = chat.Client(port=30002)
-c = chat.Client()
+c = chat.Client(port=30002)
+#c = chat.Client()
 client = c
 time.sleep(0.05)
 client.send(data)

@@ -229,6 +229,31 @@ COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
+    
+
+# remote input - start
+def JCB(x):
+    exec_wing = window_manager.get_obj(name="EXEC-WING") #= WindowManager()
+    if not exec_wing: 
+        return
+
+    for i in x:
+        jv = x[i]
+
+        try:
+            jv = json.loads(jv)
+            jv = jv[0]
+            print(jv)
+            v = jv["iVAL"]
+            exec_wing.set_fader(v)
+        except Exception as e:
+            print("exception",e)
+        #print("remote in:",round(time.time(),0),"x",i,v)
+
+#chat.cmd(JCB,port=30002) # SERVER
+thread.start_new_thread(chat.cmd,(JCB,30002)) # SERVER
+# remote input - end
+
 jclient = chat.tcp_sender()#port=50001)
 import zlib
 def jclient_send(data):
@@ -4298,6 +4323,17 @@ class GUI_ExecWingLayout():
         self.frame.pack()
         self._event_redraw()
 
+    def set_fader(self,val):
+        print("set_fader",val)
+        for i in self.elem:
+            e = i #self.elem[i] #.append(e)
+            #print("e",e)
+            ee = e.elem[0]
+            #print(dir(ee))
+            ee.set(val)# = val
+        #for ee in e.elem: #.append(self.b)
+        #    print("ee",ee)
+
     def event_cb(self,a1="",a2="",nr=None,**args):
         print("event_cb:",nr,a1,a2,args)
         nr += 1
@@ -4906,9 +4942,10 @@ class GUIWindow():
 class WindowManager():
     def __init__(self):
         self.windows = {}
+        self.obj = {}
         self.nr= 0
         self.first=""
-    def new(self,w,name=""):
+    def new(self,w,name="",obj=None):
         if not self.first:
             if name:
                 self.first = name
@@ -4919,12 +4956,30 @@ class WindowManager():
 
         if name:
             self.windows[str(name)] = w
+            self.obj[str(name)] = obj
         else:
             self.windows[str(self.nr)] = w
+            self.obj[str(self.nr)] = obj
             self.nr+=1
         #w.show()
     def mainloop(self):
         self.windows[self.first].mainloop()
+
+    def get(self,name):
+        print(self,".get(name) =",name)
+        name = str(name)
+        if name in self.windows:
+            out = self.windows[name]
+            print(out)
+            return out
+    def get_obj(self,name):
+        print(self,".get(name) =",name)
+        name = str(name)
+        if name in self.windows:
+            out = self.obj[name]
+            print(out)
+            return out
+
     def top(self,name):
         name = str(name)
         if name in self.windows:
@@ -5106,8 +5161,8 @@ if __run_main:
     data=[]
     for i in range(10*3):
         data.append({"EXEC"+str(i):"EXEC"})
-    GUI_ExecWingLayout(w1,data)
-    window_manager.new(w,name)
+    obj=GUI_ExecWingLayout(w1,data)
+    window_manager.new(w,name,obj)
 
 
     name="ENCODER"

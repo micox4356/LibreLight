@@ -4,6 +4,18 @@ import os
 sys.path.append(os.getcwd() + '/..')
 import lib.zchat as chat
 
+
+import time
+def JCB(x):
+    for i in x:
+        v = x[i]
+        print(round(time.time(),0),"x",i,v)
+
+chat.cmd(JCB,port=30002) # SERVER
+
+
+
+exit()
 print("-----")
 
 print(dir())

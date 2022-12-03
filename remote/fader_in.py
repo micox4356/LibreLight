@@ -45,7 +45,7 @@ delta = start
 while 1:
     send = 0
     try:
-        x=mc.get("dmx-0")
+        x=mc.get("10.10.10.13:0")
     except Exception as e:
         print("exc", e)
         time.sleep(1)

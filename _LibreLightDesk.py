@@ -2720,12 +2720,15 @@ def draw_setup(gui,xframe):
             r+=1
 
 def _loop_clock(b):
-    xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
+    xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
+    xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
     while 1:
         #b["text"] = 
-        s = time.strftime("%Y-%m-%d %X")
+        d = time.strftime("%Y-%m-%d")
+        s = time.strftime("%X")
         b.delete("all")
-        b.create_text(160,21,text=s ,font=xfont)
+        b.create_text(170,41,text=s,fill="#aa0" ,font=xfont)
+        b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1)
     
         time.sleep(1)
         #exit()
@@ -2738,11 +2741,11 @@ def draw_clock(gui,xframe):
     comm = "xx"
     
     xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
-    b = tk.Canvas(frame,bg="black", height=40,bd=0,width=6,highlightthickness=0) #,bd="black")
+    b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
 
     #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
     #b.config(activebackground="lightgreen")
-    b.config(background="lightgreen")
+    #b.config(background="lightgreen")
     b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
     #b["text"] = time.strftime("%Y-%m-%d %X")
     thread.start_new_thread(_loop_clock,(b,))
@@ -5232,7 +5235,7 @@ if __run_main:
     window_manager.new(w,name)
 
     name = "CLOCK"
-    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+H1+HTB+150)#250)
+    w = GUIWindow(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160)#250)
     draw_clock(master,w.tk)
     window_manager.new(w,name)
 

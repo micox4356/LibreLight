@@ -255,8 +255,8 @@ def JCB(x):
             v = jv["iVAL"]
             #exec_wing.set_fader(0,v)
             set_exec_fader(0,v)
-            set_exec_fader(1,v)
-            set_exec_fader(2,v)
+            set_exec_fader(1,200-v)
+            set_exec_fader(2,int(v/2+10))
         except Exception as e:
             print("exception",e)
         #print("remote in:",round(time.time(),0),"x",i,v)
@@ -2718,6 +2718,35 @@ def draw_setup(gui,xframe):
         if c >=7:
             c=0
             r+=1
+
+def _loop_clock(b):
+    xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
+    while 1:
+        #b["text"] = 
+        s = time.strftime("%Y-%m-%d %X")
+        b.delete("all")
+        b.create_text(160,21,text=s ,font=xfont)
+    
+        time.sleep(1)
+        #exit()
+
+def draw_clock(gui,xframe):
+    frame_cmd=xframe
+    
+    frame = tk.Frame(frame_cmd,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+    comm = "xx"
+    
+    xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
+    b = tk.Canvas(frame,bg="black", height=40,bd=0,width=6,highlightthickness=0) #,bd="black")
+
+    #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
+    #b.config(activebackground="lightgreen")
+    b.config(background="lightgreen")
+    b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
+    #b["text"] = time.strftime("%Y-%m-%d %X")
+    thread.start_new_thread(_loop_clock,(b,))
+
 
 
 
@@ -5200,6 +5229,11 @@ if __run_main:
     name = "LIVE"
     w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235)#250)
     draw_live(master,w.tk)
+    window_manager.new(w,name)
+
+    name = "CLOCK"
+    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+H1+HTB+150)#250)
+    draw_clock(master,w.tk)
     window_manager.new(w,name)
 
     name="FX"

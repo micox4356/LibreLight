@@ -231,21 +231,32 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
     
 
-# remote input - start
-def JCB(x):
+def set_exec_fader(nr,val):
     exec_wing = window_manager.get_obj(name="EXEC-WING") #= WindowManager()
     if not exec_wing: 
         return
 
+    #print(exec_wing)
+    try:
+        exec_wing.set_fader(nr,val)
+    except Exception as e:
+        print("exception",e)
+    #print("remote in:",round(time.time(),0),"x",i,v)
+
+# remote input - start (memcached)
+def JCB(x):
     for i in x:
         jv = x[i]
 
         try:
             jv = json.loads(jv)
             jv = jv[0]
-            print(jv)
+            #print(jv)
             v = jv["iVAL"]
-            exec_wing.set_fader(v)
+            #exec_wing.set_fader(0,v)
+            set_exec_fader(0,v)
+            set_exec_fader(1,v)
+            set_exec_fader(2,v)
         except Exception as e:
             print("exception",e)
         #print("remote in:",round(time.time(),0),"x",i,v)
@@ -4127,7 +4138,7 @@ class EXEC_FADER():
         j=0
         font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=18,from_=from_,to=to,command=self.event)
+        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)
@@ -4323,8 +4334,13 @@ class GUI_ExecWingLayout():
         self.frame.pack()
         self._event_redraw()
 
-    def set_fader(self,val):
-        print("set_fader",val)
+    def set_fader(self,nr,val):
+        print("set_fader",nr,val)
+        if nr < len(self.elem):
+            ee = self.elem[nr].elem[0]
+            ee.set(val) 
+        return # STOP
+
         for i in self.elem:
             e = i #self.elem[i] #.append(e)
             #print("e",e)
@@ -5233,6 +5249,11 @@ if __run_main:
     window_manager.top("Table")
     #w = frame_fix #GUIWindow("OLD",master=0,width=W1,height=500,left=130,top=TOP)
     window_manager.new(w,name)
+
+
+    #Set EXEC-FADER SIZE TO 0 on Startup
+    for nr in range(10):
+        set_exec_fader(nr,0)
 
     try:
         #root.mainloop()

@@ -313,7 +313,7 @@ class MC():
                 ip="ltp-out-0"
 
                 x=self.mc.get(ip)
-                val = x[251-1]
+                val = x[303-1]
                 #print("mc val",val)
                 set_exec_fader(0,val)
                 time.sleep(0.01)

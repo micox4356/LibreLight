@@ -310,12 +310,13 @@ class MC():
             #print("+")
             try:
                 ip="10.10.10.13:0"
-                ip="ltp-out-0"
+                #ip="ltp-out-0"
 
                 x=self.mc.get(ip)
-                val = x[501-1]
+                #val = x[501-1]
+                val = x[141-1]
                 #print("mc val",val)
-                set_exec_fader(0,val)
+                #set_exec_fader(0,val)
                 time.sleep(0.01)
             except Exception as e:
                 print("exc", e)
@@ -5279,10 +5280,10 @@ if __run_main:
     _ENCODER_WINDOW = w
     draw_enc(master,w.tk)#Xroot)
 
-    name="REMOTE-CONTROL"
-    w = GUIWindow(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)
-    _ENCODER_WINDOW = w
-    draw_enc(master,w.tk)#Xroot)
+    #name="REMOTE-CONTROL"
+    #w = GUIWindow(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)
+    #_ENCODER_WINDOW = w
+    #draw_enc(master,w.tk)#Xroot)
 
     name = "SETUP"
     w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP)

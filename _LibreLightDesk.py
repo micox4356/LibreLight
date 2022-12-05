@@ -265,6 +265,67 @@ def JCB(x):
 thread.start_new_thread(chat.cmd,(JCB,30002)) # SERVER
 # remote input - end
 
+# read memcachd
+memcache = None
+try:
+    import memcache
+except Exception as e:
+    print("Exception",e)
+
+class MC():
+    def __init__(self,server="127.0.0.1",port=11211):
+        print("----------- MC")
+        try:
+            self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+        except Exception as e:
+            print("Exception",e)
+        data = {}
+        start = time.time()
+        delta = start
+        for i in self.mc.get("index"):
+            print("key",i)
+    def ok(self):
+        if type(self.mc) is not type(None):
+            return 0
+        return 1
+
+    def test(self):
+        if not self.ok():
+            return 
+        self.mc.set("some_key", "Some value")
+        self.value = mc.get("some_key")
+
+        self.mc.set("another_key", 3)
+        self.mc.delete("another_key")
+
+    def loop(self):
+        thread.start_new_thread(self._loop,())
+        if not self.ok():
+            return 
+
+    def _loop(self):
+        print("++++++++++ start.memcachd read loop",self )
+        while 1:
+            send = 0
+            #print("+")
+            try:
+                ip="10.10.10.13:0"
+                ip="ltp-out-0"
+
+                x=self.mc.get(ip)
+                val = x[251-1]
+                #print("mc val",val)
+                set_exec_fader(0,val)
+                time.sleep(0.01)
+            except Exception as e:
+                print("exc", e)
+                time.sleep(1)
+
+_mc=MC()
+_mc.loop()
+#time.sleep(1)
+#exit()
+
 jclient = chat.tcp_sender()#port=50001)
 import zlib
 def jclient_send(data):
@@ -4367,7 +4428,7 @@ class GUI_ExecWingLayout():
         self._event_redraw()
 
     def set_fader(self,nr,val):
-        print("set_fader",nr,val)
+        #print("set_fader",nr,val)
         if nr < len(self.elem):
             ee = self.elem[nr].elem[0]
             ee.set(val) 
@@ -5021,11 +5082,11 @@ class WindowManager():
             print(out)
             return out
     def get_obj(self,name):
-        print(self,".get(name) =",name)
+        #print(self,".get(name) =",name)
         name = str(name)
         if name in self.windows:
             out = self.obj[name]
-            print(out)
+            #print(out)
             return out
 
     def top(self,name):
@@ -5215,6 +5276,11 @@ if __run_main:
 
     name="ENCODER"
     w = GUIWindow(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+HTB*2)
+    _ENCODER_WINDOW = w
+    draw_enc(master,w.tk)#Xroot)
+
+    name="REMOTE-CONTROL"
+    w = GUIWindow(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)
     _ENCODER_WINDOW = w
     draw_enc(master,w.tk)#Xroot)
 

@@ -270,24 +270,29 @@ memcache = None
 try:
     import memcache
 except Exception as e:
-    print("Exception",e)
+    print("Exception IMPORT ERROR",e)
 
 class MC():
     def __init__(self,server="127.0.0.1",port=11211):
         print("----------- MC")
         try:
             self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+            #self.init()
         except Exception as e:
             print("Exception",e)
+
+        # def init(self):
         data = {}
         start = time.time()
         delta = start
-        for i in self.mc.get("index"):
-            print("key",i)
+        index = self.mc.get("index")
+        if index:
+            for i in index:
+                print("key",i)
     def ok(self):
-        if type(self.mc) is not type(None):
-            return 0
-        return 1
+        if self.mc: 
+            return 1
+        return 0
 
     def test(self):
         if not self.ok():

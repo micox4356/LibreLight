@@ -316,7 +316,7 @@ class MC():
                 #val = x[501-1]
                 val = x[141-1]
                 #print("mc val",val)
-                #set_exec_fader(0,val)
+                set_exec_fader(0,val)
                 time.sleep(0.01)
             except Exception as e:
                 print("exc", e)

@@ -601,7 +601,8 @@ if __name__ == "__main__":
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event24"
         cmd="evtest {}".format(x[1])
-        start_new_thread(main,(cmd,"DP-2"))
+        #start_new_thread(main,(cmd,"DP-2"))
+        start_new_thread(main,(cmd,"HDMI-1"))
         touchscreen_count +=1
 
 
@@ -615,6 +616,7 @@ if __name__ == "__main__":
         #cmd="evtest /dev/input/event5"
         cmd="evtest {}".format(x[1])
         start_new_thread(main,(cmd,"eDP-1"))
+        #start_new_thread(main,(cmd,"HDMI-1"))
         touchscreen_count +=1
 
     while 1:

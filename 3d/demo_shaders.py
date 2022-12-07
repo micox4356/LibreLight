@@ -12,7 +12,7 @@ import time
 # python3 main.py --window glfw --fullscreen --samples 16 --cursor false --size 800x600
 
 vertex_shader = """
-#version 430
+#version 400
 
 in vec3 in_position;
 
@@ -24,7 +24,7 @@ void main(){
 
 
 fragment_shader = """
-#version 450
+#version 400
 
 #define PI 3.1415926538
 out vec4 fragColor;

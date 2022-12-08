@@ -31,6 +31,7 @@ out vec4 fragColor;
 uniform vec4 col2 = vec4(1);
 uniform vec4 col3 = vec4(1,0,0,0);
 uniform vec4 col44 = vec4(0,1,0,0);
+uniform vec4 control44 = vec4(0,1,0,0);
 uniform vec2 resolution;
 uniform float time;
 
@@ -188,6 +189,10 @@ void main1(){;
     //b.y += 150+time*100;
     b = vec2(100,200);
     col = block(uv,col,a,b,col2);
+    vec2 aa = vec2(0,0);
+    aa.x = control44.x;
+    aa.y = control44.y;
+    col = block(uv,col,aa,b,col2);
 
     a = vec2(0,0);
     b = vec2(100,200);
@@ -338,15 +343,20 @@ class Screen(mglw.WindowConfig):
         if not x:
             x = mc.get("10.10.10.13:2")
 
-        r = 1#2155
+        r = 1 #255
         g = 0
-        b = 1#255
+        b = 1 #255
+        aa=0
+        bb=0
         if x:
             #a = 1+x[141-1]/255.*10
             r = x[141-1]/255
             g = x[142-1]/255
             b = x[143-1]/255
+            aa = x[144-1] *2 #* a
+            bb = x[145-1] *2 #* a
         self.set_uniform('time',a)
+        self.set_uniform('control44',[aa,bb,0,0])
         x = time.time()/10%1
         #self.set_uniform('col2',[r,g,b,1])
         self.set_uniform('col44',[r,g,b,1])

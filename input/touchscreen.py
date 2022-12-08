@@ -592,7 +592,7 @@ if __name__ == "__main__":
 
     touchscreen_count = 0
 
-    #TOUCH 1
+    #TOUCH 1 a
     name = "iSolution multitouch"
     x= touch_filter(name,touch_list)
     print(x)
@@ -603,6 +603,19 @@ if __name__ == "__main__":
         cmd="evtest {}".format(x[1])
         #start_new_thread(main,(cmd,"DP-2"))
         start_new_thread(main,(cmd,"HDMI-1"))
+        touchscreen_count +=1
+
+    #TOUCH 1
+    name = "iSolution multitouch"
+    x= touch_filter(name,touch_list)
+    print(x)
+
+    if len(x):
+        disable_xinput_touch(name)
+        #cmd="evtest /dev/input/event24"
+        cmd="evtest {}".format(x[1])
+        start_new_thread(main,(cmd,"DP-2"))
+        #start_new_thread(main,(cmd,"HDMI-1"))
         touchscreen_count +=1
 
 

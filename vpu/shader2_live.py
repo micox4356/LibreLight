@@ -30,8 +30,10 @@ fragment_shader = """
 out vec4 fragColor;
 uniform vec4 col2 = vec4(1);
 uniform vec4 col3 = vec4(1,0,0,0);
-uniform vec4 col44 = vec4(0,1,0,0);
-uniform vec4 control44 = vec4(0,1,0,0);
+uniform vec4 fix_bg = vec4(0,1,0,0);
+uniform float master_dim = 1;
+uniform vec4 fix_block_pos = vec4(0,1,0,0);
+uniform vec4 fix_circle_pos = vec4(0,1,0,0);
 uniform vec2 resolution;
 uniform float time;
 
@@ -154,30 +156,34 @@ void main1(){;
     vec4 col = vec4(0,0,0,1);
     vec4 col4 = vec4(0,1,0,1);
     
-    col = col44; 
+    col = fix_bg ; //col44; 
 
     //# background animation
-    float mysin = sin(uv.x/3.14/20*time);
-    float mysin2 = sin(uv.y/3.14/20*time*4);
+    //float mysin = sin(uv.x/3.14/20*time);
+    float mysin = sin(uv.y/3.14/10+time*4);
+    float mysin2 = cos(uv.y/3.14/20+time*4);
+    //float mysin2 = sin(uv.y/3.14/20*time*4);
     float mycos = cos(uv.x/3.14/10*time);
     //col += vec4(mysin2,0, 0,1);
     //col += vec4(mysin-mysin2 ,0 ,0, 1);
     //col += vec4((mysin-mysin2)*col44.r ,col44.g , col44.b, 1);
-    //col += vec4((mysin-mysin2)*col44.r ,(mysin-mysin2)*col44.g , (mysin-mysin2)*col44.b, 1);
+    //col += vec4((mysin-mysin2)*fix_bg.r ,(mysin-mysin2)*fix_bg.g , (mysin-mysin2)*fix_bg.b, 1);
+    col -= vec4(mysin*fix_bg.r ,mysin*fix_bg.g ,mysin*fix_bg.b , 1 ) ;
+    //col += vec4(mysin2*fix_bg.r ,mysin2*fix_bg.g ,mysin2*fix_bg.b , 1 ) ;
 
 
     a = vec2(0,0);
-    col = pulse(uv,col,a,col4);
+    //col = pulse(uv,col,a,col4);
 
     col4 = vec4(1,0,0,1);
     a = vec2(600,0);
-    col = pulse(uv,col,a,col4);
+    //col = pulse(uv,col,a,col4);
 
-    if( uv.x > -100 && uv.x < 100 ){
-        col.r = 0;
-        col.b = 1 ;//length(uv+vec2(2.9,0.9) )/200;
-        col.g = 0;
-    }
+    //if( uv.x > -100 && uv.x < 100 ){
+    //    col.r = 0;
+    //    col.b = 1 ;//length(uv+vec2(2.9,0.9) )/200;
+    //    col.g = 0;
+    //}
 
     col += 0.1 / length(uv+vec2(.6,.8) ); //sun
 
@@ -188,10 +194,10 @@ void main1(){;
     a.y += cos(time*2)*100*3;
     //b.y += 150+time*100;
     b = vec2(100,200);
-    col = block(uv,col,a,b,col2);
+    //col = block(uv,col,a,b,col2);
     vec2 aa = vec2(0,0);
-    aa.x = control44.x;
-    aa.y = control44.y;
+    aa.x = fix_block_pos.x -255*2;
+    aa.y = fix_block_pos.y -255*2;
     col = block(uv,col,aa,b,col2);
 
     a = vec2(0,0);
@@ -201,23 +207,26 @@ void main1(){;
     a.y += sin(-1*time*2)*100*3;
     //b.y += 150+time*100;
     //col = block(uv,col,a,b,col2);
-    col = circle(uv,col,a,100,col3);
+    //col = circle(uv,col,a,100,col3);
+    aa.x = fix_circle_pos.x -255*2;
+    aa.y = fix_circle_pos.y -255*2;
+    col = circle(uv,col,aa,100,col3);
 
     a.x += cos(time*2+.1)*100*3;
     a.y += sin(-1*time*2+.1)*100*3;
     col4 = vec4(1,0,1,0);
     col4 = vec4(1,0,1,0);
-    col = circle(uv,col,a,100,col4);
+    //col = circle(uv,col,a,100,col4);
     //col.r -= 0.1; 
 
     a.x = cos(time*2-.3)*100*4;
     a.y = sin(-1*time*2-.3)*100*2;
     a.y *=-1;
     col4 = vec4(1,1,0,0);
-    col = circle(uv,col,a,100,col4);
+    //col = circle(uv,col,a,100,col4);
     
-    float dist = distance(uv , vec2(10,10));
-    float circle = smoothstep((10-0.01),(10+0.01),1.0-dist );
+    //float dist = distance(uv , vec2(10,10));
+    //float circle = smoothstep((10-0.01),(10+0.01),1.0-dist );
 
     //# Planet's
     a.x = -1000;
@@ -233,8 +242,11 @@ void main1(){;
     //col = ring(col,uv,a, z, ang, -speed, 280, 280/2)*2;
 
     
+    //col *= length(master_dim);
+    //col *= 0.5;
+    col *= master_dim;
+
     //# blue background
-    
     fragColor = col ;//vec4(col,1);
 }
 
@@ -342,6 +354,9 @@ class Screen(mglw.WindowConfig):
         x = mc.get("2.0.0.13:2")
         if not x:
             x = mc.get("10.10.10.13:2")
+        
+        if not x:
+            x=[1]*512
 
         r = 1 #255
         g = 0
@@ -353,13 +368,15 @@ class Screen(mglw.WindowConfig):
             r = x[141-1]/255
             g = x[142-1]/255
             b = x[143-1]/255
-            aa = x[144-1] *2 #* a
-            bb = x[145-1] *2 #* a
+            aa = x[144-1] *4 #* a
+            bb = x[145-1] *4 #* a
         self.set_uniform('time',a)
-        self.set_uniform('control44',[aa,bb,0,0])
+        self.set_uniform('fix_block_pos',[aa,bb,0,0])
+        self.set_uniform('fix_circle_pos',[bb,aa,0,0])
+        self.set_uniform('master_dim',x[146-1]/255.)
         x = time.time()/10%1
         #self.set_uniform('col2',[r,g,b,1])
-        self.set_uniform('col44',[r,g,b,1])
+        self.set_uniform('fix_bg',[r,g,b,1])
         self.set_uniform('col2',[1,x,0,1])
         self.quad.render(self.prog)
 

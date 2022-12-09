@@ -37,6 +37,8 @@ uniform vec4 fix_circle_pos = vec4(0,1,0,0);
 uniform vec2 resolution;
 uniform float time;
 
+float x_grid = 1;
+
 vec4 ring(vec4 col,vec2 uv,vec2 aa, int z,float ang, float speed,float scaleX, float scaleY){
     //z =1; //count of star's
     //ang = 270;
@@ -135,6 +137,11 @@ vec4 pulse(vec2 uv,vec4 col, vec2 a,vec4 col4){
     col = circle(uv,col,a,tt-310,col4);
     return col;
 }
+float grid(vec2 st, float res)
+{
+  vec2 grid = fract(st*res);
+  return (step(res,grid.x) * step(res,grid.y));
+}
 
 void main1(){;
     vec2 uv = gl_FragCoord.xy ; //vUV.st ;
@@ -157,6 +164,10 @@ void main1(){;
     vec4 col4 = vec4(0,1,0,1);
     
     col = fix_bg ; //col44; 
+
+    vec2 grid_uv = vec2(uv.xy*0.5);
+    float x = grid( grid_uv, 1/15.) ;
+    col.rgb += vec3(x,x,x) ;//*x;
 
     //# background animation
     //float mysin = sin(uv.x/3.14/20*time);
@@ -184,7 +195,9 @@ void main1(){;
     //    col.b = 1 ;//length(uv+vec2(2.9,0.9) )/200;
     //    col.g = 0;
     //}
-
+    
+    
+    
     col += 0.1 / length(uv+vec2(.6,.8) ); //sun
 
 

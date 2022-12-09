@@ -370,6 +370,7 @@ class Screen(mglw.WindowConfig):
             b = x[143-1]/255
             aa = x[144-1] *4 #* a
             bb = x[145-1] *4 #* a
+            self.ANG += x[147-1]/255. # *4 #* a
         self.set_uniform('time',a)
         self.set_uniform('fix_block_pos',[aa,bb,0,0])
         self.set_uniform('fix_circle_pos',[bb,aa,0,0])

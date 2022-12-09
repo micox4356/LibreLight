@@ -325,6 +325,7 @@ class Screen(mglw.WindowConfig):
         self.t = time.time()
         self.ANG = 0
         self.ANG_DIR = 1
+        self.time = 0
 
     def set_uniform(self,u_name, u_value):
         try:
@@ -370,8 +371,8 @@ class Screen(mglw.WindowConfig):
             b = x[143-1]/255
             aa = x[144-1] *4 #* a
             bb = x[145-1] *4 #* a
-            self.ANG += x[147-1]/255. # *4 #* a
-        self.set_uniform('time',a)
+            self.time += (x[147-1]/255.-0.5) # *4 #* a
+        self.set_uniform('time',self.time)
         self.set_uniform('fix_block_pos',[aa,bb,0,0])
         self.set_uniform('fix_circle_pos',[bb,aa,0,0])
         self.set_uniform('master_dim',x[146-1]/255.)

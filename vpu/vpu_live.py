@@ -99,7 +99,20 @@ while 1:
     #    print(i,k)
     t = int(math.sin(time.time() - s)*10)
     event_read()
-    r=mc.get("10.10.10.13:2")
+    #r=mc.get("10.10.10.13:2")
+    r = mc.get("2.0.0.13:2")
+    if not r:
+        c = 0
+        time.sleep(0.1)
+        r = [0] *512
+        #for i in range(12+1):
+        #    for j in range(8+1):
+        #        dmx = i*j*4 #*j*4
+        #        if c == 1:
+        #            col = [255,255,0,0]
+        for i in range(12*8+1):
+            dmx = i*4
+            r[dmx:dmx+4] = [255,10,10,40] 
     #print(r)
     ch = 0
     dmx = 1-1

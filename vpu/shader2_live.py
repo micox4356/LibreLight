@@ -700,7 +700,65 @@ void main( out vec4 fragColor, in vec2 fragCoord )
 }
 
 """
+fragment_shader = """
+#version 330
 
+uniform vec2 resolution;
+uniform float time;
+
+//out vec4 outColor;
+out vec4 fragColor;
+
+precision highp float;
+
+uniform sampler2D tex;
+
+void main()
+{
+    vec2 uv = gl_FragCoord.xy/resolution;
+	//float time = uTime * 0.4;
+
+	// apply pixelate effect
+	// vec2 uv_pixel = uv;
+	vec2 uv_pixel = floor(uv * (resolution/4)) / (resolution/4);
+
+    vec4 col1 = vec4(0.510, 0.776, 0.486, 1.0);
+    vec4 col2 = vec4(0.200, 0.604, 0.318, 1.0);
+    vec4 col3 = vec4(0.145, 0.490 ,0.278, 1.0);
+    vec4 col4 = vec4(0.059, 0.255, 0.251, 1.0);
+
+	// displacement on top of y
+	vec3 displace = texture(tex, vec2(uv_pixel.x, (uv_pixel.y + time) * 0.05)).xyz;
+	displace *= 0.5;
+	displace.x -= 1.0;
+	displace.y -= 1.0;
+	displace.y *= 0.5;
+
+	// color
+	vec2 uv_tmp = uv_pixel;
+	uv_tmp.y *= 0.2;
+	uv_tmp.y += time;
+    vec4 color = texture(tex, uv_tmp + displace.xy);
+
+    // match to colors
+    vec4 noise = floor(color * 10.0) / 5.0;
+    vec4 dark   = mix(col1, col2, uv.y);
+    vec4 bright = mix(col3, col4, uv.y);
+    color = mix(dark, bright, noise);
+
+	// add gradients (top dark and transparent, bottom bright)
+    float inv_uv = 1.0 - uv_pixel.y;
+    color.xyz -= 0.45 * pow(uv_pixel.y, 8.0);
+    color.a -= 0.2 * pow(uv_pixel.y, 8.0);
+    color += pow(inv_uv, 8.0);
+
+    // make waterfall transparent
+    color.a -= 0.2;
+
+    fragColor = vec4(color);
+}
+
+"""
 fragment_shader= """
 #version 400
 
@@ -710,13 +768,12 @@ uniform vec4 col2 = vec4(1);
 uniform vec4 col3 = vec4(1,0,0,0);
 uniform vec4 fix_bg = vec4(0,1,0,0);
 
-uniform float fix1_size = 1 ;
-uniform float fix1_speed = 0 ;
-uniform float fix1_width = 1 ;
-
-uniform float fix2_size = 1 ;
-uniform float fix2_speed = 0 ;
-uniform float fix2_width = 0.1 ;
+uniform float fix1_size_x = 1 ;
+uniform float fix1_speed_x = 0 ;
+uniform float fix1_width_x = 1 ;
+uniform float fix1_size_y = 1 ;
+uniform float fix1_speed_y = 0 ;
+uniform float fix1_width_y = 0.1 ;
 
 uniform float fix3_size = 1 ;
 uniform float fix3_speed = 0 ;
@@ -897,7 +954,7 @@ void main1(){;
     //col += vec4(vec3(c),0.5);
     
     if(0==1){
-    float TIME = fix1_speed/20;
+    float TIME = fix1_speed_x/20;
     //float c=smoothstep(1.0,0.3,clamp(uv.y*.3+.8,0.0,.75));
     float c=smoothstep(1.0,0.3,clamp(uv.y+.8,0.0,.75));
     c+=snow(uv,30.0,TIME)*.3;
@@ -911,21 +968,36 @@ void main1(){;
     col = vec4(finalColor,1.0);
     }
     //# background animation
-    float mysin1 = sin(uv.y/3.14/10+fix1_speed*4+sin(fix1_width))*fix1_size;
-    float mysin2 = sin(uv.x/3.14/10+fix2_speed*4+sin(fix2_width))*fix2_size;
+    float _fix1_width_x = fix1_width_x/10;
+    if( fix1_width_x <= 1){
+       _fix1_width_x = 1;
+    }
+    float _fix1_width_y = fix1_width_y/10;
+    if( fix1_width_y <= 1){
+       _fix1_width_y = 1;
+    }
+
+    float mysin1 = sin((uv.y+fix1_speed_y)/_fix1_width_y)*fix1_size_y;
+    float mysin2 = sin((uv.x+fix1_speed_x)/_fix1_width_x)*fix1_size_x;
+
+    float dir = -1;
+    if( uv.x > (resolution.x/2) ){ //resolution.x/2 ){
+        //col = vec4(0,0,0,0);
+        //mysin1 = 0;
+        float mysin1 = sin((uv.y+fix1_speed_y)/_fix1_width_y)-fix1_size_y;
+    }
+    mysin2 *= dir;
+
     //float mysin2 = clamp(uv.x/3.14/10+fix2_speed*4+sin(fix2_width/10))*fix2_size;
     //float mysin2 = smoothstep(uv.x/3.14/10+fix2_speed*4+sin(fix2_width/10))*fix2_size;
     //float mysin2 = fract(uv.x/3.14/10+fix2_speed*4+sin(fix2_width/10))*fix2_size;
     //float mysin2 = length(uv/3.14/10+fix2_speed*4+sin(fix2_width/10))*fix2_size;
 
+    mysin1 += cos((uv.y+.1+fix3_speed)/fix3_width/2)*fix3_size ;//mysin1*-1; //a*4;
+    //mysin2 *= 6;
     col -= vec4(mysin1*fix_bg.r ,mysin1*fix_bg.g ,mysin1*fix_bg.b , 1 ) ;
     col -= vec4(mysin2*fix_bg.r ,mysin2*fix_bg.g ,mysin2*fix_bg.b , 1 ) ;
     
-    //col -= vec4(sin(uv.x*time),0,0,0);
-    //col -= vec4(fract(uv.x*time/1000),0,0,0);
-    //col -= vec4(length(uv.xy*time/1000),0,0,0);
-    //float mysin3 = sin(uv.x/3.14/10+fix3_speed*4+sin(fix3_width))*fix3_size;
-    //col -= vec4(mysin3*fix_bg.r ,mysin3*1 ,mysin3*fix_bg.b , 1 ) ;
 
     col = circle(uv,col,vec2(20,20),40,vec4(0,1,1,0));
     col = circle(uv,col,vec2(0,0),20,vec4(0,1,0,0));
@@ -1073,8 +1145,9 @@ class Screen(mglw.WindowConfig):
         self.ANG_DIR = 1
         self.time = 0
 
-        self.fix1_speed = 0
-        self.fix2_speed = 0
+        self.fix1_speed_x = 0
+        self.fix1_speed_y = 0
+        self.fix3_speed = 0
 
     def set_uniform(self,u_name, u_value):
         try:
@@ -1133,19 +1206,25 @@ class Screen(mglw.WindowConfig):
 
         dmx=161-1
         print(x[dmx],x[dmx+1],x[dmx+2])
-        self.set_uniform('fix1_size',x[dmx]/255.)
-        self.fix1_speed += (x[dmx+1]/255.-0.5)/10
-        #self.fix1_speed += (x[201-1+2]/255.-0.5)/10
-        self.set_uniform('fix1_speed',self.fix1_speed) 
-        self.set_uniform('fix1_width',x[dmx+2])
 
-        dmx=181-1
         dmx=201-1
-        print(x[dmx],x[dmx+1],x[dmx+2])
-        self.set_uniform('fix2_size',x[dmx]/255.)
-        self.fix2_speed += (x[dmx+1]/255.-0.5)/10
-        self.set_uniform('fix2_speed',self.fix2_speed)
-        #self.set_uniform('fix2_width',x[dmx+2]/255)
+        print(dmx+1,x[dmx:dmx+8])
+        self.set_uniform('fix1_size_x',x[dmx]/255.*6)
+        self.set_uniform('fix1_size_y',x[dmx+1]/255.*6)
+        self.fix1_speed_x += (x[dmx+2]/255.-0.5)*300
+        self.fix1_speed_y += (x[dmx+3]/255.-0.5)*300
+        self.set_uniform('fix1_speed_x',self.fix1_speed_x) 
+        self.set_uniform('fix1_speed_y',self.fix1_speed_y) 
+        self.set_uniform('fix1_width_x',x[dmx+4]*2)
+        self.set_uniform('fix1_width_y',x[dmx+5]*2)
+
+        dmx=121-1
+        print(dmx+1,x[dmx:dmx+8])
+        self.set_uniform('fix3_size',x[dmx]/255.*6)
+        self.fix3_speed += (x[dmx+1]/255.-0.5)*300
+        self.set_uniform('fix3_speed',self.fix3_speed)
+        self.set_uniform('fix3_width',x[dmx+2]*2)
+
 
         x = time.time()/10%1
         #self.set_uniform('col2',[r,g,b,1])

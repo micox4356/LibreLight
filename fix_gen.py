@@ -3,14 +3,14 @@
 import json
 from collections import OrderedDict
 
-f_out = open("patch.json","w") 
+f_out = open("patch.sav","w") 
 
 
 nr=0
 dmx=1
 def add(jdata,att):
     global nr,dmx,name,fix,sub
-    print("======", "{}_{}{:02}".format( name,fix,sub) )
+    print("======", "{}_{} {:02}".format( name,fix,sub) )
     #for i in jdata:
     #    print(i )
 
@@ -22,9 +22,10 @@ def add(jdata,att):
                 nr+=1
                 continue
             rdata = '{"NR": 1, "MASTER": "0", "MODE": "S", "VALUE": 0, "ACTIVE": 0, "FX": "", "FX2": {}}'
+            rdata = '{"NR": 1, "MASTER": "0", "MODE": "S", "VALUE": 0, "ACTIVE": 0, "FX": "", "FX2": {}}'
             jattr = json.loads(rdata,object_pairs_hook=OrderedDict)
             jattr["NR"] = nr
-            if a in ["DIM","RED","GREEN","BLUE","PAN","TILT","ZOOM","IRIS"]:
+            if a in ["DIM","RED","GREEN","BLUE"]: #,"PAN","TILT","ZOOM","IRIS"]:
                 jattr["MODE"] = "F"
 
             jdata["ATTRIBUT"][a] = jattr
@@ -33,59 +34,62 @@ def add(jdata,att):
     print()
 
 
-fix = 501
+fix = 1
 sub =1
-name="SPX_"
+name="VPU"
 dmx=1
-univ=1
-for i in range(4): # fixtures
+univ=2
+for i in range(9*13): # fixtures
     print("====================================")
-    rdata='{"DMX": 1, "UNIVERS": 1, "NAME": "SPX7_01", "TYPE": "MOVER", "VENDOR": "JB", "ATTRIBUT":{}}'
+    rdata='{"DMX": 1, "UNIVERS": 2, "NAME": "VPU_01", "TYPE": "MOVER", "VENDOR": "AYERTON", "ATTRIBUT":{}}'
     jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
 
     jdata["NAME"] = "{}_{}{:02}".format( name,fix,sub)
+    jdata["NAME"] = "{}_{}".format( name,fix)#,sub)
     nr=1
 
     jdata["UNIVERS"] = univ
     jdata["DMX"] = dmx
 
     att = []
-    att.append("PAN")
-    att.append("PAN-FINE")
-    att.append("TITL")
-    att.append("TILT-FINE")
-    att.append("")
-    att.append("SHUTTER")
+    #att.append("PAN")
+    #att.append("PAN-FINE")
+    #att.append("TITL")
+    #att.append("TILT-FINE")
+    #att.append("")
+    #att.append("SHUTTER")
+    #att.append("DIM")
+    #att.append("ZOOM")
+    #att.append("GOBO")
+    #att.append("")
+    #att.append("GOBO2")
+    #att.append("G-ROT")
+    #att.append("")
+    #att.append("PRISMA")
+    #att.append("P-ROT")
+    #att.append("")
+    #att.append("")
     att.append("DIM")
-    att.append("ZOOM")
-    att.append("GOBO")
-    att.append("")
-    att.append("GOBO2")
-    att.append("G-ROT")
-    att.append("")
-    att.append("PRISMA")
-    att.append("P-ROT")
-    att.append("")
-    att.append("")
-    att.append("")
-    att.append("")
-    att.append("")
+    att.append("RED")
+    att.append("GREEN")
+    
+    att.append("BLUE")
 
     add(jdata,att)
     fnr="{}{:02}".format(fix,sub)
     f_out.write("{}\t{}\t{}\n".format(fnr,fnr,json.dumps(jdata) ) )
-        
+    f_out.flush()   
 
-    rdata='{"DMX": 1, "UNIVERS": 1, "NAME": "SPX7_01", "TYPE": "MOVER", "VENDOR": "JB", "ATTRIBUT":{}}'
+    rdata='{"DMX": 1, "UNIVERS": 2, "NAME": "SPX7_01", "TYPE": "MOVER", "VENDOR": "JB", "ATTRIBUT":{}}'
     jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
 
 
-    for i in range(3):
+    if 0:#for i in range(3):
         sub+=1
         jdata["NAME"] = "{}_{}{:02}".format( name,fix,sub)
 
         dmx+=nr-1
-        univ=1
+        univ=2
         nr=1
 
         jdata["UNIVERS"] = univ

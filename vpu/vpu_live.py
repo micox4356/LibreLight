@@ -102,6 +102,8 @@ while 1:
     #r=mc.get("10.10.10.13:2")
     r = mc.get("2.0.0.13:2")
     if not r:
+        r = mc.get("10.10.10.13:2")
+    if not r:
         c = 0
         time.sleep(0.1)
         r = [0] *512

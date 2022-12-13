@@ -69,6 +69,7 @@ pygame.init()
 main_size=(600,300)
 main_size=(1600,900)
 main_size=(600,300)
+main_size=(300,300)
 #window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
@@ -114,21 +115,23 @@ while 1:
         #            col = [255,255,0,0]
         for i in range(12*8+1):
             dmx = i*4
+            #print(dmx)
             r[dmx:dmx+4] = [255,10,10,40] 
     #print(r)
-    ch = 0
+    ch = 4
     dmx = 1-1
     rgb = [255,255,255]
-    for x in range(12):
-        for y in range(8):
-            ch += 4
+    for y in range(8):
+        for x in range(12):
             #f = FIX(pos=[x*16,y*16])
-            if ch+4 < len(r):
-                rgb = [r[ch+1]*r[ch]/255,r[ch+2]*r[ch]/255,r[ch+3]*r[ch]/255]
+            if dmx+ch < len(r):
+                dim = r[dmx]/255
+                rgb = [r[dmx+1]*dim,r[dmx+2]*dim,r[dmx+3]*dim]
                 #print(rgb)
             pos=[x*16,y*16]
-            pygame.draw.rect(window,rgb,[pos[0],pos[1],15,15])
-            #f.draw()
+            pygame.draw.rect(window,rgb,[40+pos[0],40+pos[1],15,15])
+            dmx += ch
+
     pygame.display.flip()
     pg.time.wait(10)
 

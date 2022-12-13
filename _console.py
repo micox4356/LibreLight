@@ -657,7 +657,7 @@ class DMXCH(object):
 
 
 Bdmx = []
-for i in range(512*3):
+for i in range(512*5+1):
     Bdmx.append( DMXCH(i) )
     #print(type(dmx[i]))
 

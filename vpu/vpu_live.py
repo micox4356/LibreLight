@@ -96,43 +96,56 @@ s=time.time()
 import math
 while 1:
     x=mc.get("index")#cmd)
-    #for i,k in x.items():
-    #    print(i,k)
-    t = int(math.sin(time.time() - s)*10)
-    event_read()
-    #r=mc.get("10.10.10.13:2")
-    r = mc.get("2.0.0.13:2")
-    if not r:
-        r = mc.get("10.10.10.13:2")
-    if not r:
-        c = 0
-        time.sleep(0.1)
-        r = [0] *512
-        #for i in range(12+1):
-        #    for j in range(8+1):
-        #        dmx = i*j*4 #*j*4
-        #        if c == 1:
-        #            col = [255,255,0,0]
-        for i in range(12*8+1):
-            dmx = i*4
-            #print(dmx)
-            r[dmx:dmx+4] = [255,10,10,40] 
-    #print(r)
-    ch = 4
-    dmx = 1-1
-    rgb = [255,255,255]
-    for y in range(8):
-        for x in range(12):
-            #f = FIX(pos=[x*16,y*16])
-            if dmx+ch < len(r):
-                dim = r[dmx]/255
-                rgb = [r[dmx+1]*dim,r[dmx+2]*dim,r[dmx+3]*dim]
-                #print(rgb)
-            pos=[x*16,y*16]
-            pygame.draw.rect(window,rgb,[40+pos[0],40+pos[1],15,15])
-            dmx += ch
+    for ip in x:
+        #print( ip)
+        ok = 0
+        if "ltp-out" in ip:
+            ok = 1
+        if "2.0.0." in ip:
+            ok = 1
+        if ":2" not in ip:
+            continue
+        
+        if not ok:
+            continue
 
-    pygame.display.flip()
-    pg.time.wait(10)
+        t = int(math.sin(time.time() - s)*10)
+        event_read()
+        r = mc.get(ip) #"2.0.0.13:2")
+        rr = [0]*512
+        for i,v in enumerate(r):
+            try: #cleanup ltp-out to int
+                v = int(v)
+                rr[i] = v
+            except:pass
+        r = rr
+
+
+        if not r:
+            c = 0
+            time.sleep(0.1)
+            r = [0] *512
+            for i in range(12*8+1):
+                dmx = i*4
+                #print(dmx)
+                r[dmx:dmx+4] = [255,10,10,40] 
+
+        #print(r)
+        ch = 4
+        dmx = 1-1
+        rgb = [255,255,255]
+        for y in range(8):
+            for x in range(12):
+                #f = FIX(pos=[x*16,y*16])
+                if dmx+ch < len(r):
+                    dim = r[dmx]/255
+                    rgb = [r[dmx+1]*dim,r[dmx+2]*dim,r[dmx+3]*dim]
+                    #print(rgb)
+                pos=[x*16,y*16]
+                pygame.draw.rect(window,rgb,[40+pos[0],40+pos[1],15,15])
+                dmx += ch
+
+        pygame.display.flip()
+        pg.time.wait(10)
 
 

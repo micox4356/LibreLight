@@ -6,7 +6,7 @@ import random
 import os
 
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,200)
+os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,184)
 os.environ['SDL_VIDEO_CENTERED'] = '0'
 
 pg = pygame
@@ -14,7 +14,7 @@ pygame.init()
 
 main_size=(600,300)
 main_size=(1600,900)
-main_size=(600,300)
+main_size=(300,300)
 
 #window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
@@ -69,7 +69,7 @@ pygame.init()
 main_size=(600,300)
 main_size=(1600,900)
 main_size=(600,300)
-main_size=(300,300)
+main_size=(280,200)
 #window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
@@ -144,7 +144,7 @@ while 1:
                     rgb = [r[dmx+1]*dim,r[dmx+2]*dim,r[dmx+3]*dim]
                     #print(rgb)
                 pos=[x*16,y*16]
-                pygame.draw.rect(window,rgb,[40+pos[0],40+pos[1],15,15])
+                pygame.draw.rect(window,rgb,[40+pos[0],40+pos[1],16,16])
                 dmx += ch
 
         pygame.display.flip()

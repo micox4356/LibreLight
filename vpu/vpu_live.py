@@ -96,6 +96,8 @@ s=time.time()
 import math
 while 1:
     x=mc.get("index")#cmd)
+    if x is None:
+        x = ["127.0.0.1"]
     for ip in x:
         #print( ip)
         ok = 0

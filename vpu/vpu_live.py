@@ -1,119 +1,47 @@
-import pygame
-import pygame.gfxdraw
+
 import math
 import random
-
+import time
 import os
 
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,184)
-os.environ['SDL_VIDEO_CENTERED'] = '0'
-
-pg = pygame
-pygame.init()
-
-main_size=(600,300)
-main_size=(1600,900)
-main_size=(300,300)
-
-#window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pg.NOFRAME,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pg.NOFRAME,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-# pygame.display.set_mode((self.width, int(self.height+(self.height*0.15))) ,pygame.FULLSCREEN)
-#pg.display.set_mode(window,pg.DOUBLEBUF) #|pg.OPENGL)
-pg.display.set_caption('LibreLight Animation')
 
 
-import pygame
-import pygame.gfxdraw
-import math
-import random
-
-import os
-
-def event_read():
-
-    inc = 1
-
-    for event in pg.event.get():
-        print("event",event)
-        move_x = 0
-        move_y = 0
-        move_z = 0
-
-        rot_x = 0
-        rot_y = 0
-        rot_z = 0
-        if event.type== pg.QUIT:
-            print("quit")
-            pg.quit()
-            quit()
-            sys.exit()
-        if "key" in dir(event):
-            if event.key == 27: #ESC pg.KEYDOWN:
-                print("quit")
-                pg.quit()
-                quit()
-                sys.exit()
-
-
-
-
-
-pg = pygame
-pygame.init()
-
-main_size=(600,300)
-main_size=(1600,900)
-main_size=(600,300)
-main_size=(280,200)
-#window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pg.NOFRAME,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pg.NOFRAME,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-# pygame.display.set_mode((self.width, int(self.height+(self.height*0.15))) ,pygame.FULLSCREEN)
-#pg.display.set_mode(window,pg.DOUBLEBUF) #|pg.OPENGL)
-pg.display.set_caption('LibreLight Animation')
-
-class FIX():
-    def __init__(self,pos=[10,10]):
-        self.rgb = [255,255,255]
-        self.pos = pos
-    def draw(self):
-        pygame.draw.rect(window,self.rgb,[self.pos[0],self.pos[1],15,15])
+# ===== ARTNET DMX =========
 
 import memcache
 mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
+def read_index():
+    ips=mc.get("index")#cmd)
+    if ips is None:
+        ips = {}
 
-import time
-s=time.time()
-import math
-while 1:
-    x=mc.get("index")#cmd)
-    if x is None:
-        x = ["127.0.0.1"]
-    for ip in x:
-        #print( ip)
-        ok = 0
-        if "ltp-out" in ip:
-            ok = 1
-        if "2.0.0." in ip:
-            ok = 1
-        if ":2" not in ip:
-            continue
-        
-        if not ok:
-            continue
+    #for k,v in ips.items():
+    #    print(k,v)
+    return ips
 
+def select_ip(ips, univ=2): # artnet univ
+    _univ = ":{}".format(univ)
+    for ip in ips: #high priority
+        if "2.0.0" in ip and _univ in ip:
+            return ip
+
+    for ip in ips:
+        if "ltp-out" in ip and _univ in ip:
+            return ip
+
+
+
+
+r = ""
+
+def read_dmx(ip):
+    global frame
+    if ip:
         t = int(math.sin(time.time() - s)*10)
-        event_read()
         r = mc.get(ip) #"2.0.0.13:2")
+        frame += 1
         rr = [0]*512
         for i,v in enumerate(r):
             try: #cleanup ltp-out to int
@@ -123,31 +51,172 @@ while 1:
         r = rr
 
 
-        if not r:
-            c = 0
-            time.sleep(0.1)
-            r = [0] *512
-            for i in range(12*8+1):
-                dmx = i*4
-                #print(dmx)
-                r[dmx:dmx+4] = [255,10,10,40] 
+    if not r:
+        c = 0
+        time.sleep(0.1)
+        r = [0] *512
+        for i in range(12*8+1):
+            dmx = i*4
+            #print(dmx)
+            r[dmx:dmx+4] = [255,10,10,40] 
+    return r
 
-        #print(r)
-        ch = 4
-        dmx = 1-1
-        rgb = [255,255,255]
-        for y in range(8):
-            for x in range(12):
-                #f = FIX(pos=[x*16,y*16])
-                if dmx+ch < len(r):
-                    dim = r[dmx]/255
-                    rgb = [r[dmx+1]*dim,r[dmx+2]*dim,r[dmx+3]*dim]
-                    #print(rgb)
-                pos=[x*16,y*16]
-                pygame.draw.rect(window,rgb,[40+pos[0],40+pos[1],16,16])
-                dmx += ch
 
-        pygame.display.flip()
-        pg.time.wait(10)
+
+# ===== ARTNET DMX =========
+
+
+
+
+
+
+
+
+
+# ===== GUI =========
+import pygame
+import pygame.gfxdraw
+import pygame.font
+
+os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,184)
+os.environ['SDL_VIDEO_CENTERED'] = '0'
+
+pg = pygame
+pygame.init()
+
+f = pygame.font.get_fonts()
+for i in f:
+    if "mono" in i.lower():
+        print(i)
+    
+
+font = pygame.font.SysFont("freemonobold",22)
+#font = pygame.font.SysFont(None,30)
+fr = font.render("hallo" ,1, (200,0,255))
+
+main_size=(600,300)
+main_size=(280,200)
+
+window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+pg.display.set_caption('LibreLight LED-SCREEN')
+
+
+running = True
+def event():
+    global running
+    for event in pygame.event.get(): 
+        print(event,event.type)
+        if event.type==pygame.QUIT: 
+            running=False
+
+
+fps = 0
+frame = 0
+frame_t = time.time()
+IP = "yyy"
+def draw_overlay():
+    global fps
+    fr = font.render("fps:{}".format(fps) ,1, (200,0,255))
+    window.blit(fr,(10,10))
+
+    fr = font.render("ip:{}".format(IP) ,1, (200,0,255))
+    window.blit(fr,(80,10))
+
+def FPS():
+    global fps,frame,frame_t
+    t = time.time()
+    if frame_t+1 < t:
+        fps = frame #frame_t- t #frame
+        frame = 1
+        frame_t = time.time()
+
+# ===== GUI =========
+
+
+
+
+
+
+class Fix():
+    def __init__(self,pos,dmx,ch):
+        self.dmx = dmx
+        self.ch = ch
+        self.pos = pos
+        self.rgb = [0,0,40]
+        self.block = [10,10]
+
+    def calc(self,data):
+
+        if self.dmx+self.ch < len(data):
+            dmx_sub = data[self.dmx:self.dmx+self.ch]
+        dim = dmx_sub[0]/255
+
+        r = dmx_sub[1]*dim
+        g = dmx_sub[2]*dim
+        b = dmx_sub[3]*dim
+
+        r = int(r)
+        g = int(g)
+        b = int(b)
+        self.rgb = [r,g,b]
+        return self.rgb
+     
+    def POS(self,x=0,y=0):
+        A = self.pos[0]*self.block[0]
+        B = self.pos[1]*self.block[1]
+        C = self.block[0]
+        D = self.block[1]
+        return [x+A,y+B,C,D]
+
+
+GRID = []
+
+#init loop
+dmx = 1-1
+ch = 4
+block = [16,16]
+
+for y in range(8): # row
+    for x in range(12): # column
+        pos=[x,y]
+        f = Fix(pos,dmx,ch)
+        f.block = block
+        GRID.append(f)
+        print(f)
+        dmx += ch
+
+
+s=time.time()
+print("run")
+r = ""
+IP = "xx"
+while running:
+    event()
+    pygame.display.flip()
+
+    window.fill((0,0,0))
+    FPS()
+    draw_overlay()
+
+    ips = read_index()
+    ip = select_ip(ips,univ=2)
+    IP = ip
+    #print("IP",ip)
+
+    data = read_dmx(ip)
+
+    # GRID loop
+    for fix in GRID:
+        fix.calc(data)
+
+        pos = fix.POS(40,40)
+        rgb = fix.rgb
+
+        #print(fix.dmx,rgb,pos)
+        pygame.draw.rect(window,rgb,pos)
+
+
+    pygame.display.flip()
+    pg.time.wait(10)
 
 

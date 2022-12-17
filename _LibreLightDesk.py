@@ -318,10 +318,11 @@ class MC():
                 #ip="ltp-out-0"
 
                 x=self.mc.get(ip)
-                #val = x[501-1]
-                val = x[141-1]
-                #print("mc val",val)
-                set_exec_fader(0,val)
+                if x:
+                    #val = x[501-1]
+                    val = x[141-1]
+                    #print("mc val",val)
+                    #set_exec_fader(0,val)
                 time.sleep(0.01)
             except Exception as e:
                 print("exc", e)

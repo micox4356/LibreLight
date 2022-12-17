@@ -39,7 +39,7 @@ r = ""
 def read_dmx(ip):
     global frame
     if ip:
-        t = int(math.sin(time.time() - s)*10)
+        #t = int(math.sin(time.time() - s)*10)
         r = mc.get(ip) #"2.0.0.13:2")
         frame += 1
         rr = [0]*512
@@ -91,6 +91,8 @@ for i in f:
     
 
 font = pygame.font.SysFont("freemonobold",22)
+font10 = pygame.font.SysFont("freemonobold",10)
+font15 = pygame.font.SysFont("freemonobold",15)
 #font = pygame.font.SysFont(None,30)
 fr = font.render("hallo" ,1, (200,0,255))
 
@@ -101,11 +103,26 @@ window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN
 pg.display.set_caption('LibreLight LED-SCREEN')
 
 
+NR = 0
+
 running = True
 def event():
-    global running
+    global NR,running
     for event in pygame.event.get(): 
-        print(event,event.type)
+        print(event)
+        print(event.type)
+        print(dir(event) ) #event.button)
+        try:
+            print(event.dict ) #event.button)
+            if event.type == 5:
+                if "button" in event.dict and event.dict["button"] == 1:  #event.button)
+                    if NR:
+                        NR = 0
+                    else:
+                        NR = 1
+
+        except Exception as e:
+            print(e)
         if event.type==pygame.QUIT: 
             running=False
 
@@ -145,8 +162,11 @@ class Fix():
         self.rgb = [0,0,40]
         self.block = [10,10]
 
-    def calc(self,data):
+        self.strobo = time.time()
+        self.bmp = 250
 
+    def calc(self,data):
+        dmx_sub = [10]*10
         if self.dmx+self.ch < len(data):
             dmx_sub = data[self.dmx:self.dmx+self.ch]
         dim = dmx_sub[0]/255
@@ -164,59 +184,73 @@ class Fix():
     def POS(self,x=0,y=0):
         A = self.pos[0]*self.block[0]
         B = self.pos[1]*self.block[1]
-        C = self.block[0]
-        D = self.block[1]
+        C = self.block[0]-1
+        D = self.block[1]-1
         return [x+A,y+B,C,D]
 
 
-GRID = []
+def init_gird():
+    GRID = []
+    #init loop
+    dmx = 1-1
+    ch = 4
+    block = [16,16]
 
-#init loop
-dmx = 1-1
-ch = 4
-block = [16,16]
-
-for y in range(8): # row
-    for x in range(12): # column
-        pos=[x,y]
-        f = Fix(pos,dmx,ch)
-        f.block = block
-        GRID.append(f)
-        print(f)
-        dmx += ch
-
-
-s=time.time()
-print("run")
-r = ""
-IP = "xx"
-while running:
-    event()
-    pygame.display.flip()
-
-    window.fill((0,0,0))
-    FPS()
-    draw_overlay()
-
-    ips = read_index()
-    ip = select_ip(ips,univ=2)
-    IP = ip
-    #print("IP",ip)
-
-    data = read_dmx(ip)
-
-    # GRID loop
-    for fix in GRID:
-        fix.calc(data)
-
-        pos = fix.POS(40,40)
-        rgb = fix.rgb
-
-        #print(fix.dmx,rgb,pos)
-        pygame.draw.rect(window,rgb,pos)
+    for y in range(8): # row
+        for x in range(12): # column
+            pos=[x,y]
+            f = Fix(pos,dmx,ch)
+            f.block = block
+            GRID.append(f)
+            #print(f)
+            dmx += ch
+    return GRID
 
 
-    pygame.display.flip()
-    pg.time.wait(10)
+
+NR = 0
+def main():
+    global IP,GRIP
+    GRID =  init_gird()
+    print("GRID LEN:",len(GRID))
 
 
+    s=time.time()
+    print("run")
+    r = ""
+    IP = "xx"
+    while running:
+        event()
+        pygame.display.flip()
+
+        window.fill((0,0,0))
+        FPS()
+        draw_overlay()
+
+        ips = read_index()
+        ip = select_ip(ips,univ=2)
+        IP = ip
+        #print("IP",ip)
+
+        data = read_dmx(ip)
+
+        # GRID loop
+        i = 0
+        for fix in GRID:
+            fix.calc(data)
+
+            pos = fix.POS(40,40)
+            rgb = fix.rgb
+
+            #print(fix.dmx,rgb,pos)
+            pygame.draw.rect(window,rgb,pos)
+            if NR:
+                fr = font15.render("{:2}".format(i+1) ,1, (200,0,255))
+                window.blit(fr,(pos[0]+2,pos[1]+3))
+            i += 1
+
+        pygame.display.flip()
+        pg.time.wait(10)
+
+if __name__ == "__main__":
+    main()

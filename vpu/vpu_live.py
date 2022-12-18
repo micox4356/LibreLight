@@ -34,10 +34,10 @@ def select_ip(ips, univ=2): # artnet univ
 
 
 
-r = ""
 
 def read_dmx(ip):
     global frame
+    r = ""
     if ip:
         #t = int(math.sin(time.time() - s)*10)
         r = mc.get(ip) #"2.0.0.13:2")
@@ -97,8 +97,8 @@ font15 = pygame.font.SysFont("freemonobold",15)
 #font = pygame.font.SysFont(None,30)
 fr = font.render("hallo" ,1, (200,0,255))
 
-main_size=(600,300)
-main_size=(280,200)
+main_size=(600,500)
+#main_size=(280,200)
 
 window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 pg.display.set_caption('LibreLight LED-SCREEN')
@@ -122,8 +122,8 @@ def event():
                         NR = 0
                 if "button" in event.dict and event.dict["button"] == 3:  #event.button)
                     NR -= 1
-                    if NR <= 0:
-                        NR = 0
+                    if NR < 0:
+                        NR = 2
 
         except Exception as e:
             print(e)
@@ -185,11 +185,11 @@ class Fix():
         self.rgb = [r,g,b]
         return self.rgb
      
-    def POS(self,x=0,y=0):
+    def POS(self,x=0,y=0,a=0,b=0):
         A = self.pos[0]*self.block[0]
         B = self.pos[1]*self.block[1]
-        C = self.block[0]-1
-        D = self.block[1]-1
+        C = self.block[0]-a
+        D = self.block[1]-b
         return [x+A,y+B,C,D]
 
 
@@ -198,17 +198,28 @@ def init_gird():
     #init loop
     dmx = 1-1
     ch = 4
-    block = [16,16]
-    block = [8,8]
-    _x = 12
-    _y = 8
 
-    _x = 24
-    _y = 16
+    block = [22,22]
+    _x = 6
+    _y = 3
+
+    HD = 1
+    if HD:
+        block = [8,8]
+        _x = 24
+        _y = 16
+    else:
+        block = [16,16]
+        _x = 12
+        _y = 8
+
+        _x = 24
+        _y = 16
+
 
     y=0
     x=0
-    for i in range((_y+1)*(_x+1)):
+    for i in range((_y)*(_x)):
         if i%_x == 0:
             x=0
             y+=1
@@ -225,7 +236,7 @@ def init_gird():
 
 
 NR = 0
-
+START_UNIV=2
 def main():
     global IP,GRIP
     GRID =  init_gird()
@@ -245,18 +256,30 @@ def main():
         draw_overlay()
 
         ips = read_index()
-        ip = select_ip(ips,univ=2)
+        ip = select_ip(ips,univ=START_UNIV)
         IP = ip
         #print("IP",ip)
 
         data = read_dmx(ip)
 
+        ip = select_ip(ips,univ=START_UNIV+1)
+        data3 = read_dmx(ip)
+        data.extend(data3)
+
+        #ip = select_ip(ips,univ=START_UNIV+2)
+        #data3 = read_dmx(ip)
+        #data.extend(data3)
+
+        #ip = select_ip(ips,univ=START_UNIV+4)
+        #data3 = read_dmx(ip)
+        #data.extend(data3)
         # GRID loop
         i = 0
+        dmx = 1
         for fix in GRID:
             fix.calc(data)
 
-            pos = fix.POS(40,40)
+            pos = fix.POS(40,40,-2,-2)
             rgb = fix.rgb
 
             #print(fix.dmx,rgb,pos)
@@ -265,8 +288,25 @@ def main():
                 fr = font15.render("{:2}".format(i+1) ,1, (200,0,255))
                 window.blit(fr,(pos[0]+2,pos[1]+3))
             elif NR == 2:
-                fr = font12.render("{:2}".format(i*4+1) ,1, (200,0,255))
-                window.blit(fr,(pos[0]+2,pos[1]+3))
+                univ = int(dmx/512)
+                _dmx = dmx
+                if univ:
+                    _dmx = dmx%512
+                    #_dmx += 1
+
+                fr = font12.render("{:2} {}".format(univ+START_UNIV,_dmx) ,1, (200,0,255))
+                window.blit(fr,(pos[0],pos[1]+3))
+
+            if 1:
+                if fix.pos[0] == 0:
+                    fr = font12.render("{}".format(fix.pos[1]) ,1, (200,200,200))
+                    #fr = font12.render("-" ,1, (100,100,255))
+                    window.blit(fr,(10,pos[1]+3 ))
+                if fix.pos[1] == 1:
+                    fr = font12.render("{}".format(fix.pos[0]+1) ,1, (200,200,200))
+                    #fr = font12.render("-" ,1, (100,100,255))
+                    window.blit(fr,(pos[0]+2,35 ))
+            dmx += 4
             i += 1
 
         pygame.display.flip()

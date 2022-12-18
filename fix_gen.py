@@ -10,7 +10,7 @@ nr=0
 dmx=1
 def add(jdata,att):
     global nr,dmx,name,fix,sub
-    print("======", "{}_{} {:02}".format( name,fix,sub) )
+    print("======", "{}_{} {:03}".format( name,fix,sub) )
     #for i in jdata:
     #    print(i )
 
@@ -39,13 +39,16 @@ sub =1
 name="VPU"
 dmx=1
 univ=2
-for i in range(9*13): # fixtures
+#for i in range(9*13): # fixtures
+#for i in range(8+1*12+1): # fixtures
+#for i in range((8*2)+1*(12*2)+1): # fixtures
+for i in range(240): # fixtures
     print("====================================")
     rdata='{"DMX": 1, "UNIVERS": 2, "NAME": "VPU_01", "TYPE": "MOVER", "VENDOR": "AYERTON", "ATTRIBUT":{}}'
     jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
 
     jdata["NAME"] = "{}_{}{:02}".format( name,fix,sub)
-    jdata["NAME"] = "{}_{}".format( name,fix)#,sub)
+    jdata["NAME"] = "{}_{:03}".format( name,fix)#,sub)
     nr=1
 
     jdata["UNIVERS"] = univ
@@ -77,6 +80,8 @@ for i in range(9*13): # fixtures
 
     add(jdata,att)
     fnr="{}{:02}".format(fix,sub)
+    fnr="{}".format(fix,sub)
+    fnr="{:04}".format(fix,sub)
     f_out.write("{}\t{}\t{}\n".format(fnr,fnr,json.dumps(jdata) ) )
     f_out.flush()   
 
@@ -86,7 +91,7 @@ for i in range(9*13): # fixtures
 
     if 0:#for i in range(3):
         sub+=1
-        jdata["NAME"] = "{}_{}{:02}".format( name,fix,sub)
+        jdata["NAME"] = "{}_{:03}{:03}".format( name,fix,sub)
 
         dmx+=nr-1
         univ=2
@@ -103,9 +108,13 @@ for i in range(9*13): # fixtures
 
         add(jdata,att)
         fnr="{}{:02}".format(fix,sub)
+        fnr="{:04}".format(fix,sub)
         f_out.write("{}\t{}\t{}\n".format(fnr,fnr,json.dumps(jdata) ) )
         f_out.flush()
     fix += 1
     sub=1
     dmx+=nr-1
+    if dmx >= 512:
+        univ +=1
+        dmx = 1
 

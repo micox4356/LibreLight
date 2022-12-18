@@ -413,6 +413,11 @@ def _highlight(fix):
         data["VALUE"] = old_val 
         jclient_send([data])
 
+def highlight2(fix):
+    def x():
+        highlight(fix)
+    return x
+
 def highlight(fix):
     print("highlight",fix)
     thread.start_new_thread(_highlight,(fix,))
@@ -1444,9 +1449,13 @@ class Xevent():
                     val = "-"
             print("SHIFT",val,_shift_key)
             if val:
-                if self.attr == "DIM" and self.fix == 0 and val == "click":
-                    pass    
-                else:
+                #if self.attr == "DIM" and self.fix == 0 and val == "click":
+                #if self.fix == 0 and val == "click":
+                #if self.attr == "DIM" and self.fix == 0 and val == "click":
+                #if self.attr == "DIM" and self.fix == 0 and val == "click":
+                #    pass    
+                #else:
+                if 1:
                     FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
                 
             master.refresh_fix()
@@ -1944,13 +1953,13 @@ class ExecButton(MiniButton):
                     elif ts == 7:
                         xfont = self.x7font
                     elif ts == 6:
-                        xfont = self.x6font
+                        xfont = self.x7font
                     elif ts == 5:
-                        xfont = self.x5font
+                        xfont = self.x7font
 
                 
-                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
-                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
+                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             else:
                 self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             z+=1
@@ -2601,7 +2610,7 @@ class GUI_PATCH():
                 v=data[k]
                 #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
 
-                command = _SET_PATCH(k,v,fix,data,_cb=self.draw)
+                command = _SET_PATCH(k,v,fix,data) #,_cb=highlight2(fix) ) #,_cb=self.draw)
                 b = tk.Button(xframe,bg="grey", text=str(v),width=2,command=command.attr)
                 command.set_button(b)
                 

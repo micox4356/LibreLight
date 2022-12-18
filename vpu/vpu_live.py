@@ -92,6 +92,7 @@ for i in f:
 
 font = pygame.font.SysFont("freemonobold",22)
 font10 = pygame.font.SysFont("freemonobold",10)
+font12 = pygame.font.SysFont("freemonobold",12)
 font15 = pygame.font.SysFont("freemonobold",15)
 #font = pygame.font.SysFont(None,30)
 fr = font.render("hallo" ,1, (200,0,255))
@@ -116,10 +117,13 @@ def event():
             print(event.dict ) #event.button)
             if event.type == 5:
                 if "button" in event.dict and event.dict["button"] == 1:  #event.button)
-                    if NR:
+                    NR += 1
+                    if NR > 2:
                         NR = 0
-                    else:
-                        NR = 1
+                if "button" in event.dict and event.dict["button"] == 3:  #event.button)
+                    NR -= 1
+                    if NR <= 0:
+                        NR = 0
 
         except Exception as e:
             print(e)
@@ -166,7 +170,7 @@ class Fix():
         self.bmp = 250
 
     def calc(self,data):
-        dmx_sub = [10]*10
+        dmx_sub = [210]*10
         if self.dmx+self.ch < len(data):
             dmx_sub = data[self.dmx:self.dmx+self.ch]
         dim = dmx_sub[0]/255
@@ -195,20 +199,33 @@ def init_gird():
     dmx = 1-1
     ch = 4
     block = [16,16]
+    block = [8,8]
+    _x = 12
+    _y = 8
 
-    for y in range(8): # row
-        for x in range(12): # column
-            pos=[x,y]
-            f = Fix(pos,dmx,ch)
-            f.block = block
-            GRID.append(f)
-            #print(f)
-            dmx += ch
+    _x = 24
+    _y = 16
+
+    y=0
+    x=0
+    for i in range((_y+1)*(_x+1)):
+        if i%_x == 0:
+            x=0
+            y+=1
+        
+        pos=[x,y]
+        f = Fix(pos,dmx,ch)
+        f.block = block
+        GRID.append(f)
+        #print(f)
+        dmx += ch
+        x+=1
     return GRID
 
 
 
 NR = 0
+
 def main():
     global IP,GRIP
     GRID =  init_gird()
@@ -244,8 +261,11 @@ def main():
 
             #print(fix.dmx,rgb,pos)
             pygame.draw.rect(window,rgb,pos)
-            if NR:
+            if NR == 1:
                 fr = font15.render("{:2}".format(i+1) ,1, (200,0,255))
+                window.blit(fr,(pos[0]+2,pos[1]+3))
+            elif NR == 2:
+                fr = font12.render("{:2}".format(i*4+1) ,1, (200,0,255))
                 window.blit(fr,(pos[0]+2,pos[1]+3))
             i += 1
 

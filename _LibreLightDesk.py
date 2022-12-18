@@ -367,6 +367,56 @@ def jclient_send(data):
     cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
     cprint("{:0.04} tick".format(time.time()),color="yellow")
 
+
+def _highlight(fix):
+    print("highlight",fix,"1")
+
+    if fix not in FIXTURES.fixtures:
+        return None
+
+    d = FIXTURES.fixtures[fix]
+
+    #for k,v in d.items():
+    #    print("-",k,v)
+    DMX = d["DMX"] + d["UNIVERS"]*512
+    if "ATTRIBUT" in d:
+        ATTR= d["ATTRIBUT"]
+        data = {"VALUE":200,"DMX":1}
+        attr = ""
+
+        if "RED" in ATTR:
+            attr = "RED"
+        elif "DIM" in ATTR:
+            attr = "DIM"
+        else:
+            return #stop
+        
+    
+        print(attr,ATTR[attr])
+        old_val = ATTR[attr]["VALUE"]
+        data["DMX"] = DMX + ATTR[attr]["NR"]-1
+        print(attr,ATTR[attr])
+        print(data)
+        for i in range(4):
+            print("highlight",fix,"0")
+            data["VALUE"] = 0
+            jclient_send([data])
+            time.sleep(0.1)
+
+            print("highlight",fix,"1")
+            data["VALUE"] = 200
+            jclient_send([data])
+            time.sleep(0.1)
+
+        
+        print("highlight",fix,"0")
+        data["VALUE"] = old_val 
+        jclient_send([data])
+
+def highlight(fix):
+    print("highlight",fix)
+    thread.start_new_thread(_highlight,(fix,))
+
 class ValueBuffer():
     def __init__(self,_min=0,_max=255):
         self._value = 2
@@ -2480,6 +2530,9 @@ class GUI_PATCH():
         b = tk.Button(xframe,bg="#ddd", text="DMX-SUM",width=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
+        b = tk.Button(xframe,bg="#ddd", text="TEST",width=1)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
         b = tk.Button(xframe,bg="#ddd", text="DMX Collision!",width=12)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
@@ -2578,6 +2631,24 @@ class GUI_PATCH():
             c+=1
             b = tk.Button(xframe,bg="#aaa",fg="#225", text="{} : {:03}".format(z,dmx_ch_sum),width=6,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
+
+
+
+            c+=1
+            def x(fix):
+                def xx():
+                    print("TEST",fix)
+                    if fix in FIXTURES.fixtures:
+                        data = FIXTURES.fixtures[fix]
+                        # print(data)
+                        highlight(fix)
+                return xx
+
+            #print(fix)
+            b = tk.Button(xframe,bg="#aaa",fg="#225", text="TEST",width=4,anchor="w",command=x(fix))
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            #b.command = x
+            #exit()
 
             c+=1
             bg = "#252"

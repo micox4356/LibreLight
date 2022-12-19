@@ -204,8 +204,12 @@ def init_gird():
     _y = 3
 
     HD = 1
-    if HD:
+    if HD == 1:
         block = [8,8]
+        _x = 24
+        _y = 16
+    elif HD == 2:
+        block = [22,22]
         _x = 24
         _y = 16
     else:
@@ -266,14 +270,15 @@ def main():
         data3 = read_dmx(ip)
         data.extend(data3)
 
-        #ip = select_ip(ips,univ=START_UNIV+2)
-        #data3 = read_dmx(ip)
-        #data.extend(data3)
+        ip = select_ip(ips,univ=START_UNIV+2)
+        data3 = read_dmx(ip)
+        data.extend(data3)
 
         #ip = select_ip(ips,univ=START_UNIV+4)
         #data3 = read_dmx(ip)
         #data.extend(data3)
         # GRID loop
+
         i = 0
         dmx = 1
         for fix in GRID:
@@ -306,6 +311,7 @@ def main():
                     fr = font12.render("{}".format(fix.pos[0]+1) ,1, (200,200,200))
                     #fr = font12.render("-" ,1, (100,100,255))
                     window.blit(fr,(pos[0]+2,35 ))
+
             dmx += 4
             i += 1
 

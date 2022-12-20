@@ -5,6 +5,19 @@ import time
 import os
 
 
+from optparse import OptionParser
+...
+parser = OptionParser()
+parser.add_option("-m", "--mode", dest="mode",
+                  help="pixel mode") #, metavar="FILE")
+#parser.add_option("-f", "--file", dest="filename",
+#                  help="write report to FILE", metavar="FILE")
+#parser.add_option("-q", "--quiet",
+#                  action="store_false", dest="verbose", default=True,
+#                  help="don't print status messages to stdout")
+
+(options, args) = parser.parse_args()
+
 
 
 # ===== ARTNET DMX =========
@@ -67,6 +80,21 @@ def read_dmx(ip):
 
 
 
+p = 30
+block = [p,p]
+_x = 12
+_y = 5
+
+#HD = "0"
+if options.mode:
+    try:
+        HD = options.mode
+        p,_x,_y = HD.split(",")
+        _x = int(_x)
+        _y = int(_y)
+        block = [int(p),int(p)]
+    except Exception as e:
+        print( "Exc",options.mode,e)
 
 
 
@@ -95,9 +123,21 @@ font10 = pygame.font.SysFont("freemonobold",10)
 font12 = pygame.font.SysFont("freemonobold",12)
 font15 = pygame.font.SysFont("freemonobold",15)
 #font = pygame.font.SysFont(None,30)
+
 fr = font.render("hallo" ,1, (200,0,255))
 
+
+
+
+
 main_size=(600,500)
+try:
+    wx = 100+block[0] * _x
+    wy = 100+block[1] * _y
+    main_size=(wx,wy)
+
+except Exception as e:
+    print("Exception:",e)
 #main_size=(280,200)
 
 window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
@@ -186,8 +226,8 @@ class Fix():
         return self.rgb
      
     def POS(self,x=0,y=0,a=0,b=0):
-        A = self.pos[0]*self.block[0]
-        B = self.pos[1]*self.block[1]
+        A = (self.pos[0])*self.block[0]
+        B = (self.pos[1]-1)*self.block[1]
         C = self.block[0]-a
         D = self.block[1]-b
         return [x+A,y+B,C,D]
@@ -199,26 +239,23 @@ def init_gird():
     dmx = 1-1
     ch = 4
 
-    block = [22,22]
-    _x = 6
-    _y = 3
-
-    HD = 1
-    if HD == 1:
-        block = [8,8]
-        _x = 24
-        _y = 16
-    elif HD == 2:
-        block = [22,22]
-        _x = 24
-        _y = 16
-    else:
-        block = [16,16]
-        _x = 12
-        _y = 8
-
-        _x = 24
-        _y = 16
+    #if HD == "8,24,16":
+    #    block = [8,8]
+    #    _x = 24
+    #    _y = 16
+    #elif HD == "2":
+    #    block = [22,22]
+    #    _x = 24
+    #    _y = 16
+    #else:
+    #   block = [16,16]
+    #   block = [22,22]
+    #   block = [30,30]
+    #   _x = 12
+    #   _y = 8
+    #
+    #   #_x = 24
+    #   #_y = 16
 
 
     y=0
@@ -284,7 +321,7 @@ def main():
         for fix in GRID:
             fix.calc(data)
 
-            pos = fix.POS(40,40,-2,-2)
+            pos = fix.POS(40,60)
             rgb = fix.rgb
 
             #print(fix.dmx,rgb,pos)

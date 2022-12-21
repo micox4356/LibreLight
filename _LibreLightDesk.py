@@ -1958,8 +1958,8 @@ class ExecButton(MiniButton):
                         xfont = self.x7font
 
                 
-                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
-                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
+                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             else:
                 self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             z+=1

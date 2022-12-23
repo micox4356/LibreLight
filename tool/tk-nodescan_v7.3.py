@@ -77,7 +77,7 @@ def clear_node():
 def poll(delay=1):
     global old_tick
     
-    #clear_entry_ip()
+    clear_entry_ip()
     clear_node()
     time.sleep(delay)
     nodscaner.poll()
@@ -87,7 +87,8 @@ def poll(delay=1):
 def clear(event= None):
     global rx
     rx.clear()
-    poll()
+    clear_node()
+    #poll()
     
 def poll_loop(sleep):
     if sleep < 1:
@@ -109,24 +110,36 @@ def _scan():
     while 1:
         nodes = rx.get()
         new_tick = rx.tick()
-        #print("tick",new_tick)
+
         if new_tick == old_tick:
-            pass
             continue
+
         old_tick = new_tick
-        print("node",nodes)
+        #print("node",nodes)
         if nodes:
             li_node_scroll = li_nodes.yview()
             
-            clear_node()
+            #clear_node()
 
             #li_nodes.delete(0,"end")
-            print("yea",len(nodes))
+            #print("yea",len(nodes))
             node_nr = 1
+            nodesB = {}
             for node in nodes:
-                #print(node)
-                #try:
+                k = node["MAC"]
+                nodesB[k] = node
+            print("k",nodesB.keys())
+            #for node in nodes:
+            #for k,node in nodesB.items():
+            k_sort = list(nodesB.keys())
+            k_sort.sort()
+            print("k sort",k_sort)
+            for k in k_sort:
+                node = nodesB[k]
+
                 li_nodes.insert("end",str(node_nr).rjust(3," ") +" "+ node["lname"])
+                bg = "lightgrey"
+                color = li_nodes.itemconfig("end", bg=bg)
                 ip = str(node_nr).rjust(3," ") +" "+ node["IP"]
                 bg = ""
                 if node["PortTypes"][0] == "@":
@@ -143,7 +156,7 @@ def _scan():
                 if bg:
                     color = li_nodes.itemconfig("end", bg=bg)
                 
-                inout = " UNIVERS OUT="+ str(ord(node["SwOut"][0])+1)+" IN="+ str(ord(node["SwIn"][0])+1)
+                inout = " UNIVERS OUT="+ str(ord(node["SwOut"][0]))+" IN="+ str(ord(node["SwIn"][0]))
                 li_nodes.insert("end",str(node_nr).rjust(3," ") + inout)
                 
                 li_nodes.insert("end",str(node_nr).rjust(3," ") +" "+ node["MAC"])
@@ -161,10 +174,10 @@ def _scan():
                 timeline ="  BOOT:%0.1f"% BOOT
                 li_nodes.insert("end",str(node_nr).rjust(3," ") +timeline +" sec" )
                 bg = ""
-                if REFRESHSTAMP > 5 :
-                    bg="red"
-                else:
-                    bg="lightgreen"
+                #if REFRESHSTAMP > 5 :
+                #    bg="red"
+                #else:
+                #    bg="lightgreen"
                 if bg:
                     li_nodes.itemconfig("end", bg=bg)
                 #li_nodes.insert("end",str(node_nr).rjust(3," ") 
@@ -201,15 +214,18 @@ def send_none(event=None):
     pass
     
 def send_mac(event=None):
-    new_mac = "CMD MAC6 " + struct.pack("<B",(int(e_mac2.get(),16)))
+    #new_mac = "CMD MAC6 " + hex(e_mac2.get()) #)
+    #new_mac = "CMD MAC6 " + struct.pack("<B",(int(e_mac2.get(),16))).decode()
+    new_mac = b"CMD MAC6 " + struct.pack("<B",(int(e_mac2.get(),16)))
     
     a = e_ip.get().replace("[","").replace("]","")
     cur_ip = []    
+
     for i in a.split(","):
         cur_ip +=[int(i)]
     print("SEND MAC:",cur_ip,new_mac)
-    nodscaner.send_node_cmd(cur_ip,new_mac)
-    poll(1.5)
+    nodscaner.send_node_cmd(cur_ip,cmd=new_mac)
+    #poll(1.5)
 
 def send_dmx_store(event=None):
     cmd = "CMD DMX STORE "
@@ -249,7 +265,7 @@ def _send_cmd(event=None,cmd=""):
     cmd = cmd[:-1] #.append(value)
     cmd.append(value)
     print("_send_cmd:",cmd)
-    cmd=" ".join(cmd )
+    cmd=" ".join(map(str,cmd) )
     a = e_ip.get().replace("[","").replace("]","")
     cur_ip = []
     sep = "xx"
@@ -261,7 +277,7 @@ def _send_cmd(event=None,cmd=""):
         cur_ip +=[int(i)]
     print("SEND:",cur_ip,cmd)
     nodscaner.send_node_cmd(cur_ip,cmd)
-    poll(1.5)
+    #poll(1.5)
 
     
 def set_ip(event=None):
@@ -357,7 +373,8 @@ eframe1.pack(side="left",expand=0,fill="y")
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="OLD IP:",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_ip = Tkinter.Entry(line_frame,font=font20)
+e_ip = Tkinter.Entry(line_frame,font=font20,width=13)
+e_ip["bg"] = "lightgrey"
 e_ip.pack(side="left")
 #b_scan = Tkinter.Button(line_frame,width=14,font=font3)
 #b_scan.pack(side="left",expand=1)
@@ -367,7 +384,7 @@ line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 e_ip_label = Tkinter.Label(line_frame,text=" IP:",font=font3,width=6)
 e_ip_label.pack(side="left",expand=0,fill="y")
-e_ip_new = Tkinter.Entry(line_frame,font=font20)
+e_ip_new = Tkinter.Entry(line_frame,font=font20,width=13)
 e_ip_new.bind("<Return>", set_ip )
 e_ip_new.bind("<KP_Enter>", set_ip)
 #e_ip_new.bind("<Tab>", update_name)
@@ -381,10 +398,11 @@ line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 variable = Tkinter.StringVar(root)
 variable.set("255.0.0.0") # default value
-Tkinter.Label(line_frame,text="IPMASK",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_mask_new = Tkinter.OptionMenu(line_frame, variable,"255.255.255.0","255.0.0.0")
-e_mask_new.configure(font=("Helvetica", 20))
-e_mask_new.configure(width=17)
+Tkinter.Label(line_frame,text="MASK",font=font3,width=6).pack(side="left",expand=0,fill="y")
+e_mask_new = Tkinter.OptionMenu(line_frame, variable,"255.255.255.0","255.0.0.0") #,width=10)
+e_mask_new.configure(font=("Helvetica", 22))
+e_mask_new.configure(width=10)
+e_mask_new["bg"] = "#fff"
 #heigh=1,font=("Helvetica", 20)
 e_mask_new.pack(side="left")
 #e_mask_new.insert("end","255.0.0.0")
@@ -397,8 +415,10 @@ b_scan.pack(side="left",expand=0)
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="MAC:",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_mac = Tkinter.Entry(line_frame,width=16,font=font20)
+e_mac = Tkinter.Entry(line_frame,width=13,font=font20)
 e_mac.pack(side="left")
+e_mac["bg"] = "lightgrey"
+
 e_mac2 = Tkinter.Entry(line_frame,width=3,font=font20)
 e_mac2.pack(side="left")
 e_mac2.bind("<Return>", send_mac )
@@ -509,7 +529,11 @@ def read_cmd_buf():
             msg = str(nodscaner.node_cmd_buf_list)
             print("read_cmd_buf msg",msg)
             nodscaner.node_cmd_buf_list = []
-            b_scan.insert("end",str(time.time())+"\n")
+
+            stamp = str(time.time())+"\n"
+            stamp = time.strftime("%Y-%m-%d %X\n")
+
+            b_scan.insert("end",stamp)
             b_scan.insert("end", msg +"\n")
             
             b_scan.see("end")
@@ -518,30 +542,37 @@ def read_cmd_buf():
 #thread.start_new_thread(nodscaner.node_cmd_recive, () )
 #thread.start_new_thread(read_cmd_buf, () )
 
+def _update():
+    while 1:
+        time.sleep(10)
+        root.update_idletasks()
+
 def X():
     thread.start_new_thread(nodscaner.node_cmd_recive, () )
     thread.start_new_thread(read_cmd_buf, () )
+    thread.start_new_thread(_update, () )
     #thread.start_new_thread(node_cmd_recive, () )
     #send_node_cmd(ip=(2,0,0,91),cmd="DMX OUT STORE")
-    send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
+    nodscaner.send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
+    #nodscaner.send_node_cmd(ip,cmd=cmd)
    
 
-    rx = ArtNetNodes()
-    rx.loop()
+    rx = nodscaner.ArtNetNodes()
+    #rx.loop()
     z = 0
+    poll()
     while 1:
         
         nodes = rx.get()
         #print(len(nodes))
         
         if z % 10 == 0:
-            print()
             pass
-            
-        
-            print("node count",len(nodes))
-            #for i in nodes:
-            #print(i)
+            #print("----")
+            #pass#print("node count",len(nodes),rx.tick())
+            #for node in nodes:
+            #    print(node["MAC"],node["lname"])
+
         z += 1
         time.sleep(0.2)
         

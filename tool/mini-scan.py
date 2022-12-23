@@ -25,6 +25,7 @@ def ArtNet_poll(ip,port=6454):
 
 
 def ArtNet_decode_pollreplay(data):
+
     debug = 1
     node = {}
     if len(data) >= 10: #min opcode
@@ -36,6 +37,7 @@ def ArtNet_decode_pollreplay(data):
             if len(data) >= 207: #Mal
                 print("decode",data[:13])           
                 if debug:print("-----------------------------------------")
+                print("===================================================================-")
                 if debug:print([opcode] ,"OpPollReplay")
                 _ip = []
                 print(data[10])

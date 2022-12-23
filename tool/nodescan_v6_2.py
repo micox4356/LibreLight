@@ -158,7 +158,7 @@ def reciveBounce(timeout=10):
         if data:
             #print(addr)
             
-            print(data)
+            print("rBounte:",data)
             print()
         if time.time() > start+timeout:
             print("timeout stopping reciveBounce ")
@@ -205,7 +205,7 @@ class ArtNetNodes():
         #for i in add_node:
         #    print(i,[add_node[i]])
         #print()
-        print("add",add_node)
+        #print("add",add_node)
         try:
             self.__lock.acquire()
             update_node = 0
@@ -231,7 +231,9 @@ class ArtNetNodes():
                     update_node = 0
                     for i in add_node:
                         UPDATECOUNTER = node["UPDATECOUNTER"]                    
-                            
+                        #print("update i:",i,add_node[i])
+                        if i not in node:    
+                            node[i] = ""
                         if node[i] != add_node[i]:
                             node_match = 0
                             update_node += 1
@@ -250,22 +252,23 @@ class ArtNetNodes():
                         print("UPDATE NODE".ljust(16," "),info)
                         
                     else:
-                        print("NODE NOT CHANGE".ljust(16," "),info)
+                        #print("NODE NOT CHANGE".ljust(16," "),info)
                         node["REFRESHSTAMP"] = time.time()
                         update_node = 1
             print("x-node:",update_node,add_node)                
             if not update_node: # ADD NEW NODE
                 node = add_node
-                print("add_node",node)
-                node["BOOT"] = BOOT
-                info = node["MAC"],node["IP"].ljust(16," "),[node["SwIn"],node["SwOut"],node["PortTypes"]]
-                
-                node["UPDATECOUNTER"] = 1
-                node["REFRESHSTAMP"] = time.time()
-                node["UPDATESTAMP"] = time.time()
-                print("ADD NEW NODE".ljust(16," "),node["UPDATECOUNTER"],info)
-                self.__tick += 1
-                self.__nodes += [node]
+                if node:
+                    print("add_node",node)
+                    node["BOOT"] = BOOT
+                    info = node["MAC"],node["IP"].ljust(16," "),[node["SwIn"],node["SwOut"],node["PortTypes"]]
+                    
+                    node["UPDATECOUNTER"] = 1
+                    node["REFRESHSTAMP"] = time.time()
+                    node["UPDATESTAMP"] = time.time()
+                    print("ADD NEW NODE".ljust(16," "),node["UPDATECOUNTER"],info)
+                    self.__tick += 1
+                    self.__nodes += [node]
                   
             
         finally:
@@ -281,8 +284,11 @@ class ArtNetNodes():
     def get(self):
         self.__lock.acquire()
         out = []
+        #out = {}
         if self.__nodes:
             out = copy.deepcopy(self.__nodes)                
+            #for node in self.__nodes:
+            #    out[node["MAC"]] = node
         self.__lock.release()
         return out
 
@@ -292,9 +298,9 @@ class ArtNetNodes():
         while 1:
             data, addr = sock.recvfrom(500)
             new_node = ArtNet_decode_pollreplay( data )            
-            print("rvc loop",addr)
+            #print("rvc loop",addr)
             if new_node:
-                print("rcv",new_node)
+                #print("rcv 333",new_node)
                 self.add(new_node)
             time.sleep(0.001)
         print("-- NODE SCAN STOP ---")
@@ -306,10 +312,12 @@ class ArtNetNodes():
         poll()
         
 Reciver = ArtNetNodes
-    
+
+
 
 def ArtNet_decode_pollreplay(data):
-    debug = 1
+
+    debug = 0
     node = {}
     if len(data) >= 10: #min opcode
     
@@ -318,11 +326,12 @@ def ArtNet_decode_pollreplay(data):
         #if opcode != struct.pack("<H",0x5000): #OpPollReplay
         if opcode == struct.pack("<H",0x2100): #OpPollReplay
             if len(data) >= 207: #Mal
+                #if debug:print("-----------------------------------------")
+                print("===================================================================-")
                 print("decode",data[:13])           
-                if debug:print("-----------------------------------------")
                 if debug:print([opcode] ,"OpPollReplay")
                 _ip = []
-                print(data[10])
+                #print("data[10]",data[10])
                 _ip.append( data[10] )
                 _ip.append( data[11] )
                 _ip.append( data[12] )
@@ -358,6 +367,74 @@ def ArtNet_decode_pollreplay(data):
                 node["status"] = stat
                 if debug:print("Status1 ",[stat])
                 esta = data[24:25+1]
+                node["esta"] = esta
+                if debug:print("esta Manuf",[esta])
+                
+                
+                sname = data[26:26+17]
+                #if debug:print(len(sname) #17+1)
+                sname = sname.strip(b"\x00")
+                node["sname"] = sname
+                
+                lname = data[44:44+43]
+                #if debug:print(len(lname) #43+1)
+                lname = lname.strip(b"\x00")
+                node["lname"] = lname
+                
+                NodeReport = data[108:108+20]
+                NodeReport = NodeReport.strip(b"\x00")
+                #if debug:print("Node",node_nr,addr)
+                if debug:print("43r:",[sname,lname,NodeReport])
+                
+                NumPort =  data[173] 
+                node["NumPort"] = NumPort
+                if debug:print("NumPort",[NumPort])
+                
+                PortTypes = data[174:174+4]
+                node["PortTypes"] = PortTypes
+                if debug:print("PortTypes",[PortTypes])
+                
+                GoodInput = data[178:178+4]
+                node["GoodInput"] = GoodInput
+                if debug:print("GoodInput",[GoodInput])
+                GoodOutput = data[182:182+4]
+                node["GoodOutput"] = GoodOutput
+                if debug:print("GoodOutput",[GoodOutput])
+                
+                SwIn = data[186:186+4]
+                node["SwIn"] = SwIn
+                if debug:print("SwIn",[SwIn])
+                
+                SwOut = data[190:190+4]
+                node["SwOut"] = SwOut
+                if debug:print("SwOut",[SwOut])
+                
+                msg = data[108:108+40]
+                node["MSG"] = msg.replace(b"\x00",b"")#.decode(errors="ignore")
+                if debug:print("MSG",[msg])
+                
+                
+                MAC = data[201:201+6]
+                _MAC = []
+                for x in MAC:
+                    #x = hex(ord(x))[2:]
+                    x = hex(x)[2:]
+                    x = x.rjust(2,"0")
+                    _MAC.append(x)
+                #hex(ord("\xf9"))[2:]
+                if debug:print("MAC",[":".join(_MAC)])
+                node["MAC"] = ":".join(_MAC)
+                
+                #node_nr += 1
+                #if debug:print([addr,data])
+                #print()
+
+                for k,v in node.items():
+                    if type(node[k]) is bytes:
+                        node[k] = v.decode(errors="ignore")
+            else:
+                print(opcode, len(data))
+    return node
 
 def set_ip4(cur_ip=(2,0,0,91),new_ip=(2,0,0,201),new_netmask=(255,0,0,0)):
     
@@ -490,17 +567,18 @@ def pack_ip(_ip):
 
 def send_node_cmd(ip="",ip2="",cmd=""):
     print()
-    print()
     port = 7600
     data = []
+    print("send_node_cmd",ip,ip2,cmd,port)
     
-    print("OLD NODE _ip:", ip)
-    data = pack_ip(ip)
+    data = pack_ip(ip[:])
     
-    if ip2:
-        ip = ".".join(str(x) for x in ip2)
-    else:
-        ip = ".".join(str(x) for x in ip)
+    print("ip",ip,ip2)
+    if len(ip2) == 4:
+        ip = ip2
+    if len(ip) == 4:
+       ip = ".".join(map(str,ip))
+
     print("send to ip:", ip)
     data2=""
     if not cmd:
@@ -511,7 +589,11 @@ def send_node_cmd(ip="",ip2="",cmd=""):
         data2 = 'CMD DMX=OUT '
         data2 = 'CMD DMX=PIN '
 
-    data2 = bytes(cmd,"ascii")
+    if type(cmd) == bytes:
+        data2 = cmd
+    else:
+        data2 = bytes(str(cmd),"ascii",errors="ignore")
+
     print([data2],type(data2)    )
     data2 = data2.ljust(20,b" ") + b"".join(data)
 
@@ -553,8 +635,8 @@ def node_cmd_recive():
 #send_node_cmd(ip=(2,0,0,201),ip2=(2,255,255,255),cmd="DMX OUT STORE")
 #send_node_cmd(ip=(2,0,0,255),ip2=(2,0,0,201),cmd="DMX OUT STORE")
 #send_node_cmd(ip=(2,0,0,201),ip2=(2,0,0,201),cmd="DMX OUT STORE")
-send_node_cmd(ip=(2,0,0,201),ip2=(255,255,255,255),cmd="DMX OUT STORE")
-send_node_cmd(ip=(255,255,255,255),ip2=(255,255,255,255),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(2,0,0,201),ip2=(255,255,255,255),cmd="DMX OUT STORE")
+#send_node_cmd(ip=(255,255,255,255),ip2=(255,255,255,255),cmd="DMX OUT STORE")
 #exit()
 #   
 if __name__ == "__main__":        
@@ -577,7 +659,7 @@ if __name__ == "__main__":
             pass
             
         
-            print("node count",len(nodes))
+            print("node count",len(nodes),rx.tick(),2 )
             #for i in nodes:
             #print(i)
         z += 1

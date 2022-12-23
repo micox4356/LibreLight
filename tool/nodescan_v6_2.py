@@ -175,6 +175,13 @@ def poll():
     ArtNet_poll(ip)    
     ip   = "192.168.0.99"
     ArtNet_poll(ip)    
+    ip   = "2.255.255.255"
+    ArtNet_poll(ip)    
+    ip   = "2.0.0.255"
+    ArtNet_poll(ip)    
+
+    ip   = "2.255.255.255"
+    ArtNet_poll(ip)    
     #ip   = "2.0.0.255"
     #ArtNet_poll(ip)
     #ip   = "2.255.255.255"

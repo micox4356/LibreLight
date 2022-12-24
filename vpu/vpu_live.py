@@ -98,7 +98,7 @@ if options.mode:
         print( "Exc",options.mode,e)
 
 
-
+print("++++++++++++++++++", p,_x,_y)
 
 
 

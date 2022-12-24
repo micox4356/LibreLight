@@ -303,6 +303,7 @@ def rDMX(univ,dmx):
     return univ*512+dmx
 
 grid_file = "/tmp/vpu_grid.csv"
+grid_file = "/home/user/LibreLight/vpu_grid.csv"
 
 def init_grid():
     log = open(grid_file,"w")

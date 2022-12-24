@@ -3103,8 +3103,8 @@ class PopupList():
         #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
 
         frame = ScrollFrame(xframe,width=300,height=500,bd=1,bg=self.bg)
-        frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP)
-        self.frame = frame
+        #frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP) 
+        #self.frame = frame
         self.w.tk.attributes('-topmost',True)
         return frame
 

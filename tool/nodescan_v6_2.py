@@ -26,6 +26,7 @@ import sys
 import _thread as thread
 import copy
 import random
+import traceback
 
 sys.stdout.write("\x1b]2;Nodescan\x07")
 
@@ -37,7 +38,7 @@ try:
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 except socket.error as e:
     print("Socket 6454 ", "ERR: {0} ".format(e.args))
-    sys.exit()
+    #sys.exit()
     
     
     
@@ -46,8 +47,8 @@ try:
     sock2.bind(('', 6455))
     sock2.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 except socket.error as e:
-    print("Socket2 6454 ", "ERR: {0} ".format(e.args))
-    sys.exit()
+    print("Socket2 6455 ", "ERR: {0} ".format(e.args))
+    #sys.exit()
 
 
 print(socket.AF_INET)
@@ -69,6 +70,7 @@ if __name__ == "__main__":
 
 def ArtNet_poll(ip,port=6454):
     print("POLL",[ip,port],end="")
+    #traceback.print_exception()
     #try:
     if 1:
         sock.sendto(b'Art-Net\x00\x00 \x00\x0e\x06\x00',(ip,port)) # ArtPol / ping
@@ -192,6 +194,7 @@ class ArtNetNodes():
     def __init__(self):
         print("CONSTRUCKT:",self)
         self.__nodes = []
+        self.__nodes_mac = []
         self.__lock = thread.allocate_lock()
         self.__tick = 0
         #self.__lock.acquire()
@@ -215,6 +218,7 @@ class ArtNetNodes():
             else:
                 BOOT = 0            
         
+            #self.__nodes_mac = []
             for node in self.__nodes:
                 info = node["MAC"],node["IP"].ljust(16," "),[node["SwIn"],node["SwOut"],node["PortTypes"]]
                 
@@ -293,7 +297,7 @@ class ArtNetNodes():
         return out
 
     def recive(self):
-        print("-- NODE SCAN START ---")
+        print("-- NODE READ LOOP START ---")
         print()
         while 1:
             data, addr = sock.recvfrom(500)
@@ -303,13 +307,13 @@ class ArtNetNodes():
                 #print("rcv 333",new_node)
                 self.add(new_node)
             time.sleep(0.001)
-        print("-- NODE SCAN STOP ---")
+        print("-- NODE READ LOOP END ---")
         print()
         
     def loop(self):
         thread.start_new_thread(self.recive, () )
         time.sleep(5)
-        poll()
+        #poll()
         
 Reciver = ArtNetNodes
 
@@ -435,6 +439,81 @@ def ArtNet_decode_pollreplay(data):
             else:
                 print(opcode, len(data))
     return node
+
+
+def ArtAddress(ip="192.168.0.99" ,ShortName="ShortName", LongName="LongName",Port="",Universes=0,raw=0):
+    node_nr = 1
+
+    #send port
+    port = 7600
+    port = 6454
+
+    print( ip)
+    data = [] # [struct.pack('<B', 0)]*150
+    header = []
+    # Name, 7byte + 0x00
+    header.append(b"Art-Net\x00")
+    # OpCode ArtDMX -> 0x6000, Low Byte first
+    header.append(struct.pack('<H', 0x6000))
+    # Protocol Version 14, High Byte first
+    header.append(struct.pack('>H', 14))
+
+    data = header[:]
+    # NetSwitch
+    data.append(struct.pack('<B',128)) # no change 0x7f
+    data.append(struct.pack('<B', 0))     # filler
+
+    #Short Name
+    sname = ShortName[:17] 
+    sname = sname.ljust(18,"\x00")
+    data.append( sname )
+
+    lname = LongName[:63] 
+    lname = lname.ljust(64,"\x00") 
+    #lname = lname[:-2]+"X\x00"
+    data.append( lname )
+
+    print( "len sname:lname",len(sname),len(lname))
+
+    #SwIn 4; Port-Adress
+    # univers 0-f == \x80 - \x8f
+    i = 4
+    i=int(Universes)+1 #random.randint(0,99)
+    data.append(struct.pack('<B', 127+i))
+    data.append(struct.pack('<B', 127+i))
+    data.append(struct.pack('<B', 127+i))
+    data.append(struct.pack('<B', 127+i))
+
+
+    #SwOut 4; Port-Adress
+    data.append(struct.pack('<B', 127+i))
+    data.append(struct.pack('<B', 127+i))
+    data.append(struct.pack('<B', 127+i))
+    data.append(struct.pack('<B', 127+i))
+
+    #SubSwitch comination with Swin[] SwOut[]
+    data.append(struct.pack('<B', 0)) # SubSwitch Write 128
+    data.append(struct.pack('<B', 255))
+    data.append(struct.pack('<B', 0))
+    data.append(struct.pack('<B', 0))
+
+    #data.append("\xf4")
+
+    #print( ["ArtAdress SEND:",data,(ip,port)] )
+    data2 = b""
+    for d in data:
+        #print(d,type(d))
+        if type(d) is str:
+            data2+=bytes(d,"utf-8")
+        elif type(d) is bytes:
+            data2+=d
+        else:
+            data2+=bytes(str(d),"ascii")
+    print(data2)
+    if raw:
+        return data2,(ip,port)
+    sock.sendto(data2 ,(ip,port))
+
 
 def set_ip4(cur_ip=(2,0,0,91),new_ip=(2,0,0,201),new_netmask=(255,0,0,0)):
     
@@ -668,5 +747,4 @@ if __name__ == "__main__":
     print()
     print("time out")
     raw_input("ENDE")
-
 

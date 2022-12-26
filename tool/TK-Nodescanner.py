@@ -2,22 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of librelight.
+Valid-License-Identifier: GPL-2.0-only
+SPDX-URL: https://spdx.org/licenses/GPL-1.0.html
 
-librelight is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-librelight is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with librelight.  If not, see <http://www.gnu.org/licenses/>.
-
-(c) 2012 micha.rathfelder@gmail.com
+(c) 2012 micha@uxsrv.de
 """
 
 import time
@@ -26,13 +14,15 @@ import sys
 import tkinter as Tkinter
 import _thread as thread
 
-import nodescan_v6_2 as nodscaner 
+import nodescan 
 
 title = "TK-ArtNet-Nodscaner"
 sys.stdout.write("\x1b]2;"+title+"\x07")
 
 node_list = []
 def load(event):
+    print()
+    print("load()")
     sel = int( li_nodes.curselection()[0] )
     print("li_nodes.get")
     try:
@@ -88,16 +78,19 @@ def clear_node():
 
     
 def poll(delay=1):
+    print("poll()")
     global old_tick
+    clear()
     
     clear_entry_ip()
     clear_node()
     time.sleep(delay)
-    nodscaner.poll()
+    nodescan.poll()
     time.sleep(0.5)
     old_tick = 0
     
 def clear(event= None):
+    print("clear()")
     global rx
     rx.clear()
     clear_node()
@@ -112,15 +105,25 @@ def poll_loop(sleep):
         time.sleep(sleep)
 
 old_tick = 0
-rx = nodscaner.ArtNetNodes()
+rx = nodescan.ArtNetNodes()
         
 def _scan():
     global rx,node_list,old_tick,Scrollbar
-    
-    rx.loop()
     print("get node from cache "    )
     li_nodes.insert("end",str("----"))
+    rx.loop()
     while 1:
+        try:
+            __scan()
+        except Exception as e:
+            print("_scan Exception as",e)
+        time.sleep(0.1)
+
+def __scan():
+    global rx,node_list,old_tick,Scrollbar
+    
+    while 1:
+        
         nodes = rx.get()
         new_tick = rx.tick()
 
@@ -236,7 +239,9 @@ def send_artaddr(event=None):
     print("SEND ArtAddress:",[ln,sn,ip,univ])
 
     if ln and sn and ip and univ:
-        nodscaner.ArtAddress(ip=ip ,ShortName=sn, LongName=ln,Port="",Universes=univ)
+        nodescan.ArtAddress(ip=ip ,ShortName=sn, LongName=ln,Port="",Universes=univ)
+        time.sleep(1)
+        poll()
 
 
 def send_none(event=None):
@@ -253,7 +258,7 @@ def send_mac(event=None):
     for i in a.split(","):
         cur_ip +=[int(i)]
     print("SEND MAC:",cur_ip,new_mac)
-    nodscaner.send_node_cmd(cur_ip,cmd=new_mac)
+    nodescan.send_node_cmd(cur_ip,cmd=new_mac)
     #poll(1.5)
 
 def send_dmx_store(event=None):
@@ -264,7 +269,7 @@ def send_dmx_store(event=None):
     for i in a.split(","):
         cur_ip +=[int(i)]
     print("SEND:",cur_ip,cmd)
-    nodscaner.send_node_cmd(cur_ip,cmd)
+    nodescan.send_node_cmd(cur_ip,cmd)
     poll(1.5)
 
 def send_cmd(event=None):
@@ -305,7 +310,7 @@ def _send_cmd(event=None,cmd=""):
     for i in a.split(sep):
         cur_ip +=[int(i)]
     print("SEND:",cur_ip,cmd)
-    nodscaner.send_node_cmd(cur_ip,cmd)
+    nodescan.send_node_cmd(cur_ip,cmd)
     #poll(1.5)
 
     
@@ -337,26 +342,26 @@ def set_ip(event=None):
     
     print("new",[cur_ip, new_ip, new_netmask])
     print()
-    nodscaner.set_ip4(cur_ip,new_ip, new_netmask)
+    nodescan.set_ip4(cur_ip,new_ip, new_netmask)
     poll(1.5)
     
 def set_node_pin(evnet=None):
     cmd = "CMD DMX=PIN"
     ip = get_new_ip_str()
     print("ip",[ip])
-    nodscaner.send_node_cmd(ip,cmd=cmd)
+    nodescan.send_node_cmd(ip,cmd=cmd)
     poll(1.5)
     
 def set_node_in(evnet=None):
     cmd="CMD DMX=IN"
     ip = get_new_ip_str()
-    nodscaner.send_node_cmd(ip,cmd=cmd)
+    nodescan.send_node_cmd(ip,cmd=cmd)
     poll(1.5)
     
 def set_node_out(evnet=None):
     cmd="CMD DMX=OUT"
     ip = get_new_ip_str()
-    nodscaner.send_node_cmd(ip,cmd=cmd)
+    nodescan.send_node_cmd(ip,cmd=cmd)
     poll(1.5)
 
 
@@ -552,15 +557,15 @@ e_cmd5.pack(side="left")
 
 
 thread.start_new_thread(_scan, () )
-nodscaner.bind_cmd_node()
+nodescan.bind_cmd_node()
 
 def read_cmd_buf():
     b_scan.insert("end", "buf read\n" )
     while 1:
-        if nodscaner.node_cmd_buf_list:
-            msg = str(nodscaner.node_cmd_buf_list)
+        if nodescan.node_cmd_buf_list:
+            msg = str(nodescan.node_cmd_buf_list)
             print("read_cmd_buf msg",msg)
-            nodscaner.node_cmd_buf_list = []
+            nodescan.node_cmd_buf_list = []
 
             stamp = str(time.time())+"\n"
             stamp = time.strftime("%Y-%m-%d %X\n")
@@ -571,7 +576,7 @@ def read_cmd_buf():
             b_scan.see("end")
         time.sleep(0.1)
 
-#thread.start_new_thread(nodscaner.node_cmd_recive, () )
+#thread.start_new_thread(nodescan.node_cmd_recive, () )
 #thread.start_new_thread(read_cmd_buf, () )
 
 def _update():
@@ -580,18 +585,19 @@ def _update():
         root.update_idletasks()
 
 def X():
-    thread.start_new_thread(nodscaner.node_cmd_recive, () )
+    thread.start_new_thread(nodescan.node_cmd_recive, () )
     thread.start_new_thread(read_cmd_buf, () )
     thread.start_new_thread(_update, () )
     #thread.start_new_thread(node_cmd_recive, () )
     #send_node_cmd(ip=(2,0,0,91),cmd="DMX OUT STORE")
-    ##nodscaner.send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
-    #nodscaner.send_node_cmd(ip,cmd=cmd)
+    ##nodescan.send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
+    #nodescan.send_node_cmd(ip,cmd=cmd)
    
 
     #rx.loop()
     z = 0
-    #poll()
+    time.sleep(1)
+    poll()
     while 1:
         
         nodes = rx.get()
@@ -599,7 +605,7 @@ def X():
         
         if z % 10 == 0:
             pass
-            #print("----")
+            print("----")
             #pass#print("node count",len(nodes),rx.tick())
             #for node in nodes:
             #    print(node["MAC"],node["lname"])

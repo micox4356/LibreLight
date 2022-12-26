@@ -66,7 +66,7 @@ def read_dmx(ip):
 
     if not r:
         c = 0
-        time.sleep(0.1)
+        #time.sleep(0.1)
         r = [0] *512
         for i in range(12*8+1):
             dmx = i*4

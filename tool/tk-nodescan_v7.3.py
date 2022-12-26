@@ -54,11 +54,24 @@ def load(event):
     e_mac2.delete("0","end")
     e_mac2.insert("end",node_list[sel]["MAC"].split(":")[-1])
     
-    
-    #print(dir(event))
-    #print(node_list)
-    #for i in node_list:
-    #    print(i)
+    print("load",node_list[sel])
+    e_lname.delete("0","end")
+    e_lname.insert("end",node_list[sel]["lname"]) 
+    e_sname.delete("0","end")
+    e_sname.insert("end",node_list[sel]["sname"]) 
+
+    e_artnet_uni1.delete("0","end")
+    univ = "0"
+    print("tttttttttttttttttttttttttttttttttttttttt")
+    try:
+        if node_list[sel]["PortTypes"][0] == "@":
+            univ = ord(node_list[sel]["SwIn"][0]) 
+        else:
+            univ = ord(node_list[sel]["SwOut"][0]) 
+    except Exception as e:
+        print("load Exception",e)
+    e_artnet_uni1.insert("end",univ) 
+
     
 def clear_entry_ip():
     e_ip.configure(state='normal')
@@ -159,7 +172,7 @@ def _scan():
                 inout = " UNIVERS OUT="+ str(ord(node["SwOut"][0]))+" IN="+ str(ord(node["SwIn"][0]))
                 li_nodes.insert("end",str(node_nr).rjust(3," ") + inout)
                 
-                li_nodes.insert("end",str(node_nr).rjust(3," ") +" "+ node["MAC"])
+                li_nodes.insert("end",str(node_nr).rjust(3," ") +" MAC:"+ node["MAC"])
                 
                 timeline = ""
                 timeline += " LASTCHANGE:%0.1f"% (time.time()-float(node["UPDATESTAMP"]) )
@@ -210,6 +223,22 @@ def get_new_ip_str(event=None):
     print( "get_new_ip_str",x)
     return x
     
+def send_artaddr(event=None):
+    ln = e_lname.get()
+    sn = e_sname.get()
+
+    ip = e_ip_new.get()
+    ip = ip.replace(" ","")
+    ip = ip.replace(",",".")
+
+    univ = e_artnet_uni1.get()
+
+    print("SEND ArtAddress:",[ln,sn,ip,univ])
+
+    if ln and sn and ip and univ:
+        nodscaner.ArtAddress(ip=ip ,ShortName=sn, LongName=ln,Port="",Universes=univ)
+
+
 def send_none(event=None):
     pass
     
@@ -373,7 +402,7 @@ eframe1.pack(side="left",expand=0,fill="y")
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="OLD IP:",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_ip = Tkinter.Entry(line_frame,font=font20,width=13)
+e_ip = Tkinter.Entry(line_frame,font=font20,width=13,state="disabled")
 e_ip["bg"] = "lightgrey"
 e_ip.pack(side="left")
 #b_scan = Tkinter.Button(line_frame,width=14,font=font3)
@@ -454,30 +483,30 @@ e_cmd.pack(side="left")
 #-------------------------------------------- line
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
-Tkinter.Label(line_frame,text="L-Name",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_lname = Tkinter.Entry(line_frame,font=font3,width=10)
+Tkinter.Label(line_frame,text="LName",font=font3,width=6).pack(side="left",expand=0,fill="y")
+e_lname = Tkinter.Entry(line_frame,font=font3,width=26)
 e_lname.pack(side="left")
 
 #-------------------------------------------- line
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
-Tkinter.Label(line_frame,text="S-Name",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_sname = Tkinter.Entry(line_frame,font=font3,width=10)
+Tkinter.Label(line_frame,text="SName",font=font3,width=6).pack(side="left",expand=0,fill="y")
+e_sname = Tkinter.Entry(line_frame,font=font3,width=16)
 e_sname.pack(side="left")
 #-------------------------------------------- line
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="ArtNet",font=font3,width=6).pack(side="left",expand=0,fill="y")
 Tkinter.Label(line_frame,text="SUB:",font=font3,width=4).pack(side="left",expand=0,fill="y")
-e_artnet_uni1 = Tkinter.Entry(line_frame,font=font3,width=4)
+e_artnet_uni1 = Tkinter.Entry(line_frame,font=font3,width=4,state="disabled")
 e_artnet_uni1.pack(side="left")
 Tkinter.Label(line_frame,text="NET:",font=font3,width=4).pack(side="left",expand=0,fill="y")
-e_artnet_uni1 = Tkinter.Entry(line_frame,font=font3,width=4)
+e_artnet_uni1 = Tkinter.Entry(line_frame,font=font3,width=4,state="disabled")
 e_artnet_uni1.pack(side="left")
 Tkinter.Label(line_frame,text="UNI:",font=font3,width=4).pack(side="left",expand=0,fill="y")
 e_artnet_uni1 = Tkinter.Entry(line_frame,font=font3,width=4)
 e_artnet_uni1.pack(side="left")
-Tkinter.Button(line_frame,text="SEND TO NODE",command=send_none,width=14,font=font1).pack(side="left",expand=0)
+Tkinter.Button(line_frame,text="send ArtAddr",command=send_artaddr,width=14,font=font1).pack(side="left",expand=0)
 #-------------------------------------------- line
 
 b_scan = Tkinter.Text(eframe,width=20,font=font2)
@@ -485,9 +514,12 @@ b_scan.pack(side="top",expand=1,fill="x")
 
 
 
+
 #-------------------------------------------- line
 line_frame = Tkinter.Frame(eframe1)
 line_frame.pack(side="top",expand=0,fill="x")
+
+
 Tkinter.Label(line_frame,text="CMD",font=font3,width=6).pack(side="left",expand=0,fill="y")
 e_cmd2 = Tkinter.Entry(line_frame,font=font3,width=16)
 e_cmd2.insert("end","DMX ERASE ")
@@ -544,7 +576,7 @@ def read_cmd_buf():
 
 def _update():
     while 1:
-        time.sleep(10)
+        time.sleep(1)
         root.update_idletasks()
 
 def X():
@@ -553,14 +585,13 @@ def X():
     thread.start_new_thread(_update, () )
     #thread.start_new_thread(node_cmd_recive, () )
     #send_node_cmd(ip=(2,0,0,91),cmd="DMX OUT STORE")
-    nodscaner.send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
+    ##nodscaner.send_node_cmd(ip=(2,255,255,255),cmd="CMD GT ")
     #nodscaner.send_node_cmd(ip,cmd=cmd)
    
 
-    rx = nodscaner.ArtNetNodes()
     #rx.loop()
     z = 0
-    poll()
+    #poll()
     while 1:
         
         nodes = rx.get()

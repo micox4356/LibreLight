@@ -2,22 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of grandPA.
+Valid-License-Identifier: GPL-2.0-only
+SPDX-URL: https://spdx.org/licenses/GPL-1.0.html
 
-grandPA is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-grandPA is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with grandPA.  If not, see <http://www.gnu.org/licenses/>.
-
-(c) 2012 micha.rathfelder@gmail.com
+(c) 2012 micha@uxsrv.de
 """
 print("suche ArtNet Nodes ")
 import time
@@ -259,6 +247,7 @@ class ArtNetNodes():
                         #print("NODE NOT CHANGE".ljust(16," "),info)
                         node["REFRESHSTAMP"] = time.time()
                         update_node = 1
+                update_node = 0
             print("x-node:",update_node,add_node)                
             if not update_node: # ADD NEW NODE
                 node = add_node
@@ -300,7 +289,7 @@ class ArtNetNodes():
         print("-- NODE READ LOOP START ---")
         print()
         while 1:
-            data, addr = sock.recvfrom(500)
+            data, addr = sock.recvfrom(300)
             new_node = ArtNet_decode_pollreplay( data )            
             #print("rvc loop",addr)
             if new_node:

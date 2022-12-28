@@ -393,7 +393,7 @@ def jclient_send(data):
     cprint("{:0.04} tick".format(time.time()),color="yellow")
 
 
-def _highlight(fix):
+def _highlight(fix,_attr="DIM"):
     print("highlight",fix,"1")
 
     if fix not in FIXTURES.fixtures:
@@ -409,10 +409,8 @@ def _highlight(fix):
         data = {"VALUE":200,"DMX":1}
         attr = ""
 
-        if "RED" in ATTR:
-            attr = "RED"
-        elif "DIM" in ATTR:
-            attr = "DIM"
+        if _attr in ATTR:
+            attr = _attr
         else:
             return #stop
         
@@ -422,30 +420,33 @@ def _highlight(fix):
         data["DMX"] = DMX + ATTR[attr]["NR"]-1
         print(attr,ATTR[attr])
         print(data)
-        for i in range(4):
+        for i in range(3):
             print("highlight",fix,"0")
-            data["VALUE"] = 0
+            data["VALUE"] = 100
             jclient_send([data])
             time.sleep(0.1)
 
             print("highlight",fix,"1")
-            data["VALUE"] = 200
+            data["VALUE"] = 234
             jclient_send([data])
-            time.sleep(0.1)
+            time.sleep(0.3)
 
         
         print("highlight",fix,"0")
         data["VALUE"] = old_val 
         jclient_send([data])
 
-def highlight2(fix):
+def highlight2(fix,attr="DIM"):
     def x():
-        highlight(fix)
+        highlight(fix,attr=attr)
     return x
 
 def highlight(fix):
     print("highlight",fix)
-    thread.start_new_thread(_highlight,(fix,))
+    thread.start_new_thread(_highlight,(fix,"DIM"))
+    thread.start_new_thread(_highlight,(fix,"RED"))
+    thread.start_new_thread(_highlight,(fix,"GREEN"))
+    thread.start_new_thread(_highlight,(fix,"BLUE"))
 
 class ValueBuffer():
     def __init__(self,_min=0,_max=255):

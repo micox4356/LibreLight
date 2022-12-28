@@ -108,13 +108,14 @@ HD_x = 1
 HD_y = 1
 if options.mode:
     try:
-        if options.xsplit > 1:
-            HD_x = options.xsplit
-        if options.ysplit > 1:
-            HD_y = options.ysplit
+        if options.xsplit:
+            HD_x = int(options.xsplit)
+        if options.ysplit:
+            HD_y = int(options.ysplit)
     except Exception as e:
         print( "Exc",options.mode,e)
-
+#print(HD_x,HD_y)
+#print(_x,_y)
 print("++++++++++++++++++", p,_x,_y)
 
 
@@ -180,9 +181,18 @@ class Fix():
         self.bmp = 250
         self.sub_fix = []
         
-        sub_block =[block[0]/2,block[1]/2] 
+        sub_block =[block[0]/HD_x,block[1]/HD_y] 
+        
+        spalte = (_id-1)%_y +1
+        zeile = int((_id-1)/_x) #+1
+        #zeile = zeile*_x*HD_x*HD_y
 
-        sid = (_id-1)*2+1
+        add_row = _x*HD_x*HD_y
+
+        #zeile 1
+        sid = (_id-1)*2  + zeile*HD_x*_x
+        #for i in range(1,HD_x):
+        sid = sid+1
         sub_pos= [pos[0]*block[0],pos[1]*block[1]]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
@@ -192,7 +202,9 @@ class Fix():
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
 
-        sid = (_id-1)*2+1
+        #zeile 2
+        sid = (_id-1)*2+1 + _x*HD_x  + zeile*HD_x*_x # int(add_row)
+        #sid = HD_x
         sub_pos= [pos[0]*block[0],pos[1]*block[1]+block[1]/2]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
@@ -629,9 +641,9 @@ def main():
                     fr = font12.render("{}".format(subfix.pos[0]+1) ,1, (200,200,200))
                     window.blit(fr,(spos[0],50 ))
 
-                if NR == 1:
+                if NR:
                     #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
-                    fr = font15.render("{:02}".format(subfix._id) ,1, (0,200,255))
+                    fr = font15.render("{:02}".format(subfix._id) ,1, (250,0,5))
                     window.blit(fr,(spos[0]+2,spos[1]+10))
                 j += 1
             i += 1
@@ -655,7 +667,7 @@ def main():
                     except Exception as e:
                         print("Except: grid re init",e)
                 if fix._id != i+1:
-                    fr = font15.render("{:02}".format(fix._id) ,1, (250,105,100))
+                    fr = font15.render("{:02}".format(fix._id) ,1, (255,255,0))
                 else:
                     fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
                 window.blit(fr,(pos[0]+2,pos[1]+2))

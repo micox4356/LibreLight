@@ -289,6 +289,23 @@ class MC():
         if index:
             for i in index:
                 print("key",i)
+
+        self.fader_map = []
+        for i in range(30+1):
+            self.fader_map.append({"UNIV":0,"DMX":0})
+
+        try:
+            f = open("/home/user/LibreLight/fader.json")
+            lines = f.readlines()
+            for i,line in enumerate(lines):
+                jdata = json.loads(line)
+                print("fader_map ->>",i,jdata)
+                self.fader_map[i] = jdata
+
+        except Exception as e:
+            print("Except Fader_map",e)
+        #exit()
+
     def ok(self):
         if self.mc: 
             return 1
@@ -315,14 +332,22 @@ class MC():
             #print("+")
             try:
                 ip="10.10.10.13:0"
-                #ip="ltp-out-0"
+                ip="ltp-out:0"
 
                 x=self.mc.get(ip)
                 if x:
                     #val = x[501-1]
-                    val = x[141-1]
-                    #print("mc val",val)
-                    #set_exec_fader(0,val)
+                    #val = x[141-1]
+                    for i, line in enumerate(self.fader_map):
+                        try:
+                            #print(i,line)
+                            dmx = int(line["DMX"])
+                            if dmx > 0:
+                                val = x[dmx-1]
+                                #print("mc val",val)
+                                set_exec_fader(i,val)
+                        except:pass
+
                 time.sleep(0.01)
             except Exception as e:
                 print("exc", e)

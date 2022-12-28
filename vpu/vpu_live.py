@@ -10,6 +10,12 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("-m", "--mode", dest="mode",
                   help="pixel mode") #, metavar="FILE")
+
+parser.add_option("-x", "--xx", dest="xsplit",
+                  help="x-split") #, metavar="FILE")
+parser.add_option("-y", "--yy", dest="ysplit",
+                  help="y-split") #, metavar="FILE")
+
 #parser.add_option("-f", "--file", dest="filename",
 #                  help="write report to FILE", metavar="FILE")
 #parser.add_option("-q", "--quiet",
@@ -18,6 +24,7 @@ parser.add_option("-m", "--mode", dest="mode",
 
 (options, args) = parser.parse_args()
 
+START = time.time()
 
 
 # ===== ARTNET DMX =========
@@ -97,6 +104,14 @@ if options.mode:
     except Exception as e:
         print( "Exc",options.mode,e)
 
+HD_x = 1
+HD_y = 1
+if options.mode:
+    try:
+        HD_x = options.xsplit
+        HD_y = options.ysplit
+    except Exception as e:
+        print( "Exc",options.mode,e)
 
 print("++++++++++++++++++", p,_x,_y)
 
@@ -148,25 +163,83 @@ pg.display.set_caption('LibreLight LED-SCREEN')
 
 
 class Fix():
-    def __init__(self,pos,univ,dmx,ch):
-        self.dmx = dmx
+    def __init__(self,_id,pos,block=[16,16],univ=0,dmx=0,ch=4):
+        #print("Fix",_id)
+        self._id = _id
+        self.dmx = (_id-1) * ch +1 #dmx
         self.univ = univ
-        self.ch = ch
+        self.ch  = ch
         self.pos = pos
         self.rgb = [0,0,40]
-        self.block = [10,10]
-        self.x = 0
-        self.y = 0
+        self.block = block #[10,10]
+        self.x = pos[0]
+        self.y = pos[1]
+        self.strobo = time.time()
+        self.bmp = 250
+        self.sub_fix = []
+
+        sub_fix = SubFix(_id,pos[:],[block[0]/2,block[1]/2],univ,dmx,ch)
+        self.sub_fix.append(sub_fix)
+
+    def calc(self,data):
+        _rgb = [0,255,0]
+        #for sub_fix in self.sub_fix:
+        #    sub_fix.block = self.block 
+        #    _rgb = sub_fix.calc(data)
+        return _rgb
+
+    def sub_calc(self,data):
+        _rgb = [0,255,0]
+        for sub_fix in self.sub_fix:
+            sub_fix.block = self.block[:]
+            _rgb = sub_fix.calc(data)
+        return _rgb
+        
+     
+    def POS(self,x=0,y=0,a=0,b=0):
+        A = (self.pos[0])*self.block[0]
+        B = (self.pos[1])*self.block[1]
+        C = self.block[0]-a
+        D = self.block[1]-b
+        return [x+A,y+B,C,D]
+
+    def subPOS(self,x=0,y=0,a=0,b=0):
+        __out = []
+        for sub_fix in self.sub_fix:
+            __out.append( sub_fix.POS(x,y,a,b) )
+        return __out 
+
+
+class SubFix():
+    def __init__(self,_id,pos,block=[16,16],univ=0,dmx=0,ch=4):
+        #print("Fix",_id)
+        self._id = _id
+        self.dmx = (_id-1) * ch +1 #dmx
+        self.univ = univ
+        self.ch  = ch
+        self.pos = pos
+        self.rgb = [0,0,40]
+        self.block = block #[10,10]
+        self.x = pos[0]
+        self.y = pos[1]
         self.strobo = time.time()
         self.bmp = 250
 
     def calc(self,data):
-        dmx_sub = [210]*10
-        dmx = rDMX(self.univ,self.dmx)-1
-        if dmx+self.ch < len(data):
-            dmx_sub = data[dmx:dmx+self.ch]
+        dmx_sub = [30]*10
+        #print(dmx_sub)
+        dmx = self.dmx -1
+        _dmx_sub = []
+        if self.dmx >= 0:
+            dmx = rDMX(self.univ,self.dmx)-1
+            if dmx+self.ch < len(data):
+                _dmx_sub = data[dmx:dmx+self.ch]
+        if _dmx_sub:
+            dmx_sub = _dmx_sub
+        #print(dmx_sub)
         dim = dmx_sub[0]/255
 
+        #print("dmx",dmx,dmx_sub)
         r = dmx_sub[1]*dim
         g = dmx_sub[2]*dim
         b = dmx_sub[3]*dim
@@ -178,8 +251,8 @@ class Fix():
         return self.rgb
      
     def POS(self,x=0,y=0,a=0,b=0):
-        A = (self.pos[0])*self.block[0]
-        B = (self.pos[1]-1)*self.block[1]
+        A = (self.pos[0]) *self.block[0]
+        B = (self.pos[1]) *self.block[1]
         C = self.block[0]-a
         D = self.block[1]-b
         return [x+A,y+B,C,D]
@@ -189,10 +262,15 @@ class POINTER():
         self.pos = [0,0,0,0]
         self.on = 0
         self.rgb = [0,100,10]
+        self._x = 0
+        self._y = 0
         self.x = 0
         self.y = 0
-        self.fix = Fix([999,999],0,0,0)
+        self.fix = Fix(0 ,[999,999],[16,16],0,0,0)
 
+    def row_move(self,x,y):
+        self._x = x
+        self._y = y
     def move(self,pos):
         self.pos = pos
         self.on = 1
@@ -205,19 +283,33 @@ class POINTER():
             pygame.draw.rect(window,self.rgb,self.pos)
             #pygame.draw.line(window,self.rgb, (self.pos[0],self.pos[1]) , (self.pos[0]+100,self.pos[1]) ) 
 
-        #fr = font15.render(self.txt ,1, (200,200,200))
-        fr = font15.render("{}/{}".format(self.fix.x,self.fix.y) ,1, (200,200,200))
-        window.blit(fr,(self.pos[0]+2,self.pos[1]+2 ))
-        window.blit(fr,(200,25))
+        
+            # mouse grid posision
+            fr = font15.render("{}/{}".format(self.fix.x+1,self.fix.y) ,1, (200,200,200))
+            
+            _nr = self.fix.y * _y + self.fix.x+1
+            fr = font15.render("{:02} {}/{}".format(_nr, self.fix.x+1,self.fix.y+1 ) ,1, (200,200,200))
 
+            window.blit(fr,(self.pos[0]+2,self.pos[1]+2 ))
+            window.blit(fr,(200,25))
+
+        # fix pos
         txt=str(self.pos)
         fr = font15.render(txt ,1, (200,200,200))
         #window.blit(fr,(self.pos[0]+2,self.pos[1]+2 ))
         window.blit(fr,(200,10))
 
-        fr = font15.render("{:02}:{:03}".format(self.fix.univ,self.fix.dmx) ,1, (200,200,200))
-        window.blit(fr,(300,10))
+        # univers
+        #fr = font15.render("{:02}:{:03}".format(self.fix.univ,self.fix.dmx) ,1, (200,200,200))
+        #window.blit(fr,(300,10))
         
+        # pointer
+        fr = font15.render("X:{:03}".format(self._x) ,1, (200,200,200))
+        window.blit(fr,(10,30))
+        fr = font15.render("Y:{:03}".format(self._y) ,1, (200,200,200))
+        window.blit(fr,(10,40))
+
+        # crosshair
         self.rgb = [0,0,200]
         pygame.draw.line(window,self.rgb, (self.x-p,self.y) , (self.x-2,self.y) ) 
         pygame.draw.line(window,self.rgb, (self.x,self.y-p) , (self.x,self.y-2) ) 
@@ -235,37 +327,69 @@ running = True
 def event():
     global NR,running
     for event in pygame.event.get(): 
-        print("a",event)
-        print("b",event.type)
-        print("c",dir(event) ) #event.button)
+        #print(event.dict)
+
+        _button = None
+        if "button" in event.dict:
+             _button =  event.dict["button"]
+
+        _state = None
+        if "state" in event.dict:
+            _state  = event.state 
+
+        _key = None
+        if "key" in event.dict:
+            _key  = event.key 
+
+        _pos = None
+        if "pos" in event.dict:
+            _pos  = event.pos 
+
+        _type = None
+        if "type" in event.dict:
+            _type  = event.type 
+        _type  = event.type 
+
+        _mod = None
+        if "mod" in event.dict:
+            _mod  = event.mod 
+        print( " ")
+        print( "{:.02f}".format( time.time() - START ))
+        print("button -",_button,end="\t| ")
+        #print("state  -",_state)
+        print("pos    -",_pos)
+        print("type   -",_type, end="\t| ")
+        print("key    -",_key)
+        print("mod    -",_mod)
+
         try:
-            print("d",event.dict ) #event.button)
-            if event.type == 5:
-                if "button" in event.dict and event.dict["button"] == 1:  #event.button)
+            if _type == 5:
+                if _button == 1:
                     NR += 1
                     if NR > 2:
                         NR = 0
-                if "button" in event.dict and event.dict["button"] == 3:  #event.button)
+                if _button == 3:
                     NR -= 1
                     if NR < 0:
                         NR = 2
-            if "pos" in event.dict:
-                posA = event.dict["pos"]
-                fix = find_pix(posA[0]-40,posA[1]-60)
+
+            if _pos:
+                posA = _pos 
+                fix = find_pix(_pos[0]-40,_pos[1]-60)
                 if fix:
-                    pos = fix.POS(40,60) #40,60)
-                    rgb = [0,0,0] #fix.rgb
-                    #print(fix)
-                    #pygame.draw.rect(window,rgb,pos)
-                    pointer.move(pos) #,posA[0],posA[1])
+                    pos = fix.POS(40,60) 
+                    rgb = [0,0,0] 
+                    pointer.move(pos) 
                     pointer.fix  = fix
                 else:
                     pointer.on = 0
-                pointer.cross(posA[0],posA[1])
+                pointer.row_move(_pos[0],_pos[1]) 
+                pointer.cross(_pos[0],_pos[1])
 
 
         except Exception as e:
             print(e)
+
         if event.type==pygame.QUIT: 
             running=False
 
@@ -276,13 +400,13 @@ frame_t = time.time()
 IP = "yyy"
 def draw_overlay():
     global fps
-    fr = font.render("fps:{}".format(fps) ,1, (200,0,255))
+    fr = font.render("FPS:{}".format(fps) ,1, (200,0,255))
     window.blit(fr,(10,10))
 
     fr = font.render("ip:{}".format(IP) ,1, (200,0,255))
     window.blit(fr,(80,10))
 
-def FPS():
+def calc_fps():
     global fps,frame,frame_t
     t = time.time()
     if frame_t+1 < t:
@@ -296,8 +420,8 @@ def FPS():
 #def draw_circle(surface, x, y, radius, color):
 def draw_circle(surface,color, pos, radius):
     x,y=pos
-    pygame.gfxdraw.aacircle(surface, x, y, radius-1, color)
-    pygame.gfxdraw.filled_circle(surface, x, y, radius-1, color)
+    pygame.gfxdraw.aacircle(surface, int(x), int(y), radius-1, color)
+    pygame.gfxdraw.filled_circle(surface, int(x), int(y), radius-1, color)
 
 def rDMX(univ,dmx):
     return univ*512+dmx
@@ -305,11 +429,12 @@ def rDMX(univ,dmx):
 grid_file = "/tmp/vpu_grid.csv"
 grid_file = "/home/user/LibreLight/vpu_grid.csv"
 
-def init_grid():
+def generate_grid():
     log = open(grid_file,"w")
     head = "i,univ,dmx,x,y,ch\n"
     head = "i,univ,dmx,ch\n"
     head = "univ,dmx,x,y,ch\n"
+    head = "nr,id,info\n"
     print("csv:",head)
     log.write(head)
     dmx = 1-1
@@ -318,7 +443,8 @@ def init_grid():
     y=0
     x=0
     for i in range((_y)*(_x)):
-        if i%_x == 0:
+        if x > _x and i%_x == 0:
+            print("--> -->")
             x=0
             y+=1
         
@@ -328,6 +454,7 @@ def init_grid():
         pos=[x,y]
         line="{},{},{},{},{},{}\n".format(i+1,_univ,_dmx+1,pos[0],pos[1],ch)
         line="{},{},{},{},{}\n".format(_univ,_dmx+1,x,y,ch)
+        line="{},{},x\n".format(i+1,i+1)
         print("wcsv:",[line])
         log.write(line)
         dmx += ch
@@ -335,46 +462,50 @@ def init_grid():
     log.close()
     return GRID
 
-def open_grid():
-    #global GRID
+def init_grid():
 
-    #init_grid()
     try:
         log = open(grid_file,"r")
     except:
-        init_grid()
+        generate_grid()
         log = open(grid_file,"r")
     
     lines = log.readlines()
 
-    # "i,dmx,x,y,ch  # csv
     GRID = []
     
     y=0
     x=0
-    #for i in range((_y)*(_x)):
-    for i,line in enumerate(lines[1:]):
-        if i%_x == 0:
+    print("CSV header",[lines[0]])
+
+    for i,line in enumerate(lines[1:]): #exclude first line
+        #print("rcsv",[line])
+        line = line.strip()
+        line = line.split(",") # csv
+
+        if i >= _x and i%_x == 0:
             x=0
             y+=1
-        print("rcsv",[line])
-        line = line.strip()
-        line = line.split(",")
+        if y > _y:
+            break
+
 
         #i    = int(line[0])
-        univ = int(line[0])
-        dmx  = int(line[1])
+        _id    = int(line[1])
+        #univ = int(line[0])
+        #dmx  = int(line[1])
         #x    = int(line[3])
         #y    = int(line[4])
-        ch   = int(line[4])
+        #ch   = int(line[4])
 
         pos = [x,y] 
-        f   = Fix(pos,univ,dmx,ch)
-        f.x = x
-        f.y = y 
-        f.block = block
+        f   = Fix(_id,pos,block) #pos,univ,dmx,ch)
+        #f.x = x
+        #f.y = y 
+        #f.block = block
         GRID.append(f)
         x+=1
+        #print("y, _y",y,_y)
     return GRID
 
 def find_pix(x,y):
@@ -382,6 +513,7 @@ def find_pix(x,y):
     for fix in GRID:
         X = 0
         Y = 0
+
         pos = fix.POS()
         if x > pos[0] and x < pos[0]+pos[2]:
             X = 1
@@ -395,9 +527,12 @@ def find_pix(x,y):
 GRID = []
 NR = 0
 START_UNIV=2
+
 def main():
     global IP,GRID
-    GRID =  open_grid() #init_gird()
+
+    counter = time.time()
+    GRID =  init_grid() #init_gird()
     print("GRID LEN:",len(GRID))
 
 
@@ -410,7 +545,7 @@ def main():
         pygame.display.flip()
 
         window.fill((0,0,0))
-        FPS()
+        calc_fps()
         draw_overlay()
 
         ips = read_index()
@@ -436,46 +571,75 @@ def main():
         i = 0
         dmx = 1
         for fix in GRID:
-            fix.calc(data)
-
             pos = fix.POS(40,60)
             rgb = fix.rgb
 
-            #print(fix.dmx,rgb,pos)
-            pygame.draw.rect(window,rgb,pos)
-            #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-            #draw_circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-            if NR == 1:
-                fr = font15.render("{:2}".format(i+1) ,1, (200,0,255))
-                window.blit(fr,(pos[0]+2,pos[1]+3))
-            elif NR == 2:
-                univ = int(dmx/512)
-                _dmx = dmx
-                if univ:
-                    _dmx = dmx%512
-                    #_dmx += 1
-
-                #fr = font12.render("{:2} {}".format(univ+START_UNIV,_dmx) ,1, (200,0,255))
-                fr = font12.render("{:2} {}".format(fix.univ,fix.dmx) ,1, (200,0,255))
-                window.blit(fr,(pos[0],pos[1]+3))
 
             if 1:
+                # draw row/col grid number
                 if fix.pos[0] == 0:
-                    fr = font12.render("{}".format(fix.pos[1]) ,1, (200,200,200))
-                    #fr = font12.render("{}:{}".format(fix.univ,fix.dmx) ,1, (200,200,200))
-                    #fr = font12.render("-" ,1, (100,100,255))
+                    fr = font12.render("{}".format(fix.pos[1]+1) ,1, (200,200,200))
                     window.blit(fr,(10,pos[1]+3 ))
-                if fix.pos[1] == 1:
+                if fix.pos[1] == 0:
                     fr = font12.render("{}".format(fix.pos[0]+1) ,1, (200,200,200))
-                    #fr = font12.render("-" ,1, (100,100,255))
                     window.blit(fr,(pos[0]+2,35 ))
 
-            dmx += 4
-            i += 1
+            pygame.draw.rect(window,rgb,pos)
 
+
+            # DRAW SUB-FIXTURE
+            for subfix in fix.sub_fix:#calc(data):
+                subfix.calc(data)
+                #fix = subfix
+                spos = subfix.POS(40,60)
+                srgb = subfix.rgb
+
+                #print(fix.dmx,rgb,pos)
+                pygame.draw.rect(window,srgb,spos)
+                #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
+                #draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+
+
+                # draw row/col grid number
+                if subfix.pos[0] == 0:
+                    fr = font12.render("{}".format(subfix.pos[1]+1) ,1, (200,200,200))
+                    window.blit(fr,(25,spos[1] ))
+                if subfix.pos[1] == 0:
+                    fr = font12.render("{}".format(subfix.pos[0]+1) ,1, (200,200,200))
+                    window.blit(fr,(spos[0],50 ))
+
+                i += 1
+
+        # DRAW FIX NUMBER on TOP
+        i=0
+        for fix in GRID:
+            pos = fix.POS(40,60)
+            rgb = fix.rgb
+            if NR:
+                pygame.draw.rect(window,[0,0,0],[pos[0]+1,pos[1]+1,14,12])
+
+            if NR == 1:
+                fr = font15.render("{:02}".format(i+1) ,1, (200,0,255))
+                window.blit(fr,(pos[0]+2,pos[1]+2))
+            elif NR == 2:
+                if counter +5 < time.time():
+                    counter = time.time()
+                    try:
+                        GRID =  init_grid() #init_gird()
+                    except Exception as e:
+                        print("Except: grid re init",e)
+                if fix._id != i+1:
+                    fr = font15.render("{:02}".format(fix._id) ,1, (250,105,100))
+                else:
+                    fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
+                window.blit(fr,(pos[0]+2,pos[1]+2))
+            i += 1
+            
         pointer.draw()
         pygame.display.flip()
         pg.time.wait(10)
+
+
 
 if __name__ == "__main__":
     main()

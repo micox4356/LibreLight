@@ -11,9 +11,9 @@ parser = OptionParser()
 parser.add_option("-m", "--mode", dest="mode",
                   help="pixel mode") #, metavar="FILE")
 
-parser.add_option("-x", "--xx", dest="xsplit",
+parser.add_option("-x", "--xx", dest="xsplit", default=1,
                   help="x-split") #, metavar="FILE")
-parser.add_option("-y", "--yy", dest="ysplit",
+parser.add_option("-y", "--yy", dest="ysplit",default=1,
                   help="y-split") #, metavar="FILE")
 
 #parser.add_option("-f", "--file", dest="filename",
@@ -108,8 +108,10 @@ HD_x = 1
 HD_y = 1
 if options.mode:
     try:
-        HD_x = options.xsplit
-        HD_y = options.ysplit
+        if options.xsplit > 1:
+            HD_x = options.xsplit
+        if options.ysplit > 1:
+            HD_y = options.ysplit
     except Exception as e:
         print( "Exc",options.mode,e)
 
@@ -170,22 +172,39 @@ class Fix():
         self.univ = univ
         self.ch  = ch
         self.pos = pos
-        self.rgb = [0,0,40]
+        self.rgb = [0,0,140]
         self.block = block #[10,10]
         self.x = pos[0]
         self.y = pos[1]
         self.strobo = time.time()
         self.bmp = 250
         self.sub_fix = []
+        
+        sub_block =[block[0]/2,block[1]/2] 
 
-        sub_fix = SubFix(_id,pos[:],[block[0]/2,block[1]/2],univ,dmx,ch)
+        sid = (_id-1)*2+1
+        sub_pos= [pos[0]*block[0],pos[1]*block[1]]
+        sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
+
+        sid = sid+1
+        sub_pos= [pos[0]*block[0]+block[0]/2,pos[1]*block[1]]
+        sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
+        self.sub_fix.append(sub_fix)
+
+        sid = (_id-1)*2+1
+        sub_pos= [pos[0]*block[0],pos[1]*block[1]+block[1]/2]
+        sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
+        self.sub_fix.append(sub_fix)
+
+        sid = sid+1
+        sub_pos= [pos[0]*block[0]+block[0]/2,pos[1]*block[1]+block[1]/2]
+        sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
+        self.sub_fix.append(sub_fix)
+
 
     def calc(self,data):
         _rgb = [0,255,0]
-        #for sub_fix in self.sub_fix:
-        #    sub_fix.block = self.block 
-        #    _rgb = sub_fix.calc(data)
         return _rgb
 
     def sub_calc(self,data):
@@ -226,6 +245,7 @@ class SubFix():
         self.bmp = 250
 
     def calc(self,data):
+        #return [130,30,20]
         dmx_sub = [30]*10
         #print(dmx_sub)
         dmx = self.dmx -1
@@ -251,10 +271,10 @@ class SubFix():
         return self.rgb
      
     def POS(self,x=0,y=0,a=0,b=0):
-        A = (self.pos[0]) *self.block[0]
-        B = (self.pos[1]) *self.block[1]
-        C = self.block[0]-a
-        D = self.block[1]-b
+        A = (self.pos[0]) #+self.block[0]
+        B = (self.pos[1]) #+self.block[1]
+        C = self.block[0]-a-1
+        D = self.block[1]-b-1
         return [x+A,y+B,C,D]
 
 class POINTER():
@@ -588,6 +608,7 @@ def main():
 
 
             # DRAW SUB-FIXTURE
+            j = 0
             for subfix in fix.sub_fix:#calc(data):
                 subfix.calc(data)
                 #fix = subfix
@@ -608,7 +629,12 @@ def main():
                     fr = font12.render("{}".format(subfix.pos[0]+1) ,1, (200,200,200))
                     window.blit(fr,(spos[0],50 ))
 
-                i += 1
+                if NR == 1:
+                    #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
+                    fr = font15.render("{:02}".format(subfix._id) ,1, (0,200,255))
+                    window.blit(fr,(spos[0]+2,spos[1]+10))
+                j += 1
+            i += 1
 
         # DRAW FIX NUMBER on TOP
         i=0
@@ -616,7 +642,7 @@ def main():
             pos = fix.POS(40,60)
             rgb = fix.rgb
             if NR:
-                pygame.draw.rect(window,[0,0,0],[pos[0]+1,pos[1]+1,14,12])
+                pygame.draw.rect(window,[0,0,0],[pos[0]+2,pos[1]+2,12,9])
 
             if NR == 1:
                 fr = font15.render("{:02}".format(i+1) ,1, (200,0,255))

@@ -670,7 +670,6 @@ def main():
 
 
 
-
                 # draw row/col grid number
                 if subfix.pos[0] == 0:
                     fr = font12.render("{}".format(v ) ,1, (200,200,200))
@@ -683,10 +682,11 @@ def main():
                     window.blit(fr,(spos[0],50 ))
 
 
-                if NR:
-                    #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
-                    fr = font15.render("{:02}".format(subfix._id) ,1, (250,200,5))
-                    window.blit(fr,(spos[0]+2,spos[1]+10))
+                if p >= 40:
+                    if NR:
+                        #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
+                        fr = font15.render("{:02}".format(subfix._id) ,1, (250,200,5))
+                        window.blit(fr,(spos[0]+2,spos[1]+10))
                 j += 1
             i += 1
 

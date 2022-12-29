@@ -11,6 +11,9 @@ parser = OptionParser()
 parser.add_option("-m", "--mode", dest="mode",
                   help="pixel mode") #, metavar="FILE")
 
+parser.add_option("-X", "--XX", dest="XX", #default=1,
+                  help="x-split") #, metavar="FILE")
+
 parser.add_option("-x", "--xx", dest="xsplit", #default=1,
                   help="x-split") #, metavar="FILE")
 parser.add_option("-y", "--yy", dest="ysplit",#default=1,
@@ -92,6 +95,7 @@ block = [p,p]
 _x = 8
 _y = 8
 
+
 #HD = "0"
 if options.mode:
     try:
@@ -109,20 +113,27 @@ HD_y = 2
 
 print( [options.xsplit])
 print( [options.ysplit])
-if options.mode:
-    try:
-        if options.xsplit:
-            HD_x = int(options.xsplit)
-        if options.ysplit:
-            HD_y = int(options.ysplit)
-    except Exception as e:
-        print( "Exc",options.mode,e)
+
+try:
+    if options.xsplit:
+        HD_x = int(options.xsplit)
+    if options.ysplit:
+        HD_y = int(options.ysplit)
+except Exception as e:
+    print( "Exc",options.mode,e)
+
 print("HD",HD_x,HD_y)
 print("xy",_x,_y)
 print("++++++++++++++++++", p,_x,_y)
 
+_x2 = _x
 
-
+try:
+    if options.XX:
+        _x2 = int(options.XX)
+except Exception as e:
+    print( "Exc",options.mode,e)
+print("_x2 , -X",_x2)
 # ===== GUI =========
 import pygame
 import pygame.gfxdraw
@@ -187,32 +198,36 @@ class Fix():
         sub_block =[block[0]/HD_x,block[1]/HD_y] 
         
         spalte = (_id-1)%_y +1
-        zeile = int((_id-1)/_x) #+1
+        zeile = int((_id-1)/_x2) #+1
         #zeile = zeile*_x*HD_x*HD_y
 
         add_row = _x*HD_x*HD_y
 
         #zeile 1
-        sid = (_id-1)*2  + zeile*HD_x*_x
+        sid = (_id-1)*2  + zeile*HD_x*_x2
         #for i in range(1,HD_x):
         sid = sid+1
+        #sid = zeile
         sub_pos= [pos[0]*block[0],pos[1]*block[1]]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
 
         sid = sid+1
+        #sid = zeile
         sub_pos= [pos[0]*block[0]+block[0]/2,pos[1]*block[1]]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
 
         #zeile 2
-        sid = (_id-1)*2+1 + _x*HD_x  + zeile*HD_x*_x # int(add_row)
+        sid = (_id-1)*2+1 + _x2*HD_x  + zeile*HD_x*_x2 # int(add_row)
+        #sid = sid+1
         #sid = HD_x
         sub_pos= [pos[0]*block[0],pos[1]*block[1]+block[1]/2]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
 
-        sid = sid+1
+        #sid = sid+1
+        sid = sid+1   
         sub_pos= [pos[0]*block[0]+block[0]/2,pos[1]*block[1]+block[1]/2]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)

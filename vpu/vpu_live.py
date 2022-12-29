@@ -54,7 +54,7 @@ def select_ip(ips, univ=2): # artnet univ
         if "ltp-out" in ip and _univ in ip:
             return ip
 
-
+FUNC = 0
 
 
 
@@ -585,7 +585,7 @@ NR = 0
 START_UNIV=2
 
 def main():
-    global IP,GRID
+    global IP,GRID,FUNC
 
     counter = time.time()
     GRID =  init_grid() #init_gird()
@@ -623,8 +623,13 @@ def main():
         #data3 = read_dmx(ip)
         #data.extend(data3)
         # GRID loop
-        
-
+        try:
+            ddd = 1023 #univ 3 512
+            FUNC = data[ddd]
+            #print("FUNC", FUNC )#:ddd+512])
+            #FUNC = 15
+        except Exception as e:
+            print("EXC FUNC",e)
         i = 0
         dmx = 1
         h = 1
@@ -655,9 +660,13 @@ def main():
                 srgb = subfix.rgb
 
                 #print(fix.dmx,rgb,pos)
-                #pygame.draw.rect(window,srgb,spos)
                 #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                if FUNC > 10 and FUNC <= 20:
+                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                elif FUNC > 20 and FUNC <= 30:
+                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+                else:
+                    pygame.draw.rect(window,srgb,spos)
 
 
 

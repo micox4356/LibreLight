@@ -128,7 +128,7 @@ import pygame
 import pygame.gfxdraw
 import pygame.font
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
+os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,184)
 os.environ['SDL_VIDEO_CENTERED'] = '0'
 
 pg = pygame

@@ -15,7 +15,7 @@ screen -m -d -S ASP -- python3 /opt/LibreLight/ASP/ArtNetProcessor.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/3d/demo_shader_live.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/shader_live.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5
-screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -x 2 -y 2
+screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 
 
 sleep 3
 screen -ls

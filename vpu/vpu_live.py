@@ -661,31 +661,44 @@ def main():
 
                 #print(fix.dmx,rgb,pos)
                 #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-                if FUNC > 10 and FUNC <= 20:
+                if FUNC > 10 and FUNC <= 20: # big dot
                     draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
-                elif FUNC > 20 and FUNC <= 30:
+                elif FUNC > 20 and FUNC <= 30:#small dot
                     draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 30 and FUNC <= 40:
+                elif FUNC > 30 and FUNC <= 40:#donut
                     draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
                     draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 40 and FUNC <= 50:
-                    #draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                elif FUNC > 40 and FUNC <= 50: # rec with hole
                     pygame.draw.rect(window,srgb,spos)
                     draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 50 and FUNC <= 60:
-                    #draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                elif FUNC > 50 and FUNC <= 60: # rec with big hole
                     pygame.draw.rect(window,srgb,spos)
                     draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
-                    #draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 60 and FUNC <= 70:
-                    #draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                elif FUNC > 60 and FUNC <= 70: # rec with donat
                     pygame.draw.rect(window,srgb,spos)
                     draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
                     draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 70 and FUNC <= 80:
+                elif FUNC > 70 and FUNC <= 80: # rec boarder
                     pygame.draw.rect(window,srgb,[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
-                elif FUNC > 80 and FUNC <= 90:
+                elif FUNC > 80 and FUNC <= 90: # rec big boarder
                     pygame.draw.rect(window,srgb,[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
+                elif FUNC > 90 and FUNC <= 100: # rec thin line
+                    pygame.draw.rect(window,srgb,spos)
+                    pygame.draw.rect(window,[0,0,0],[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
+                elif FUNC > 100 and FUNC <= 110: # rec big line
+                    pygame.draw.rect(window,srgb,spos)
+                    pygame.draw.rect(window,[0,0,0],[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
+                elif FUNC > 110 and FUNC <= 120: # rec with dot
+                    pygame.draw.rect(window,srgb,spos)
+                    pygame.draw.rect(window,[0,0,0],[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
+                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+                elif FUNC > 120 and FUNC <= 130: # rec inline
+                    pygame.draw.rect(window,srgb,[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
+                    pygame.draw.rect(window,[0,0,0],[spos[0]+3,spos[1]+3,spos[2]-6,spos[3]-6])
+                elif FUNC > 130 and FUNC <= 140: # 3 dot (heart)
+                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2)+2,spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2)-2,spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)+2),int(spos[3]/3.5))
                 else:
                     pygame.draw.rect(window,srgb,spos)
 

@@ -196,7 +196,9 @@ class Fix():
         self.sub_fix = []
         
         sub_block =[block[0]/HD_x,block[1]/HD_y] 
-        
+        if _id <= 0: #exit 
+            return
+
         spalte = (_id-1)%_y +1
         zeile = int((_id-1)/_x2) #+1
         #zeile = zeile*_x*HD_x*HD_y

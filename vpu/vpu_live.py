@@ -11,9 +11,9 @@ parser = OptionParser()
 parser.add_option("-m", "--mode", dest="mode",
                   help="pixel mode") #, metavar="FILE")
 
-parser.add_option("-x", "--xx", dest="xsplit", default=1,
+parser.add_option("-x", "--xx", dest="xsplit", #default=1,
                   help="x-split") #, metavar="FILE")
-parser.add_option("-y", "--yy", dest="ysplit",default=1,
+parser.add_option("-y", "--yy", dest="ysplit",#default=1,
                   help="y-split") #, metavar="FILE")
 
 #parser.add_option("-f", "--file", dest="filename",
@@ -89,8 +89,8 @@ def read_dmx(ip):
 
 p = 16
 block = [p,p]
-_x = 12
-_y = 5
+_x = 8
+_y = 8
 
 #HD = "0"
 if options.mode:
@@ -106,6 +106,9 @@ if options.mode:
 
 HD_x = 2
 HD_y = 2
+
+print( [options.xsplit])
+print( [options.ysplit])
 if options.mode:
     try:
         if options.xsplit:
@@ -114,8 +117,8 @@ if options.mode:
             HD_y = int(options.ysplit)
     except Exception as e:
         print( "Exc",options.mode,e)
-#print(HD_x,HD_y)
-#print(_x,_y)
+print("HD",HD_x,HD_y)
+print("xy",_x,_y)
 print("++++++++++++++++++", p,_x,_y)
 
 
@@ -125,7 +128,7 @@ import pygame
 import pygame.gfxdraw
 import pygame.font
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,184)
+os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
 os.environ['SDL_VIDEO_CENTERED'] = '0'
 
 pg = pygame
@@ -322,8 +325,9 @@ class POINTER():
             # mouse grid posision
             fr = font15.render("{}/{}".format(self.fix.x+1,self.fix.y) ,1, (200,200,200))
             
-            _nr = self.fix.y * _y + self.fix.x+1
-            fr = font15.render("{:02} {}/{}".format(_nr, self.fix.x+1,self.fix.y+1 ) ,1, (200,200,200))
+            _nr = self.fix.y * _x + self.fix.x +1
+            #fr = font15.render("{:02} {}/{}".format(_nr, self.fix.x+1,self.fix.y+1 ) ,1, (200,200,200))
+            fr = font15.render("{:02}".format(_nr ) ,1, (200,200,200))
 
             window.blit(fr,(self.pos[0]+2,self.pos[1]+2 ))
             window.blit(fr,(200,25))
@@ -401,12 +405,12 @@ def event():
             if _type == 5:
                 if _button == 1:
                     NR += 1
-                    if NR > 2:
+                    if NR > 1:
                         NR = 0
                 if _button == 3:
                     NR -= 1
                     if NR < 0:
-                        NR = 2
+                        NR = 1
 
             if _pos:
                 posA = _pos 
@@ -660,7 +664,6 @@ def main():
                 j += 1
             i += 1
 
-        pointer.draw()
 
         # DRAW FIX NUMBER on TOP
         i=0
@@ -670,10 +673,11 @@ def main():
             if NR:
                 pygame.draw.rect(window,[0,0,0],[pos[0]+2,pos[1]+2,12,9])
 
-            if NR == 1:
-                fr = font15.render("{:02}".format(i+1) ,1, (200,0,255))
-                window.blit(fr,(pos[0]+2,pos[1]+2))
-            elif NR == 2:
+            #if NR == 1:
+            #    fr = font15.render("{:02}".format(i+1) ,1, (200,0,255))
+            #    window.blit(fr,(pos[0]+2,pos[1]+2))
+            #elif NR == 2:
+            if NR:# == 2:
                 if counter +5 < time.time():
                     counter = time.time()
                     try:
@@ -687,6 +691,7 @@ def main():
                 window.blit(fr,(pos[0]+2,pos[1]+2))
             i += 1
             
+        pointer.draw()
         pygame.display.flip()
         pg.time.wait(10)
 

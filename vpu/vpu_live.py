@@ -104,8 +104,8 @@ if options.mode:
     except Exception as e:
         print( "Exc",options.mode,e)
 
-HD_x = 1
-HD_y = 1
+HD_x = 2
+HD_y = 2
 if options.mode:
     try:
         if options.xsplit:
@@ -285,8 +285,11 @@ class SubFix():
     def POS(self,x=0,y=0,a=0,b=0):
         A = (self.pos[0]) #+self.block[0]
         B = (self.pos[1]) #+self.block[1]
-        C = self.block[0]-a-1
-        D = self.block[1]-b-1
+        C = self.block[0]-a
+        D = self.block[1]-b
+        if NR:
+            C-=1
+            D-=1
         return [x+A,y+B,C,D]
 
 class POINTER():
@@ -459,7 +462,7 @@ def rDMX(univ,dmx):
     return univ*512+dmx
 
 grid_file = "/tmp/vpu_grid.csv"
-grid_file = "/home/user/LibreLight/vpu_grid.csv"
+grid_file = "/home/user/LibreLight/vpu_grid_hd.csv"
 
 def generate_grid():
     log = open(grid_file,"w")
@@ -599,9 +602,12 @@ def main():
         #data3 = read_dmx(ip)
         #data.extend(data3)
         # GRID loop
+        
 
         i = 0
         dmx = 1
+        h = 1
+        v = 1
         for fix in GRID:
             pos = fix.POS(40,60)
             rgb = fix.rgb
@@ -633,20 +639,28 @@ def main():
                 #draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
 
 
+
+
                 # draw row/col grid number
                 if subfix.pos[0] == 0:
-                    fr = font12.render("{}".format(subfix.pos[1]+1) ,1, (200,200,200))
+                    fr = font12.render("{}".format(v ) ,1, (200,200,200))
                     window.blit(fr,(25,spos[1] ))
+                    v += 1
                 if subfix.pos[1] == 0:
-                    fr = font12.render("{}".format(subfix.pos[0]+1) ,1, (200,200,200))
+                    fr = font12.render("{}".format(1) ,1, (200,200,200))
+                    fr = font12.render("{}".format(h ) ,1, (200,200,200))
+                    h+=1
                     window.blit(fr,(spos[0],50 ))
+
 
                 if NR:
                     #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
-                    fr = font15.render("{:02}".format(subfix._id) ,1, (250,0,5))
+                    fr = font15.render("{:02}".format(subfix._id) ,1, (250,200,5))
                     window.blit(fr,(spos[0]+2,spos[1]+10))
                 j += 1
             i += 1
+
+        pointer.draw()
 
         # DRAW FIX NUMBER on TOP
         i=0
@@ -673,7 +687,6 @@ def main():
                 window.blit(fr,(pos[0]+2,pos[1]+2))
             i += 1
             
-        pointer.draw()
         pygame.display.flip()
         pg.time.wait(10)
 

@@ -187,7 +187,7 @@ class Fix():
         self.univ = univ
         self.ch  = ch
         self.pos = pos
-        self.rgb = [0,0,140]
+        self.rgb = [0,0,0]
         self.block = block #[10,10]
         self.x = pos[0]
         self.y = pos[1]
@@ -655,9 +655,9 @@ def main():
                 srgb = subfix.rgb
 
                 #print(fix.dmx,rgb,pos)
-                pygame.draw.rect(window,srgb,spos)
+                #pygame.draw.rect(window,srgb,spos)
                 #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-                #draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
 
 
 

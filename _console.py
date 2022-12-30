@@ -568,7 +568,7 @@ class DMXCH(object):
         #print("init fade",self)
 
     def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
-        print([self,xtype,size,speed,start,offset,base, clock])
+        #print("DMXCH.fx",[self,xtype,size,speed,start,offset,base, clock])
         self._fx[0] = self._fx[1]
         if str(xtype).lower() == "off":
             fx_value = self._fx_value
@@ -583,7 +583,7 @@ class DMXCH(object):
             self._fx[1].exec_id(self._exec_id)
 
         self.next(clock)
-        print("init fx",self)
+        #print("init fx",self)
 
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":

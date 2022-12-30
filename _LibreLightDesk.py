@@ -523,7 +523,7 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
     out = []
     delay=0
     for row in data:
-        cprint("reshape_preset in:",row)
+        #cprint("reshape_preset in:",row)
         line = {}
         line["DELAY"]=delay
         if type(value) is float:
@@ -571,7 +571,7 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
         
         if 0:
             cprint("reshape_preset j",line,color="red") 
-        cprint("reshape_preset out:",line)
+        #cprint("reshape_preset out:",line)
         out.append(line)
         if DELAY._is():
             delay+=DELAY.val()/100 #0.02

@@ -374,18 +374,20 @@ def jclient_send(data):
                 cprint("-----",color="red")
         elif "DMX" in jdata:
             try:
-                # find dmx-fine channel
-                #jdata["DMX-FINE"] = 0
-                fix = jdata["FIX"]
-                attr = jdata["ATTR"]
-                jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
-                if int(jdata["DMX"]) >= 1: # ignore DMX lower one
-                     jdatas.append(jdata)
+                dmx = int(jdata["DMX"])
+                if int(dmx) >= 1: # ignore DMX lower one
+                    if "FIX" in jdata and "ATTR" in jdata:    
+                        fix = jdata["FIX"]
+                        attr = jdata["ATTR"]
+                        # find dmx-fine channel
+                        jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
+                    jdatas.append(jdata)
                 else:
-                     cprint("jclient_send, ignore DMX ",jdata["DMX"],color="red")
+                    cprint("jclient_send, ignore DMX ",jdata["DMX"],color="red")
             except Exception as e:
                 cprint("jclient_send, Exception DMX ",color="red")
                 cprint("",jdata,color="red")
+                cprint(e,color="red")
                 cprint("-----",color="red")
             
     jtxt = jdatas
@@ -521,7 +523,7 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
     out = []
     delay=0
     for row in data:
-        cprint("reshape_preset",row)
+        cprint("reshape_preset in:",row)
         line = {}
         line["DELAY"]=delay
         if type(value) is float:
@@ -536,6 +538,11 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
 
         if row["FX2"]:
             line["FX2"] = row["FX2"]
+
+        if row["FIX"]:
+            line["FIX"] = row["FIX"]
+        if row["ATTR"]:
+            line["ATTR"] = row["ATTR"]
 
 
         if row["VALUE"] is not None:
@@ -564,7 +571,7 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
         
         if 0:
             cprint("reshape_preset j",line,color="red") 
-        cprint("reshape_preset",line)
+        cprint("reshape_preset out:",line)
         out.append(line)
         if DELAY._is():
             delay+=DELAY.val()/100 #0.02
@@ -2400,7 +2407,8 @@ class GUI():
             if value == "off":
                 if "FX2" in vcmd:
                     vcmd[i]["FX2"]["TYPE"] = value
-
+            if "FIX" in fcmd:
+                vcmd[i]["FIX"] = fcmd["FIX"]
             if DMX and vcmd[i]:
                 vcmd[i]["DMX"] = DMX
 

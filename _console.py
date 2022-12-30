@@ -356,7 +356,7 @@ class FX():
         return self._exec_id
 
     def _get_info(self):
-        print(self.__offset)
+        #print("self.__offset",self.__offset)
         return {"offset":self.__offset,"xtype":self.__xtype}
         #return self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run 
     def __str__(self):
@@ -545,6 +545,7 @@ class DMXCH(object):
         self._fx_value = 0
 
         self._dmx = dmx
+        self._dmx_fine = 0
 
         self._flash    = None
         self._flash_fx = None
@@ -564,7 +565,7 @@ class DMXCH(object):
             except Exception as e:
                 print( "Except:fade",e,target,ftime,clock)
         self.next(clock)
-        print("init",self)
+        #print("init fade",self)
 
     def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
         print([self,xtype,size,speed,start,offset,base, clock])
@@ -582,7 +583,7 @@ class DMXCH(object):
             self._fx[1].exec_id(self._exec_id)
 
         self.next(clock)
-        print("init",self)
+        print("init fx",self)
 
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
@@ -594,7 +595,7 @@ class DMXCH(object):
             except Exception as e:
                 print( "Except:flash",target,ftime,clock,__name__,e,)
         self.next(clock)
-        print("init",self)
+        #print("init flush",self)
 
     def flash_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
         if str(xtype).lower() == "off":
@@ -605,7 +606,7 @@ class DMXCH(object):
             self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=0)
             self._flash_fx.exec_id(self._exec_id)
         self.next(clock)
-        print("init",self)
+        #print("init flash_fx",self)
 
     def fx_ctl(self,cmd=""): #start,stop,off
         pass
@@ -618,7 +619,7 @@ class DMXCH(object):
         return self._exec_id
 
     def __repr__(self):
-        return "<BUFFER {} v:{:0.2f} EXEC:{}> fx:[{}] fd:{}".format(self._dmx, self._last_val,self._exec_id,self._fx,self._fade)
+        return "<BUFFER {} {} v:{:0.2f} EXEC:{}> fx:[{}] fd:{}".format(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
     
     def fade_ctl(self,cmd=""): #start,stop,backw,fwd,bounce
         pass
@@ -807,17 +808,38 @@ class Main():
         xx = [0]*512
         #artnet = self.artnet["0"]
         #artnet.dmx = xx# [:] #dmx #[0]*512
+        ii = 0
         old_univ = -1
+        xx = [0]*512
+        for ii,dmxch in enumerate(Bdmx):
+            i = ii%512
+            univ = ii//512
+            if str(univ) not in self.artnet:
+                print("add uiv",univ)
+                self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
+                #self.artnet[str(univ)].dmx[512-1] = 100+univ
+
+            if univ != old_univ:
+                old_univ = univ
+                #print("UNIV",ii/512)
+                try:
+                    artnet.next()
+                except:pass
+                artnet = self.artnet[str(univ)]
+                artnet.dmx = [0]*512
+
         while 1:
             t = clock.time()
             ii = 0
+            old_univ = -1
+            xx = [0]*512
             for ii,dmxch in enumerate(Bdmx):
                 i = ii%512
                 univ = ii//512
                 if str(univ) not in self.artnet:
                     print("add uiv",univ)
                     self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
-                    self.artnet[str(univ)].dmx[512-1] = 100+univ
+                    #self.artnet[str(univ)].dmx[512-1] = 100+univ
 
                 if univ != old_univ:
                     old_univ = univ
@@ -826,12 +848,63 @@ class Main():
                         artnet.next()
                     except:pass
                     artnet = self.artnet[str(univ)]
-                    artnet.dmx = xx
+                    #artnet.dmx = xx
+
+            old_univ = -1
+            xx = [0]*512
+            for ii,dmxch in enumerate(Bdmx):
+                i = ii%512
+                univ = ii//512
+
+                if univ != old_univ:
+                    old_univ = univ
+                    artnet = self.artnet[str(univ)]
+                    xx = artnet.dmx 
+
                 
                 v = dmxch.next(t)
                 vv = vdmx.by_dmx(clock=i,dmx=ii+1)
                 v = v*vv # disable v-master
+
                 xx[i] = int(v)
+
+            old_univ = -1
+            xx = [0]*512
+            for ii,dmxch in enumerate(Bdmx): #fine loop
+                i = ii%512
+                univ = ii//512
+
+                if univ != old_univ:
+                    artnet = self.artnet[str(univ)]
+                    xx = artnet.dmx# = xx
+                
+                v = dmxch.next(t)
+                vv = vdmx.by_dmx(clock=i,dmx=ii+1)
+                v = v*vv # disable v-master
+
+                #xx[i] = int(v)
+                dmx_fine =  dmxch._dmx_fine
+                if dmx_fine > 0:
+                    vf = int(v%1*255)
+                    #print(dmx_fine,end=" ")
+                    dmx_fine = dmx_fine%512
+                    #print(dmx_fine,end=" ")
+                    #print(int(v),end=" ")
+                    #print(vf,end=" ")
+                    #print()
+                    #univ = ii//512
+                    try:
+                        #xx[dmx_fine+1] = 9# int(v%1*255)
+                        if v >= 255:
+                            xx[dmx_fine-1] = 255
+                        elif v < 0:
+                            xx[dmx_fine-1] = 0
+                        else:
+                            xx[dmx_fine-1] = int(v%1*255)
+                    except Exception as e:
+                        print("E dmx_fine",e,dmx_fine)
+
+
             try:    
                 artnet.next()
             except:pass
@@ -914,6 +987,10 @@ def JCB(data): #json client input
                     if "DELAY" in x:
                         delay = x["DELAY"]
                     else:delay=0
+
+                    if "DMX-FINE" in x:
+                        Bdmx[DMX]._dmx_fine = int(x["DMX-FINE"])
+                        #cprint("DMX-FINE",Bdmx[DMX],color="blue") 
 
                     if len(Bdmx) < DMX:
                         continue

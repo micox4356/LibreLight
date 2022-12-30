@@ -20,7 +20,7 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 """
 import random
 rnd_id = str(random.randint(1000,9000))
-rnd_id += " Beta 22.10 "
+rnd_id += " beta 22.10 "
 import subprocess
 import string
 _gcmd=['git', 'rev-parse', '--short', 'HEAD']
@@ -374,6 +374,11 @@ def jclient_send(data):
                 cprint("-----",color="red")
         elif "DMX" in jdata:
             try:
+                # find dmx-fine channel
+                #jdata["DMX-FINE"] = 0
+                fix = jdata["FIX"]
+                attr = jdata["ATTR"]
+                jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
                 if int(jdata["DMX"]) >= 1: # ignore DMX lower one
                      jdatas.append(jdata)
                 else:
@@ -393,7 +398,8 @@ def jclient_send(data):
     cprint("{:0.04} tick".format(time.time()),color="yellow")
 
 
-def _highlight(fix,_attr="DIM"):
+def _highlight(fix,_attr="DIM"): 
+    " patch test button "
     print("highlight",fix,"1")
 
     if fix not in FIXTURES.fixtures:
@@ -665,6 +671,7 @@ def process_effect(wing_buffer,fx_name=""):
                 jdata["VALUE"] = None
                 jdata["FIX"] = fix
                 jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
+                jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
                 jdata["ATTR"] =attr
                 if attr.endswith("-FINE"):
                     continue
@@ -3871,21 +3878,23 @@ class Fixtures():
             x=self.select(fix,attr,mode="toggle")
             return x
 
-        if fix not in self.fixtures:
-            jdata=[{"MODE":"---"}]
+        out = []
+        if fix not in self.fixtures: 
+            print(" activate Fixture in fixture list on encoder click ")
+
+            #jdata=[{"MODE":"---"}]
             ii =0
-            jclient_send(jdata)
+            #jclient_send(jdata)
             delay=0
+            print("-->A HIER <--")
             for fix in self.fixtures:
                 ii+=1
                 #cprint(fix,attr,xval)
                 data = self.fixtures[fix]
                 if "-FINE" in attr.upper():
                     continue
-                elif attr == "ALL":
-                    pass
 
-                elif (attr in data["ATTRIBUT"] or attr == "ALL") and "-FINE" not in attr.upper()   :
+                elif (attr in data["ATTRIBUT"] ) and "-FINE" not in attr.upper()   :
                     if xval == "click":
                         self.select(fix,attr,mode="on")
                     elif data["ATTRIBUT"][attr]["ACTIVE"]:
@@ -3894,6 +3903,7 @@ class Fixtures():
                 if DELAY._is():
                     delay += DELAY.val()/100
             jdata=[{"MODE":ii}]
+            print("-->B HIER <--")
             jclient_send(jdata)
             return 0
 
@@ -3939,6 +3949,7 @@ class Fixtures():
         jdata["FIX"] = fix
         jdata["ATTR"] = attr
         jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
+        jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
         out = {} 
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1

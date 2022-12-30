@@ -310,7 +310,7 @@ class SubFix():
         if NR:
             C-=1
             D-=1
-        return [x+A,y+B,C,D]
+        return [int(x+A),int(y+B),int(C),int(D)]
 
 class POINTER():
     def __init__(self):

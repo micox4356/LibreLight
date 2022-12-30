@@ -188,7 +188,7 @@ class Client():
     def send(self,nachricht):
         try:
             #print(sys.getsizeof(msg),len(msg))
-            print("send",nachricht)
+            if "-dbg" in sys.argv:print("send",nachricht)
             if sys.getsizeof(nachricht):
                 nachricht=zlib.compress(nachricht)
             #nachricht = bytes(nachricht,"utf-8")

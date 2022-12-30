@@ -625,6 +625,13 @@ class DMXCH(object):
         pass
     
     def next(self,clock=0):
+        try:
+            self._next(clock)
+        except Exception as e:
+            cprint("Exception DMXCH.next()" ,e)
+        out = self._last_val
+        return out
+    def _next(self,clock=0):
         value = self._base_value
         if self._last_val is None:
             self._last_val = value
@@ -864,7 +871,11 @@ class Main():
                 
                 v = dmxch.next(t)
                 vv = vdmx.by_dmx(clock=i,dmx=ii+1)
-                v = v*vv # disable v-master
+                try:
+                    v = v*vv # disable v-master
+                except Exception as e:
+                    cprint("Exception v*vv",[v,vv],e)
+                    continue
 
                 xx[i] = int(v)
 
@@ -880,7 +891,11 @@ class Main():
                 
                 v = dmxch.next(t)
                 vv = vdmx.by_dmx(clock=i,dmx=ii+1)
-                v = v*vv # disable v-master
+                try:
+                    v = v*vv # disable v-master
+                except Exception as e:
+                    cprint("Exception v*vv",[v,vv],e)
+                    continue
 
                 #xx[i] = int(v)
                 dmx_fine =  dmxch._dmx_fine

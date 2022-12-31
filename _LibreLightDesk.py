@@ -1283,6 +1283,60 @@ class Xevent_fx():
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
         return 1 
         
+def save_window_position(save_as=""):
+    try:
+        base = Base()
+        fname = "/home/user/LibreLight"
+        fname = base.show_path1 +base.show_name 
+        if save_as:
+            fname = save_as 
+        fname +=  "/gui.txt"
+        print("save_window_position",fname)
+        f = open(fname,"w")
+        for k,win in window_manager.windows.items():
+            #print("win:",win)
+            if not win:
+                continue
+            #print("d",dir(win))
+            #print("winfo",k,win.tk.geometry())
+            line="{} {}\n".format(k,win.tk.geometry())
+            #print("> ",[line])
+            f.write( line )
+            f.flush()
+        f.close()
+    except Exception as e:
+        cprint("save_window_position Exception:",e,color="red")
+        return 
+
+def load_window_position():
+    try:
+        base = Base()
+        fname = "/home/user/LibreLight"
+        fname = base.show_path1 +base.show_name 
+        fname +=  "/gui.txt"
+        print("load_window_position",fname)
+        f = open(fname,"r")
+        data = {}
+        for line in f.readlines():
+            line = line.strip()
+            if " " in line:
+                k,geo = line.split(" ",1)
+                data[k] = geo
+
+        for k,win in window_manager.windows.items():
+            if not win:
+                continue
+            if k in data:
+                try:
+                    #print("> ",[k,data[k]])
+                    win.tk.geometry(data[k])
+                except Exception as e:
+                    cprint("load_window_position Exception:",e,color="red")
+            #print("winfo",k,win.tk.geometry())
+        f.close()
+    except Exception as e:
+        cprint("load_window_position Exception:",e,color="red")
+        return 
  
 class Xevent():
     """ global input event Handeler for short cut's ... etc
@@ -1308,6 +1362,7 @@ class Xevent():
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
+                save_window_position()
                 #time.sleep(1)
                 #modes.val(self.attr,0)
                 self.elem["bg"] = "lightgrey"
@@ -1349,6 +1404,7 @@ class Xevent():
                     b=FIXTURES.backup_patch(save_as=fpath)
                     #base._set(fname)
                     
+                    save_window_position(save_as=fpath)
                     LOAD_SHOW_AND_RESTAT(fname).cb() 
             elif self.attr == "SAVE &\nRESTART":
                 self.elem["bg"] = "orange"
@@ -1360,6 +1416,7 @@ class Xevent():
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
+                save_window_position()
                 self.elem["text"] = "RESTARTING..."
                 #time.sleep(1)
                 #modes.val(self.attr,0)
@@ -3146,6 +3203,7 @@ class PopupList():
         frame = ScrollFrame(xframe,width=300,height=500,bd=1,bg=self.bg)
         #frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP) 
         #self.frame = frame
+        self.w.tk.state(newstate='normal')
         self.w.tk.attributes('-topmost',True)
         return frame
 
@@ -4542,7 +4600,7 @@ class ELEM_FADER():
         j=0
         font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=18,from_=from_,to=to,command=self.event)
+        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)
@@ -5176,6 +5234,7 @@ class GUIWindow():
             self.tk.destroy()
             #for i in dir(self.tk):
             #    print("i",i)
+            print("close_app_win",self.tk.geometry())
         try:
             self.cb("<exit>").cb()
         except Exception as e:
@@ -5194,6 +5253,8 @@ class GUIWindow():
         try:
             self.tk.mainloop()
         finally:
+            print("mainloop end",self.tk.geometry())
+            #window_manager = WindowManager()
             self.tk.quit()
     def callback(self,event,data={}):#value=255):
         global _shift_key
@@ -5277,6 +5338,7 @@ class WindowManager():
                 self.first = name
             else:
                 self.first = str(self.nr)
+            w.tk.state(newstate='normal')
             w.tk.attributes('-topmost',True)
 
 
@@ -5309,6 +5371,7 @@ class WindowManager():
     def top(self,name):
         name = str(name)
         if name in self.windows:
+            self.windows[name].tk.state(newstate='normal')
             self.windows[name].tk.attributes('-topmost',True)
             self.windows[name].tk.attributes('-topmost',False)
             #print("redraw",name)
@@ -5575,6 +5638,7 @@ if __run_main:
     for nr in range(10):
         set_exec_fader(nr,0)
 
+    load_window_position()
     try:
         #root.mainloop()
         #tk.mainloop()

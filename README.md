@@ -18,7 +18,7 @@ Prerequisites
 - Operating System: Debian 11
 - set two static ip address 10.10.10.x/24 and 2.0.0.x/8 on a LAN-Interface
 
-execte as root
+execute as root
 ```
 mkdir -p /opt/LibreLight/git/
 mkdir -p /opt/LibreLight/Xdesk/
@@ -54,7 +54,7 @@ cp /opt/LibreLight/Xdesk/desktop/* /home/user/Desktop
 # copy show files to Home
 mkdir -p /home/user/LibreLight
 cp -rv /opt/LibreLight/Xdesk/show /home/user/LibreLight/
-echo "Dimmer\n" > /home/user/LibreLight/init.txt
+echo "Dimmer" > /home/user/LibreLight/init.txt
 
 # start LibreLight with
 bash /opt/LibreLight/Xdesk/start.sh

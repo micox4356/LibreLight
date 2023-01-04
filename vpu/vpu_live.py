@@ -442,7 +442,8 @@ def event():
                 pointer.row_move(_pos[0],_pos[1]) 
                 pointer.cross(_pos[0],_pos[1])
 
-
+            if event.type == pygame.VIDEORESIZE:
+                 window = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
         except Exception as e:
             print(e)
 
@@ -597,8 +598,8 @@ def main():
     r = ""
     IP = "xx"
     while running:
-        event()
         pygame.display.flip()
+        event()
 
         window.fill((0,0,0))
         calc_fps()
@@ -753,7 +754,7 @@ def main():
             
         pointer.draw()
         pygame.display.flip()
-        pg.time.wait(10)
+        pg.time.wait(30)
 
 
 

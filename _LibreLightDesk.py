@@ -101,7 +101,7 @@ except Exception as e:
 def showwarning(msg="<ERROR>",title="<TITLE>"):
     _main = tkinter.Tk()
     defaultFont = tkinter.font.nametofont("TkDefaultFont")
-    print(defaultFont)
+    print("showwarning",defaultFont)
     defaultFont.configure(family="FreeSans",
                            size=10,
                            weight="normal")
@@ -1718,6 +1718,19 @@ class Base():
         ok= os.path.isdir(self.show_path1+"/"+fname)
         ini = self.show_path0+"init.txt"
         print("SET SHOW NAME",fname,ok,ini)
+        try:
+            f = open( ini ,"r")
+            lines = f.readlines()
+            f.close()
+            if len(lines) >= 10: # cut show history
+                print("_set",ini,len(lines))
+                lines = lines[-10:]
+                f = open( ini ,"w")
+                f.writelines(lines)
+                f.close()
+                exit()
+
+        except:pass
         if ok:
             #self.show_name = fname
             f = open( ini ,"a")
@@ -5258,8 +5271,8 @@ class GUIWindow():
             self.tk.quit()
     def callback(self,event,data={}):#value=255):
         global _shift_key
-        print()
-        print()
+        #print()
+        #print()
         #cprint("<GUI>",event,color="yellow")
         #cprint("<GUI>",event.state,data,[event.type],color="yellow")
         value = 255
@@ -5374,11 +5387,16 @@ class WindowManager():
             self.windows[name].tk.state(newstate='normal')
             self.windows[name].tk.attributes('-topmost',True)
             self.windows[name].tk.attributes('-topmost',False)
+            self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
             #print("redraw",name)
             #if name == "PATCH":
             #    gui_patch.draw()
             #if name == "DIMMER":
             #    gui_fix.draw()
+            if name == "EXEC":
+                master._refresh_exec()
+                self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
+                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
         else:
             print(name,"not in self.windows",self.windows.keys())
 

@@ -20,6 +20,8 @@ Prerequisites
 
 execute as root
 ```
+adduser user 
+
 mkdir -p /opt/LibreLight/git/
 mkdir -p /opt/LibreLight/Xdesk/
 mkdir -p /opt/LibreLight/ASP/
@@ -34,6 +36,11 @@ mkdir -p /opt/netns
 # install git
 apt install git
 
+# clone all repos
+cd /tmp/
+wget https://raw.githubusercontent.com/micox4356/LibreLight/master/upgrade.sh 
+sh upgrade.sh
+
 # install all deb packages
 bash /opt/LibreLight/Xdesk/install.sh
 
@@ -42,11 +49,6 @@ bash /opt/LibreLight/Xdesk/install.sh
 execute as user
 
 ```
-# clone all repos
-cd /tmp/
-wget https://raw.githubusercontent.com/micox4356/LibreLight/master/upgrade.sh 
-sh upgrade.sh
-
 
 # copy starter to Desktop
 cp /opt/LibreLight/Xdesk/desktop/* /home/user/Desktop

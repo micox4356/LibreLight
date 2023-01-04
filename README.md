@@ -25,7 +25,6 @@ adduser user
 mkdir -p /opt/LibreLight/git/
 mkdir -p /opt/LibreLight/Xdesk/
 mkdir -p /opt/LibreLight/ASP/
-chown -R user:user /opt/LibreLight
 
 # network namespace" 
 mkdir -p /opt/netns
@@ -40,6 +39,8 @@ apt install git
 cd /tmp/
 wget https://raw.githubusercontent.com/micox4356/LibreLight/master/upgrade.sh 
 sh upgrade.sh
+
+chown -R user:user /opt/LibreLight
 
 # install all deb packages
 bash /opt/LibreLight/Xdesk/install.sh

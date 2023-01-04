@@ -26,8 +26,9 @@ chown -R user:user /opt/LibreLight
 
 # network namespace" 
 mkdir /opt/netns
+
 # add to /etc/sudoers 
-user      ALL=(ALL) NOPASSWD:/opt/netns/_exec, /opt/netns/create
+# user      ALL=(ALL) NOPASSWD:/opt/netns/_exec, /opt/netns/create
 
 # install git
 sudo apt install git

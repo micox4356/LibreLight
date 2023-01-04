@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=vpu_live.py 16,8,8
+Comment=
+Exec=python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 
+Icon=view-fullscreen
+Path=
+Terminal=false
+StartupNotify=false

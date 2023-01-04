@@ -24,7 +24,13 @@ mkdir /opt/LibreLight
 mkdir /opt/LibreLight/git/
 chown -R user:user /opt/LibreLight
 
+# network namespace" 
 mkdir /opt/netns
+# add to /etc/sudoers 
+user      ALL=(ALL) NOPASSWD:/opt/netns/_exec, /opt/netns/create
+
+# install git
+sudo apt install git
 
 # clone all repos
 wget https://raw.githubusercontent.com/micox4356/LibreLight/master/upgrade.sh 
@@ -34,6 +40,11 @@ sh upgrade.sh
 # install all deb packages
 sudo bash /opt/LibreLight/Xdesk/install.sh
 
+# copy starter to Desktop
+cp /opt/LibreLight/Xdesk/desktop/* /home/user/Desktop
+
+# start LibreLight with
+bash /opt/LibreLight/Xdesk/start.sh
 
 ```
 

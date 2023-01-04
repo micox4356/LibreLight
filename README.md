@@ -18,34 +18,47 @@ Prerequisites
 - Operating System: Debian 11
 - set two static ip address 10.10.10.x/24 and 2.0.0.x/8 on a LAN-Interface
 
+execte as root
 ```
-adduser user
-mkdir /opt/LibreLight
-mkdir /opt/LibreLight/git/
+mkdir -p /opt/LibreLight/git/
+mkdir -p /opt/LibreLight/Xdesk/
+mkdir -p /opt/LibreLight/ASP/
 chown -R user:user /opt/LibreLight
 
 # network namespace" 
-mkdir /opt/netns
+mkdir -p /opt/netns
 
 # add to /etc/sudoers 
 # user      ALL=(ALL) NOPASSWD:/opt/netns/_exec, /opt/netns/create
 
 # install git
-sudo apt install git
-
-# clone all repos
-wget https://raw.githubusercontent.com/micox4356/LibreLight/master/upgrade.sh 
-
-sh upgrade.sh
+apt install git
 
 # install all deb packages
-sudo bash /opt/LibreLight/Xdesk/install.sh
+bash /opt/LibreLight/Xdesk/install.sh
+
+```
+
+execute as user
+
+```
+# clone all repos
+cd /tmp/
+wget https://raw.githubusercontent.com/micox4356/LibreLight/master/upgrade.sh 
+sh upgrade.sh
+
 
 # copy starter to Desktop
 cp /opt/LibreLight/Xdesk/desktop/* /home/user/Desktop
 
+# copy show files to Home
+mkdir -p /home/user/LibreLight
+cp -rv /opt/LibreLight/Xdesk/show /home/user/LibreLight/
+echo "Dimmer\n" > /home/user/LibreLight/init.txt
+
 # start LibreLight with
 bash /opt/LibreLight/Xdesk/start.sh
+
 
 ```
 

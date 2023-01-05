@@ -16,6 +16,9 @@ Youtube Tutorial
 
 Prerequisites
 - Operating System: Debian 11
+- min 1GB of free Memory
+- min 2x CPU cores i5 2Ghz
+- external Mouse with Mouse-Wheel
 - set two static ip address 10.10.10.x/24 and 2.0.0.x/8 on a LAN-Interface
 
 execute as root

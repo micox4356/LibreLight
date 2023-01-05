@@ -15,11 +15,12 @@ Youtube Tutorial
 ## Quick Setup / Install
 
 Prerequisites
-- Operating System: Debian 11
+- Operating System: Debian 11, Proxmox 7.3
+- xfce4-desktop
 - min 1GB of free Memory
 - min 2x CPU cores i5 2Ghz
 - external Mouse with Mouse-Wheel
-- set two static ip address 10.10.10.x/24 and 2.0.0.x/8 on a LAN-Interface
+- set two static ip address 10.10.10.x/24 and 2.0.0.x/8 on a vmbr0 or on br0 LAN-Bridge-Interface
 
 execute as root
 ```

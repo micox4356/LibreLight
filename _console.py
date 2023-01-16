@@ -616,7 +616,7 @@ class DMXCH(object):
     def exec_id(self,_id=None):
         if type(_id) is not type(None):
             self._exec_id = _id
-            print("set exec_id",_id)
+            #print("set exec_id",_id)
         return self._exec_id
 
     def __repr__(self):
@@ -810,6 +810,7 @@ class Main():
         #self.artnet["1"] = ANN.ArtNetNode(to="10.10.10.255",univ=1)
         #self.artnet["1"].dmx[512-1] = 11
         self.fx = {} # key is dmx address
+        self.lock = thread.allocate_lock()
     def loop(self):
         #dmx[205] = 255 #205 BLUE
         #self.artnet.send()
@@ -837,6 +838,7 @@ class Main():
                 artnet.dmx = [0]*512
 
         while 1:
+            self.lock.acquire_lock()
             t = clock.time()
             ii = 0
             old_univ = -1
@@ -924,6 +926,8 @@ class Main():
             try:    
                 artnet.next()
             except:pass
+            self.lock.release_lock()
+            #self.lock.acquire_lock()
             time.sleep(0.01)
 
 main = Main()
@@ -956,7 +960,7 @@ def JCB(data): #json client input
             out = {}
             for x in cmds:
                 #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
-                cprint("json", x,type(x),color="yellow")#,cmds[x])
+                #cprint("json", x,type(x),color="yellow")#,cmds[x])
                 if "CMD" in x:
                     print("CMD:",x)
                     if "EXEC-SPEED-MASTER" == x["CMD"]:
@@ -1082,45 +1086,52 @@ def JCB(data): #json client input
                     #print("END",[exec_id,v],Bdmx[DMX].exec_id() )
                     #print("END",[Bdmx[DMX] ])
 
-            for DMX in out:
-                line = out[DMX]
+            # ------- ---------------------------------------------------- 
+            try: # second loop to sync-start all dmxch's
+                main.lock.acquire_lock()
+                # main.lock.release_lock()
+                for DMX in out:
+                    line = out[DMX]
 
-                if out[DMX]["fx"]:
-                    x = out[DMX]["fx"]
-                    Bdmx[DMX].fx(xtype=x["xtype"]
-                            ,size=x["size"]
-                            ,speed=x["speed"]
-                            ,invert=x["invert"]
-                            ,width=x["width"]
-                            ,start=x["start"]
-                            ,offset=x["offset"]
-                            ,base=x["base"]
-                            ,clock=x["clock"]
-                            ,master=["master"])
-                if out[DMX]["flash_fx"]:
-                    x = out[DMX]["flash_fx"]
-                    Bdmx[DMX].flash_fx(xtype=x["xtype"]
-                            ,size=x["size"]
-                            ,speed=x["speed"]
-                            ,invert=x["invert"]
-                            ,width=x["width"]
-                            ,start=x["start"]
-                            ,offset=x["offset"]
-                            ,base=x["base"]
-                            ,clock=x["clock"]
-                            ,master=["master"])
-                if out[DMX]["flash"]:
-                    x = out[DMX]["flash"]
-                    Bdmx[DMX].flash(target=x["target"]
-                            ,ftime=x["ftime"]
-                            ,clock=x["clock"]
-                            ,delay=x["delay"])
-                if out[DMX]["fade"]:
-                    x = out[DMX]["fade"]
-                    Bdmx[DMX].fade(target=x["target"]
-                            ,ftime=x["ftime"]
-                            ,clock=x["clock"]
-                            ,delay=x["delay"])
+                    if out[DMX]["fx"]:
+                        x = out[DMX]["fx"]
+                        Bdmx[DMX].fx(xtype=x["xtype"]
+                                ,size=x["size"]
+                                ,speed=x["speed"]
+                                ,invert=x["invert"]
+                                ,width=x["width"]
+                                ,start=x["start"]
+                                ,offset=x["offset"]
+                                ,base=x["base"]
+                                ,clock=x["clock"]
+                                ,master=x["master"])
+                    if out[DMX]["flash_fx"]:
+                        x = out[DMX]["flash_fx"]
+                        Bdmx[DMX].flash_fx(xtype=x["xtype"]
+                                ,size=x["size"]
+                                ,speed=x["speed"]
+                                ,invert=x["invert"]
+                                ,width=x["width"]
+                                ,start=x["start"]
+                                ,offset=x["offset"]
+                                ,base=x["base"]
+                                ,clock=x["clock"]
+                                ,master=x["master"])
+                    if out[DMX]["flash"]:
+                        x = out[DMX]["flash"]
+                        Bdmx[DMX].flash(target=x["target"]
+                                ,ftime=x["ftime"]
+                                ,clock=x["clock"]
+                                ,delay=x["delay"])
+                    if out[DMX]["fade"]:
+                        x = out[DMX]["fade"]
+                        Bdmx[DMX].fade(target=x["target"]
+                                ,ftime=x["ftime"]
+                                ,clock=x["clock"]
+                                ,delay=x["delay"])
+
+            finally:
+                main.lock.release_lock()
 
             #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
             #cprint("{:0.04} t.".format(time.time()),color="yellow")
@@ -1128,6 +1139,7 @@ def JCB(data): #json client input
             cprint("EXCEPTION JCB",e,color="red")
             cprint("----",str(jdata)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+            raise e
     #cprint()
     #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
     #cprint("{:0.04} t.".format(time.time()),color="yellow")

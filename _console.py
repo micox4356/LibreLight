@@ -953,6 +953,7 @@ def JCB(data): #json client input
             #jtxt = zlib.decompress(jtxt) #jtxt.decode())
             jtxt = str(jtxt,"UTF-8")
             cmds = json.loads(jtxt)
+            out = {}
             for x in cmds:
                 #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
                 cprint("json", x,type(x),color="yellow")#,cmds[x])
@@ -1017,14 +1018,16 @@ def JCB(data): #json client input
                         continue # stop
                     
                     Bdmx[DMX].exec_id(exec_id)
-
+                    out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{}}
                     if v is not None:
                         if "FLASH" in x:
                             #print("FLASH")
-                            Bdmx[DMX].flash(target=v,ftime=ftime, clock=c,delay=delay)
+                            #Bdmx[DMX].flash(target=v,ftime=ftime, clock=c,delay=delay)
+                            out[DMX]["flash"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay}
                         else:
                             #print("FADE")
-                            Bdmx[DMX].fade(target=v,ftime=ftime, clock=c,delay=delay)
+                            #Bdmx[DMX].fade(target=v,ftime=ftime, clock=c,delay=delay)
+                            out[DMX]["fade"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay}
                     
                     if type(fx2) is dict and fx2:
 
@@ -1062,9 +1065,11 @@ def JCB(data): #json client input
                                     i.fx(xtype="off",clock=c)
 
                         if "FLASH" in x:
-                            Bdmx[DMX].flash_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                            #Bdmx[DMX].flash_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                            out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,"invert":invert,"width":width,"start":start,"offset":offset,"base":base,"clock":c,"master":master_fx}
                         else:
-                            Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                            #Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                            out[DMX]["fx"] = {"xtype":xtype,"size":size,"speed":speed,"invert":invert,"width":width,"start":start,"offset":offset,"base":base,"clock":c,"master":master_fx}
 
                     elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
                         ccm = str(DMX+1)+":"+fx
@@ -1076,6 +1081,47 @@ def JCB(data): #json client input
 
                     #print("END",[exec_id,v],Bdmx[DMX].exec_id() )
                     #print("END",[Bdmx[DMX] ])
+
+            for DMX in out:
+                line = out[DMX]
+
+                if out[DMX]["fx"]:
+                    x = out[DMX]["fx"]
+                    Bdmx[DMX].fx(xtype=x["xtype"]
+                            ,size=x["size"]
+                            ,speed=x["speed"]
+                            ,invert=x["invert"]
+                            ,width=x["width"]
+                            ,start=x["start"]
+                            ,offset=x["offset"]
+                            ,base=x["base"]
+                            ,clock=x["clock"]
+                            ,master=["master"])
+                if out[DMX]["flash_fx"]:
+                    x = out[DMX]["flash_fx"]
+                    Bdmx[DMX].flash_fx(xtype=x["xtype"]
+                            ,size=x["size"]
+                            ,speed=x["speed"]
+                            ,invert=x["invert"]
+                            ,width=x["width"]
+                            ,start=x["start"]
+                            ,offset=x["offset"]
+                            ,base=x["base"]
+                            ,clock=x["clock"]
+                            ,master=["master"])
+                if out[DMX]["flash"]:
+                    x = out[DMX]["flash"]
+                    Bdmx[DMX].flash(target=x["target"]
+                            ,ftime=x["ftime"]
+                            ,clock=x["clock"]
+                            ,delay=x["delay"])
+                if out[DMX]["fade"]:
+                    x = out[DMX]["fade"]
+                    Bdmx[DMX].fade(target=x["target"]
+                            ,ftime=x["ftime"]
+                            ,clock=x["clock"]
+                            ,delay=x["delay"])
+
             #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
             #cprint("{:0.04} t.".format(time.time()),color="yellow")
         except Exception as e:

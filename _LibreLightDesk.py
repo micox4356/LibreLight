@@ -1529,7 +1529,7 @@ class Xevent():
             return 0
     def encoder(self,event):
         global _shift_key
-        if self.mode == "ENCODER":
+        if self.mode == "ENCODER" or self.mode == "ENCODER2":
             cprint("Xevent","ENC",self.fix,self.attr,self.mode)
             cprint("SHIFT_KEY",_shift_key,"??????????")
             #cprint(self.data)
@@ -1555,7 +1555,11 @@ class Xevent():
                 if 1:
                     FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
                 
-            master.refresh_fix()
+            if self.mode == "ENCODER": # fast refresh
+                 master._refresh_fix()
+            else: #"ENCODER2" slow refresh
+                 master.refresh_fix()
+                 #master._refresh_fix()
 
             
     def cb(self,event):
@@ -1576,6 +1580,8 @@ class Xevent():
             elif self.mode == "LIVE":
                 self.live(event)
             elif self.mode == "ENCODER":
+                self.encoder(event)
+            elif self.mode == "ENCODER2":
                 self.encoder(event)
             elif self.mode == "FX":
                 cprint("Xevent CALLING FX WRONG EVENT OBJECT !!",color="red")
@@ -2902,7 +2908,7 @@ def draw_enc(gui,xframe):
         b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=7)#, anchor="w")
         if attr == "DIM":
             b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=7)#, anchor="w")
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER").cb)
+        b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER2").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E ,ipadx=0,ipady=0,padx=0,pady=0)#,expand=True)
         c+=1
         if c >=8:

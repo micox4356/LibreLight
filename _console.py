@@ -614,8 +614,9 @@ class DMXCH(object):
     def __str__(self):
         return self.__repr__()
     def exec_id(self,_id=None):
-        if type(id) is not type(None):
+        if type(_id) is not type(None):
             self._exec_id = _id
+            print("set exec_id",_id)
         return self._exec_id
 
     def __repr__(self):
@@ -938,7 +939,7 @@ def JCB(data): #json client input
 
     c = clock.time() 
     c = float(c)
-    print("JCB",round(c,2))
+    #print("JCB",round(c,2))
     ftime = 0
     delay = 0
     for j in jdatas:
@@ -946,7 +947,7 @@ def JCB(data): #json client input
         if not j:
             continue
         try:
-            cprint("JCB::")#,j)
+            #cprint("JCB::")#,j)
             jdata = j #jdatas[j]
             jtxt = jdata
             #jtxt = zlib.decompress(jtxt) #jtxt.decode())
@@ -954,7 +955,7 @@ def JCB(data): #json client input
             cmds = json.loads(jtxt)
             for x in cmds:
                 #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
-                #cprint("json", x,type(x),color="yellow")#,cmds[x])
+                cprint("json", x,type(x),color="yellow")#,cmds[x])
                 if "CMD" in x:
                     print("CMD:",x)
                     if "EXEC-SPEED-MASTER" == x["CMD"]:
@@ -971,7 +972,8 @@ def JCB(data): #json client input
                             #vdmx.data[4]["DMXCH"].fade(x["VALUE"],3)#,clock=clock.time())
                         if x["NR"] == 3:
                             pass
-                            #vdmx.data[4]["DMXCH"].fx(size=255,speed=x["VALUE"],base="-",offset=0)#xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
+                            #vdmx.data[4]["DMXCH"].fx(size=255,speed=x["VALUE"],base="-",offset=0)
+                            #xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
 
                     if "SIZE-MASTER" == x["CMD"]:
                         size_master.val(x["NR"],x["VALUE"])
@@ -1009,8 +1011,13 @@ def JCB(data): #json client input
 
                     if len(Bdmx) < DMX:
                         continue
+
+                    if "FLASH" in x and v == "off" and Bdmx[DMX].exec_id() != exec_id:
+                        #print("STOP",[exec_id,v],Bdmx[DMX].exec_id() )
+                        continue # stop
                     
                     Bdmx[DMX].exec_id(exec_id)
+
                     if v is not None:
                         if "FLASH" in x:
                             #print("FLASH")
@@ -1067,15 +1074,17 @@ def JCB(data): #json client input
                         else:
                             CB({"cmd":"fx"+ccm})
 
-            cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
-            cprint("{:0.04} t.".format(time.time()),color="yellow")
+                    #print("END",[exec_id,v],Bdmx[DMX].exec_id() )
+                    #print("END",[Bdmx[DMX] ])
+            #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
+            #cprint("{:0.04} t.".format(time.time()),color="yellow")
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")
             cprint("----",str(jdata)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
-    cprint()
-    cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
-    cprint("{:0.04} t.".format(time.time()),color="yellow")
+    #cprint()
+    #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
+    #cprint("{:0.04} t.".format(time.time()),color="yellow")
             
 def CB(data): # raw/text client input 
     #print("CB",data)

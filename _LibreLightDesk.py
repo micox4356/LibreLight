@@ -2435,7 +2435,7 @@ class GUI():
             cprint("preset_go() FLUSH",value,color="red")
             
             fcmd  = FIXTURES.update_raw(rdata,update=0)
-            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH)
+            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,nr=nr)
                 
         elif not val:
             cprint("preset_go() STOP",value,color="red")

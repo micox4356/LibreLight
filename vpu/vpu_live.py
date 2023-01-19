@@ -751,7 +751,15 @@ def main():
                     fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
                 window.blit(fr,(pos[0]+2,pos[1]+2))
             i += 1
-            
+ 
+        
+        #color=window.get_at((70, 70))
+        #print("pix",color)
+        #surface.set_at((x, y), color)
+
+        #from pygame import gfxdraw
+        #gfxdraw.pixel(surface, x, y, color)
+        
         pointer.draw()
         pygame.display.flip()
         pg.time.wait(30)

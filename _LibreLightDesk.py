@@ -1308,6 +1308,17 @@ def save_window_position(save_as=""):
         cprint("save_window_position Exception:",e,color="red")
         return 
 
+def save_window_position_loop(): # like autosave
+    def loop():
+        time.sleep(20)
+        try:
+            while 1:
+                save_window_position()
+                time.sleep(60)
+        except Exception as e:
+            print("save_loop",e)
+    thread.start_new_thread(loop,())
+
 def load_window_position():
     try:
         base = Base()
@@ -1416,6 +1427,7 @@ class Xevent():
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
+
                 save_window_position()
                 self.elem["text"] = "RESTARTING..."
                 #time.sleep(1)
@@ -5192,6 +5204,7 @@ class GUIWindow():
         self.cb = cb
         if master: 
             self.tk = tkinter.Tk()
+            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
             self.tk.withdraw() # do not draw
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             print(defaultFont)
@@ -5249,11 +5262,8 @@ class GUIWindow():
     def close_app_win(self,event=None):
         print("close_app_win",self,event)
         if exit:
-            #self.tk.quit()
+            save_window_position()
             self.tk.destroy()
-            #for i in dir(self.tk):
-            #    print("i",i)
-            print("close_app_win",self.tk.geometry())
         try:
             self.cb("<exit>").cb()
         except Exception as e:
@@ -5269,16 +5279,14 @@ class GUIWindow():
         self.tk.deiconify()
         pass
     def mainloop(self):
+        #save_window_position_loop() #like autosave
         try:
             self.tk.mainloop()
         finally:
-            print("mainloop end",self.tk.geometry())
-            #window_manager = WindowManager()
             self.tk.quit()
+
     def callback(self,event,data={}):#value=255):
         global _shift_key
-        #print()
-        #print()
         #cprint("<GUI>",event,color="yellow")
         #cprint("<GUI>",event.state,data,[event.type],color="yellow")
         value = 255

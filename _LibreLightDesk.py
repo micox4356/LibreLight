@@ -5331,9 +5331,10 @@ class GUIWindow():
                 elif "s" == event.keysym:
                     modes.val("SELECT",1)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
-                nr = int( event.keysym[1])
+                nr = int( event.keysym[1:]) # F:1-12
                 nr = nr-1+81  
-                cprint("F-KEY",value,nr)
+                cprint("F-KEY",value,nr,event.keysym)
+                print(event)
                 master.preset_go(nr-1,xfade=None,val=value)
             elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
                 nr = int( event.keysym)

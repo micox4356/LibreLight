@@ -74,43 +74,58 @@ class Dialog():
         txt = self.d.askstring(title=title,prompt=prompt,initialvalue=initialvalue)
         return txt
     def close(self):
-        print("dialog.close()")
+        print("dialog.close()",self._exit)
         self.tk.destroy()
+        
         return self._exit
+    def ok(self):
+        t=self.e_txt.get()[:-1]
+        self._exit = t
+        self.close()
+
     def event(self,event,**args):
         global _global_short_key
         #print()
-        print("dialog:",self,"-event-",event,args)
+        #print("dialog:",self,"-event-",event,args)
         #print("###-",self.e_txt,dir(self.e_txt))
         if "num" in dir(event):
             _global_short_key = 0
             #self.e["bg"] = "red"
             self.el.config({"background": "grey"})
             #print(dir(self.e))
+        keysym = ""
         if "keysym" in dir(event):
+            keysym = event.keysym
+            if len( keysym) > 1:
+                if event.char in "äöüßÄÖÜ-_:;,.'#*+?=)([]/&%§\\/$\"°":
+                    keysym = event.char
+        t=""
+        if keysym:
             t=self.e_txt.get()[:-1]
-            if event.keysym == "Return":
+            if keysym == "Return":
                 _global_short_key = 1
                 #self.e["bg"] = "blue"
                 self.el.config({"background": "yellow"})
                 self.el.focus_set()
+                self._exit = t
                 self.close()
             print("dialog: get()",_global_short_key,t)
 
             if _global_short_key == 0:
-                if event.keysym == "BackSpace":
+                if keysym == "BackSpace":
                     if len(t) > 1:
                         t = t[:-1] #self.e_txt.set(t[:-1])
                     else:
                         t = "" #self.e_txt.set("")
-                elif event.keysym == "Escape":
+                elif keysym == "Escape":
                     t = "" #self.e_txt.set("")
-                elif event.keysym == "space":
+                elif keysym == "space":
                     t = t+ " " #self.e_txt.set(t+" ")
-                elif len(event.keysym) == 1:
-                    t += event.keysym #self.e_txt.set(t+event.keysym)
+                elif len(keysym) == 1:
+                    t += keysym #self.e_txt.set(t+event.keysym)
             self.e_txt.set(t+"<")
 
+        #print("dialog:",self,t)
         #time.sleep(0.2)
         #_global_short_key = 1
     def askstring_new(self,title="title",prompt="prompt:",initialvalue=""):
@@ -123,10 +138,15 @@ class Dialog():
 
         #self.tk = tkinter.Tk()
         self.tk = tkinter.Toplevel()
+        #self.tk.withdraw() # do not draw
+        self.tk.iconify()
         self.tk.geometry("200x120")
         self.tk.title(""+str(title) )#+" "+":"+str(rnd_id))
         self.tk.attributes('-topmost',True)
         self.tk.protocol("WM_DELETE_WINDOW", self.close)
+        self.tk.resizable(0,0)
+        #self.tk.overrideredirect(1)
+        #self.tk.attributes('-toolwindow', True)
         #self.tk.state(newstate='iconic')
 
         self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
@@ -137,11 +157,15 @@ class Dialog():
         self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.f.pack(side="top")
 
-        self.el = tk.Label(self.f,text=prompt)
-        self.el.pack(side="top")
+        self.el = tk.Label(self.f,text=prompt,anchor="w")
+        self.el.pack(side="left")
+        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
         self.e_txt = tk.StringVar()
-        self.e = tk.Entry(self.f,state="readonly",textvariable=self.e_txt)
-        self.e_txt.set(initialvalue+"<")
+        #self.e = tk.Entry(self.f,state="readonly",textvariable=self.e_txt)
+        self.e = tk.Button(self.f,textvariable=self.e_txt,relief="sunken",width=20)
+        self.e["bg"] = "#fff"
+        self.e_txt.set(str(initialvalue)+"<")
         self.e.bind("<Key>",self.event)
         self.e.bind("<Button>",self.event)
         self.e.pack(side="top")
@@ -154,12 +178,12 @@ class Dialog():
         self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.f.pack(side="top")
 
-        self.b = tk.Button(self.f,bg="lightblue", text="OK",width=10)
+        self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
         self.b.config(padx=1)
         #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
         self.b.pack(side="left")
 
-        self.b = tk.Button(self.f,bg="lightblue", text="cancle",width=10)
+        self.b = tk.Button(self.f,bg="lightgrey", text="Cancel",width=10)
         self.b.config(padx=1)
         self.b.pack(side="left")
 
@@ -169,6 +193,8 @@ class Dialog():
         self.elx.pack(side="left")
 
         self.e.focus()
+        #time.sleep(3)
+        self.tk.deiconify()
 
  
 dialog = Dialog()
@@ -5364,7 +5390,7 @@ from tkinter import PhotoImage
 _shift_key = 0
 
 class GUIWindow():
-    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None):
+    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
         global lf_nr
         #ico_path="/opt/LibreLight/Xdesk/icon/"
         ico_path="./icon/"
@@ -5374,6 +5400,7 @@ class GUIWindow():
             self.tk = tkinter.Tk()
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
             self.tk.withdraw() # do not draw
+            self.tk.resizable(resize,resize)
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             print(defaultFont)
             defaultFont.configure(family="FreeSans",
@@ -5388,8 +5415,10 @@ class GUIWindow():
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
-            self.tk.withdraw() # do not draw
+            self.tk.iconify()
+            #self.tk.withdraw() # do not draw
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            self.tk.resizable(resize,resize)
             
             try:
                 if "COLORPICKER" in title:
@@ -5405,6 +5434,8 @@ class GUIWindow():
             except Exception as e:
                 print("Exception on load window icon",title)
                 print("Exception:",e)
+            #time.sleep(3)
+            self.tk.deiconify()
 
 
 
@@ -5690,7 +5721,7 @@ if __run_main:
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
-    w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=L0,top=TOP)
+    w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=L0,top=TOP,resize=0)
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
@@ -5781,28 +5812,28 @@ if __run_main:
     #draw_enc(master,w.tk)#Xroot)
 
     name = "SETUP"
-    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP)
+    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP,resize=0)
     w.tk.title("SETUP   SHOW:"+master.base.show_name)
     draw_setup(master,w.tk)
     window_manager.new(w,name)
 
     name = "COMMAND"
-    w = GUIWindow(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81)#+96)
+    w = GUIWindow(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81,resize=0)#+96)
     draw_command(master,w.tk)
     window_manager.new(w,name)
 
     name = "LIVE"
-    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235)#250)
+    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235,resize=0)#250)
     draw_live(master,w.tk)
     window_manager.new(w,name)
 
     name = "CLOCK"
-    w = GUIWindow(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160)#250)
+    w = GUIWindow(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
     draw_clock(master,w.tk)
     window_manager.new(w,name)
 
     name="FX"
-    w = GUIWindow(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302)#317)
+    w = GUIWindow(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302,resize=0)#317)
     #frame_fx = w.tk
     draw_fx(master,w.tk)
     window_manager.new(w,name)

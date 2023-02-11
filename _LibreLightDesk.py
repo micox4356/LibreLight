@@ -5694,7 +5694,7 @@ if __run_main:
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
-    data.append({"text":"CONFIG"})
+    #data.append({"text":"CONFIG"})
     data.append({"text":"PATCH"})
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})

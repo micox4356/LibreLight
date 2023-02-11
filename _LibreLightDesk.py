@@ -57,6 +57,122 @@ space_font = None
 import tkinter.simpledialog
 
 
+_global_short_key = 1
+
+class Dialog():
+    def __init__(self):
+        self.d = tkinter.simpledialog
+        self._exit = None
+    def askstring(self,title="title",prompt="prompt:",initialvalue=""):
+        title = "#"+title
+        return self.askstring_old(title=title,prompt=prompt,initialvalue=initialvalue)
+        return self.askstring_new(title=title,prompt=prompt,initialvalue=initialvalue)
+    
+    def askstring_old(self,title="title",prompt="prompt:",initialvalue=""):
+        print(self.d)
+        print(dir(self.d))
+        txt = self.d.askstring(title=title,prompt=prompt,initialvalue=initialvalue)
+        return txt
+    def close(self):
+        print("dialog.close()")
+        self.tk.destroy()
+        return self._exit
+    def event(self,event,**args):
+        global _global_short_key
+        #print()
+        print("dialog:",self,"-event-",event,args)
+        #print("###-",self.e_txt,dir(self.e_txt))
+        if "num" in dir(event):
+            _global_short_key = 0
+            #self.e["bg"] = "red"
+            self.el.config({"background": "grey"})
+            #print(dir(self.e))
+        if "keysym" in dir(event):
+            t=self.e_txt.get()[:-1]
+            if event.keysym == "Return":
+                _global_short_key = 1
+                #self.e["bg"] = "blue"
+                self.el.config({"background": "yellow"})
+                self.el.focus_set()
+                self.close()
+            print("dialog: get()",_global_short_key,t)
+
+            if _global_short_key == 0:
+                if event.keysym == "BackSpace":
+                    if len(t) > 1:
+                        t = t[:-1] #self.e_txt.set(t[:-1])
+                    else:
+                        t = "" #self.e_txt.set("")
+                elif event.keysym == "Escape":
+                    t = "" #self.e_txt.set("")
+                elif event.keysym == "space":
+                    t = t+ " " #self.e_txt.set(t+" ")
+                elif len(event.keysym) == 1:
+                    t += event.keysym #self.e_txt.set(t+event.keysym)
+            self.e_txt.set(t+"<")
+
+        #time.sleep(0.2)
+        #_global_short_key = 1
+    def askstring_new(self,title="title",prompt="prompt:",initialvalue=""):
+        self._exit = None
+        try:
+            #self.tk.quit()
+            print(dir(self.tk))
+            self.close()
+        except Exception as e:print(e)
+
+        #self.tk = tkinter.Tk()
+        self.tk = tkinter.Toplevel()
+        self.tk.geometry("200x120")
+        self.tk.title(""+str(title) )#+" "+":"+str(rnd_id))
+        self.tk.attributes('-topmost',True)
+        self.tk.protocol("WM_DELETE_WINDOW", self.close)
+        #self.tk.state(newstate='iconic')
+
+        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+        self.elx = tk.Label(self.f,text="")
+        self.elx.pack(side="left")
+
+        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+
+        self.el = tk.Label(self.f,text=prompt)
+        self.el.pack(side="top")
+        self.e_txt = tk.StringVar()
+        self.e = tk.Entry(self.f,state="readonly",textvariable=self.e_txt)
+        self.e_txt.set(initialvalue+"<")
+        self.e.bind("<Key>",self.event)
+        self.e.bind("<Button>",self.event)
+        self.e.pack(side="top")
+
+        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+        self.elx = tk.Label(self.f,text="")
+        self.elx.pack(side="left")
+
+        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+
+        self.b = tk.Button(self.f,bg="lightblue", text="OK",width=10)
+        self.b.config(padx=1)
+        #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        self.b.pack(side="left")
+
+        self.b = tk.Button(self.f,bg="lightblue", text="cancle",width=10)
+        self.b.config(padx=1)
+        self.b.pack(side="left")
+
+        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+        self.elx = tk.Label(self.f,text="")
+        self.elx.pack(side="left")
+
+        self.e.focus()
+
+ 
+dialog = Dialog()
+
 import lib.zchat as chat
 import lib.motion as motion
 
@@ -231,14 +347,14 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
     
 
-def set_exec_fader(nr,val):
+def set_exec_fader(nr,val,color=""):
     exec_wing = window_manager.get_obj(name="EXEC-WING") #= WindowManager()
     if not exec_wing: 
         return
 
     #print(exec_wing)
     try:
-        exec_wing.set_fader(nr,val)
+        exec_wing.set_fader(nr,val,color=color)
     except Exception as e:
         print("exception",e)
     #print("remote in:",round(time.time(),0),"x",i,v)
@@ -332,10 +448,12 @@ class MC():
             #print("+")
             try:
                 ip="10.10.10.13:0"
-                ip="ltp-out:0"
-
+                #ip="ltp-out:0"
+                #print(ip)
                 x=self.mc.get(ip)
+                
                 if x:
+                    #print(ip,x)
                     #val = x[501-1]
                     #val = x[141-1]
                     for i, line in enumerate(self.fader_map):
@@ -345,7 +463,7 @@ class MC():
                             if dmx > 0:
                                 val = x[dmx-1]
                                 #print("mc val",val)
-                                set_exec_fader(i,val)
+                                set_exec_fader(i,val,color="#aaa")
                         except:pass
 
                 time.sleep(0.01)
@@ -1407,7 +1525,7 @@ class Xevent():
                 #w.tk.attributes('-topmost',False)
             elif self.attr == "SAVE\nSHOW AS":
                 base = Base()
-                fname = tkinter.simpledialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
+                fname = dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
                 fpath,fname = base.build_path(fname)
                 cprint("SAVE AS",fpath,fname)
                 if base._create_path(fpath):
@@ -1533,6 +1651,13 @@ class Xevent():
                 FIXTURES.backup_patch()
                 #time.sleep(1)
                 modes.val(self.attr,0)
+            elif self.attr == "S-KEY":
+                global _global_short_key
+                if _global_short_key:
+                    _global_short_key = 0
+                else:
+                    _global_short_key = 1
+                print("s-key",_global_short_key)
             else:
                 if event.num == 1:
                     print("ELSE",self.attr)
@@ -1887,6 +2012,7 @@ class Event():
         #print("init",self)
     def event(self,event):
         print(self.name,event)
+        
 class scroll():
     def __init__(self,canvas):
         self.canvas=canvas
@@ -2125,9 +2251,9 @@ class GUI():
         self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON"] 
 
         self.commands = Elem_Container()
-        self.commands.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","\n"
-                ,"SELECT","FLASH","GO","-","MOVE","\n"
-                ,"BLIND","CLEAR","REC","EDIT","COPY","\n" 
+        self.commands.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","","\n"
+                ,"SELECT","FLASH","GO","-","MOVE","S-KEY","\n"
+                ,"BLIND","CLEAR","REC","EDIT","COPY","","\n" 
                 ]
         self.elem_presets = {}
         
@@ -2175,7 +2301,7 @@ class GUI():
 
     def btn_cfg(self,nr):
         txt = PRESETS.btn_cfg(nr) 
-        txt = tkinter.simpledialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
+        txt = dialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
         if txt:
             PRESETS.btn_cfg(nr,txt)
             self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
@@ -2183,7 +2309,7 @@ class GUI():
         master._refresh_exec()
     def label(self,nr):
         txt = PRESETS.label(nr) 
-        txt = tkinter.simpledialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
+        txt = dialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
         if txt:
             PRESETS.label(nr,txt) 
             self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
@@ -2197,6 +2323,7 @@ class GUI():
             cprint("===== ON  ======",color="red")
             txt = ""
             if mode == "REC-FX":
+                modes.val("REC",0)
                 modes.val("REC",1)
             if value == 2:
                 if mode in ["MOVE","COPY"]:
@@ -2581,7 +2708,7 @@ class _SET_PATCH():
         val = ""
         if k in self.data:
             val = self.data[k]
-        txt = tkinter.simpledialog.askstring("SET","SET: {}={}".format(self.k,self.v),initialvalue=val)
+        txt = dialog.askstring("SET","SET: {}={}".format(self.k,self.v),initialvalue=val)
         print("_SET.attr",txt)
         v = txt
         if v is not None:
@@ -3403,7 +3530,7 @@ def draw_command(gui,xframe):
         if comm:
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        if c >=5:
+        if c >=8:
             c=0
             r+=1
 
@@ -3679,10 +3806,46 @@ class _TableFrame():
         #self.bframe=tk.Frame(self.frame,relief=tk.GROOVE,bg="magenta")#,width=width,height=height,bd=bd)
         #self.bframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
         #self.HFrame()
+    def event(self,event,**args):
+        global _global_short_key
+        #print()
+        print("filter:",self,"-event-",event,args)
+        #print("###-",self.e_txt,dir(self.e_txt))
+        if "num" in dir(event):
+            _global_short_key = 0
+            #self.e["bg"] = "red"
+            self.el.config({"background": "grey"})
+            #print(dir(self.e))
+        if "keysym" in dir(event):
+            t=self.e_txt.get()
+            if event.keysym == "Return":
+                _global_short_key = 1
+                #self.e["bg"] = "blue"
+                self.el.config({"background": "yellow"})
+                self.el.focus_set()
+            print("filter: get()",_global_short_key,t)
+
+            if _global_short_key == 0:
+                if event.keysym == "BackSpace":
+                    if len(t) > 1:
+                        self.e_txt.set(t[:-1])
+                    else:
+                        self.e_txt.set("")
+                elif event.keysym == "Escape":
+                    self.e_txt.set("")
+                elif event.keysym == "space":
+                    self.e_txt.set(t+" ")
+                elif len(event.keysym) == 1:
+                    self.e_txt.set(t+event.keysym)
+        #time.sleep(0.2)
+        #_global_short_key = 1
     def HFrame(self,main=None):  
-        self.e = tk.Label(self.hframe,text="Filter:")
-        self.e.pack(side="left")
-        self.e = tk.Entry(self.hframe)
+        self.el = tk.Label(self.hframe,text="Filter:")
+        self.el.pack(side="left")
+        self.e_txt = tk.StringVar()
+        self.e = tk.Entry(self.hframe,state="readonly",textvariable=self.e_txt)
+        self.e.bind("<Key>",self.event)
+        self.e.bind("<Button>",self.event)
         self.e.pack(side="left")
     def Sframe(self,main=None, **args):  
         pass
@@ -3822,9 +3985,11 @@ class Fixtures():
             #    sdata["CFG"] = OrderedDict()
             self.fixtures[str(i)] = sdata
         #PRESETS.label_presets = l
+        self.fx_off("all")
 
     def backup_patch(self,save_as=""):
         filename = "patch"
+        #self.fx_off("all")
         data  = self.fixtures
         labels = {}
         for k in data:
@@ -4479,7 +4644,7 @@ class BufferVar():
     def change_dmx(self,event=""):
         nr=1
         txt=""
-        txt = tkinter.simpledialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
+        txt = dialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
         print("change_dmx",[event,self])
 
 class EXEC_FADER():
@@ -4506,7 +4671,7 @@ class EXEC_FADER():
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
-        txt = tkinter.simpledialog.askstring("ATTR","set attr:",initialvalue=txt)
+        txt = dialog.askstring("ATTR","set attr:",initialvalue=txt)
         
         self._set_attr(txt)
     def _set_attr(self,txt=""):
@@ -4518,7 +4683,7 @@ class EXEC_FADER():
         self.label["text"] = name
     def set_mode(self,_event=None):
         txt= self.mode["text"]
-        txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
+        txt = dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
 
         w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
         #w.pack()
@@ -4600,7 +4765,7 @@ class ELEM_FADER():
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
-        txt = tkinter.simpledialog.askstring("ATTR","set attr:",initialvalue=txt)
+        txt = dialog.askstring("ATTR","set attr:",initialvalue=txt)
         
         self._set_attr(txt)
     def _set_attr(self,txt=""):
@@ -4612,7 +4777,7 @@ class ELEM_FADER():
         self.label["text"] = name
     def set_mode(self,_event=None):
         txt= self.mode["text"]
-        txt = tkinter.simpledialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
+        txt = dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
 
         w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
         #w.pack()
@@ -4733,11 +4898,13 @@ class GUI_ExecWingLayout():
         self.frame.pack()
         self._event_redraw()
 
-    def set_fader(self,nr,val):
+    def set_fader(self,nr,val,color=""):
         #print("set_fader",nr,val)
         if nr < len(self.elem):
             ee = self.elem[nr].elem[0]
             ee.set(val) 
+            if color:
+                ee["bg"] = color
         return # STOP
 
         for i in self.elem:
@@ -4772,7 +4939,7 @@ class GUI_ExecWingLayout():
 
     def set_name(self,_event=None):
         txt = self.name["text"]
-        txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
+        txt = dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
         self.name["text"] = "{}".format(txt)
         print("change_dmx",[_event,self])
 
@@ -4884,7 +5051,7 @@ class GUI_MasterWingLayout():
 
     def set_name(self,_event=None):
         txt = self.name["text"]
-        txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
+        txt = dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
         self.name["text"] = "{}".format(txt)
         print("change_dmx",[_event,self])
 
@@ -5003,7 +5170,7 @@ class GUI_FaderLayout():
         self._event_redraw()
     def set_name(self,_event=None):
         txt = self.name["text"]
-        txt = tkinter.simpledialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
+        txt = dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
         self.name["text"] = "{}".format(txt)
         print("change_dmx",[_event,self])
 
@@ -5060,7 +5227,7 @@ class GUI_FaderLayout():
     def event_univ(self,_event=None):
         nr=self.univ
         txt= self.entry_univ["text"]
-        txt = tkinter.simpledialog.askstring("Universe","Univ 0-15",initialvalue=txt)
+        txt = dialog.askstring("Universe","Univ 0-15",initialvalue=txt)
         try:
             nr = int(txt)
         except TypeError:
@@ -5072,7 +5239,7 @@ class GUI_FaderLayout():
     def event_dmx(self,_event=None):
         nr=self.dmx
         txt= self.entry_dmx["text"]
-        txt = tkinter.simpledialog.askstring("DMX","ArtNet 1-512 (7680 max)",initialvalue=txt)
+        txt = dialog.askstring("DMX","ArtNet 1-512 (7680 max)",initialvalue=txt)
         try:
             nr = int(txt)
         except TypeError:
@@ -5202,6 +5369,7 @@ class GUIWindow():
         #ico_path="/opt/LibreLight/Xdesk/icon/"
         ico_path="./icon/"
         self.cb = cb
+
         if master: 
             self.tk = tkinter.Tk()
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
@@ -5286,6 +5454,12 @@ class GUIWindow():
             self.tk.quit()
 
     def callback(self,event,data={}):#value=255):
+        global _global_short_key
+        #time.sleep(0.1)
+        if not _global_short_key:
+            cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
+            return 1
+
         global _shift_key
         #cprint("<GUI>",event,color="yellow")
         #cprint("<GUI>",event.state,data,[event.type],color="yellow")
@@ -5334,7 +5508,7 @@ class GUIWindow():
                 nr = int( event.keysym[1:]) # F:1-12
                 nr = nr-1+81  
                 cprint("F-KEY",value,nr,event.keysym)
-                print(event)
+                #print(event)
                 master.preset_go(nr-1,xfade=None,val=value)
             elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
                 nr = int( event.keysym)
@@ -5520,6 +5694,7 @@ if __run_main:
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
+    data.append({"text":"CONFIG"})
     data.append({"text":"PATCH"})
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})
@@ -5529,11 +5704,19 @@ if __run_main:
 
     window_manager.new(w)
 
+
     name="EXEC"
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
     draw_preset(master,w1)#w.tk)
+    window_manager.new(w,name)
+
+    name="CONFIG"
+    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #frame_exe = w.tk
+    #draw_preset(master,w1)#w.tk)
     window_manager.new(w,name)
 
     name="DIMMER"
@@ -5669,7 +5852,7 @@ if __run_main:
 
     #Set EXEC-FADER SIZE TO 0 on Startup
     for nr in range(10):
-        set_exec_fader(nr,0)
+        set_exec_fader(nr,0) #,color="#fff")
 
     load_window_position()
     try:

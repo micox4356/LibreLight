@@ -3841,9 +3841,10 @@ class _TableFrame():
             _global_short_key = 0
             #self.e["bg"] = "red"
             self.el.config({"background": "grey"})
+            self.e.focus()
             #print(dir(self.e))
         if "keysym" in dir(event):
-            t=self.e_txt.get()
+            t=self.e_txt.get()[:-1]
             if event.keysym == "Return":
                 _global_short_key = 1
                 #self.e["bg"] = "blue"
@@ -3854,22 +3855,29 @@ class _TableFrame():
             if _global_short_key == 0:
                 if event.keysym == "BackSpace":
                     if len(t) > 1:
-                        self.e_txt.set(t[:-1])
+                        t2 = t[:-1]
                     else:
-                        self.e_txt.set("")
+                        t2=""
                 elif event.keysym == "Escape":
-                    self.e_txt.set("")
+                    t2=""
                 elif event.keysym == "space":
-                    self.e_txt.set(t+" ")
+                    t2=t+" "
+                elif event.char in "äöüÄÖÜ-_,.;:#'*+~":
+                    t2=t+event.char
                 elif len(event.keysym) == 1:
-                    self.e_txt.set(t+event.keysym)
+                    t2=t+event.keysym
+            
+                self.e_txt.set(t2+"<")
         #time.sleep(0.2)
         #_global_short_key = 1
     def HFrame(self,main=None):  
         self.el = tk.Label(self.hframe,text="Filter:")
         self.el.pack(side="left")
         self.e_txt = tk.StringVar()
-        self.e = tk.Entry(self.hframe,state="readonly",textvariable=self.e_txt)
+        #self.e = tk.Entry(self.hframe,state="readonly",textvariable=self.e_txt)
+        self.e = tk.Button(self.hframe,textvariable=self.e_txt,relief="sunken",width=20)
+        self.e["bg"] = "#fff"
+        self.e_txt.set(self.e_txt.get()+"<")
         self.e.bind("<Key>",self.event)
         self.e.bind("<Button>",self.event)
         self.e.pack(side="left")
@@ -5488,7 +5496,7 @@ class GUIWindow():
         global _global_short_key
         #time.sleep(0.1)
         if not _global_short_key:
-            cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
+            #cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
             return 1
 
         global _shift_key

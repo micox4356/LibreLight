@@ -60,6 +60,8 @@ def load(event):
             univ = ord(node_list[sel]["SwOut"][0]) 
     except Exception as e:
         print("load Exception",e)
+        MSG["text"] = e
+        MSG["bg"] = "red"
     e_artnet_uni1.insert("end",univ) 
 
     
@@ -85,7 +87,12 @@ def poll(delay=1):
     clear_entry_ip()
     clear_node()
     time.sleep(delay)
-    nodescan.poll()
+    try:
+        nodescan.poll()
+    except Exception as e:
+        print("e",e)
+        MSG["text"] = e
+        MSG["bg"] = "red"
     time.sleep(0.5)
     old_tick = 0
     
@@ -95,6 +102,9 @@ def clear(event= None):
     rx.clear()
     clear_node()
     #poll()
+    MSG["text"] = ""
+    MSG["bg"] = "grey"
+    time.sleep(0.1)
     
 def poll_loop(sleep):
     if sleep < 1:
@@ -117,6 +127,8 @@ def _scan():
             __scan()
         except Exception as e:
             print("_scan Exception as",e)
+            MSG["text"] = e
+            MSG["bg"] = "red"
         time.sleep(0.1)
 
 def __scan():
@@ -406,6 +418,14 @@ eframe1.pack(side="left",expand=0,fill="y")
 # ----------------------------------------------
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
+x=Tkinter.Label(line_frame,text="msg:",font=font3,width=6).pack(side="left",expand=0,fill="y")
+MSG = Tkinter.Label(line_frame,text="xxx",font=font1,width=30,anchor="w")
+MSG.pack(side="left",expand=0,fill="y")
+#msg["bg"] = "lightgrey"
+#msg.pack(side="left")
+# ----------------------------------------------
+line_frame = Tkinter.Frame(eframe)
+line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="OLD IP:",font=font3,width=6).pack(side="left",expand=0,fill="y")
 e_ip = Tkinter.Entry(line_frame,font=font20,width=13,state="disabled")
 e_ip["bg"] = "lightgrey"
@@ -606,6 +626,8 @@ def X():
         if z % 10 == 0:
             pass
             print("----")
+            #MSG["text"] = ""
+            #MSG["bg"] = "grey"
             #pass#print("node count",len(nodes),rx.tick())
             #for node in nodes:
             #    print(node["MAC"],node["lname"])

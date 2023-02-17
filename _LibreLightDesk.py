@@ -166,7 +166,7 @@ class Dialog():
         self.e.config(highlightcolor= "red")
         #self.e_txt.set(str(initialvalue)+"<")
         self.e_txt.set(str(initialvalue))
-        #self.e.icursor(999)
+        self.e.icursor(999)
         self.e.selection_range(0, 999)#"end")
         
         self.e.bind("<Key>",self.event)

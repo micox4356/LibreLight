@@ -118,8 +118,219 @@ class Dialog():
                 if event.keysym == "Escape":
                     self.close()
 
+    def ask_exec_config(self,prompt="",txt="",cfg={},_cb=None):
+        print(self,"ask_exec_config()",[txt,cfg])
+        self._exit = None
+        #    #self.tk.quit()
+        #    print(dir(self.tk))
+        try:
+            self.close()
+        except Exception as e:print(e)
+
+        #self.tk = tkinter.Tk()
+        self.tk = tkinter.Toplevel()
+        #self.tk.withdraw() # do not draw
+        self.tk.iconify()
+        self.tk.geometry("390x200") #.format(120+c))
+        self.tk.title("EXEC-CONFIG" )#+" "+":"+str(rnd_id))
+        self.tk.attributes('-topmost',True)
+        self.tk.protocol("WM_DELETE_WINDOW", self.close)
+        self.tk.resizable(0,0)
+        bg = "#e0e"
+        bg = "#cd5"
+        bg = "lightgrey"
+        self.tk["bg"] = bg
+        #self.tk.overrideredirect(1)
+        #self.tk.attributes('-toolwindow', True)
+        #self.tk.state(newstate='iconic')
+
+
+
+        self.fo = tk.Frame(self.tk,bd=1) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fo["bg"] = "red"
+        self.fo["bg"] = "#eee"#lightgrey"
+        self.fo.pack(side="top")
+    
+
+        self.fl = tk.Frame(self.fo,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fl["bg"] = "green"
+        self.fl["bg"] = "#eee"#lightgrey"
+        self.fl.pack(side="left")
+
+        self.fm = tk.Frame(self.fo,width=20,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fm["bg"] = "#eee"#lightgrey"
+        self.fm.pack(side="left",expand=1,fill="y")
+
+        self.fr = tk.Frame(self.fo,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fr["bg"] = "blue"
+        self.fr["bg"] = "#eee"#lightgrey"
+        self.fr.pack(side="left")
+
+        from_= 33
+        to   = 0
+
+        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.ff["bg"] = "#99a"
+        self.ff.pack(side="left")
+        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
+        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
+        self.el = tk.Button(self.ff,text="Master",bg="lightblue",width=4)
+        self.el.pack(side="top")
+
+        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.ff["bg"] = "#99a"
+        self.ff.pack(side="left")
+        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
+        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
+        self.el = tk.Button(self.ff,text="Speed",bg="lightblue",width=4)
+        self.el.pack(side="top")
+
+        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.ff["bg"] = "#99a"
+        self.ff.pack(side="left")
+        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
+        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
+        self.el = tk.Button(self.ff,text="Size",bg="lightblue",width=4)
+        self.el.pack(side="top")
+
+        #self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        #self.f.pack(side="top")
+        #self.elx = tk.Label(self.f,text="")
+        #self.elx["bg"] = bg
+        #self.elx.pack(side="left")
+
+        self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+
+        self.el = tk.Label(self.f,text=str("NR:"),anchor="w",width=10)
+        self.el["bg"] = bg
+        self.el.pack(side="left",expand=1,fill="y")
+        self.el = tk.Label(self.f,text=str(prompt),anchor="w",width=10)
+        self.el["bg"] = bg
+        self.el.pack(side="left",expand=1,fill="y")
+
+        self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+
+        
+        self.f2 = tk.Frame(self.f) 
+        self.f2.pack(side="top",expand=1,fill="y")
+        self.e_txt = tk.StringVar()
+        self.el = tk.Label(self.f2,text="Name",anchor="w",width=10)
+        self.el.pack(side="left")
+        self.e = tk.Entry(self.f2,textvariable=self.e_txt,width=10)
+        self.e["bg"] = "#eee"
+        self.e.config(highlightthickness=2)
+        self.e.config(highlightcolor= "red")
+        #self.e_txt.set(str(initialvalue)+"<")
+        self.e_txt.set(str(""))
+        #self.e.icursor(999)
+        #self.e.selection_range(0, 999)#"end")
+        self.e.bind("<Key>",self.event)
+        self.e.bind("<Button>",self.event)
+        self.e.pack(side="left")
+        self.e1 = self.e
+
+        self.f2 = tk.Frame(self.f) 
+        self.f2.pack(side="top",expand=1,fill="y")
+        self.e_txt = tk.StringVar()
+        self.el = tk.Label(self.f2,text="Fade",anchor="w",width=10)
+        self.el.pack(side="left")
+        self.e = tk.Entry(self.f2,textvariable=self.e_txt,width=10)
+        self.e["bg"] = "#eee"
+        self.e.config(highlightthickness=2)
+        self.e.config(highlightcolor= "red")
+        #self.e_txt.set(str(initialvalue)+"<")
+        self.e_txt.set(str(""))
+        #self.e.icursor(999)
+        #self.e.selection_range(0, 999)#"end")
+        self.e.bind("<Key>",self.event)
+        self.e.bind("<Button>",self.event)
+        self.e.pack(side="left")
+        self.e1 = self.e
+        
+        self.f2 = tk.Frame(self.f) 
+        self.f2.pack(side="top",expand=1,fill="y")
+        self.e_txt = tk.StringVar()
+        self.el = tk.Label(self.f2,text="Delay",anchor="w",width=10)
+        self.el.pack(side="left")
+        self.e = tk.Entry(self.f2,textvariable=self.e_txt,width=10)
+        self.e["bg"] = "#eee"
+        self.e.config(highlightthickness=2)
+        self.e.config(highlightcolor= "red")
+        #self.e_txt.set(str(initialvalue)+"<")
+        self.e_txt.set(str(""))
+        #self.e.icursor(999)
+        #self.e.selection_range(0, 999)#"end")
+        self.e.bind("<Key>",self.event)
+        self.e.bind("<Button>",self.event)
+        self.e.pack(side="left")
+        self.e2 = self.e
+        
+        self.f2 = tk.Frame(self.f) 
+        self.f2.pack(side="top",expand=1,fill="y")
+        self.el = tk.Label(self.f2,text="Button",anchor="w",width=10)
+        self.el.pack(side="left")
+
+        self.e_txt = tk.StringVar()
+        #self.e = tk.Entry(self.f2,textvariable=self.e_txt,width=6)
+        #dialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
+        self.e_txt.set(txt) # default value
+        self.e = tk.OptionMenu(self.f2,self.e_txt,"FL", "SEL", "GO","ON") #,width=6)
+        self.e["width"] = 6
+        self.e["bg"] = "#eee"
+        self.e.config(highlightthickness=2)
+        self.e.config(highlightcolor= "red")
+        #self.e_txt.set(str(initialvalue)+"<")
+        self.e_txt.set(str(""))
+        #self.e.icursor(999)
+        #self.e.selection_range(0, 999)#"end")
+        self.e.bind("<Key>",self.event)
+        self.e.bind("<Button>",self.event)
+        self.e.pack(side="left")
+        self.e3 = self.e
+
+
+    
+        self.fu = tk.Frame(self.tk,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fu.pack(side="top")
+        self.fu["bg"] = "lightgrey"##eee"
+        # --- Spacer ---- OK,Cancle
+        self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+        self.elx = tk.Label(self.f,text="")
+        self.elx["bg"] = bg
+        self.elx.pack(side="left")
+
+        self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+
+        self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
+        self.b.config(padx=1)
+        #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        self.b.pack(side="left")
+
+        self.fxx = tk.Frame(self.f,width=20) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fxx.pack(side="left")
+
+        self.b = tk.Button(self.f,bg="lightgrey", text="Cancel",width=10,command=self.close)
+        self.b.config(padx=1)
+        self.b.pack(side="left")
+
+        self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f.pack(side="top")
+        self.elx = tk.Label(self.f,text="")
+        self.elx["bg"] = bg
+        self.elx.pack(side="left")
+
+        self.e.focus()
+        #time.sleep(3)
+        self.tk.deiconify()
     def askstring_new(self,title="title",prompt="prompt:",initialvalue=""):
         self._exit = None
+        try:
+            self.close()
+        except Exception as e:print(e)
         #try:
         #    #self.tk.quit()
         #    print(dir(self.tk))
@@ -2339,16 +2550,20 @@ class GUI():
                     elem["fg"] = fg
 
     def btn_cfg(self,nr):
+        cfg = PRESETS._btn_cfg(nr) 
         txt = PRESETS.btn_cfg(nr) 
-        def _cb(txt):
+        def _cb(txt,cfg={}):
             print(self,"btn_cfg._cb()",txt)
             if txt:
                 PRESETS.btn_cfg(nr,txt)
                 self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
+            if cfg:
+                print("cfg exist !")
             modes.val("CFG-BTN",0)
             master._refresh_exec()
         dialog._cb = _cb
         dialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
+        #dialog.ask_exec_config(""+str(nr+1),txt,cfg)
 
     def label(self,nr):
         txt = PRESETS.label(nr) 
@@ -2463,27 +2678,27 @@ class GUI():
             if "\n" in txt:
                 txt1 = txt.split("\n")[0]
 
+            b.configure(fg="black")
             if ifval:
                 if fx_only:
                     b.configure(bg = "cyan")
                     b.config(activebackground="#55d4ff")
 
                 if "SEL" in txt1:
-                    b.configure(fg="black")
                     b.configure(bg="#77f")
-                    #b.config(activebackground="#fff")
-                elif "ON" in txt1:
-                    b.configure(fg="#040")
-                    #b.configure(bg="#cca")
-                elif "GO" in txt1:
-                    b.configure(fg="black")
-                elif "FL" in txt1:
-                    #b.configure(fg="#7f00ff")
-                    b.configure(fg="#00e")
-                    #b.configure(bg="#f0a000")
             else: 
                 b.configure(bg="grey")
-                b.configure(fg="black")
+                b.configure(fg="darkgrey") #black")
+
+                if "SEL" in txt1:
+                    b.configure(fg="blue")
+                elif "ON" in txt1:
+                    b.configure(fg="#040")
+                elif "GO" in txt1:
+                    b.configure(fg="#555")
+
+            if "FL" in txt1:
+                b.configure(fg="#00e")
 
     def refresh_fix(self):
         refresher.reset() # = Refresher()
@@ -4610,6 +4825,13 @@ class Presets():
         txt=str(nr+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+_label
         print("get_btn_txt",nr,[txt])
         return txt
+
+    def _btn_cfg(self,nr,txt=None):
+        if nr not in self.val_presets:
+            return ""
+        if "CFG" not in self.val_presets[nr]:
+            self.val_presets[nr]["CFG"] = OrderedDict()
+        return self.val_presets[nr]["CFG"]
 
     def btn_cfg(self,nr,txt=None):
         if nr not in self.val_presets:

@@ -1701,7 +1701,7 @@ def save_window_position(save_as=""):
         print("save_window_position",fname)
         f = open(fname,"w")
         for k,win in window_manager.windows.items():
-            #print("win:",win)
+            print("win:",win,k)
             if not win:
                 continue
             #print("d",dir(win))
@@ -6236,6 +6236,7 @@ if __run_main:
     w = GUIWindow(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
     _ENCODER_WINDOW = w
     draw_enc(master,w.tk)#Xroot)
+    window_manager.new(w,name)
 
     #name="REMOTE-CONTROL"
     #w = GUIWindow(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)

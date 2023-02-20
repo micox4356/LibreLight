@@ -161,7 +161,7 @@ class Dialog():
         self.tk = tkinter.Toplevel()
         #self.tk.withdraw() # do not draw
         self.tk.iconify()
-        self.tk.geometry("390x200") #.format(120+c))
+        self.tk.geometry("440x200") #.format(120+c))
         self.tk.title("{} EXEC-CONFIG".format(prompt) )#+" "+":"+str(rnd_id))
         self.tk.attributes('-topmost',True)
         self.tk.protocol("WM_DELETE_WINDOW", self.close)
@@ -208,6 +208,7 @@ class Dialog():
         self.data["Master"] = self.b
         self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
         self.el = tk.Button(self.ff,text="Master",bg="lightblue",width=4)
+        myTip = Hovertip(self.el,'HTP-MASTER')
         self.el.pack(side="top")
 
         self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
@@ -217,6 +218,7 @@ class Dialog():
         self.data["Speed"] = self.b
         self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
         self.el = tk.Button(self.ff,text="Speed",bg="lightblue",width=4)
+        myTip = Hovertip(self.el,'SPEED-MASTER')
         self.el.pack(side="top")
 
         self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
@@ -226,8 +228,19 @@ class Dialog():
         self.data["Size"] = self.b
         self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
         self.el = tk.Button(self.ff,text="Size",bg="lightblue",width=4)
+        myTip = Hovertip(self.el,'SIZE-MASTER')
         self.el.pack(side="top")
 
+        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.ff["bg"] = "#99a"
+        self.ff.pack(side="left")
+        self.b = tk.Scale(self.ff,bg="lightblue",state="disable", width=28,from_=from_,to=to,command=self._event)
+        self.data["Offset"] = self.b
+        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
+
+        self.el = tk.Button(self.ff,text="Offset",bg="lightblue",width=4)
+        myTip = Hovertip(self.el,'OFFSET-MASTER')
+        self.el.pack(side="top")
         #self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         #self.f.pack(side="top")
         #self.elx = tk.Label(self.f,text="")
@@ -1701,7 +1714,7 @@ def save_window_position(save_as=""):
         print("save_window_position",fname)
         f = open(fname,"w")
         for k,win in window_manager.windows.items():
-            print("win:",win,k)
+            print("save:win:pos",win,k)
             if not win:
                 continue
             #print("d",dir(win))
@@ -4739,6 +4752,42 @@ class Fixtures():
                 data["ATTRIBUT"][attr]["ACTIVE"] = 0
         return out
 
+
+
+def CFG_CHECKER(sdata):
+    "repair CFG  "
+    ok = 0
+    if "CFG" not in sdata:
+        sdata["CFG"] = OrderedDict()
+        ok += 1
+    if "FADE" not in sdata["CFG"]:
+        sdata["CFG"]["FADE"] = 4
+        ok += 1
+    if "DELAY" not in sdata["CFG"]:
+        sdata["CFG"]["DELAY"] = 0
+        ok += 1
+    if "BUTTON" not in sdata["CFG"]:
+        sdata["CFG"]["BUTTON"] = "GO"
+        ok += 1
+    if "HTP-MASTER" not in sdata["CFG"]:
+        sdata["CFG"]["HTP-MASTER"] = 100 #%
+        ok += 1
+    if "SIZE-MASTER" not in sdata["CFG"]:
+        sdata["CFG"]["SIZE-MASTER"] = 100 #%
+        ok += 1
+    if "SPEED-MASTER" not in sdata["CFG"]:
+        sdata["CFG"]["SPEED-MASTER"] = 100 #%
+        ok += 1
+    if "OFFSET-MASTER" not in sdata["CFG"]:
+        sdata["CFG"]["OFFSET-MASTER"] = 100 #%
+        ok += 1
+
+    #try:del sdata["CFG"]["SPEED-MASTER"] #= 100 #%
+    #except:pass
+
+    return ok
+
+
 class Presets():
     def __init__(self):
         #super().__init__() 
@@ -4755,14 +4804,8 @@ class Presets():
         d,l = self.base._load(filename)
         for i in d:
             sdata = d[i]
-            if "CFG" not in sdata:
-                sdata["CFG"] = OrderedDict()
-            if "FADE" not in sdata["CFG"]:
-                sdata["CFG"]["FADE"] = 4
-            if "DELAY" not in sdata["CFG"]:
-                sdata["CFG"]["DELAY"] = 0
-            if "BUTTON" not in sdata["CFG"]:
-                sdata["CFG"]["BUTTON"] = "GO"
+            ok = CFG_CHECKER(sdata)
+
         self.val_presets = d
         self.label_presets = l
 
@@ -4783,19 +4826,9 @@ class Presets():
 
     def _check_cfg(self,sdata):
         cprint("PRESETS._check_cfg()")#,color="red")
-        ok=0
-        if "CFG" not in sdata:
-            sdata["CFG"] = OrderedDict()
-            ok += 1
-        if "FADE" not in sdata["CFG"]:
-            sdata["CFG"]["FADE"] = 4
-            ok += 1
-        if "DELAY" not in sdata["CFG"]:
-            sdata["CFG"]["DELAY"] = 0
-            ok += 1
-        if "BUTTON" not in sdata["CFG"]:
-            sdata["CFG"]["BUTTON"] = "GO"
-            ok += 1
+
+        ok = CFG_CHECKER(sdata)
+
         if ok:
             cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")
         return ok

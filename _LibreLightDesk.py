@@ -66,6 +66,7 @@ class Dialog():
         self._exit = None
         self._cb = self.dummy_cb
         self.data = {"Value:",None}
+        #self.tk = tkinter.Toplevel()
     def dummy_cb(self,_return):
         print("dialog.dummy_cb()",self,_return)
         pass
@@ -161,7 +162,7 @@ class Dialog():
         self.tk = tkinter.Toplevel()
         #self.tk.withdraw() # do not draw
         self.tk.iconify()
-        self.tk.geometry("440x200") #.format(120+c))
+        self.tk.geometry("450x200") #.format(120+c))
         self.tk.title("{} EXEC-CONFIG".format(prompt) )#+" "+":"+str(rnd_id))
         self.tk.attributes('-topmost',True)
         self.tk.protocol("WM_DELETE_WINDOW", self.close)
@@ -198,44 +199,68 @@ class Dialog():
 
 
         # ------------------------- frame right
-        from_= 33
+        from_= 255
         to   = 0
 
         self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.ff["bg"] = "#99a"
         self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue",state="disable", width=28,from_=from_,to=to,command=self._event)
+        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self._event)
         self.data["Master"] = self.b
+        self.data["Master"].set(100)
+        k = "HTP-MASTER"
+        if "cfg" in args and k in args["cfg"]:
+            #self.data["Master"].config(state="active")
+            self.data["Master"].set(int(args["cfg"][k])) 
+            self.data["Master"].config(state="disable")
         self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
         self.el = tk.Button(self.ff,text="Master",bg="lightblue",width=4)
         myTip = Hovertip(self.el,'HTP-MASTER')
         self.el.pack(side="top")
 
-        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.ff["bg"] = "#99a"
-        self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue",state="disable", width=28,from_=from_,to=to,command=self._event)
-        self.data["Speed"] = self.b
-        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
-        self.el = tk.Button(self.ff,text="Speed",bg="lightblue",width=4)
-        myTip = Hovertip(self.el,'SPEED-MASTER')
-        self.el.pack(side="top")
 
+        from_= 200
         self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.ff["bg"] = "#99a"
         self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue",state="disable", width=28,from_=from_,to=to,command=self._event)
+        self.b = tk.Scale(self.ff,bg="lightblue",width=28,from_=from_,to=to,command=self._event)
         self.data["Size"] = self.b
+        k = "SIZE-MASTER"
+        if "cfg" in args and k in args["cfg"]:
+            #self.data["Size"].config(state="active")
+            self.data["Size"].set(int(args["cfg"][k])) 
+            self.data["Size"].config(state="disable")
         self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
         self.el = tk.Button(self.ff,text="Size",bg="lightblue",width=4)
         myTip = Hovertip(self.el,'SIZE-MASTER')
         self.el.pack(side="top")
 
+        from_= 400
         self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.ff["bg"] = "#99a"
         self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue",state="disable", width=28,from_=from_,to=to,command=self._event)
+        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self._event)
+        self.data["Speed"] = self.b
+        k = "SPEED-MASTER"
+        if "cfg" in args and k in args["cfg"]:
+            self.data["Speed"].set(int(args["cfg"][k])) 
+            self.data["Speed"].config(state="disable")
+        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
+        self.el = tk.Button(self.ff,text="Speed",bg="lightblue",width=4)
+        myTip = Hovertip(self.el,'SPEED-MASTER')
+        self.el.pack(side="top")
+
+        from_= 400
+        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.ff["bg"] = "#99a"
+        self.ff.pack(side="left")
+        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self._event)
         self.data["Offset"] = self.b
+        k = "OFFSET-MASTER"
+        if "cfg" in args and k in args["cfg"]:
+            #self.data["Offset"].config(state="active")
+            self.data["Offset"].set(int(args["cfg"][k])) 
+            self.data["Offset"].config(state="disable")
         self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
 
         self.el = tk.Button(self.ff,text="Offset",bg="lightblue",width=4)
@@ -2569,9 +2594,9 @@ class GUI():
         self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON"] 
 
         self.commands = Elem_Container()
-        self.commands.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","","\n"
+        self.commands.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","-","\n"
                 ,"SELECT","FLASH","GO","-","MOVE","S-KEY","\n"
-                ,"BLIND","CLEAR","REC","EDIT","COPY","","\n" 
+                ,"BLIND","CLEAR","REC","EDIT","COPY","-","\n" 
                 ]
         self.elem_presets = {}
         

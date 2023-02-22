@@ -60,6 +60,27 @@ from idlelib.tooltip import Hovertip
 
 _global_short_key = 1
 
+class DialogEvent():
+    def __init__(self):
+        self.el    = None
+        self.e_txt = None
+        self.master = None
+
+    def _event(self,event,**args):
+        print(self,"_event",event)
+        if 10:#else:
+            input_event_blocker.set( self.e , self.e_txt)
+            input_event_blocker.event(event) #,args)
+
+        if "keysym" in dir(event):
+            if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
+                self.master.ok()
+
+            elif event.keysym == "Escape":
+                self.master.close()
+            else:
+                self.el.focus()
+
 class Dialog():
     def __init__(self):
         self.d = tkinter.simpledialog
@@ -341,13 +362,20 @@ class Dialog():
         self.e_txt.set(str(""))
         #self.e.icursor(999)
         #self.e.selection_range(0, 999)#"end")
-        self.e.bind("<Key>",self._event)
-        self.e.bind("<Button>",self._event)
+
+        ev1 = DialogEvent()
+        ev1.e = self.e
+        ev1.master = self
+        ev1.e_txt = self.data["Button"]
+        
+        self.e.bind("<Key>",ev1._event)
+        self.e.bind("<Button>",ev1._event)
         self.e.pack(side="left")
         if "button" in args and type(args["button"]) is str:
             self.e_txt.set(args["button"]) # default value
         self.e3 = self.e
         del self.e_txt
+        del ev1
 
 
 
@@ -359,7 +387,7 @@ class Dialog():
         self.data["Label"] = tk.StringVar()
         self.el = tk.Label(self.f2,text="Label",anchor="w",width=8)
         self.el.pack(side="left")
-        self.e = tk.Entry(self.f2,textvariable=self.data["Label"],width=12)
+        self.e = tk.Entry(self.f2,textvariable=self.data["Label"],width=12) #,command=ev._event)
         if "label" in args and type(args["label"]) is str:
             self.data["Label"].set(args["label"]) 
 
@@ -368,11 +396,18 @@ class Dialog():
         self.e.config(highlightcolor= "red")
         self.e.icursor(999)
         #self.e.selection_range(0, 999)#"end")
-        self.e.bind("<Key>",self._event)
-        self.e.bind("<Button>",self._event)
+        
+        ev = DialogEvent()
+        ev.e = self.e
+        ev.master = self
+        ev.e_txt = self.data["Label"]
+
+
+        self.e.bind("<Key>",ev._event)
+        self.e.bind("<Button>",ev._event)
         self.e.pack(side="left")
         self.e1 = self.e
-
+        del ev
         # ---------------------- frame bottom [ok,cancel]
 
         self.fu = tk.Frame(self.tk,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)

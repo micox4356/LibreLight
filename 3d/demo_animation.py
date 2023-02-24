@@ -11,10 +11,14 @@ pg = pygame
 pygame.init()
 
 main_size=(600,300)
-main_size=(1600,900)
+#main_size=(1600,900)
+#, pygame.DOUBLEBUF, 32)
 #window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+##window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+#window = pygame.display.set_mode(main_size,pg.RESIZABLE, pygame.SRCALPHA)# 32)
+window = pygame.display.set_mode(main_size,pg.RESIZABLE|pygame.DOUBLEBUF|pygame.HWSURFACE, 32)
+
 #window = pygame.display.set_mode(main_size,pg.NOFRAME,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #window = pygame.display.set_mode(main_size,pg.NOFRAME,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #window = pygame.display.set_mode(main_size,pygame.FULLSCREEN) #x left->right ,y top-> bottom
@@ -35,6 +39,11 @@ img2.set_colorkey([0,0,0] ) #pygame.image.BLACK)
 #player_rect2 = img2.get_rect(center=(200, 200))
 #window.blit(img2, player_rect2)
 
+def draw_alpha():
+    surface1 = pygame.Surface((100,100))
+    surface1.set_colorkey((0,0,0))
+    surface1.set_alpha(128)
+    pygame.draw.circle(surface1, (0,255,0), (50,50), 50)
 
 
 class _Particale():
@@ -117,6 +126,9 @@ def event_read():
         rot_x = 0
         rot_y = 0
         rot_z = 0
+        if "pos" in event.dict:
+            _pos  = event.pos 
+            pointer.move(x=_pos[0],y=_pos[1])
         if event.type== pg.QUIT:
             print("quit")
             pg.quit()
@@ -455,6 +467,42 @@ class Gobo1():
         return pixel_array
 
 
+font15 = pygame.font.SysFont("freemonobold",15)
+class POINTER():
+    def __init__(self):
+        self.pos = [0,0,0,0]
+        self.on = 1
+        self.rgb = [0,100,10,255]
+        self._x = 0
+        self._y = 0
+        self.x = 0
+        self.y = 0
+
+    def move(self,x,y):
+        self._x = x
+        self._y = y
+    def cross(self,x,y):
+        self.x = x
+        self.y = y
+
+    def draw(self,window,x=0,y=0,alpha=255):
+        if self.on:
+            self.rgb[-1] = alpha
+            #print(self.rgb)
+            pos = (self._x-5-10,self._y-5-10,10,10)
+            pos = (self._x-5-10+x,self._y-5-10+y,10,10)
+            #pygame.gfxdraw.rectangle(window,self.rgb[:3],pos)
+            #pygame.gfxdraw.rectangle(window,self.rgb[:3],pos)
+            thickLine = pygame.gfxdraw.rectangle(window,pos , self.rgb)
+            thickLine = pygame.gfxdraw.rectangle(window,pos , self.rgb)
+            #thickLine.fill()
+            # mouse grid posision
+            fr = font15.render("{}/{}".format(self._x,self._y) ,1, (200,200,200))
+            window.blit(fr,(200,25))
+            
+
+pointer = POINTER()
+
 
 def vdim(color,dim):
     color[0] =  int(color[0]/255*dim) 
@@ -483,14 +531,40 @@ img.set_colorkey([0,0,0] ) #pygame.image.BLACK)
 player_rect = img.get_rect(center=(200, 200))
 #window.blit(img, player_rect)
 
+def grab(x=55,y=55,w=60,h=60):
+    # usage
+    # sub = grab()
+    # window.blit(sub, (500,10))
+    rect = pygame.Rect(x, y, w, h)
+    sub = window.subsurface(rect)
+    #pixArray = pygame.PixelArray(screen)
+    crop = pygame.Surface((w,h))
+    crop.blit(sub, (0,0))
+    return crop
+
 _start = time.time()
-while run:
+xbg = [0,0,0]
+xbg_dir = 1
+def main():
+    global _start
+    global xbg,xbg_dir
     event_read()
     if one:
-        if _start+0.1 < time.time():
-            time.sleep(0.01)
-            continue
+        #print(_start+0.1<time.time()) #,end="")
+        if 0:#_start+0.1 > time.time():
+            #time.sleep(0.01)
+            #continue
+            return
+        #print(_start-time.time(),end="")
         _start = time.time()
+        #print(".",end="")
+        if xbg_dir > 0 and xbg[0] >= 255:
+                xbg_dir = -1
+        if xbg_dir < 0 and xbg[0] <= 0:
+                xbg_dir = 1
+
+        xbg[0] += xbg_dir
+
         if 0:
             d=grid.draw()
             d1=gobo1.draw()#20,10)
@@ -575,7 +649,9 @@ while run:
             d2=gobo2.draw()#20,10)
             d3=gobo3.draw()#20,10)
             a1=anim1.draw()#20,10)
-            window.fill(0) #[255,0,0])
+            #window.fill(0) #[255,0,0])
+            window.fill(xbg)
+            pointer.draw(window)
             z = 0
             for k in d1:
                 i = d1[k]
@@ -587,7 +663,7 @@ while run:
                 ##rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,10,i[4])
                 #rect = pygame.gfxdraw.filled_circle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
                 rect = pygame.gfxdraw.aacircle(window, i[0],i[2] ,20,i[4] )#[0,0,255])
-                if 1:#z % 33 == 0:
+                if 0:#z % 33 == 0:
                     particales.add(i[0],i[2])
                     particales.draw(window)
                 z+=1
@@ -648,10 +724,24 @@ while run:
         #pygame.display.flip()
         #gobo2.draw(color=[255,0,0])
         #pygame.display.flip()
+    sub = grab(190,0)
+    pygame.gfxdraw.box(window,(430-2,10-2,60+4,60+4),(255,255,200))
+    window.blit(sub, (430,10))
         
-    #pg.time.wait(10)
-    pygame.display.flip()
-    pg.time.wait(10)
+    sub = grab(190,190)
+    pygame.gfxdraw.box(window,(500-2,10-2,60+4,60+4),(255,255,200))
+    window.blit(sub, (500,10))
 
+    pointer.draw(window,x=-10,y=-10,alpha=120)
+    pg.time.wait(10)
+    #pg.time.wait(10)
+    pygame.display.update()
+    #pygame.display.flip()
+
+try:
+    while run:
+        main()
+except Exception as e:
+    print("e",e)
 pygame.quit()
 exit()

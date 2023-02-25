@@ -543,7 +543,7 @@ def init_grid():
         if i >= _x and i%_x == 0:
             x=0
             y+=1
-        if y > _y:
+        if y >= _y:
             break
 
 

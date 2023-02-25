@@ -620,9 +620,14 @@ def main():
         data3 = read_dmx(ip)
         data.extend(data3)
 
-        #ip = select_ip(ips,univ=START_UNIV+4)
+        ip = select_ip(ips,univ=START_UNIV+4)
+        data3 = read_dmx(ip)
+        data.extend(data3)
+
+        #ip = select_ip(ips,univ=START_UNIV+5)
         #data3 = read_dmx(ip)
         #data.extend(data3)
+        
         # GRID loop
         try:
             ddd = 1023 #univ 3 512
@@ -662,6 +667,7 @@ def main():
 
                 #print(fix.dmx,rgb,pos)
                 #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
+                FUNC = 0
                 if FUNC > 10 and FUNC <= 20: # big dot
                     draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
                 elif FUNC > 20 and FUNC <= 30:#small dot

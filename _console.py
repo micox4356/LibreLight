@@ -666,7 +666,7 @@ class DMXCH(object):
 
 
 Bdmx = []
-for i in range(512*5+1):
+for i in range(512*7+1):
     Bdmx.append( DMXCH(i) )
     #print(type(dmx[i]))
 
@@ -1011,8 +1011,12 @@ def JCB(data): #json client input
                     else:delay=0
 
                     if "DMX-FINE" in x:
-                        Bdmx[DMX]._dmx_fine = int(x["DMX-FINE"])
-                        #cprint("DMX-FINE",Bdmx[DMX],color="blue") 
+                        try:
+                            Bdmx[DMX]._dmx_fine = int(x["DMX-FINE"])
+                            #cprint("DMX-FINE",Bdmx[DMX],color="blue") 
+                        except Exception as e:
+                            cprint(x,color="red")
+                            cprint("except 3455",e,color="red")
 
                     if len(Bdmx) < DMX:
                         continue

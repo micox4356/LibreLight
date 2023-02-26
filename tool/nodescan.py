@@ -5,7 +5,7 @@
 Valid-License-Identifier: GPL-2.0-only
 SPDX-URL: https://spdx.org/licenses/GPL-1.0.html
 
-(c) 2012 micha@uxsrv.de
+(c) 2012 micha@librelight.de
 """
 print("suche ArtNet Nodes ")
 import time

@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 
-(c) 2012 micha@uxsrv.de
+(c) 2012 micha@librelight.de
 """
 import random
 rnd_id = str(random.randint(1000,9000))
@@ -53,6 +53,7 @@ import traceback
 import tkinter
 import tkinter as tk
 from tkinter import font
+
 space_font = None
 import tkinter.simpledialog
 from idlelib.tooltip import Hovertip
@@ -60,480 +61,10 @@ from idlelib.tooltip import Hovertip
 
 _global_short_key = 1
 
-class DialogEvent():
-    def __init__(self):
-        self.el    = None
-        self.e_txt = None
-        self.master = None
 
-    def _event(self,event,**args):
-        print(self,"_event",event)
-        if 10:#else:
-            input_event_blocker.set( self.e , self.e_txt)
-            input_event_blocker.event(event) #,args)
 
-        if "keysym" in dir(event):
-            if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
-                self.master.ok()
 
-            elif event.keysym == "Escape":
-                self.master.close()
-            else:
-                self.el.focus()
 
-class Dialog():
-    def __init__(self):
-        self.d = tkinter.simpledialog
-        self._exit = None
-        self._cb = self.dummy_cb
-        self.data = {"Value:",None}
-        #self.tk = tkinter.Toplevel()
-    def dummy_cb(self,_return):
-        print("dialog.dummy_cb()",self,_return)
-        pass
-
-    def askstring(self,title="title",prompt="prompt:",initialvalue=""):
-        old = 0
-        if old:
-            title = "*"+title
-            txt = self.askstring_old(title=title,prompt=prompt,initialvalue=initialvalue)
-            self._exit = {"Value":txt}
-            self.data = {"Value":txt}
-            self._cb(self._exit)
-        else:
-            title = "#"+title
-            self.askstring_new(title=title,prompt=prompt,initialvalue=initialvalue)
-    
-    def askstring_old(self,title="title",prompt="prompt:",initialvalue=""):
-        print(self.d)
-        print(dir(self.d))
-        txt = self.d.askstring(title=title,prompt=prompt,initialvalue=initialvalue)
-        return txt
-
-    def _close(self):
-        print("dialog._close()",self._exit)
-        self.tk.destroy()
-
-    def close(self):
-        self._close()
-        time.sleep(0.1)
-        input_event_blocker.unlock()
-        self._cb(None)
-        return {} #self._exit
-
-    def ok(self):
-        _data = {}
-        for k,e in self.data.items():
-            #print(k,dir(e))
-            if e is not None:
-                _data[k] = e.get()
-        if "Value" not in _data:
-            _data["Value"] = None
-
-
-        #t=self.e_txt.get()#[:-1]
-        #if "=" in t:
-        #    t = t.split("=")[0]
-        #self._exit = t
-        self._exit = _data
-        self._close()
-        time.sleep(0.1)
-        input_event_blocker.unlock()
-        print(self,"ok()",self._exit)
-        self._cb(self._exit)
-
-    def _event(self,event,**args):
-        print(self,"_event",event)
-        if 0:#else:
-            input_event_blocker.set( self.e , self.e_txt)
-            input_event_blocker.event(event) #,args)
-        if "keysym" in dir(event):
-            if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
-                self.ok()
-
-            if 1:# _global_short_key == 0:
-                if event.keysym == "Escape":
-                    self.close()
-
-    def event(self,event,**args):
-        print(self,"event",event)
-
-        if 1:#else:
-            input_event_blocker.set( self.e , self.e_txt)
-            input_event_blocker.event(event) #,args)
-        if "keysym" in dir(event):
-            if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
-                self.ok()
-
-            if _global_short_key == 0:
-                if event.keysym == "Escape":
-                    self.close()
-
-    def ask_exec_config(self,prompt="",_cb=None,**args):
-        print(self,"ask_exec_config()")
-        print([prompt,args])
-        self.data = {"Value:":None}
-        self._exit = None
-
-        try:
-            self.close()
-        except Exception as e:print(e)
-
-        #self.tk = tkinter.Tk()
-        self.tk = tkinter.Toplevel()
-        #self.tk.withdraw() # do not draw
-        self.tk.iconify()
-        self.tk.geometry("450x200") #.format(120+c))
-        self.tk.title("{} EXEC-CONFIG".format(prompt) )#+" "+":"+str(rnd_id))
-        self.tk.attributes('-topmost',True)
-        self.tk.protocol("WM_DELETE_WINDOW", self.close)
-        self.tk.resizable(0,0)
-        bg = "#e0e"
-        bg = "#cd5"
-        bg = "lightgrey"
-        self.tk["bg"] = bg
-        #self.tk.overrideredirect(1)
-        #self.tk.attributes('-toolwindow', True)
-        #self.tk.state(newstate='iconic')
-
-
-
-        self.fo = tk.Frame(self.tk,bd=1) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fo["bg"] = "red"
-        self.fo["bg"] = "#eee"#lightgrey"
-        self.fo.pack(side="top")
-    
-
-        self.fl = tk.Frame(self.fo,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fl["bg"] = "green"
-        self.fl["bg"] = "#eee"#lightgrey"
-        self.fl.pack(side="left")
-
-        self.fm = tk.Frame(self.fo,width=20,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fm["bg"] = "#eee"#lightgrey"
-        self.fm.pack(side="left",expand=1,fill="y")
-
-        self.fr = tk.Frame(self.fo,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fr["bg"] = "blue"
-        self.fr["bg"] = "#eee"#lightgrey"
-        self.fr.pack(side="left")
-
-
-        # ------------------------- frame right
-        from_= 255
-        to   = 0
-
-        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.ff["bg"] = "#99a"
-        self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self._event)
-        self.data["Master"] = self.b
-        self.data["Master"].set(100)
-        k = "HTP-MASTER"
-        if "cfg" in args and k in args["cfg"]:
-            #self.data["Master"].config(state="active")
-            self.data["Master"].set(int(args["cfg"][k])) 
-            self.data["Master"].config(state="disable")
-        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
-        self.el = tk.Button(self.ff,text="Master",bg="lightblue",width=4)
-        myTip = Hovertip(self.el,'HTP-MASTER')
-        self.el.pack(side="top")
-
-
-        from_= 200
-        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.ff["bg"] = "#99a"
-        self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue",width=28,from_=from_,to=to,command=self._event)
-        self.data["Size"] = self.b
-        k = "SIZE-MASTER"
-        if "cfg" in args and k in args["cfg"]:
-            #self.data["Size"].config(state="active")
-            self.data["Size"].set(int(args["cfg"][k])) 
-            self.data["Size"].config(state="disable")
-        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
-        self.el = tk.Button(self.ff,text="Size",bg="lightblue",width=4)
-        myTip = Hovertip(self.el,'SIZE-MASTER')
-        self.el.pack(side="top")
-
-        from_= 400
-        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.ff["bg"] = "#99a"
-        self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self._event)
-        self.data["Speed"] = self.b
-        k = "SPEED-MASTER"
-        if "cfg" in args and k in args["cfg"]:
-            self.data["Speed"].set(int(args["cfg"][k])) 
-            self.data["Speed"].config(state="disable")
-        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
-        self.el = tk.Button(self.ff,text="Speed",bg="lightblue",width=4)
-        myTip = Hovertip(self.el,'SPEED-MASTER')
-        self.el.pack(side="top")
-
-        from_= 400
-        self.ff = tk.Frame(self.fr,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.ff["bg"] = "#99a"
-        self.ff.pack(side="left")
-        self.b = tk.Scale(self.ff,bg="lightblue", width=28,from_=from_,to=to,command=self._event)
-        self.data["Offset"] = self.b
-        k = "OFFSET-MASTER"
-        if "cfg" in args and k in args["cfg"]:
-            #self.data["Offset"].config(state="active")
-            self.data["Offset"].set(int(args["cfg"][k])) 
-            self.data["Offset"].config(state="disable")
-        self.b.pack(side="top") #fill=tk.Y, side=tk.TOP)
-
-        self.el = tk.Button(self.ff,text="Offset",bg="lightblue",width=4)
-        myTip = Hovertip(self.el,'OFFSET-MASTER')
-        self.el.pack(side="top")
-        #self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        #self.f.pack(side="top")
-        #self.elx = tk.Label(self.f,text="")
-        #self.elx["bg"] = bg
-        #self.elx.pack(side="left")
-
-        # ----------------------------------- frame left
-
-        self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-
-        self.el = tk.Label(self.f,text=str("NR:"),anchor="w",width=8)
-        self.el["bg"] = bg
-        self.el.pack(side="left",expand=1,fill="y")
-        self.el = tk.Label(self.f,text=str(prompt),anchor="w",width=12)
-        self.el["bg"] = bg
-        self.el.pack(side="left",expand=1,fill="y")
-
-
-        self.f2 = tk.Frame(self.fl) 
-        self.f2.pack(side="top",expand=1,fill="y")
-        self.data["Fade"] = tk.StringVar()
-        self.el = tk.Label(self.f2,text="Fade",anchor="w",width=8)
-        self.el.pack(side="left")
-        self.e = tk.Entry(self.f2,state="disable",textvariable=self.data["Fade"],width=12)
-        print("---",self.data["Fade"].get())
-        if "cfg" in args and "FADE" in args["cfg"]:
-            self.data["Fade"].set(str(args["cfg"]["FADE"])) 
-        print("---",self.data["Fade"].get())
-        #self.e["bg"] = "#eee"
-        self.e.config(highlightthickness=2)
-        self.e.config(highlightcolor= "red")
-        #self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
-        self.e.bind("<Key>",self._event)
-        self.e.bind("<Button>",self._event)
-        self.e.pack(side="left")
-        self.e1 = self.e
-        
-        self.f2 = tk.Frame(self.fl) 
-        self.f2.pack(side="top",expand=1,fill="y")
-        self.data["Delay"] = tk.StringVar()
-        self.el = tk.Label(self.f2,text="Delay",anchor="w",width=8)
-        self.el.pack(side="left")
-        self.e = tk.Entry(self.f2,state="disable",textvariable=self.data["Delay"],width=12)
-        if "cfg" in args and "DELAY" in args["cfg"]:
-            self.data["Delay"].set(str(args["cfg"]["DELAY"])) 
-        #self.e["bg"] = "#eee"
-        self.e.config(highlightthickness=2)
-        self.e.config(highlightcolor= "red")
-        #self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
-        self.e.bind("<Key>",self._event)
-        self.e.bind("<Button>",self._event)
-        self.e.pack(side="left")
-        self.e2 = self.e
-        
-        self.f2 = tk.Frame(self.fl) 
-        self.f2.pack(side="top",expand=1,fill="y")
-        self.el = tk.Label(self.f2,text="Button",anchor="w",width=8)
-        self.el.pack(side="left")
-
-        self.e_txt = tk.StringVar()
-        #self.e = tk.Entry(self.f2,textvariable=self.e_txt,width=6)
-        #dialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
-        self.e = tk.OptionMenu(self.f2,self.e_txt,"FL", "SEL", "GO","ON") #,width=6)
-        self.data["Button"] = self.e_txt
-        self.e["width"] = 9
-        #self.e["bg"] = "#eee"
-        self.e.config(highlightthickness=2)
-        self.e.config(highlightcolor= "red")
-        #self.e_txt.set(str(initialvalue)+"<")
-        self.e_txt.set(str(""))
-        #self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
-
-        ev1 = DialogEvent()
-        ev1.e = self.e
-        ev1.master = self
-        ev1.e_txt = self.data["Button"]
-        
-        self.e.bind("<Key>",ev1._event)
-        self.e.bind("<Button>",ev1._event)
-        self.e.pack(side="left")
-        if "button" in args and type(args["button"]) is str:
-            self.e_txt.set(args["button"]) # default value
-        self.e3 = self.e
-        del self.e_txt
-        del ev1
-
-
-
-        self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-
-        self.f2 = tk.Frame(self.f) 
-        self.f2.pack(side="top",expand=1,fill="y")
-        self.data["Label"] = tk.StringVar()
-        self.el = tk.Label(self.f2,text="Label",anchor="w",width=8)
-        self.el.pack(side="left")
-        self.e = tk.Entry(self.f2,textvariable=self.data["Label"],width=12) #,command=ev._event)
-        if "label" in args and type(args["label"]) is str:
-            self.data["Label"].set(args["label"]) 
-
-        #self.e["bg"] = "#eee"
-        self.e.config(highlightthickness=2)
-        self.e.config(highlightcolor= "red")
-        self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
-        
-        ev = DialogEvent()
-        ev.e = self.e
-        ev.master = self
-        ev.e_txt = self.data["Label"]
-
-
-        self.e.bind("<Key>",ev._event)
-        self.e.bind("<Button>",ev._event)
-        self.e.pack(side="left")
-        self.e1 = self.e
-        del ev
-        # ---------------------- frame bottom [ok,cancel]
-
-        self.fu = tk.Frame(self.tk,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fu.pack(side="top")
-        self.fu["bg"] = "lightgrey"##eee"
-        # --- Spacer ---- OK,Cancle
-        self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-        self.elx = tk.Label(self.f,text="")
-        self.elx["bg"] = bg
-        self.elx.pack(side="left")
-
-        self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-
-        self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
-        self.b.config(padx=1)
-        #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
-        self.b.pack(side="left")
-
-        self.fxx = tk.Frame(self.f,width=20) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fxx.pack(side="left")
-
-        self.b = tk.Button(self.f,bg="lightgrey", text="Cancel",width=10,command=self.close)
-        self.b.config(padx=1)
-        self.b.pack(side="left")
-
-        self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-        self.elx = tk.Label(self.f,text="")
-        self.elx["bg"] = bg
-        self.elx.pack(side="left")
-
-        self.e.focus()
-        #time.sleep(3)
-        self.tk.deiconify()
-    def askstring_new(self,title="title",prompt="prompt:",initialvalue=""):
-        self.data = {}
-        self._exit = None
-        try:
-            self.close()
-        except Exception as e:print(e)
-        #try:
-        #    #self.tk.quit()
-        #    print(dir(self.tk))
-        #    self.close()
-        #except Exception as e:print(e)
-
-        #self.tk = tkinter.Tk()
-        self.tk = tkinter.Toplevel()
-        #self.tk.withdraw() # do not draw
-        self.tk.iconify()
-        c = prompt.count("\n") * 15
-        self.tk.geometry("200x{}".format(120+c))
-        self.tk.title(""+str(title) )#+" "+":"+str(rnd_id))
-        self.tk.attributes('-topmost',True)
-        self.tk.protocol("WM_DELETE_WINDOW", self.close)
-        self.tk.resizable(0,0)
-        bg = "#e0e"
-        bg = "#aaa"
-        self.tk["bg"] = bg
-        #self.tk.overrideredirect(1)
-        #self.tk.attributes('-toolwindow', True)
-        #self.tk.state(newstate='iconic')
-
-        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-        self.elx = tk.Label(self.f,text="")
-        self.elx["bg"] = bg
-        self.elx.pack(side="left")
-
-        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-
-        self.el = tk.Label(self.f,text=prompt,anchor="w")
-        self.el["bg"] = bg
-        self.el.pack(side="left")
-        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-        self.e_txt = tk.StringVar()
-        self.data["Value"] = self.e_txt
-        #self.e = tk.Entry(self.f,state="readonly",textvariable=self.e_txt)
-        self.e = tk.Entry(self.f,textvariable=self.e_txt)
-        #self.e = tk.Button(self.f,textvariable=self.e_txt,relief="sunken",width=20)
-        self.e["bg"] = "#fff"
-        self.e.config(highlightthickness=2)
-        self.e.config(highlightcolor= "red")
-        #self.e_txt.set(str(initialvalue)+"<")
-        self.e_txt.set(str(initialvalue))
-        self.e.icursor(999)
-        self.e.selection_range(0, 999)#"end")
-        
-        self.e.bind("<Key>",self.event)
-        self.e.bind("<Button>",self.event)
-        self.e.pack(side="top")
-
-        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-        self.elx = tk.Label(self.f,text="")
-        self.elx["bg"] = bg
-        self.elx.pack(side="left")
-
-        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-
-        self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
-        self.b.config(padx=1)
-        #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
-        self.b.pack(side="left")
-
-        self.b = tk.Button(self.f,bg="lightgrey", text="Cancel",width=10,command=self.close)
-        self.b.config(padx=1)
-        self.b.pack(side="left")
-
-        self.f = tk.Frame(self.tk) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
-        self.elx = tk.Label(self.f,text="")
-        self.elx["bg"] = bg
-        self.elx.pack(side="left")
-
-        self.e.focus()
-        #time.sleep(3)
-        self.tk.deiconify()
-
- 
-dialog = Dialog()
 
 import lib.zchat as chat
 import lib.motion as motion
@@ -2384,20 +1915,6 @@ class Base():
 
         return 1
 
-class Event():
-    def __init__(self,name):
-        self.name=name
-        #print("init",self)
-    def event(self,event):
-        print(self.name,event)
-        
-class scroll():
-    def __init__(self,canvas):
-        self.canvas=canvas
-    def config(self,event):
-        canvas = self.canvas
-        canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
-
 
 def hex_to_rgb(hex):
   return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) 
@@ -2424,186 +1941,13 @@ class cb():
         print( hex_to_rgb(color[1:]))
 
 
-class MiniButton:
-    def __init__(self,root,width=72,height=38,text="button"):
-        self.text=text
-        self.rb = tk.Frame(root, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
-        self.bb.configure(width=width, height=height)
-        self.fg = "#002"
-        self.label = []
-        self.bind("<Enter>", self.on_enter)
-        self.bind("<Leave>", self.on_leave)
-
-        # !! BLOCK's other bindings like GO
-        #self.bind("<Button-1>", self.on_b1)
-        #self.bind("<ButtonPress>", self.on_press)
-        #self.bind("<ButtonRelease>", self.on_release)
-        #self.bind("<ButtonRelease-1>", self.on_release)
-
-        self.activebackground="lightgrey"
-        self.defaultBackground="grey"
-
-    def on_b1(self, e):
-        print("on_b1",e)
-        #self.bb.config(background=self.activebackground)
-        self.bb.config(relief=tk.SUNKEN)#abackground=self.activebackground)
-        return 1
-    def on_press(self, e):
-        print("on_press",e)
-        #self.bb.config(background=self.activebackground)
-        self.bb.config(relief=tk.SUNKEN)#abackground=self.activebackground)
-        return 1
-    def on_release(self, e):
-        print("on_release",e)
-        #self.bb.config(background=self.activebackground)
-        self.bb.config(relief=tk.RAISED)#abackground=self.activebackground)
-        return 1
-    def on_enter(self, e):
-        #print("on_enter",e)
-        #self.bb.config(background=self.activebackground)
-        self.bb.config(relief=tk.FLAT)#abackground=self.activebackground)
-        return 1
-
-    def on_leave(self, e):
-        #print("on_leave",e)
-        self.bb.config(background=self.defaultBackground)
-        self.bb.config(relief=tk.RAISED)#abackground=self.activebackground)
-        return 1
-
-    def _label(self,text="1\n2\n3\n"):
-        z = 0
-        self.bb.delete("label")
-        self.label = []
-        for t in text.split("\n"):
-            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
-            #self.l["color"] = self.fg
-            self.label.append(self.l)
-            
-            z+=1
-    def _configure(self,**args):
-        if "text" in args:
-            self.text = args["text"]
-            self._label(self.text)
-        if "bg" in args:
-            #print(dir(self.bb))
-            self.bb.configure(bg=args["bg"])
-            self.defaultBackground=args["bg"]
-        if "fg" in args:
-            #print(dir(self.bb))
-            self.fg=args["fg"]
-            #if len(self.label):
-            #    self.label[0].configure(color="red") #args["fg"])
-            #self.defaultBackground=args["fg"]
-    def configure(self,**args):
-        self._configure(**args)
-    def config(self,**args):
-        self._configure(**args)
-    def bind(self,etype="<Button>",cb=None):
-        #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
-        if cb:
-            self.bb.bind(etype,cb)
-    def grid(self,row=0, column=0, sticky=""):
-        self.bb.pack() #(row=row, column=column, sticky=sticky)
-        self.rb.grid(row=row, column=column, sticky=sticky)
-        
-class ExecButton(MiniButton):
-    def __init__(self,root,width=72,height=38,text="button"):
-        super().__init__(root,width,height,text)
-        self.text = "1\n2\n3\n"
-        self.x9font = tk.font.Font(family="FreeSans", size=9, weight="bold")
-        self.x8font = tk.font.Font(family="FreeSans", size=8, weight="bold")
-        self.x7font = tk.font.Font(family="FreeSans", size=7, weight="bold")
-        self.x6font = tk.font.Font(family="FreeSans", size=6, weight="bold")
-        self.x5font = tk.font.Font(family="FreeSans", size=5, weight="bold")
-    def config(self,**args):
-        self._configure(**args)
-        self._label()
-    def configure(self,**args):
-        self._configure(**args)
-        self._label()
-    def _label(self,text=None):
-        if type(text) is str:
-            self.text = text
-        else:
-            text = self.text
-        self.bb.delete("label")
-        txt2 = text
-        try:
-            text = text.split("\n")[1]
-        except:pass
-        if "grün" in text.lower() or "green" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="green",tag="label")
-        elif "blau" in text.lower() or "blue" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="blue",tag="label")
-        elif "rot" in text.lower() or "red" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="red",tag="label")
-        elif "orange" in text.lower():# or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="orange",tag="label")
-        elif "weiß" in text.lower() or "white" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="white",tag="label")
-        elif "cyan" in text.lower():# or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="cyan",tag="label")
-        elif "gelb" in text.lower() or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="yellow",tag="label")
-        elif "mage" in text.lower() or "mage" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="magenta",tag="label")
-
-        if "nebel" in text.lower()  or "smoke" in text.lower() or "haze" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,60,37,fill="white",tag="label")
-        if "mh " in text.lower() or " mh" in text.lower() :
-            self.l = self.bb.create_rectangle(30,27,35,32,fill="black",tag="label")
-            self.l = self.bb.create_rectangle(28,34,37,37,fill="black",tag="label")
-        if "off" in text.lower(): 
-            self.l = self.bb.create_rectangle(50,30,55,35,fill="black",tag="label")
-        if "dim" in text.lower() or "front" in text.lower()  or "on" in text.lower(): 
-            #self.l = self.bb.create_line(56,30,60,28,fill="black",tag="label")
-            self.l = self.bb.create_rectangle(50,30,55,35,fill="white",tag="label")
-            #self.l = self.bb.create_line(56,36,58,36,fill="black",tag="label")
-        if "circle" in text.lower(): 
-            self.l = self.bb.create_oval(30,27,40,37,fill="",tag="label")
-        if "pan" in text.lower(): 
-            self.l = self.bb.create_line(20,34 ,45,34,fill="black",arrow=tk.BOTH,tag="label")
-        if "tilt" in text.lower(): 
-            self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag="label")
-
-        text = txt2
-        z = 0
-        for t in text.split("\n"):
-            ts = 10
-            _max = 7
-            if z==1 and len(t) >= _max:
-                ts = int(10 - (len(t)-_max)/1.5)
-                if ts < 5:
-                    ts = 5
-                xfont = self.x9font
-                if 1:
-                    if ts == 9:
-                        xfont = self.x9font
-                    elif ts == 8:
-                        xfont = self.x8font
-                    elif ts == 7:
-                        xfont = self.x7font
-                    elif ts == 6:
-                        xfont = self.x7font
-                    elif ts == 5:
-                        xfont = self.x7font
-
-                
-                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
-                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
-            else:
-                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
-            z+=1
-
-
 class Elem_Container():
     def __init__(self):
         self.commands = []
         self.val = {}
         self.elem = {}
 
-class GUI():
+class MASTER():
     def __init__(self):
         #super().__init__() 
         self.base = Base ()
@@ -3051,649 +2395,99 @@ class GUI():
         
 
 
-def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
-    i=0
-    if frame is None:
-        frame = tk.Frame(root,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-
-    if fix not in gui.elem_attr:
-        gui.elem_attr[fix] = {}
-        
-    for attr in data["ATTRIBUT"]:
-        
-        if attr not in gui.all_attr:
-            gui.all_attr.append(attr)
-        if attr not in gui.elem_attr[fix]:
-            gui.elem_attr[fix][attr] = []
-        if attr.endswith("-FINE"):
-            continue
-        v= data["ATTRIBUT"][attr]["VALUE"]
-        b = tk.Button(frame,bg="lightblue", text=""+str(fix),width=3,anchor="w")
-        b.config(padx=1)
-        b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
-        b.config(padx=1)
-        b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        b = tk.Button(frame,bg="grey", text=str(round(v,2)),width=10,anchor="w")
-        b.config(padx=1)
-        gui.elem_attr[fix][attr] = b
-        b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        if c >=12:
-            c=0
-            r+=1
-    return c,r
+##draw_sub_dim
 
 
 
+class InputEventBlocker():
+    def __init__(self):
+        self.__init = 0
+        self.cursor = "88888"
 
-class _SET_PATCH():
-    def __init__(self,k,v,fix,data,_cb=None):
-        self._cb = _cb
-        self.v = v
-        self.button = None
-        self.k = k
-        self.fix = fix
-        self.data = data
-    def attr(self,_event=None):
-        k = self.k
-        data = self.data
-        fix = self.fix
-        txt = "k={} v={}".format(self.k,self.v)
-        print(txt)
-        print( "fix", self.fix )
-        print( "row data",self.data)
-        val = ""
-        if k in self.data:
-            val = self.data[k]
-        #txt = dialog.askstring("SET","SET: {}={}".format(self.k,self.v),initialvalue=val)
-        def _cb(data):
-            txt = data["Value"]
-            print("_SET.attr",txt)
-            v = txt
-            if v is not None:
-                err = 1
-                if k in self.data:
-                    if k == "NAME":
-                        self.data[k] = v
-                        err = 0
-                    if k == "DMX":
-                        v = int(v)
-                        if v <= 512 and v >= 0:
-                            self.data[k] = v
-                            err = 0
-                    if k == "UNIVERS":
-                        v = int(v)
-                        if v > 15:
-                            v=15
-                        if v < 0:
-                            v=0
-                        self.data[k] = v
-                        err = 0
+    def set(self,el,txt):
+        self.e = el
+        self.e_txt = txt
+        self.cursor = "88888"
 
-                if self.button:
+    def init(self):
+        if self.__init == 0:
+            try:
+                self.el = tk.Button()
+                self.e_txt = tk.StringVar()
+                self.__init = 1
+            except Exception as e:
+                pirnt("init() exception",e)
+    def _lock(self):
+        global _global_short_key
+        _global_short_key = 0
+        master.commands.elem["S-KEY"]["bg"] = "red"
 
-                    if err:
-                        self.button["bg"] = "red"
+    def _unlock(self):
+        global _global_short_key
+        _global_short_key = 1
+        master.commands.elem["S-KEY"]["bg"] = "green"
+
+    def lock(self):
+        self._lock()
+        #self.e["bg"] = "red"
+        #self.el.config({"background": "grey"})
+        #self.e.focus()
+
+    def unlock(self):
+        self._unlock()
+        #self.e["bg"] = "blue"
+        #self.el.config({"background": "yellow"})
+        #self.el.focus_set()
+
+    def event(self,event,**args):
+        self.init()
+        #print()
+        print(self,event,args)
+        #print("###-",self.e_txt,dir(self.e_txt))
+        if "S-KEY" not in master.commands.elem:
+            return 
+        if "num" in dir(event):
+            self.lock()
+        if "keysym" in dir(event):
+            t=self.e_txt.get()
+            if t and t[-1] == "<":
+                t = t[:-1]
+            if event.keysym == "Return" or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
+                self.unlock() 
+                #self.e_txt.set(t)
+            print("filter: get()",_global_short_key,t)
+            t2 = t
+            if _global_short_key == 0:
+                if event.keysym == "BackSpace":
+                    if len(t) > 1:
+                        t2 = t[:-1]
                     else:
-                        self.button["bg"] = "#fff"
-                        self.button["text"] = "{}".format(v)
-                        if self._cb:
-                            self._cb()
-            print( "row data",self.data)
-
-        dialog._cb = _cb
-        dialog.askstring("SET","SET: {}={}".format(self.k,self.v),initialvalue=val)
-
-    def set_button(self,button):
-        self.button = button 
-
-
-class GUI_PATCH():
-    def __init__(self,gui,yframe):
-        self.gui = gui
-        self.yframe = yframe
-    def draw(self): #,gui,yframe):
-        gui = self.gui
-        yframe = self.yframe
-
-        #print(dir(yframe))
-        #yframe.clear()
-        for widget in yframe.winfo_children():
-            widget.destroy()
-
-        xframe = tk.Frame(yframe,bg="black")
-        xframe.pack()
-        def yview(event):
-            print("yevent",event)
-            yyy=20.1
-            xframe.yview_moveto(yyy)
-
-        i=0
-        c=0
-        r=0
-        def head(i,c,r):
-            b = tk.Button(xframe,bg="grey", text="Z:{} ID".format(z+1),width=6,anchor="e")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="grey", text="NAME",width=14,anchor="w")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            rgb  = "#aaa"
-            b = tk.Button(xframe,bg=rgb, text="TYPE",width=3)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="Uni",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="CH's",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="from - to",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX-SUM",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="TEST",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX Collision!",width=12)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-
-            c=0
-            r+=1
-            return i,c,r
-        #i,c,r = head(i,c,r)
-        dmx_ch_sum = 0
-        dmx_collision = {}
-
-        for fix in FIXTURES.fixtures:
-            data = FIXTURES.fixtures[fix]
-
-            max_dmx = FIXTURES.get_max_dmx_nr(fix) 
+                        t2=""
+                elif event.keysym == "Escape":
+                    t2=""
+                elif event.keysym == "space":
+                    t2=t+" "
+                elif event.char in "äöüÄÖÜ-_,.;:#'*+~":
+                    t2=t+event.char
+                elif len(event.keysym) == 1:
+                    t2=t+event.keysym
             
-            for i in range(data["DMX"],data["DMX"]+max_dmx[1]):
-                k = "{}.{}".format(data["UNIVERS"],i)
-                if k in dmx_collision:
-                    dmx_collision[k] += 1
-                else:
-                    dmx_collision[k] = 0
-        z=0
-        for fix in FIXTURES.fixtures:
-            if z % 20 == 0:
-                i,c,r = head(i,c,r)
-            z+=1
-            collision = []
-            i+=1
-            data = FIXTURES.fixtures[fix]
-                            
-            b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
+                #self.e_txt.set(t2+"<")
+        #time.sleep(0.2)
+        #_global_short_key = 1
 
-            command = _SET_PATCH("NAME",data["NAME"],fix,data)
-            b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w",command=command.attr)
-            command.set_button(b)
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            if len(data["ATTRIBUT"]) == 1:
-                b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
-            elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
-                b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
-            else:
-                b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
-            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
-            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            #r+=1
+input_event_blocker = InputEventBlocker()
 
-            start_c=3
-            c=start_c
-            if fix not in gui.elem_attr:
-                gui.elem_attr[fix] = {}
-                
-            patch = ["UNIVERS","DMX"]
-            for k in patch:
-                v=data[k]
-                #b = tk.Button(xframe,bg="grey", text=str(k)+' '+str(v),width=8)
+from tkgui.dialog import *
+dialog = Dialog()
 
-                command = _SET_PATCH(k,v,fix,data) #,_cb=highlight2(fix) ) #,_cb=self.draw)
-                b = tk.Button(xframe,bg="grey", text=str(v),width=2,command=command.attr)
-                command.set_button(b)
-                
-
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                if c >=8:
-                    c=start_c
-                    r+=1
-
-            max_dmx = FIXTURES.get_max_dmx_nr(fix) 
+from tkgui.draw import *
             
-            dmx_ch_sum += max_dmx[1]
-            for i in range(data["DMX"],data["DMX"]+max_dmx[1]):
-                k = "{}.{}".format(data["UNIVERS"],i)
-                if k in dmx_collision:
-                    if dmx_collision[k]:
-                        collision.append(k)
-
-            b = tk.Button(xframe,bg="grey", text="{:3} ({})".format(max_dmx[1] , max_dmx[0]),width=4) #a,anchor="w")
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            #b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
-            b = tk.Button(xframe,bg="#aaa", text="{:03} - {:03}".format(data["DMX"],max_dmx[1]+(data["DMX"]-1)),width=8,anchor="w")
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-
-            c+=1
-            b = tk.Button(xframe,bg="#aaa",fg="#225", text="{} : {:03}".format(z,dmx_ch_sum),width=6,anchor="w")
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-
-
-
-            c+=1
-            def x(fix):
-                def xx():
-                    print("TEST",fix)
-                    if fix in FIXTURES.fixtures:
-                        data = FIXTURES.fixtures[fix]
-                        # print(data)
-                        highlight(fix)
-                return xx
-
-            #print(fix)
-            b = tk.Button(xframe,bg="#aaa",fg="#225", text="TEST",width=4,anchor="w",command=x(fix))
-            myTip = Hovertip(b,'BLINK DIMMER')
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            #b.command = x
-            #exit()
-
-            c+=1
-            bg = "#252"
-            if collision:
-                bg = "#f22"
-            else: 
-                collision = ""
-            b = tk.Button(xframe,bg=bg, text="{}".format(",".join(collision)),width=14,anchor="w")
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-
-            c=0
-            r+=1
 
            
+from tkgui.GUI import *
 
-class GUI_FIX():
-    def __init__(self,gui,xframe,yframe=None):
-        self.gui = gui
-        self.xframe = xframe
-        self.yframe = yframe
-    def draw(self):
-        gui=self.gui
-        xframe=self.xframe
-        yframe=self.yframe
-
-        r=0
-        c=0
-        frame_dim=xframe
-        if yframe:
-            frame_dim=yframe
-            for widget in yframe.winfo_children():
-                widget.destroy()
-        frame_fix=xframe
-        for widget in xframe.winfo_children():
-            widget.destroy()
-
-
-        root = frame_dim
-        dim_frame = tk.Frame(root,bg="black")
-        dim_frame.pack(fill=tk.X, side=tk.TOP)
-        root = frame_fix
-        fix_frame = tk.Frame(root,bg="black")
-        fix_frame.pack(fill=tk.X, side=tk.TOP)
-        i=0
-        c=0
-        r=0
-        dim_end=0
-        for fix in FIXTURES.fixtures:
-            i+=1
-            data = FIXTURES.fixtures[fix]
-            #print("draw_fix", fix ,data )
-            
-            if(len(data["ATTRIBUT"].keys()) <= 1):
-                c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
-            else:
-                if not dim_end:
-                    dim_end=1
-                    c=0
-                    r=0
-                #gui._draw_fix(fix,data,root=fix_frame)
-                frame = fix_frame
-            
-                b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
-                b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
-                b.bind("<Button>",Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                #r+=1
-                start_c=3
-                c=start_c
-                if fix not in gui.elem_attr:
-                    gui.elem_attr[fix] = {}
-                    
-                for attr in data["ATTRIBUT"]:
-                    
-                    if attr.endswith("-FINE"):
-                        continue
-                    if attr not in gui.all_attr:
-                        gui.all_attr.append(attr)
-                    if attr not in gui.elem_attr[fix]:
-                        gui.elem_attr[fix][attr] = ["line1348",fix,attr]
-                    v= data["ATTRIBUT"][attr]["VALUE"]
-                    
-                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
-                    gui.elem_attr[fix][attr] = b
-                    b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E,ipadx=0,ipady=0,padx=0,pady=0)
-                    c+=1
-                    if c >=8:
-                        c=start_c
-                        r+=1
-                c=0
-                r+=1
-                
-
-        #master._refresh_exec()
-        #master.refresh_exec()
-
-
-def draw_enc(gui,xframe):
-
-    for widget in xframe.winfo_children():
-        widget.destroy()
-
-    root2 = xframe
-    i=0
-    c=0
-    r=0
-    
-    frame = tk.Frame(xframe,bg="black")
-    frame.pack( side=tk.LEFT,expand=0,fill="both")
-
-    
-    b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    #for attr in ["xx"]*23: # gui.all_attr:
-    eat = gui.all_attr
-
-    if len(eat) < 23:
-        for i in range(23-len(eat)):
-            eat.append("")
-    for attr in eat:
-        if attr.endswith("-FINE"):
-            continue
-        v=0
-        
-        b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=7)#, anchor="w")
-        if attr == "DIM":
-            b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=7)#, anchor="w")
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER2").cb)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E ,ipadx=0,ipady=0,padx=0,pady=0)#,expand=True)
-        c+=1
-        if c >=8:
-            c=0
-            r+=1
-
-
-def _draw_fx(frame,c,r,gui,mode="FX"):
-    ct  = gui.fx
-    prm = fx_prm
-    if mode=="FX-MOVE":
-        ct  = gui.fx_moves
-        prm = fx_prm_move
-    elif mode=="FX-GENERIC":
-        ct  = gui.fx_generic
-        prm = fx_prm #_generic
-
-    for comm in ct.commands:
-        if comm == "\n\n":
-            b = tk.Label(frame,bg="black", text="-",font=space_font)
-            b.grid(row=r, column=c,pady=0,padx=0, sticky=tk.W+tk.E)
-            c=0
-            r+=1
-            continue
-        if comm == "\n":
-            c=0
-            r+=1
-            continue
-        v=0
-        if "PAN/TILT" in comm: 
-            b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
-        else:
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        if comm not in ct.elem:
-            #comm = comm.replace("\n","")
-            ct.elem[comm] = b
-            ct.val[comm] = 0
-        b.bind("<Button>",Xevent_fx(fix=0,elem=b,attr=comm,data=gui,mode=mode).cb)
-        if comm == "REC-FX":
-            b["bg"] = "grey"
-        elif comm == "FX OFF":
-            b["bg"] = "magenta"
-        elif comm[:3] == "FX:":
-            b["text"] = comm
-            b["bg"] = "#ffbf00"
-        elif comm[:3] == "MO:":
-            b["text"] = comm 
-            b["bg"] = "lightgreen"
-        elif comm.startswith( "SIZE:"):
-            b["text"] = "SIZE:\n{:0.0f}".format(prm["SIZE"])
-            b["bg"] = "lightgreen"
-        elif comm.startswith( "SPEED:"):
-            b["text"] = "SPEED:\n{:0.0f}".format(prm["SPEED"])
-            b["bg"] = "lightgreen"
-        elif comm.startswith("START:"):
-            b["bg"] = "lightgreen"
-            b["text"] = "START:\n{:0.0f}".format(prm["START"])
-        elif comm.startswith( "OFFSET:"):
-            b["bg"] = "lightgreen"
-            b["text"] = "OFFSET:\n{:0.0f}".format(prm["OFFSET"])
-        elif comm[:3] == "BASE:":
-            b["bg"] = "lightgreen"
-            b["text"] = "BASE:\n{}".format(prm["BASE"])
-        elif comm[0] == "M":
-            b["text"] = comm 
-            b["bg"] = "lightgrey"
-
-        if comm:
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        if c >=6:
-            c=0
-            r+=1
-    return c,r
-
-
-
-def draw_fx(gui,xframe):
-    frame_fx=xframe
-    i=0
-    c=0
-    r=0
-    
-    frame = tk.Frame(frame_fx,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-   
-    b = tk.Button(frame,bg="lightblue", text="FX.",width=6)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-
-    c,r = _draw_fx(frame,c,r,gui,mode="FX-MOVE")
-    r+=1
-
-    b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    r+=1
-    c=0
-
-    c,r = _draw_fx(frame,c,r,gui,mode="FX")
-
-    b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    r+=1
-    c=0
-
-    c,r = _draw_fx(frame,c,r,gui,mode="FX-GENERIC")
-
-
-def draw_setup(gui,xframe):
-    frame_cmd=xframe
-    i=0
-    c=0
-    r=0
-    
-    frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-   
-    #b = tk.Button(frame,bg="lightblue", text="SETUP",width=6)
-    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-    
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #r+=1
-    c+=1
-    for comm in ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]:
-        if comm == "\n":
-            c=0
-            r+=1
-            continue
-        v=0
-        
-        if comm == "SAVE\nSHOW":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
-        elif comm == "LOAD\nSHOW":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
-        elif comm == "SAVE\nSHOW AS":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        elif comm == "SAVE &\nRESTART":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        elif comm == "DRAW\nGUI":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        else:
-            b = tk.Button(frame,bg="grey", text=str(comm),width=5,height=2)
-
-        if comm not in gui.commands.elem:
-            gui.commands.elem[comm] = b
-            gui.commands.val[comm] = 0
-
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
-
-        if comm == "BASE:":
-            b["text"] = "BASE:{}".format(prm["BASE"])
-        if comm:
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        if c >=7:
-            c=0
-            r+=1
-
-def _loop_clock(b):
-    xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
-    xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
-    while 1:
-        #b["text"] = 
-        d = time.strftime("%Y-%m-%d")
-        s = time.strftime("%X")
-        b.delete("all")
-        b.create_text(170,41,text=s,fill="#aa0" ,font=xfont)
-        b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1)
-    
-        time.sleep(1)
-        #exit()
-
-def draw_clock(gui,xframe):
-    frame_cmd=xframe
-    
-    frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-    comm = "xx"
-    
-    xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
-    b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
-
-    #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
-    #b.config(activebackground="lightgreen")
-    #b.config(background="lightgreen")
-    b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
-    #b["text"] = time.strftime("%Y-%m-%d %X")
-    thread.start_new_thread(_loop_clock,(b,))
-
-
-
-
-def draw_live(gui,xframe):
-    frame_cmd=xframe
-    i=0
-    c=0
-    r=0
-    
-    frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-   
-    c+=1
-    for comm in ["FADE","DELAY","PAN/TILT\nFADE","PAN/TILT\nDELAY"]:
-        if comm == "\n":
-            c=0
-            r+=1
-            continue
-        v=0
-        
-        b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        if comm not in gui.commands.elem:
-            gui.commands.elem[comm] = b
-            gui.commands.val[comm] = 0
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="LIVE").cb)
-
-        if "FADE" == comm:
-            b["text"] = "FADE:\n{:0.2}".format(FADE.val())
-        if "DELAY" == comm:
-            b["text"] = "DELAY:\n{:0.2}".format(DELAY.val())
-        if "PAN/TILT\nFADE" == comm:
-            b["text"] = "PAN/TILT\nFADE:{:0.2}".format(FADE_move.val())
-
-        if "FADE" in comm:
-            b["bg"] = "green"
-            b.config(activebackground="lightgreen")
-        if comm:
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        if c >=5:
-            c=0
-            r+=1
+#draw_enc
 
 class LOAD_FIXTURE():
     def __init__(self,name="",master=None):
@@ -3740,7 +2534,7 @@ class PopupList():
         self.cb = cb
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")
-        w = GUIWindow(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
+        w = Window(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
         self.w = w
         w.show()
     def sframe(self,line1="<line1>",line2="<line2>",data=[]):
@@ -3890,531 +2684,11 @@ def _load_fixture_list(frame,cb=None,master=None,bg="black"):
             c+=1
         r+=1
 
-def draw_command(gui,xframe):
-    frame_cmd=xframe
-    i=0
-    c=0
-    r=0
-    
-    frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-   
-    # b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
-    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #r+=1
-    c+=1
-    for comm in gui.commands.commands:
-        if comm == "\n":
-            c=0
-            r+=1
-            continue
-        v=0
-        
-        b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        if comm not in gui.commands.elem:
-            gui.commands.elem[comm] = b
-            gui.commands.val[comm] = 0
-        if comm == "BLIND":
-            b["bg"] = "grey"
-            myTip = Hovertip(b,'BLIND MODE\nNO CHANGE on DMX-OUTPUT')
-        if comm == "CLEAR":
-            b["bg"] = "grey"
-            myTip = Hovertip(b,'CLEAR ALL SELECTED\nFIXTURES ATTRIBUTES')
-        if comm == "REC-FX":
-            b["bg"] = "grey"
-            myTip = Hovertip(b,'RECORD ONLY FX\nINTO EXEC')
-        if comm == "FADE":
-            b["bg"] = "green"
-            myTip = Hovertip(b,'adjust fade time')
-        if comm == "S-KEY":
-            b["bg"] = "green"
-            myTip = Hovertip(b,'keyboard short-key\non or  off')
-        if comm == "FX OFF":
-            b["bg"] = "magenta"
-        if comm == "SIZE:":
-            b["text"] = "SIZE:{:0.0f}".format(fx_prm["SIZE"])
-        if comm == "SPEED:":
-            b["text"] = "SPEED:{:0.0f}".format(fx_prm["SPEED"])
-        if comm == "DELAY":
-            b["text"] = "FADE:\n{:0.02f}".format(DELAY.val())
-        if comm == "FADE":
-            b["text"] = "FADE:\n{:0.02f}".format(FADE.val())
-        if comm == "START:":
-            b["text"] = "START:{:0.0f}".format(fx_prm["START"])
-        if comm == "OFFSET:":
-            b["text"] = "OFFSET:{:0.0f}".format(fx_prm["OFFSET"])
-        if comm == "FX-X:":
-            b["text"] = "FX-X:{}".format(fx_prm["FX-X"])
-        if comm == "BASE:":
-            b["text"] = "BASE:{}".format(fx_prm["BASE"])
-
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="COMMAND").cb)
-        if comm:
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        if c >=8:
-            c=0
-            r+=1
 
 
-def draw_exec(gui,xframe):
-    draw_preset(gui,xframe)
 
 
-def draw_preset(gui,xframe):
 
-    i=0
-    c=0
-    r=0
-    root = xframe
-    
-    frame = tk.Frame(root,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-   
-    i=0
-    for k in PRESETS.val_presets:
-        if i%(10*8)==0 or i ==0:
-            c=0
-            #b = tk.Label(frame,bg="black", text="" )
-            b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            r+=1
-            c=0
-            b = tk.Button(frame,bg="lightblue", text="EXEC " )
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(frame,bg="lightblue", text="BANK " + str(int(i/(8*8))+1) )
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(frame,bg="lightblue", text="NAME"  )
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            r+=1
-            c=0
-        i+=1
-        v=0
-        label = ""
-        #if k in PRESETS.label_presets:
-        #    label = PRESETS.label_presets[k]
-        #    #print([label])
-
-        sdata=PRESETS.val_presets[k]
-        BTN="go"
-        if "CFG" in sdata:#["BUTTON"] = "GO"
-            if "BUTTON" in sdata["CFG"]:
-                BTN = sdata["CFG"]["BUTTON"]
-
-
-        #bb = tk.Frame(frame, highlightbackground = "red", highlightthickness = 1, bd=0)
-        #bb = tk.Canvas(frame, highlightbackground = "black", highlightthickness = 1, bd=1)
-        #bb.configure(width=70, height=38)
-        txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
-
-        b = ExecButton(frame,text=txt)
-
-        #b = tk.Button(bb,bg="grey", text=txt,width=7,height=2)
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
-        b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
-        
-        if k not in gui.elem_presets:
-            gui.elem_presets[k] = b
-        #b.pack(expand=1)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-        if c >=10:
-            c=0
-            r+=1
-    time.sleep(0.1)
-    gui._refresh_exec()
-    gui.refresh_exec()
-    gui.refresh_exec()
-
-
-def draw_input(gui):
-    i=0
-    c=0
-    r=0
-    frame = tk.Frame(root2,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-
-    b = tk.Label(frame,bg="black", text="------------------------ ---------------------------------------")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    r=0
-    
-    frame = tk.Frame(root2,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-    
-    b = tk.Label(frame, text="send:")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Entry(frame,bg="grey", text="",width=50)
-    gui.entry = b
-    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
-    r+=1
-    b = tk.Entry(frame,bg="grey", text="",width=20)
-    gui.entry2 = b
-    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
-    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b.insert("end","d1:0:4")
-    r+=1
-    b = tk.Entry(frame,bg="grey", text="",width=20)
-    gui.entry3 = b
-    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    #b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b.insert("end","fx:alloff:::")
-
-
-def draw_colorpicker(gui,xframe):
-    import lib.colorpicker as colp
-
-    class _CB():
-        def __init__(gui):
-            gui.old_color = (0,0,0)
-        def cb(gui,event,data):
-            print("CB.cb",gui,event,data)
-            cprint("colorpicker CB")
-            if "color" not in data:
-                return 0
-            if gui.old_color == data["color"]:
-                pass #return 0
-            
-            #gui.old_color = data["color"]
-            color = data["color"]
-            
-            print("e",event,data)
-            print("e",dir(event))#.keys())
-            try:
-                print("e.state",event.state)
-            except:pass
-            set_fade = FADE.val() #fade
-
-            event_ok = 0
-            event_num = 0
-            event_state = 0
-            if event is None:
-                event_ok = 1
-                event_num = 3
-            elif event.num == 1:
-                event_ok = 1
-                event_num = event.num 
-            elif event.num == 3:
-                event_ok = 1
-                event_num = event.num 
-            elif event.num==2:
-                event_ok = 1
-                event_num = event.num 
-            elif event.state in [256,1024]:
-                event_ok = 1
-                event_state = event.state
-
-
-            if "color" in data and event_ok:
-                cr=None
-                cg=None
-                cb=None
-                cw=0
-                ca=0
-                set_fade=0
-
-                if event_num == 1: 
-                    if FADE._is():
-                        set_fade=FADE.val() #fade
-                    cr = color[0]
-                    cg = color[1]
-                    cb = color[2]
-                elif event_num == 3: 
-                    cr = color[0]
-                    cg = color[1]
-                    cb = color[2]
-                elif event_num == 2: 
-                    cr= "click"
-                    cg= "click"
-                    cb= "click"
-                    cw= "click"
-                    ca= "click"
-                elif event_state == 256:
-                    cr = color[0]
-                    cg = color[1]
-                    cb = color[2]
-
-
-                if cr is not None:
-                    FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade)
-                if cg is not None:
-                    FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade)
-                if cb is not None:
-                    FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade)
-                FIXTURES.encoder(fix=0,attr="WHITE",xval=cw,xfade=set_fade)
-                FIXTURES.encoder(fix=0,attr="AMBER",xval=ca,xfade=set_fade)
-                master.refresh_fix()
-                 
-                print("PICK COLOR:",data["color"])
-    _cb=_CB()
-    colp.colorpicker(xframe,width=580,height=113, xcb=_cb.cb)
-    return 0
-
-    canvas=tk.Canvas(xframe,width=600,height=113)
-    canvas["bg"] = "yellow" #"green"
-    canvas.pack()
-    # RGB
-    x=0
-    y=0
-    j=0
-    d = 20
-    for i in range(0,d+1):
-        fi = int(i*255/d)
-        f = 255-fi
-        if i > d/2: 
-            pass#break
-        color = '#%02x%02x%02x' % (f, fi, fi)
-        print( "farbe", i*10, j, f,fi,fi,color)
-        r = canvas.create_rectangle(x, y, x+20, y+20, fill=color)
-        x+=20
-        
-class InputEventBlocker():
-    def __init__(self):
-        self.__init = 0
-        self.cursor = "88888"
-
-    def set(self,el,txt):
-        self.e = el
-        self.e_txt = txt
-        self.cursor = "88888"
-
-    def init(self):
-        if self.__init == 0:
-            try:
-                self.el = tk.Button()
-                self.e_txt = tk.StringVar()
-                self.__init = 1
-            except Exception as e:
-                pirnt("init() exception",e)
-    def _lock(self):
-        global _global_short_key
-        _global_short_key = 0
-        master.commands.elem["S-KEY"]["bg"] = "red"
-
-    def _unlock(self):
-        global _global_short_key
-        _global_short_key = 1
-        master.commands.elem["S-KEY"]["bg"] = "green"
-
-    def lock(self):
-        self._lock()
-        #self.e["bg"] = "red"
-        #self.el.config({"background": "grey"})
-        #self.e.focus()
-
-    def unlock(self):
-        self._unlock()
-        #self.e["bg"] = "blue"
-        #self.el.config({"background": "yellow"})
-        #self.el.focus_set()
-
-    def event(self,event,**args):
-        self.init()
-        #print()
-        print(self,event,args)
-        #print("###-",self.e_txt,dir(self.e_txt))
-        if "S-KEY" not in master.commands.elem:
-            return 
-        if "num" in dir(event):
-            self.lock()
-        if "keysym" in dir(event):
-            t=self.e_txt.get()
-            if t and t[-1] == "<":
-                t = t[:-1]
-            if event.keysym == "Return" or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
-                self.unlock() 
-                #self.e_txt.set(t)
-            print("filter: get()",_global_short_key,t)
-            t2 = t
-            if _global_short_key == 0:
-                if event.keysym == "BackSpace":
-                    if len(t) > 1:
-                        t2 = t[:-1]
-                    else:
-                        t2=""
-                elif event.keysym == "Escape":
-                    t2=""
-                elif event.keysym == "space":
-                    t2=t+" "
-                elif event.char in "äöüÄÖÜ-_,.;:#'*+~":
-                    t2=t+event.char
-                elif len(event.keysym) == 1:
-                    t2=t+event.keysym
-            
-                #self.e_txt.set(t2+"<")
-        #time.sleep(0.2)
-        #_global_short_key = 1
-
-input_event_blocker = InputEventBlocker()
-
-class TableFrame():
-    def __init__(self,root, width=50,height=100,bd=1):
-        self.root=root
-        self.a = _TableFrame(self.root)
-        f=self.a.HFrame()
-        f=self.a.Sframe(f, width=width,height=height,bd=bd)
-        self.a.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]])
-
-        self.b = _TableFrame(self.root) #äself.root)
-        b=self.b.HFrame()
-        b=self.b.Sframe(b, width=width,height=height,bd=bd)
-        self.b.draw([["AA","1a1"],["BBB",114],["EE","22"],["RRR","RRR"],["TTZ","TTZ"],["ZZU","ZZU"]])
-
-        self.c = _TableFrame(self.root)
-        c=self.c.HFrame()
-        c=self.c.Sframe(c, width=width,height=height,bd=bd)
-        self.c.draw([["A","11"],["B",4],["E",""],["R","R"],["Z","Z"],["U","U"]][::-1])
-
-        self.bframe=None
-    def draw(self,data=[1,2],head=[],config=[]):
-        pass
-
-class _TableFrame():
-    def __init__(self,main):
-        self.main = main
-        self.frame=tk.Frame(self.main,relief=tk.GROOVE,bg="yellow")#,width=width,height=height,bd=bd)
-        self.frame.pack(side="top",fill="x",expand=1) #x=0,y=0)
-
-        self.hframe=tk.Frame(self.frame,relief=tk.GROOVE,bg="yellow")#,width=width,height=height,bd=bd)
-        self.hframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
-        
-
-        self.aframe=tk.Frame(self.main,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
-        #aframe.place(x=0,y=0)
-        self.aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
-
-        self.canvas=tk.Canvas(self.aframe,width=100-24,height=150)
-        self.canvas["bg"] = "blue" #black" #"green"
-        self.bframe=tk.Frame(self.canvas)#,width=width,height=height)
-        self.bframe["bg"] = "blue"
-        self.scrollbar=tk.Scrollbar(self.aframe,orient="vertical",command=self.canvas.yview,width=20)
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        self.scrollbar.pack(side="right",fill="y")
-        self.canvas.pack(side="left",expand=1,fill="both")
-        self.canvas.create_window((0,0),window=self.bframe,anchor='nw')
-        self.bframe.bind("<Configure>",scroll(self.canvas).config)
-        self.canvas.bind("<Button>",Event("XXX").event)
-        self.canvas.bind("<Key>",Event("XXX").event)
-        self.canvas.bind("<KeyRelease>",Event("XXX").event)
-
-        
-        #self.bframe=tk.Frame(self.frame,relief=tk.GROOVE,bg="magenta")#,width=width,height=height,bd=bd)
-        #self.bframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
-        #self.HFrame()
-    def event(self,event,**args):
-        input_event_blocker.set( self.e , self.e_txt)
-        input_event_blocker.event(event) #,args)
-
-
-    def HFrame(self,main=None):  
-        self.el = tk.Label(self.hframe,text="Filter:")
-        self.el.pack(side="left")
-        self.e_txt = tk.StringVar()
-        #self.e = tk.Entry(self.hframe,state="readonly",textvariable=self.e_txt)
-        self.e = tk.Entry(self.hframe,textvariable=self.e_txt)
-        #self.e = tk.Button(self.hframe,textvariable=self.e_txt,relief="sunken",width=20)
-        self.e["bg"] = "#fff"
-        self.e.config(highlightthickness=2)
-        self.e.config(highlightcolor= "red")
-        #self.e_txt.set(self.e_txt.get()+"<")
-        self.e.bind("<Key>",self.event)
-        self.e.bind("<Button>",self.event)
-        self.e.pack(side="left")
-    def Sframe(self,main=None, **args):  
-        pass
-
-    def draw(self,data=[1,2],head=[],config=[]):
-        yframe = self.bframe
-        if 1: 
-            xframe = tk.Frame(yframe,bg="black")
-            xframe.pack(side="top", expand=1,fill="both")
-            def yview(event):
-                print("yevent",event)
-                yyy=20.1
-                xframe.yview_moveto(yyy)
-
-            i=0
-            c=0
-            r=0
-            b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
-            #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="Uni",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="DMX",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-            b = tk.Button(xframe,bg="#ddd", text="CH's",width=1)
-            b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-
-            c=0
-            r+=1
-
-            for i,p in enumerate(data):
-                for j in data[i]:
-                    b = tk.Button(xframe,bg="lightblue", text=""+str(j),width=6,anchor="e")
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                    c+=1
-                c=0
-                r+=1
-                    
-        return self.bframe
-
-
-def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
-    #print("ScrollFrame init",width,height)
-    aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
-    #aframe.place(x=0,y=0)
-    aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
-
-    canvas=tk.Canvas(aframe,width=width-24,height=height)
-    if bg == "":
-        bg="orange"
-    canvas["bg"] = bg # "black" #"green"
-    bframe=tk.Frame(canvas,width=width,height=height)
-    bframe["bg"] = "blue"
-    scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    scrollbar.pack(side="right",fill="y")
-    canvas.pack(side="left",expand=1,fill="both")
-    canvas.create_window((0,0),window=bframe,anchor='nw')
-    bframe.bind("<Configure>",scroll(canvas).config)
-    canvas.bind("<Button>",Event("XXX").event)
-    canvas.bind("<Key>",Event("XXX").event)
-    canvas.bind("<KeyRelease>",Event("XXX").event)
-    return bframe
-#frame = ScrollFrame(root)
-
-class GUIHandler():
-    def __init__(self):
-        pass
-    def update(self,fix,attr,args={}):
-        print("GUIHandler.update()",fix,attr,args)
-        for i,k in enumerate(args):
-            v = args[k] 
-            #print("GUI-H", i,k,v)
-            
 class Fixtures():
     def __init__(self):
         #super().__init__() 
@@ -5117,8 +3391,6 @@ class Presets():
         self.val_presets[nr] = data
         return 1
            
-def test(a1="",a2=""):
-    print([a1,a2])
 
 class FixtureEditor():
     def __init__(self,dmx=1):
@@ -5160,764 +3432,28 @@ class BufferVar():
         dialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
         print("change_dmx",[event,self])
 
-class EXEC_FADER():
-    def __init__(self,frame,nr,cb=None,**args):
-        self.frame = frame
-        self.nr= nr
-        self.id=nr
-        self.elem = []
-        self._cb = cb
-        width=11
-        frameS = tk.Frame(self.frame,bg="#005",width=width)
-        frameS.pack(fill=tk.Y, side=tk.LEFT)
-        self.frame=frameS
 
-    def event(self,a1="",a2=""):
-        if self._cb is not None:
-            self._cb(a1,a2,nr=self.nr)
-        else:
-            print(self,"event",[self.nr,a1,a2])
-            j=[]
-            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
-            j.append(jdata)
-            jclient_send(j)
-
-    def set_attr(self,_event=None):
-        txt= self.attr["text"]
-        def _cb(data):
-            print(self,"set_attr._cb()",data)
-            if "Value" in data and type( data["Value"]) is str:
-                txt = data["Value"]
-                self._set_attr(txt)
-        dialog._cb = _cb
-        dialog.askstring("ATTR","set attr:",initialvalue=txt)
-        
-    def _set_attr(self,txt=""):
-        if type(txt) is str:
-            self.attr["text"] = "{}".format(txt)
-            print("_set_attr",[self])
-    def set_label(self,name=""):
-        #print("set_label",self.b,name)
-        self.label["text"] = name
-    def set_mode(self,_event=None):
-        txt= self.mode["text"]
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"set_mode._cb()",txt)
-            w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
-            #w.pack()
-            self._set_mode(txt)
-            w.show()
-        dialog._cb = _cb
-        dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
-
-    def _set_mode(self,txt=""):
-        if type(txt) is str:
-            self.mode["text"] = "{}".format(txt[0].upper())
-            print("_set_attr",[self])
-    def _refresh(self):
-        pass
-    def pack(self,init=None,from_=255,to=0,**args):
-        width=11
-        r=0
-        c=0
-        j=0
-        font8 = ("FreeSans",8)
-        frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
-        self.b.pack(fill=tk.Y, side=tk.TOP)
-        if init is not None:
-            self.b.set(init)
-        self.elem.append(self.b)
-
-        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=5,command=test,font=font8 )
-        self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.label = self.b
-        if 1: #self.nr <= 10:
-
-            self.elem.append(self.b)
-            self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
-            self.attr=self.b
-            self.b.pack(fill=tk.BOTH, side=tk.TOP)
-            self.elem.append(self.b)
-            f = tk.Frame(frameS)
-        ##f.pack()
-        #self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=font8 )
-        #self.mode=self.b
-        ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        #self.elem.append(self.b)
-
-        #self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=font8 )
-        #self.mode=self.b
-        #self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        #self.elem.append(self.b)
-
-        #self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=font8 )
-        #self.mode=self.b
-        ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        #self.elem.append(self.b)
-
-        self.b = tk.Label(frameS,bg="black",text="", width=4,font=font8 )
-        self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.elem.append(self.b)
-
-
-class ELEM_FADER():
-    def __init__(self,frame,nr,cb=None,**args):
-        self.frame = frame
-        self.nr= nr
-        self.id=nr
-        self.elem = []
-        self._cb = cb
-        width=11
-        frameS = tk.Frame(self.frame,bg="#005",width=width)
-        frameS.pack(fill=tk.Y, side=tk.LEFT)
-        self.frame=frameS
-
-    def event(self,a1="",a2=""):
-        if self._cb is not None:
-            self._cb(a1,a2,nr=self.nr)
-        else:
-            print(self,"event",[self.nr,a1,a2])
-            j=[]
-            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
-            j.append(jdata)
-            jclient_send(j)
-
-    def set_attr(self,_event=None):
-        txt= self.attr["text"]
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"set_attr._cb()",txt)
-            self._set_attr(txt)
-        dialog._cb = _cb
-        dialog.askstring("ATTR","set attr:",initialvalue=txt)
-        
-    def _set_attr(self,txt=""):
-        if type(txt) is str:
-            self.attr["text"] = "{}".format(txt)
-            print("_set_attr",[self])
-    def set_label(self,name=""):
-        #print("set_label",self.b,name)
-        self.label["text"] = name
-    def set_mode(self,_event=None):
-        txt= self.mode["text"]
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"set_mode._cb()",txt)
-            w = GUIWindow("config",master=1,width=200,height=140,left=L1,top=TOP)
-            #w.pack()
-            self._set_mode(txt)
-            w.show()
-        dialog._cb = _cb
-        dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
-
-    def _set_mode(self,txt=""):
-        if type(txt) is str:
-            self.mode["text"] = "{}".format(txt[0].upper())
-            print("_set_attr",[self])
-    def _refresh(self):
-        pass
-    def pack(self,init=None,from_=255,to=0,**args):
-        width=11
-        r=0
-        c=0
-        j=0
-        font8 = ("FreeSans",8)
-        frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
-        self.b.pack(fill=tk.Y, side=tk.TOP)
-        if init is not None:
-            self.b.set(init)
-        self.elem.append(self.b)
-
-        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=font8 )
-        self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.label = self.b
-        self.elem.append(self.b)
-        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
-        self.attr=self.b
-        self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.elem.append(self.b)
-        f = tk.Frame(frameS)
-        #f.pack()
-        self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=font8 )
-        self.mode=self.b
-        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        self.elem.append(self.b)
-
-        self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=font8 )
-        self.mode=self.b
-        self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        self.elem.append(self.b)
-
-        self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=font8 )
-        self.mode=self.b
-        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        self.elem.append(self.b)
-
-        self.b = tk.Label(frameS,bg="black",text="", width=4,font=font8 )
-        self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.elem.append(self.b)
-
-
-class GUI_ExecWingLayout():
-    def __init__(self,root,data,title="tilte",width=800,start=81):
-        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
-        font8 = ("FreeSans",8)
-        self.dmx=1
-        self.univ=0
-        self.start=start-1
-        r=0
-        c=0
-        i=1
-        self.elem=[]
-        self.header=[]
-        self.data = data
-        #self.frame = tk.Frame(root,bg="black",width=width)
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-        #self.b = tk.Label(self.frame,bg="#fff",text="Master Wing") #,font=font8 )
-        #self.b.pack(fill=None, side=tk.LEFT)
-        #self.frame = tk.Frame(root,bg="black",width=width)
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-        #self.b = tk.Label(self.frame,bg="black",text="") # spacer
-        #self.b.pack(fill=tk.Y, side=tk.LEFT)
-
-        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-        r=0
-        c=0
-        pb=10
-        self.pb=pb
-        for j,row in enumerate(data):
-            if c % pb == 0 or c==0:
-                h=hex(j*10)[2:].rjust(2,"0")
-                frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
-                frameS.pack(fill=tk.BOTH, side=tk.TOP)
-                p=j//pb+1
-                if j < 10:
-                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                else:
-                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
-                self.header.append(self.b)
-
-                self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
-                self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-                try:
-                    frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
-                except:
-                    frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
-                c=0
-            #print(frameS)
-            #e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
-            e= EXEC_FADER(frameS,nr=j+1,cb=self.event_cb)
-            if j >= 10:
-                e.pack(from_=400,to=0,init=100)
-            else:
-                e.pack(from_=200,to=0,init=100)
-            self.elem.append(e)
-            frameS.pack(fill=tk.X, side=tk.TOP)
-            c+=1
-            i+=1
-        self.frame.pack()
-        self._event_redraw()
-
-    def set_fader(self,nr,val,color=""):
-        #print("set_fader",nr,val)
-        if nr < len(self.elem):
-            ee = self.elem[nr].elem[0]
-            ee.set(val) 
-            if color:
-                ee["bg"] = color
-        return # STOP
-
-        for i in self.elem:
-            e = i #self.elem[i] #.append(e)
-            #print("e",e)
-            ee = e.elem[0]
-            #print(dir(ee))
-            ee.set(val)# = val
-        #for ee in e.elem: #.append(self.b)
-        #    print("ee",ee)
-
-    def event_cb(self,a1="",a2="",nr=None,**args):
-        print("event_cb:",nr,a1,a2,args)
-        nr += 1
-        jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
-
-        if nr >= 1 and nr <= 10:
-            jdata["CMD"] = "EXEC-SIZE-MASTER"
-            jdata["NR"] = nr +self.start
-
-        if nr >= 11 and nr <= 20:
-            jdata["CMD"] = "EXEC-SPEED-MASTER"
-            jdata["NR"] = nr-10 +self.start
-
-        if nr >= 21 and nr <= 30:
-            jdata["CMD"] = "EXEC-OFFSET-MASTER"
-            jdata["NR"] = nr-20 +self.start
-
-        print("event_cb",jdata)
-        j = [jdata]
-        jclient_send(j)
-
-    def set_name(self,_event=None):
-        txt = self.name["text"]
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"._cb()",txt)
-            self.name["text"] = "{}".format(txt)
-            print("change_dmx",[_event,self])
-        dialog._cb = _cb
-        dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
-
-    def event_value(self,_event=None):
-        nr=self.dmx
-        txt= self.entry_dmx["text"]
-        
-    def _event_redraw(self,_event=None):
-        nr = 0
-        print("change_dmx",[_event,self])
-        for i,btn in enumerate(self.elem):
-            btn.set_label("{} D:{}".format(i+1,nr))
-            btn.nr = nr+i
-
-        pb=self.pb
-        for j,e in enumerate(self.header):
-            p=j+1
-            #p=nr/pb
-            if p == 1:
-                txt="SIZE-MASTER:{} {}-{}".format(p,1+self.start,10+self.start)#p*pb-pb+1,p*pb) 
-            elif p == 2:
-                txt="SPEED-MASTER:{} {}-{}".format(p,1+self.start,10+self.start)#p*pb-pb+1,p*pb) 
-            elif p == 3:
-                txt="OFFSET-MASTER:{} {}-{}".format(p,1+self.start,10+self.start)#p*pb-pb+1,p*pb) 
-            else:
-                txt="X-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-            #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
-            print("---",j,txt,e)
-            e["text"] = txt
-            
-class GUI_MasterWingLayout():
-    def __init__(self,root,data,title="tilte",width=800):
-        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
-        font8 = ("FreeSans",8)
-        self.dmx=1
-        self.univ=0
-        r=0
-        c=0
-        i=1
-        self.elem=[]
-        self.header=[]
-        self.data = data
-        #self.frame = tk.Frame(root,bg="black",width=width)
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-        #self.b = tk.Label(self.frame,bg="#fff",text="Master Wing") #,font=font8 )
-        #self.b.pack(fill=None, side=tk.LEFT)
-        #self.frame = tk.Frame(root,bg="black",width=width)
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-        #self.b = tk.Label(self.frame,bg="black",text="") # spacer
-        #self.b.pack(fill=tk.Y, side=tk.LEFT)
-
-        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-        r=0
-        c=0
-        pb=1
-        self.pb=pb
-        for j,row in enumerate(data):
-            if c % pb == 0 or c==0:
-                h=hex(j*10)[2:].rjust(2,"0")
-                frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
-                frameS.pack(fill=tk.BOTH, side=tk.TOP)
-                p=j//pb+1
-                if j < 1:
-                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                else:
-                    txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
-                self.header.append(self.b)
-
-                self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
-                self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-                try:
-                    frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
-                except:
-                    frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
-                c=0
-            #print(frameS)
-            e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
-            if j >= 2:
-                e.pack(from_=400,to=0,init=100)
-            else:
-                e.pack(from_=200,to=0,init=100)
-            self.elem.append(e)
-            frameS.pack(fill=tk.X, side=tk.TOP)
-            c+=1
-            i+=1
-        self.frame.pack()
-        self._event_redraw()
-
-    def event_cb(self,a1="",a2="",nr=None,**args):
-        print("event_cb:",nr,a1,a2,args)
-        nr += 1
-        jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
-        if nr == 1:
-            jdata["CMD"] = "SIZE-MASTER"
-            jdata["NR"] = 1 #nr
-        if nr == 2:
-            jdata["CMD"] = "SPEED-MASTER"
-            jdata["NR"] = 1 #nr 
-
-
-        print("event_cb",jdata)
-        j = [jdata]
-        jclient_send(j)
-
-    def set_name(self,_event=None):
-        txt = self.name["text"]
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"._cb()",txt)
-            self.name["text"] = "{}".format(txt)
-            print("change_dmx",[_event,self])
-        dialog._cb = _cb
-        dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
-
-    def event_value(self,_event=None):
-        nr=self.dmx
-        txt= self.entry_dmx["text"]
-        
-    def _event_redraw(self,_event=None):
-        nr = 0
-        print("change_dmx",[_event,self])
-        for i,btn in enumerate(self.elem):
-            btn.set_label("{} D:{}".format(i+1,nr))
-            btn.nr = nr+i
-
-        pb=self.pb
-        for j,e in enumerate(self.header):
-            p=j+1
-            #p=nr/pb
-            if p == 1:
-                txt="SIZE-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-            else:
-                txt="SPEED-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-            #txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
-            print("---",j,txt,e)
-            e["text"] = txt
-            
-class GUI_FaderLayout():
-    def __init__(self,root,data,title="tilte",width=800):
-        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
-        font8 = ("FreeSans",8)
-        self.dmx=1
-        self.univ=0
-        r=0
-        c=0
-        i=1
-        self.elem=[]
-        self.header=[]
-        self.data = data
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-        self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor") #,font=font8 )
-        self.b.pack(fill=None, side=tk.LEFT)
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-        self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
-        self.b.pack(fill=None, side=tk.LEFT)
-        self.b = tk.Button(self.frame,bg="lightblue",text="MAC-500", width=11)
-        self.name=self.b
-        self.b["command"] = self.set_name
-        self.b.pack( side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="lightblue",text="UNIV:")
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b_univ = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
-        
-        self.entry_univ=self.b_univ
-        self.b_univ["command"] = self.event_univ
-        self.b_univ.pack( side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="lightblue",text="DMX:")
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
-        self.entry_dmx=self.b
-        self.b["command"] = self.event_dmx
-        self.b.pack( side=tk.LEFT)
-
-        self.b_xdmx = tk.Label(self.frame,bg="lightgreen",text="5")
-        self.b_xdmx.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="LIST", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.open_fixture_list
-        self.b.pack( side=tk.LEFT)
-        
-        self.b = tk.Label(self.frame,bg="black",text="") # spacer
-        self.b.pack(fill=tk.Y, side=tk.LEFT)
-
-        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-        r=0
-        c=0
-        pb=12
-        self.pb=pb
-        for j,row in enumerate(data):
-            if c % pb == 0 or c==0:
-                h=hex(j*10)[2:].rjust(2,"0")
-                frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
-                frameS.pack(fill=tk.BOTH, side=tk.TOP)
-                p=j//pb+1
-                txt="BANK:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=15,font=font8 )
-                self.header.append(self.b)
-
-                self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
-                self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-
-                try:
-                    frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
-                except:
-                    frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
-                c=0
-            #print(frameS)
-            e= ELEM_FADER(frameS,nr=j+1)
-            e.pack()
-            self.elem.append(e)
-            frameS.pack(fill=tk.X, side=tk.TOP)
-            c+=1
-            i+=1
-        self.frame.pack()
-        self._event_redraw()
-    def set_name(self,_event=None):
-        txt = self.name["text"]
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"._cb()",txt)
-            self.name["text"] = "{}".format(txt)
-            print("change_dmx",[_event,self])
-
-        dialog._cb = _cb
-        dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
-
-
-    def open_fixture_list(self):
-        name = "FIXTURE-LIB"
-        line1="Fixture Library"
-        line2="CHOOS to EDIT >> DEMO MODUS"
-        cb = LOAD_FIXTURE
-        #cb.master=self
-        pw = PopupList(name,cb=cb,left=_POS_LEFT+820,bg="red")
-        frame = pw.sframe(line1=line1,line2=line2)
-        r=_load_fixture_list(frame,cb=cb,master=self,bg="red")
-
-
-        #self.elem["bg"] = "red"
-        #self.elem.config(activebackground="red")
-        #w.tk.attributes('-topmost',False)
-
-    def load_EMPTY(self,_event=None,attr=[]):
-        #attr = [,"RED","GREEN","BLUE"]
-        #mode = ["F","F","F","F"]
-        self._load_mh(None)#,attr,mode)
-    def load_DIM(self,_event=None,attr=[]):
-        attr = ["DIM"]
-        mode = ["F"]
-        self._load_fix(None,attr,mode)
-    def load_LED(self,_event=None,attr=[]):
-        attr = ["DIM","RED","GREEN","BLUE"]
-        mode = ["F","F","F","F"]
-        self._load_fix(None,attr,mode)
-    def load_MH(self,_event=None,attr=[]):
-        attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
-        mode = ["F","F","F","F","S","F","F","F","F","S"]
-        self._load_fix(None,attr,mode)
-    def load_MH2(self,_event=None,attr=[]):
-        attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO","G-ROT","PRISM","P-ROT","ZOOM","CONTR"]
-        mode = ["F","F","F","F","S","F","F","F","F","S","S","S","S","F","S"]
-        self._load_fix(None,attr,mode)
-
-    def _load_fix(self,_event=None,attr=[],mode=[]):
-        print("load_fixture",[_event,self])
-        #for i,e in enumerate(self.elem):
-        for i,e in enumerate(self.elem):
-            #print(self,"event",_event,e)
-            print("event",_event,e)
-            e._set_attr( "---")
-            if len(attr) > i:
-                e._set_attr( attr[i])
-            e._set_mode( "---")
-            if len(mode) > i:
-                e._set_mode( mode[i])
-
-    def event_univ(self,_event=None):
-        nr=self.univ
-        txt= self.entry_univ["text"]
-        #def _cb(txt):
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"event_univ._cb()",txt)
-            try:
-                nr = int(txt)
-            except TypeError:
-                print("--- abort ---")
-                return 0
-            self.univ = nr
-            self._event_redraw(_event)
-        dialog._cb = _cb
-        dialog.askstring("Universe","Univ 0-15",initialvalue=txt)
-
-    def event_dmx(self,_event=None):
-        nr=self.dmx
-        txt= self.entry_dmx["text"]
-        #txt = dialog.askstring("DMX","ArtNet 1-512 (7680 max)",initialvalue=txt)
-        #def _cb(txt):
-        def _cb(data):
-            txt = data["Value"]
-            print(self,"event_dmx._cb()",txt)
-            try:
-                nr = int(txt)
-            except TypeError:
-                print("--- abort ---")
-                return 0
-            self.dmx = nr
-            if self.dmx <= 0:
-                self.dmx = 1
-            if self.dmx > 512:
-                self.univ = (self.dmx-1)//512
-                self.dmx = (self.dmx-1)%512+1
-            self._event_redraw(_event)
-        dialog._cb = _cb
-        dialog.askstring("DMX","ArtNet 1-512 (7680 max)",initialvalue=txt)
-
-        
-    def _event_redraw(self,_event=None):
-        self.entry_dmx["text"] = "{}".format(self.dmx)
-        self.entry_univ["text"] = "{}".format(self.univ)
-        nr = self.univ*(512)+self.dmx
-        self.b_xdmx["text"] = " {}  ".format(nr)
-
-        print("change_dmx",[_event,self])
-        for i,btn in enumerate(self.elem):
-            #print("event",_event,btn)
-            #print("btn",btn)
-            dmx=nr+i
-            nr2 = dmx%512 
-            btn.set_label("{} D:{}\n{}.{}".format(i+1,dmx,self.univ,nr2))
-            btn.nr = nr+i
-
-        pb=self.pb
-        for j,e in enumerate(self.header):
-            p=j+1
-            #p=nr/pb
-            txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
-            print("---",j,txt,e)
-            e["text"] = txt
             
 
-class GUI_grid():
-    def __init__(self,root,data,title="tilte",width=800):
+# GUI_FaderLayout():
 
-        self.data = data
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
-        r=0
-        c=0
-        i=1
-        for row in data:
 
-            self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=4)
-            #self.b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-            c+=1
-            if c % 8 == 0:
-                r+=1
-                c=0
-            i+=1
-        self.frame.pack()
 
-class BEvent():
-    def __init__(self,data,cb):
-        self._data = data
-        self._cb = cb
-    def cb(self,event):
-        #print(self,event)
-        self._cb(event,self._data)
 
-class GUI_menu():
-    def __init__(self,root,data,title="tilte",width=800):
-        global tk
-        self.data = data
-        self.data2 = {}
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
-        r=0
-        c=0
-        i=1
-        self.b = tk.Label(self.frame,bg="lightblue", text="MAIN:MENU",width=8,height=1)
-        self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-        r+=1
-        for row in data:
-            #print(i)
-            #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightgrey", text=row["text"],width=8,height=2)
-            self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
-            self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
-            row["elem"] = self.b
-            self.data2[row["text"]] = row
-            r+=1
-            i+=1
-        self.frame.pack()
-    def callback(self,event,data={}):
-        print("callback543",self,event,data)
-        window_manager.top(data["text"])# = WindowManager()
-    def update(self,button,text):
-        #print(self,button,text)
-        for k in self.data2:
-            v=self.data2[k]
-            #print(self,k,v)
-            if button == k:
-                v["elem"]["text"] = k+"\n"+text
-    def config(self,button,attr,value):
-        #print("config",self,button,attr,value)
-        for k in self.data2:
-            v=self.data2[k]
-            #print(self,k,v)
-            if button == k:
-                #print(dir(v["elem"]))
-                if attr == "bg":
-                    if value == "":
-                        value = "lightgrey"
-                    v["elem"][attr] = str(value)
-                if attr == "activebackground":
-                    if value == "":
-                        value = "lightgrey"
-                    v["elem"][attr] = str(value)
+
+
+
+
 
 lf_nr = 0
+
+
         
 from tkinter import PhotoImage 
 
 _shift_key = 0
 
-class GUIWindow():
+class Window():
     def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
         global lf_nr
         #ico_path="/opt/LibreLight/Xdesk/icon/"
@@ -6194,7 +3730,7 @@ def LOAD_SHOW():
     #master._refresh_exec()
 LOAD_SHOW()
 
-master = GUI()
+master = MASTER()
 
 
 class Refresher():
@@ -6249,7 +3785,7 @@ if __run_main:
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
-    w = GUIWindow("MAIN",master=1,width=85,height=H1//2,left=L0,top=TOP,resize=0)
+    w = Window("MAIN",master=1,width=85,height=H1//2,left=L0,top=TOP,resize=0)
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
@@ -6261,43 +3797,45 @@ if __run_main:
     data.append({"text":"EXEC-WING"})
     gui_menu = GUI_menu(w.tk,data)
 
+    window_manager = gui_menu.window_manager #= window_manager
+    
     window_manager.new(w)
 
 
     name="EXEC"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
     #draw_preset(master,w1)#w.tk)
-    draw_exec(master,w1)#w.tk)
+    draw_exec(master,w1,PRESETS)#w.tk)
     window_manager.new(w,name)
 
     name="CONFIG"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
     #draw_preset(master,w1)#w.tk)
     window_manager.new(w,name)
 
     name="DIMMER"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w2 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_dim = w1 # w.tk
     #master.draw_dim(w1.tk)
     window_manager.new(w,name)
 
     name="FIXTURES"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_fix = w1 #w.tk
     #draw_fix(master,w1,w2)#.tk)
     gui_fix = GUI_FIX(master,w1,w2)
-    gui_fix.draw()
+    gui_fix.draw(FIXTURES)
     window_manager.new(w,name)
 
 
     name="FIXTURE-EDITOR"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
     for i in range((24+12)*15):
@@ -6306,8 +3844,8 @@ if __run_main:
     window_manager.new(w,name)
 
     name="MASTER-WING"
-    #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = GUIWindow(name,master=0,width=75,height=405,left=L0,top=TOP+H1-220)
+    #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    w = Window(name,master=0,width=75,height=405,left=L0,top=TOP+H1-220)
     #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     w1 = tk.Frame(w.tk,width=W1,height=H1)
     w1.pack()
@@ -6318,8 +3856,8 @@ if __run_main:
     window_manager.new(w,name)
 
     name="EXEC-WING"
-    #w = GUIWindow(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = GUIWindow(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
+    #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    w = Window(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
     #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     w1 = tk.Frame(w.tk,width=W1,height=H1)
     w1.pack()
@@ -6331,60 +3869,60 @@ if __run_main:
 
 
     name="ENCODER"
-    w = GUIWindow(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
+    w = Window(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
     _ENCODER_WINDOW = w
     draw_enc(master,w.tk)#Xroot)
     window_manager.new(w,name)
 
     #name="REMOTE-CONTROL"
-    #w = GUIWindow(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)
+    #w = Window(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)
     #_ENCODER_WINDOW = w
     #draw_enc(master,w.tk)#Xroot)
 
     name = "SETUP"
-    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP,resize=0)
+    w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP,resize=0)
     w.tk.title("SETUP   SHOW:"+master.base.show_name)
     draw_setup(master,w.tk)
     window_manager.new(w,name)
 
     name = "COMMAND"
-    w = GUIWindow(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81,resize=0)#+96)
+    w = Window(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81,resize=0)#+96)
     draw_command(master,w.tk)
     window_manager.new(w,name)
 
     name = "LIVE"
-    w = GUIWindow(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235,resize=0)#250)
+    w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235,resize=0)#250)
     draw_live(master,w.tk)
     window_manager.new(w,name)
 
     name = "CLOCK"
-    w = GUIWindow(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
+    w = Window(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
     draw_clock(master,w.tk)
     window_manager.new(w,name)
 
     name="FX"
-    w = GUIWindow(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302,resize=0)#317)
+    w = Window(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302,resize=0)#317)
     #frame_fx = w.tk
     draw_fx(master,w.tk)
     window_manager.new(w,name)
 
 
     name="PATCH"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     main_preset_frame = w1
     gui_patch = GUI_PATCH(master,main_preset_frame)
-    gui_patch.draw()
+    gui_patch.draw(FIXTURES)
     window_manager.new(w,name)
 
     #LibreLightDesk
     name="COLORPICKER"
-    w = GUIWindow(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
+    w = Window(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
     draw_colorpicker(master,w.tk)
     window_manager.new(w,name)
 
     name="TableA"
-    w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
     x=TableFrame(root=w.tk)#,left=80,top=620)
     w.show()
@@ -6407,7 +3945,7 @@ if __run_main:
 
     master.render()
     window_manager.top("Table")
-    #w = frame_fix #GUIWindow("OLD",master=0,width=W1,height=500,left=130,top=TOP)
+    #w = frame_fix #Window("OLD",master=0,width=W1,height=500,left=130,top=TOP)
     window_manager.new(w,name)
 
 

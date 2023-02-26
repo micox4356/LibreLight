@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with librelight.  If not, see <http://www.gnu.org/licenses/>.
 
-(c) 2012 micha@uxsrv.de
+(c) 2012 micha@librelight.de
 """
 import math, random
 import time,json

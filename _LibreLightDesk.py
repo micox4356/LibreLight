@@ -3958,6 +3958,10 @@ def draw_command(gui,xframe):
             r+=1
 
 
+def draw_exec(gui,xframe):
+    draw_preset(gui,xframe)
+
+
 def draw_preset(gui,xframe):
 
     i=0
@@ -6264,7 +6268,8 @@ if __run_main:
     w = GUIWindow(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
-    draw_preset(master,w1)#w.tk)
+    #draw_preset(master,w1)#w.tk)
+    draw_exec(master,w1)#w.tk)
     window_manager.new(w,name)
 
     name="CONFIG"

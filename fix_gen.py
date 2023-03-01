@@ -42,7 +42,7 @@ univ=2
 #for i in range(9*13): # fixtures
 #for i in range(8+1*12+1): # fixtures
 #for i in range((8*2)+1*(12*2)+1): # fixtures
-for i in range(640): # fixtures
+for i in range(96): # fixtures
     print("====================================")
     rdata='{"DMX": 1, "UNIVERS": 2, "NAME": "VPU_01", "TYPE": "MOVER", "VENDOR": "AYERTON", "ATTRIBUT":{}}'
     jdata = json.loads(rdata,object_pairs_hook=OrderedDict)

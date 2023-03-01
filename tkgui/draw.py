@@ -361,11 +361,11 @@ def draw_input(gui):
     b.insert("end","fx:alloff:::")
 
 
-def draw_colorpicker(gui,xframe):
+def draw_colorpicker(gui,xframe,FIXTURES,master):
     import lib.colorpicker as colp
 
     class _CB():
-        def __init__(gui):
+        def __init__(gui,FIXTURES,master):
             gui.old_color = (0,0,0)
         def cb(gui,event,data):
             print("CB.cb",gui,event,data)
@@ -446,7 +446,7 @@ def draw_colorpicker(gui,xframe):
                 master.refresh_fix()
                  
                 print("PICK COLOR:",data["color"])
-    _cb=_CB()
+    _cb=_CB(FIXTURES,master)
     colp.colorpicker(xframe,width=580,height=113, xcb=_cb.cb)
     return 0
 

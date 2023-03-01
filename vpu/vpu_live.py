@@ -19,6 +19,12 @@ parser.add_option("-x", "--xx", dest="xsplit", #default=1,
 parser.add_option("-y", "--yy", dest="ysplit",#default=1,
                   help="y-split") #, metavar="FILE")
 
+parser.add_option("-s", "--start-univ", dest="start_univ",#default=1,
+                  help="set start-univers default=2") #, metavar="FILE")
+
+parser.add_option("-g", "--gobo-ch", dest="gobo_ch",#default=1,
+                  help="gobo ch univ on 1") #, metavar="FILE")
+
 #parser.add_option("-f", "--file", dest="filename",
 #                  help="write report to FILE", metavar="FILE")
 #parser.add_option("-q", "--quiet",
@@ -584,6 +590,21 @@ def find_pix(x,y):
 GRID = []
 NR = 0
 START_UNIV=2
+if options.start_univ:
+    try:
+        START_UNIV=int(options.start_univ)
+    except Exception as e:
+        print("Exception START UNIV",e) 
+
+gobo_ch=1
+if options.gobo_ch:
+    try:
+        gobo_ch=int(options.gobo_ch)
+    except Exception as e:
+        print("Exception gobo_ch",e) 
+
+if gobo_ch <= 0:
+    gobo_ch = 1
 
 def main():
     global IP,GRID,FUNC
@@ -606,11 +627,16 @@ def main():
         draw_overlay()
 
         ips = read_index()
+        
+        # ----
+        ip = select_ip(ips,univ=1) # univ 1 gobo
+        dataA = read_dmx(ip)
+        # ----
+
         ip = select_ip(ips,univ=START_UNIV)
         IP = ip
-        #print("IP",ip)
-
         data = read_dmx(ip)
+
 
         ip = select_ip(ips,univ=START_UNIV+1)
         data3 = read_dmx(ip)
@@ -632,6 +658,7 @@ def main():
         try:
             ddd = 1023 #univ 3 512
             FUNC = data[ddd]
+            FUNC = dataA[gobo_ch-1]
             #print("FUNC", FUNC )#:ddd+512])
             #FUNC = 15
         except Exception as e:
@@ -667,7 +694,7 @@ def main():
 
                 #print(fix.dmx,rgb,pos)
                 #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-                FUNC = 0
+                #FUNC = 0
                 if FUNC > 10 and FUNC <= 20: # big dot
                     draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
                 elif FUNC > 20 and FUNC <= 30:#small dot

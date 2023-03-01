@@ -1466,9 +1466,9 @@ class Xevent():
                 #    gui_fix.draw()
                 self.elem["text"] = "PATCH..."
                 window_manager.top("PATCH")
-                gui_patch.draw()
+                gui_patch.draw(FIXTURES)
                 self.elem["text"] = "FIX..."
-                gui_fix.draw()
+                gui_fix.draw(FIXTURES)
                 window_manager.top("FIXTURES")
                 master._refresh_exec()
                 self.elem["text"] = old_text  
@@ -3744,6 +3744,7 @@ class Refresher():
                 #self.time = time.time()+1
                 self._refresh()
     def _refresh(self):
+        print(self,"refresh()")
         master._refresh_fix()
         master._refresh_exec()
     def loop(self,args={}):
@@ -3918,7 +3919,7 @@ if __run_main:
     #LibreLightDesk
     name="COLORPICKER"
     w = Window(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
-    draw_colorpicker(master,w.tk)
+    draw_colorpicker(master,w.tk,FIXTURES,master)
     window_manager.new(w,name)
 
     name="TableA"

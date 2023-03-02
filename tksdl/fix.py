@@ -42,7 +42,7 @@ import pygame
 import pygame.gfxdraw
 import pygame.font
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
+os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,55)
 os.environ['SDL_VIDEO_CENTERED'] = '0'
 
 pg = pygame
@@ -51,16 +51,20 @@ pygame.mixer.quit()
 
 
 f = pygame.font.get_fonts()
+f = list(f)
+f.sort()
 for i in f:
-    if "mono" in i.lower():
+    if 1:# "mono" in i.lower():
         print(i)
     
 
-font0 = pygame.font.SysFont("FreeSans",10)
+font0 = pygame.font.SysFont("freesans",10)
+font0b = pygame.font.SysFont("freesansbold",10)
 font = pygame.font.SysFont("freemonobold",22)
 font10 = pygame.font.SysFont("freemonobold",10)
 font12 = pygame.font.SysFont("freemonobold",12)
 font15 = pygame.font.SysFont("freemonobold",15)
+font22 = pygame.font.SysFont("FreeSans",22)
 #font = pygame.font.SysFont(None,30)
 
 fr = font.render("hallo" ,1, (200,0,255))
@@ -84,13 +88,13 @@ class Button():
         self.pos = pos
         self.on = 0
         self.bd = [0,255,0]
-
+        self.on_bg = [255,255,0]
         self.rgb = (0xaa,0xaa,0xaa,127)
         self.__layout = Layout(self)
         self.pack = self.__layout.pack
         self.grid = self.__layout.grid
         self.bind = self.__layout.bind
-        self.text = "GOBO1\ndot"
+        self.text = "line1\nline2"
         self.motion = 0
 
     def draw(self,text="GOBO1"):
@@ -102,7 +106,7 @@ class Button():
         window.set_alpha(128)  
 
         if self.on:
-            rgb = [255,255,0]
+            rgb = self.on_bg 
         pygame.draw.rect(self.window,rgb,pos)
 
         r = pos[1]+6
@@ -120,7 +124,7 @@ class Button():
         self._draw_bd(delta=-2,highlight=1,color=self.bd)
 
     def _check_event(self):
-        self.bd = [0,255,0]
+        self.bd = [125,125,125]
         self.motion = 0
         if self.event_pos[0] < self.pos[0]+1: 
             return #continue
@@ -133,7 +137,7 @@ class Button():
             return #continue
 
         #print(">>",self.event_pos)
-        self.bd = [255,0,0]
+        self.bd = [200,200,200]
         self.motion = 1
 
     def _draw_bd(self,delta=0,highlight=0,color=[0,0,0]):
@@ -177,9 +181,9 @@ class Button():
                         else:
                             self.on = 1
 
-main_size=(600,500)
+main_size=(500,500)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-
+#pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 pg.display.set_caption('NEXTGEN GUI')
 
 class Gevent():
@@ -295,8 +299,9 @@ def main():
     table = []
     r = 0
     for i in range(20):
-         bx = Button(window,pos=[20,200+r,60,20])
+         bx = Button(window,pos=[20,150+r,60,20])
          bx.text = "FIX:{}".format(i+1)
+         bx.on_bg = [255,0,255]
          table.append(bx)
          r+=20
 
@@ -308,6 +313,10 @@ def main():
         rgb = (0xaa,0xaa,0xaa,0)
         
         window.fill((0,0,0))
+        fr = font22.render("DEMO / TEST - MODE !"  ,1, (200,200,200))
+        window.blit(fr,(10,30 ))
+
+
         fr = font15.render("{}".format(pos[1]) ,1, (200,200,200))
         window.blit(fr,(10,pos[1] ))
         fr = font15.render("{}".format(fps) ,1, (200,200,200))
@@ -332,11 +341,6 @@ def main():
             for t in table:
                 t.event(event)
         
-        c = (200,200,200)
-        if global_event.gain:
-            c = (0,255,0)
-        fr = font15.render("{:03}/{:03}".format(global_event.event_pos[0],global_event.event_pos[1]) ,1, c)
-        window.blit(fr,(120,pos[1] ))
 
         b0.draw()
         b1.draw()
@@ -344,6 +348,7 @@ def main():
         b2a.draw()
         b3.draw()
 
+        c = (200,200,200)
 
         #for t in table:
         #    global_event.check_in(t)
@@ -351,6 +356,28 @@ def main():
         for t in table:
             t.draw()
         global_event.check_in(t)
+
+        
+        fr = font15.render("A:{}".format(str(global_event.pos1)) ,1, c)
+        window.blit(fr,(200,pos[1] ))
+        fr = font15.render("B:{}".format(str(global_event.pos2)) ,1, c)
+        window.blit(fr,(200,pos[1]+10 ))
+
+        if global_event.gain:
+            c = (0,255,0)
+        
+        #blue box
+        if global_event.pos1[0] > global_event.event_pos[0] and  global_event.pos2[0] < global_event.event_pos[0]:
+            #c = (0,0,255)
+            if global_event.pos1[1] > global_event.event_pos[1] and  global_event.pos2[1] < global_event.event_pos[1]:
+                c = (0,0,255)
+        # red box
+        if global_event.pos1[0] < global_event.event_pos[0] and  global_event.pos2[0] > global_event.event_pos[0]:
+            #c = (0,0,255)
+            if global_event.pos1[1] < global_event.event_pos[1] and  global_event.pos2[1] > global_event.event_pos[1]:
+                c = (255,0,0)
+        fr = font15.render("{:03}/{:03}".format(global_event.event_pos[0],global_event.event_pos[1]) ,1, c)
+        window.blit(fr,(120,pos[1] ))
 
 
         global_event.draw()

@@ -1579,10 +1579,12 @@ class Xevent():
                 #master._refresh_fix() # now
                 master.refresh_fix() # delayed
                 #master._refresh_fix() # now
+                refresher_fix.reset() # = Refresher()
 
         if self.mode == "ENCODER2":
             if self._encoder(event):
                 master.refresh_fix() # delayed
+                refresher_fix.reset() # = Refresher()
 
     def _encoder(self,event):
         global _shift_key
@@ -1601,23 +1603,11 @@ class Xevent():
                 val ="--"
                 if _shift_key:
                     val = "-"
-            print("SHIFT",val,_shift_key)
+            #print("SHIFT",val,_shift_key)
             if val:
-                #if self.attr == "DIM" and self.fix == 0 and val == "click":
-                #if self.fix == 0 and val == "click":
-                #if self.attr == "DIM" and self.fix == 0 and val == "click":
-                #if self.attr == "DIM" and self.fix == 0 and val == "click":
-                #    pass    
-                #else:
-
                 FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
                 return 1       
 
-            #if self.mode == "ENCODER": # fast refresh
-            #     master._refresh_fix()
-            #else: #"ENCODER2" slow refresh
-            #     master.refresh_fix()
-            #     #master._refresh_fix()
 
             
     def cb(self,event):
@@ -2114,7 +2104,7 @@ class MASTER():
         FIXTURES.backup_patch()
         #print("*********del",self,"***********************************************")
     def refresh_exec(self):
-        refresher.reset() # = Refresher()
+        refresher_exec.reset() # = Refresher()
 
     def _refresh_exec(self):
         cprint("PRESET.refresh_exec()")
@@ -2205,7 +2195,7 @@ class MASTER():
                 b.configure(fg="#00e")
 
     def refresh_fix(self):
-        refresher.reset() # = Refresher()
+        refresher_fix.reset() # = Refresher()
     def _refresh_fix(self):
         c_d =0
         c_f =0
@@ -3779,25 +3769,47 @@ master = MASTER()
 
 class Refresher():
     def __init__(self):
-        self.time = time.time()+1
+        self.time = time.time()
+        self.time_max = time.time()
+        self.update = 1
+        self.name = "fix" # exec
+
     def reset(self):
-        self.time = time.time()+.1
+        self.time = time.time() #+.1
+        self.update = 1
+
     def refresh(self):
-        if time.time() > self.time:
-            if time.time() < self.time+2:
-                #self.time = time.time()+1
+        #print("refresh",self.update,int((self.time-time.time())*1000))
+
+        if self.time_max+15 < time.time():
+            #print("----- MAX REFRES TIMEOUT -----")
+            self._refresh()
+
+        if self.update: 
+            if self.time+0.2 < time.time():
                 self._refresh()
+        else:
+            self.time = time.time() #+.1
+
     def _refresh(self):
-        print(self,"refresh()")
-        master._refresh_fix()
-        master._refresh_exec()
+        print(self,"_refresh()")
+        self.time_max = time.time()
+        self.time     = time.time()
+        self.update = 0
+        if self.name == "fix": # exec
+            master._refresh_fix()
+        else:
+            master._refresh_exec()
+        print("t=",self.time_max- time.time())
+
     def loop(self,args={}):
         while 1:
-
             try:
                 self.refresh()
                 tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-            except Exception as e:print("loop exc",e)
+            except Exception as e:
+                print("loop exc",e)
+
             time.sleep(0.2)
 
 
@@ -3815,11 +3827,16 @@ else:
 
 
 
-refresher = Refresher()
+refresher_fix = Refresher()
+refresher_fix.name = "fix"
+
+refresher_exec = Refresher()
+refresher_exec.name = "exec"
 
 if __run_main:
     print("main")
-    thread.start_new_thread(refresher.loop,())
+    thread.start_new_thread(refresher_fix.loop,())
+    thread.start_new_thread(refresher_exec.loop,())
     
 
     TOP = _POS_TOP + 15

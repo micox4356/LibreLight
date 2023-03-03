@@ -575,16 +575,34 @@ def touch_filter(name,lines):
 
 
 
-def main(cmd="",output=""):
+def main(cmd="",output="",name=""):
     a = Action(output)
     line = ""
     #cmd="evtest /dev/input/event5"
     #cmd="evtest /dev/input/event24"
-    r = os.popen(cmd)
-    print(cmd)
     while 1:
-        line = r.readline() 
-        a.action(line)
+        r = os.popen(cmd)
+        print("main cmd: ",cmd)
+        while 1:
+            line = r.readline() 
+            if not line:
+                print("main cmd r.readline return NONE !",int(time.time()))
+                print("losst touchscteen connection",output)
+                print()
+                break
+
+            a.action(line)
+
+        time.sleep(1)
+
+        # rescan touch input's 
+        touch_list =  get_touch_list()
+        x= touch_filter(name,touch_list)
+        print(x)
+        if len(x):   
+            disable_xinput_touch(name)
+            #cmd="evtest /dev/input/event5"
+            cmd="evtest {}".format(x[1])
     
 if __name__ == "__main__":
     
@@ -602,7 +620,7 @@ if __name__ == "__main__":
         #cmd="evtest /dev/input/event24"
         cmd="evtest {}".format(x[1])
         #start_new_thread(main,(cmd,"DP-2"))
-        start_new_thread(main,(cmd,"HDMI-1"))
+        start_new_thread(main,(cmd,"HDMI-1",name))#),name)
         touchscreen_count +=1
 
     #TOUCH 1
@@ -614,7 +632,7 @@ if __name__ == "__main__":
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event24"
         cmd="evtest {}".format(x[1])
-        start_new_thread(main,(cmd,"DP-2"))
+        start_new_thread(main,(cmd,"DP-2",name))#),name)
         #start_new_thread(main,(cmd,"HDMI-1"))
         touchscreen_count +=1
 
@@ -628,7 +646,7 @@ if __name__ == "__main__":
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event5"
         cmd="evtest {}".format(x[1])
-        start_new_thread(main,(cmd,"eDP-1"))
+        start_new_thread(main,(cmd,"eDP-1",name))#),name)
         #start_new_thread(main,(cmd,"HDMI-1"))
         touchscreen_count +=1
 

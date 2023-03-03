@@ -1567,11 +1567,28 @@ class Xevent():
                     modes.val(self.attr,1)
 
             return 0
+
+
     def encoder(self,event):
         global _shift_key
-        if self.mode == "ENCODER" or self.mode == "ENCODER2":
-            cprint("Xevent","ENC",self.fix,self.attr,self.mode)
-            cprint("SHIFT_KEY",_shift_key,"??????????")
+        cprint("Xevent","ENC",self.fix,self.attr,self.mode)
+        cprint("SHIFT_KEY",_shift_key,"??????????")
+
+        if self.mode == "ENCODER":
+            if self._encoder(event):
+                #master._refresh_fix() # now
+                master.refresh_fix() # delayed
+                #master._refresh_fix() # now
+
+        if self.mode == "ENCODER2":
+            if self._encoder(event):
+                master.refresh_fix() # delayed
+
+    def _encoder(self,event):
+        global _shift_key
+        if 1: #self.mode == "ENCODER" or self.mode == "ENCODER2":
+            cprint("-- Xevent","_ENC",self.fix,self.attr,self.mode)
+            cprint("-- SHIFT_KEY",_shift_key,"??????????")
             #cprint(self.data)
             val=""
             if event.num == 1:
@@ -1592,14 +1609,15 @@ class Xevent():
                 #if self.attr == "DIM" and self.fix == 0 and val == "click":
                 #    pass    
                 #else:
-                if 1:
-                    FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
-                
-            if self.mode == "ENCODER": # fast refresh
-                 master._refresh_fix()
-            else: #"ENCODER2" slow refresh
-                 master.refresh_fix()
-                 #master._refresh_fix()
+
+                FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
+                return 1       
+
+            #if self.mode == "ENCODER": # fast refresh
+            #     master._refresh_fix()
+            #else: #"ENCODER2" slow refresh
+            #     master.refresh_fix()
+            #     #master._refresh_fix()
 
             
     def cb(self,event):
@@ -2886,8 +2904,17 @@ class Fixtures():
         #cprint("update_raw",cmd,color="red")
         return cmd
 
-    def encoder(self,fix,attr,xval="",xfade=0,xdelay=0):
-        cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
+
+    def encoder(self,fix,attr,xval="",xfade=0,xdelay=0,blind=0):
+
+        _blind = 0
+        if modes.val("BLIND"):
+            _blind = 1 
+        if blind:
+            _blind = 1
+        
+        if not _blind:
+            cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
 
         if attr == "CLEAR":
             self.clear()
@@ -2906,6 +2933,7 @@ class Fixtures():
             #jclient_send(jdata)
             delay=0
             print("-->A HIER <--")
+            sub_data = []
             for fix in self.fixtures:
                 ii+=1
                 #cprint(fix,attr,xval)
@@ -2918,9 +2946,23 @@ class Fixtures():
                         self.select(fix,attr,mode="on")
                     elif data["ATTRIBUT"][attr]["ACTIVE"]:
                         if fix: # prevent endless recursion
-                            self.encoder(fix,attr,xval,xfade,delay)
+                            #print("------",end="")
+                            #self.encoder(fix,attr,xval,xfade,delay)
+                            sub_data.append([fix,attr,xval,xfade,delay])
                 if DELAY._is():
                     delay += DELAY.val()/100
+
+            sub_jdata = []
+            for dd in sub_data:
+                #print("---",len(sub_data),end="")
+                #self.encoder(fix,attr,xval,xfade,delay)
+                _x123 = self.encoder(dd[0],dd[1],dd[2],dd[3],dd[4],blind=1)
+                sub_jdata.append(_x123)
+
+            if sub_jdata:
+                print("--- SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
+                jclient_send(sub_jdata) 
+
             jdata=[{"MODE":ii}]
             print("-->B HIER <--")
             jclient_send(jdata)
@@ -2981,11 +3023,13 @@ class Fixtures():
                 #if attr not in ["PAN","TILT"] and 1:
                 jdata["DELAY"] = xdelay
 
-            if not modes.val("BLIND"):
+
+            if not _blind:
                 jdata = [jdata]
                 #print("ENC",jdata)
                 jclient_send(jdata)
                 time.sleep(0.001)
+        return jdata
         return v2
 
     def get_active(self):

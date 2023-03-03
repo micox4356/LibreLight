@@ -1378,7 +1378,7 @@ class Xevent():
                 self.elem["bg"] = "orange"
                 self.elem["text"] = "SAVING..."
                 self.elem["bg"] = "red"
-                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
                 #self.elem["fg"] = "orange"
                 self.elem.config(activebackground="orange")
                 modes.val(self.attr,1)
@@ -1438,7 +1438,7 @@ class Xevent():
                 self.elem["bg"] = "orange"
                 self.elem["text"] = "SAVING..."
                 self.elem["bg"] = "red"
-                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
                 #self.elem["fg"] = "orange"
                 self.elem.config(activebackground="orange")
                 modes.val(self.attr,1)
@@ -3713,8 +3713,8 @@ class WindowManager():
             #    gui_fix.draw()
             if name == "EXEC":
                 master._refresh_exec()
-                self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
-                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                #self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
+                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
         else:
             print(name,"not in self.windows",self.windows.keys())
 
@@ -3833,10 +3833,15 @@ refresher_fix.name = "fix"
 refresher_exec = Refresher()
 refresher_exec.name = "exec"
 
-if __run_main:
-    print("main")
+def loops(**args):
+    time.sleep(30) # wait until draw all window's 
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
+
+if __run_main:
+    print("main")
+    #thread.start_new_thread(refresher_fix.loop,())
+    #thread.start_new_thread(refresher_exec.loop,())
     
 
     TOP = _POS_TOP + 15
@@ -4016,6 +4021,13 @@ if __run_main:
         set_exec_fader(nr,0) #,color="#fff")
 
     load_window_position()
+
+
+
+    #thread.start_new_thread(refresher_fix.loop,())
+    #thread.start_new_thread(refresher_exec.loop,())
+    thread.start_new_thread(loops,())
+    
     try:
         #root.mainloop()
         #tk.mainloop()

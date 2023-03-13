@@ -494,6 +494,21 @@ def draw_enc(gui,xframe):
     b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
+    #b = tk.Button(frame,bg="lightblue", text="",width=6)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #c+=1
+    #b = tk.Button(frame,bg="lightblue", text="",width=6)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #c+=1
+    #b = tk.Button(frame,bg="lightblue", text="",width=6)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #c+=1
+    #b = tk.Button(frame,bg="lightblue", text="",width=6)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #c+=1
+    #b = tk.Button(frame,bg="lightblue", text="",width=6)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    ##c+=1
     #for attr in ["xx"]*23: # gui.all_attr:
     eat = gui.all_attr
 
@@ -515,6 +530,16 @@ def draw_enc(gui,xframe):
             c=0
             r+=1
 
+    b = tk.Button(frame,bg="#bfff00", text="INV-ATTR",width=6)
+    myTip = Hovertip(b,'INVERT ATTRIBUT SELECTION')
+    b.bind("<Button>",Xevent(fix="SEL",elem=b,attr="INV-ATTR",data=gui,mode="INVERT").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    #b = tk.Button(frame,bg="#00a7ff", text="INV-FIX",width=6)
+    #myTip = Hovertip(b,'INVERT FIXTURE SELECTION')
+    #b.bind("<Button>",Xevent(fix="ALL",elem=b,attr="INV-FIX",data=gui,mode="INVERT").cb)
+    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    #c+=1
 
 def _draw_fx(frame,c,r,gui,mode="FX"):
     ct  = gui.fx

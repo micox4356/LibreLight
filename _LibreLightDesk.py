@@ -1585,6 +1585,11 @@ class Xevent():
             if self._encoder(event):
                 master.refresh_fix() # delayed
                 refresher_fix.reset() # = Refresher()
+        if self.mode == "INVERT":
+            print("INVERT",event)
+            if self._encoder(event):
+                master.refresh_fix() # delayed
+                refresher_fix.reset() # = Refresher()
 
     def _encoder(self,event):
         global _shift_key
@@ -1619,6 +1624,7 @@ class Xevent():
                 if "Escape" == event.keysym:
                     ok = FIXTURES.clear()
                     master.refresh_fix()
+                    print()
                     return 0
 
             if self.mode == "SETUP":
@@ -1630,6 +1636,8 @@ class Xevent():
             elif self.mode == "ENCODER":
                 self.encoder(event)
             elif self.mode == "ENCODER2":
+                self.encoder(event)
+            elif self.mode == "INVERT":
                 self.encoder(event)
             elif self.mode == "FX":
                 cprint("Xevent CALLING FX WRONG EVENT OBJECT !!",color="red")
@@ -1708,14 +1716,17 @@ class Xevent():
                     if not modes.val("REC"):
                         self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=255)
                         
+                print()
                 return 0
             elif self.mode == "INPUT":
+                print()
                 return 0
 
         except Exception as e:
             cprint("== cb EXCEPT",e,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
+        print()
         return 1 
         
 def wheel(event,d=None):
@@ -2896,7 +2907,6 @@ class Fixtures():
 
 
     def encoder(self,fix,attr,xval="",xfade=0,xdelay=0,blind=0):
-
         _blind = 0
         if modes.val("BLIND"):
             _blind = 1 
@@ -2912,6 +2922,18 @@ class Fixtures():
 
         if attr == "ALL":
             x=self.select(fix,attr,mode="toggle")
+            return x
+
+        if attr == "INV-ATTR":
+            print("-x-x-x-x-x-x-x-X-")
+            x=self.select(fix,attr,mode="swap")
+            #x=self.select(fix,"ALL",mode="swap")
+            master.refresh_fix()
+            return x
+        if attr == "INV-FIX":
+            print("-x-x-x-x-x-x-x-x-")
+            x=self.select(fix,attr,mode="swap")
+            #x=self.select(fix,"ALL",mode="swap")
             return x
 
         out = []
@@ -3069,17 +3091,21 @@ class Fixtures():
         
         return c
 
-    def _select_all(self,fix=None,mode="toggle"):
-        cprint("FIXTURES._select_all()",fix,"ALL",mode,color="yellow")
+    def _select_all(self,fix=None,mode="toggle",mute=0):
+        if not mute:
+            cprint("FIXTURES._select_all()",fix,"ALL",mode,color="yellow")
         c=0
         if fix in self.fixtures:
             data = self.fixtures[fix]
             for attr in data["ATTRIBUT"]:
                 #print("SELECT ALL",fix,attr)
                 if "-FINE" in attr.upper():
-                    pass
-                else:
-                    c+=self.select(fix,attr,mode="on",mute=1)
+                    continue
+                
+                if mode == "toggle":
+                    c+=self.select(fix,attr,mode="on",mute=mute)
+                elif mode == "swap":
+                    c+=self.select(fix,attr,mode="toggle",mute=mute)
 
             if not c and mode == "toggle": # unselect all
                 c= self._deselect_all(fix=fix)
@@ -3087,15 +3113,24 @@ class Fixtures():
 
     def select(self,fix=None,attr=None,mode="on",mute=0):
         if not mute:
-            cprint("FIXTURES.select()",fix,attr,mode,color="yellow")
+            cprint("FIXTURES.select() >>",fix,attr,mode,color="yellow")
         out = 0
+    
+        if fix == "SEL":
+            if attr.upper() == "INV-ATTR":
+                fixs = self.get_active()
+                print("selected:",len(fixs))
+                for fix in fixs:
+                    x=self._select_all(fix=fix,mode=mode,mute=1)
+                return None 
 
         if fix in self.fixtures:
-            data = self.fixtures[fix]
             if attr.upper() == "ALL":
                 x=self._select_all(fix=fix,mode=mode)
                 return x
-            elif attr in data["ATTRIBUT"]:
+
+            data = self.fixtures[fix]
+            if attr in data["ATTRIBUT"]:
                 if mode == "on":
                     if not data["ATTRIBUT"][attr]["ACTIVE"]:
                         data["ATTRIBUT"][attr]["ACTIVE"] = 1

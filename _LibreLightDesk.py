@@ -686,6 +686,8 @@ def process_effect(wing_buffer,fx_name=""):
                 continue
             data = FIXTURES.fixtures[fix]
             for attr in data["ATTRIBUT"]:
+                if attr.startswith("_"):
+                    continue
                 jdata = {"MODE":"FX"}
                 jdata["VALUE"] = None
                 jdata["FIX"] = fix

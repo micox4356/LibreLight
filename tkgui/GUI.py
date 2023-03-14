@@ -200,14 +200,22 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
     if fix not in gui.elem_attr:
         gui.elem_attr[fix] = {}
         
+    attr_list = []    
     for attr in data["ATTRIBUT"]:
-        
         if attr not in gui.all_attr:
             gui.all_attr.append(attr)
+
         if attr not in gui.elem_attr[fix]:
             gui.elem_attr[fix][attr] = []
+        
         if attr.endswith("-FINE"):
             continue
+        if attr.startswith("_"):
+            continue
+        attr_list.append(attr)
+
+
+    for attr in attr_list:#data["ATTRIBUT"]:
         v= data["ATTRIBUT"][attr]["VALUE"]
         b = tk.Button(frame,bg="lightblue", text=""+str(fix),width=3,anchor="w")
         b.config(padx=1)
@@ -218,6 +226,13 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
         b.config(padx=1)
         b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Button(frame,bg="grey", text="S",width=2,anchor="c")
+        b.config(padx=1)
+        myTip = Hovertip(b,'SELECT')
+        b.bind("<Button>",Xevent(fix=fix,elem=b,attr="_ACTIVE",mode="ENCODER",data=data).cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        gui.elem_attr[fix]["S"] = b
         c+=1
         b = tk.Button(frame,bg="grey", text=str(round(v,2)),width=10,anchor="w")
         b.config(padx=1)
@@ -269,52 +284,80 @@ class GUI_FIX():
             i+=1
             data = FIXTURES.fixtures[fix]
             #print("draw_fix", fix ,data )
+            if fix not in gui.elem_attr:
+                gui.elem_attr[fix] = {}
             
-            if(len(data["ATTRIBUT"].keys()) <= 1):
+            #if (len(data["ATTRIBUT"].keys()) <= 1):
+            #    c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
+            kix = []
+            for ix in data["ATTRIBUT"].keys():
+                if not ix.startswith("_") and not ix.endswith("-FINE"):
+                    kix.append(ix)
+
+            if "DIM" in kix and len(kix) == 1:
                 c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
-            else:
-                if not dim_end:
-                    dim_end=1
-                    c=0
-                    r=0
-                #gui._draw_fix(fix,data,root=fix_frame)
-                frame = fix_frame
-            
-                b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
-                b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
-                b.bind("<Button>",Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-                #r+=1
-                start_c=3
-                c=start_c
-                if fix not in gui.elem_attr:
-                    gui.elem_attr[fix] = {}
-                    
-                for attr in data["ATTRIBUT"]:
-                    
-                    if attr.endswith("-FINE"):
-                        continue
-                    if attr not in gui.all_attr:
-                        gui.all_attr.append(attr)
-                    if attr not in gui.elem_attr[fix]:
-                        gui.elem_attr[fix][attr] = ["line1348",fix,attr]
-                    v= data["ATTRIBUT"][attr]["VALUE"]
-                    
-                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
-                    gui.elem_attr[fix][attr] = b
-                    b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E,ipadx=0,ipady=0,padx=0,pady=0)
-                    c+=1
-                    if c >=8:
-                        c=start_c
-                        r+=1
+                continue
+
+
+
+            if not dim_end:
+                dim_end=1
                 c=0
-                r+=1
+                r=0
+            #gui._draw_fix(fix,data,root=fix_frame)
+            frame = fix_frame
+        
+            b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
+            b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
+            b.bind("<Button>",Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+
+            b = tk.Button(frame,bg="grey", text="S",width=2,anchor="c")
+            b.config(padx=1)
+            myTip = Hovertip(b,'SELECT')
+            b.bind("<Button>",Xevent(fix=fix,elem=b,attr="_ACTIVE",mode="ENCODER",data=data).cb)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            gui.elem_attr[fix]["S"] = b
+            c+=1
+
+            #r+=1
+            start_c=3
+            c=start_c
+            attr_list = []    
+            for attr in data["ATTRIBUT"]:
                 
+                if attr.endswith("-FINE"):
+                    continue
+                #if attr.startswith("_"):
+                #    continue
+                attr_list.append(attr)
+
+
+            for attr in attr_list:#data["ATTRIBUT"]:
+
+                if attr not in gui.all_attr:
+                    gui.all_attr.append(attr)
+                if attr not in gui.elem_attr[fix]:
+                    gui.elem_attr[fix][attr] = ["line1348",fix,attr]
+                v= data["ATTRIBUT"][attr]["VALUE"]
+                
+                if attr.startswith("_"):
+                    continue
+                b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
+                gui.elem_attr[fix][attr] = b
+                b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E,ipadx=0,ipady=0,padx=0,pady=0)
+                c+=1
+                if c >=8:
+                    c=start_c
+                    r+=1
+            c=0
+            r+=1
+            
 
         #master._refresh_exec()
         #master.refresh_exec()

@@ -512,14 +512,16 @@ def draw_enc(gui,xframe):
     #for attr in ["xx"]*23: # gui.all_attr:
     eat = gui.all_attr
 
-    if len(eat) < 23:
-        for i in range(23-len(eat)):
+    if len(eat) < 24:
+        for i in range(24-len(eat)):
             eat.append("")
     for attr in eat:
         if attr.endswith("-FINE"):
             continue
         v=0
-        
+        if attr.startswith("_"):
+            continue
+
         b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=7)#, anchor="w")
         if attr == "DIM":
             b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=7)#, anchor="w")

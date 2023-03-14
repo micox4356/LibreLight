@@ -394,7 +394,8 @@ def jclient_send(data):
                         jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
                     jdatas.append(jdata)
                 else:
-                    cprint("jclient_send, ignore DMX ",jdata["DMX"],color="red")
+                    cprint("jclient_send, ignore DMX ",color="red")
+                    cprint("-- ",jdata,color="red")
             except Exception as e:
                 cprint("jclient_send, Exception DMX ",color="red")
                 cprint("",jdata,color="red")
@@ -2215,34 +2216,44 @@ class MASTER():
             sdata = FIXTURES.fixtures[fix]                            
             _c_a = 0
             for attr in sdata["ATTRIBUT"]:
-                if "FINE" in attr:
+                #if attr.startswith("_"):
+                #    continue
+                if attr.endswith("-FINE"):
                     continue
+
                 v2 = sdata["ATTRIBUT"][attr]["VALUE"]
                 if fix in self.elem_attr:
-                    
-                    elem = self.elem_attr[fix][attr]
-                    #print( attr,v2)
-                    elem["text"] = "{} {:0.2f}".format(attr,v2)
-                    if sdata["ATTRIBUT"][attr]["ACTIVE"]:
-                        elem["bg"] = "yellow"
-                        elem.config(activebackground="yellow")
-                        if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
-                            c_d+=1
-                        else:
-                            _c_a += 1
-                    else:
-                        elem["bg"] = "grey"
-                        elem.config(activebackground="grey")
+                    b_attr = attr
+                    if b_attr == "_ACTIVE":
+                        b_attr = "S"
+                    if b_attr in self.elem_attr[fix]:
+                        elem = self.elem_attr[fix][b_attr]
+                        #print( "::::",attr,v2,elem)
+                        if elem:
+                            if not attr.startswith("_"):
+                                elem["text"] = "{} {:0.2f}".format(attr,v2)
+                            if sdata["ATTRIBUT"][attr]["ACTIVE"]:
+                                elem["bg"] = "yellow"
+                                elem.config(activebackground="yellow")
+                                if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
+                                    c_d+=1
+                                else:
+                                    _c_a += 1
+                            else:
+                                elem["bg"] = "grey"
+                                elem.config(activebackground="grey")
 
-                    if "FX2" not in sdata["ATTRIBUT"][attr]: # insert FX2 excetption
-                        sdata["ATTRIBUT"][attr]["FX2"] = OrderedDict()
-                        
-                    if sdata["ATTRIBUT"][attr]["FX"]:
-                        elem["fg"] = "blue"
-                    elif sdata["ATTRIBUT"][attr]["FX2"]:
-                        elem["fg"] = "red"
+                            if "FX2" not in sdata["ATTRIBUT"][attr]: # insert FX2 excetption
+                                sdata["ATTRIBUT"][attr]["FX2"] = OrderedDict()
+                                
+                            if sdata["ATTRIBUT"][attr]["FX"]:
+                                elem["fg"] = "blue"
+                            elif sdata["ATTRIBUT"][attr]["FX2"]:
+                                elem["fg"] = "red"
+                            else:
+                                elem["fg"] = "black"
                     else:
-                        elem["fg"] = "black"
+                        print( ":::;",attr,v2,elem)
             c_a += _c_a
             if _c_a>0:
                 c_f +=1
@@ -2301,7 +2312,8 @@ class MASTER():
                     if attr in self.elem_attr[fix]:
                         elem = self.elem_attr[fix][attr]
                         FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
-                        elem["bg"] = "yellow"
+                        FIXTURES.fixtures[fix]["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+                        #elem["bg"] = "yellow"
 
     def preset_go(self,nr,val=None,xfade=None,event=None,button="",ptfade=None):
         t_start = time.time()
@@ -2754,6 +2766,11 @@ class Fixtures():
             sdata = new_f
             if "ACTIVE" not in sdata:
                 sdata["ACTIVE"] = 0
+            sdata["ATTRIBUT"]["_ACTIVE"] = OrderedDict()
+            sdata["ATTRIBUT"]["_ACTIVE"]["NR"] = 0
+            sdata["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+            sdata["ATTRIBUT"]["_ACTIVE"]["VALUE"] = 0
+
             for attr in sdata["ATTRIBUT"]:
                 sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
             #print("load",filename,sdata)
@@ -3026,6 +3043,7 @@ class Fixtures():
         out = {} 
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
+            data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
             data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
 
             jdata["FADE"] = 0
@@ -3075,6 +3093,8 @@ class Fixtures():
                         sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
     
         return sdata
+    def get_active2(self):
+        pass
 
     def _deselect_all(self,fix=None):
         cprint("FIXTURES._deselect_all()",fix,"ALL",color="yellow")
@@ -3105,7 +3125,8 @@ class Fixtures():
                 if mode == "toggle":
                     c+=self.select(fix,attr,mode="on",mute=mute)
                 elif mode == "swap":
-                    c+=self.select(fix,attr,mode="toggle",mute=mute)
+                    if not attr.startswith("_"):
+                        c+=self.select(fix,attr,mode="toggle",mute=mute)
 
             if not c and mode == "toggle": # unselect all
                 c= self._deselect_all(fix=fix)
@@ -3134,6 +3155,7 @@ class Fixtures():
                 if mode == "on":
                     if not data["ATTRIBUT"][attr]["ACTIVE"]:
                         data["ATTRIBUT"][attr]["ACTIVE"] = 1
+                        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
                         out = 1
                 elif mode == "off":
                     if data["ATTRIBUT"][attr]["ACTIVE"]:
@@ -3144,6 +3166,7 @@ class Fixtures():
                         data["ATTRIBUT"][attr]["ACTIVE"] = 0
                     else:
                         data["ATTRIBUT"][attr]["ACTIVE"] = 1
+                        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
                     out = 1
         return out
 
@@ -3844,6 +3867,10 @@ class Refresher():
                 tkinter.Tk.update_idletasks(gui_menu_gui.tk)
             except Exception as e:
                 print("loop exc",e)
+                traceback.print_exc()
+                cprint("== cb EXCEPT",e,color="red")
+                cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+                cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
 
             time.sleep(0.2)
 
@@ -3869,7 +3896,7 @@ refresher_exec = Refresher()
 refresher_exec.name = "exec"
 
 def loops(**args):
-    time.sleep(30) # wait until draw all window's 
+    time.sleep(15) # wait until draw all window's 
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
 

@@ -19,11 +19,19 @@ parser.add_option("-x", "--xx", dest="xsplit", #default=1,
 parser.add_option("-y", "--yy", dest="ysplit",#default=1,
                   help="y-split") #, metavar="FILE")
 
-parser.add_option("-s", "--start-univ", dest="start_univ",#default=1,
+parser.add_option("", "--start-univ", dest="start_univ",#default=1,
                   help="set start-univers default=2") #, metavar="FILE")
 
-parser.add_option("-g", "--gobo-ch", dest="gobo_ch",#default=1,
+parser.add_option("", "--gobo-ch", dest="gobo_ch",#default=1,
                   help="gobo ch univ on 1") #, metavar="FILE")
+
+#os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
+parser.add_option("", "--win-pos", dest="win_pos",default="200,164",
+                  help="SDL_VIDEO_WINDOW_POS") #, metavar="FILE")
+
+parser.add_option("", "--pixel-mapping", dest="pixel_mapping",default=0,
+                  help="pixel_mapping file/on") #, metavar="FILE")
+
 
 #parser.add_option("-f", "--file", dest="filename",
 #                  help="write report to FILE", metavar="FILE")
@@ -146,6 +154,16 @@ import pygame.gfxdraw
 import pygame.font
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
+if options.win_pos:
+    if "," in options.win_pos:
+        win_pos = options.win_pos.split(",")
+        try:
+            WIN_POS = '%i,%i' % (int(win_pos[0]),int(win_pos[1]) )
+            os.environ['SDL_VIDEO_WINDOW_POS'] = WIN_POS
+        except Excetpion as e:
+            print("win_pos",win_pos,e)
+
+
 os.environ['SDL_VIDEO_CENTERED'] = '0'
 
 pg = pygame
@@ -173,8 +191,8 @@ fr = font.render("hallo" ,1, (200,0,255))
 
 main_size=(600,500)
 try:
-    wx = 100+block[0] * _x
-    wy = 100+block[1] * _y
+    wx = 60+block[0] * _x
+    wy = 80+block[1] * _y
     main_size=(wx,wy)
 
 except Exception as e:
@@ -353,13 +371,13 @@ class POINTER():
             fr = font15.render("{:02}".format(_nr ) ,1, (200,200,200))
 
             window.blit(fr,(self.pos[0]+2,self.pos[1]+2 ))
-            window.blit(fr,(200,25))
+            window.blit(fr,(130,1))
 
         # fix pos
-        txt=str(self.pos)
+        txt=str(self.pos) #"[0, 0, 0, 0]"
         fr = font15.render(txt ,1, (200,200,200))
         #window.blit(fr,(self.pos[0]+2,self.pos[1]+2 ))
-        window.blit(fr,(200,10))
+        window.blit(fr,(10,1))
 
         # univers
         #fr = font15.render("{:02}:{:03}".format(self.fix.univ,self.fix.dmx) ,1, (200,200,200))
@@ -489,17 +507,32 @@ def draw_circle(surface,color, pos, radius):
 def rDMX(univ,dmx):
     return univ*512+dmx
 
-grid_file = "/tmp/vpu_grid.csv"
-grid_file = "/home/user/LibreLight/vpu_grid_hd.csv"
+PIXEL_MAPPING = 0
+grid_file = "/tmp/vpu_grid_hd.csv"
+if options.pixel_mapping:
+    PIXEL_MAPPING = 1
+    path = options.pixel_mapping
+    path = path.replace("/","-")
+    path = path.replace(".","-")
+    path = path.replace("\"","-")
+    path = path.replace("'","-")
+    grid_file = "/home/user/LibreLight/vpu_grid_hd{}.csv".format(path)
+
+print("  ",[options.pixel_mapping],"grid_file",grid_file)
+#grid_file = "/home/user/LibreLight/vpu_grid_hd.csv"
 
 def generate_grid():
-    log = open(grid_file,"w")
+    _log = []
+    #if PIXEL_MAPPING:
+    #    log = open(grid_file,"w")
     head = "i,univ,dmx,x,y,ch\n"
     head = "i,univ,dmx,ch\n"
     head = "univ,dmx,x,y,ch\n"
     head = "nr,id,info\n"
     print("csv:",head)
-    log.write(head)
+    #if PIXEL_MAPPING:
+    #    log.write(head)
+    _log.append(head)
     dmx = 1-1
     ch = 4
 
@@ -519,27 +552,38 @@ def generate_grid():
         line="{},{},{},{},{}\n".format(_univ,_dmx+1,x,y,ch)
         line="{},{},x\n".format(i+1,i+1)
         print("wcsv:",[line])
-        log.write(line)
+        #if PIXEL_MAPPING:
+        #    log.write(line)
+        _log.append(line)
         dmx += ch
         x+=1
-    log.close()
-    return GRID
+
+    if PIXEL_MAPPING:
+        print("CREATE NEW PIXELMAP FILE !!",grid_file)
+        log = open(grid_file,"w")
+        log.writelines(_log)
+        log.close()
+
+    return _log[:] #GRID
 
 def init_grid():
 
-    try:
-        log = open(grid_file,"r")
-    except:
-        generate_grid()
-        log = open(grid_file,"r")
+    if PIXEL_MAPPING:
+        try:
+            log = open(grid_file,"r")
+        except:
+            generate_grid()
+            log = open(grid_file,"r")
+        lines = log.readlines()
+    else:
+        lines = generate_grid()
     
-    lines = log.readlines()
 
     GRID = []
     
     y=0
     x=0
-    print("CSV header",[lines[0]])
+    print("CSV header",[lines[0]],[PIXEL_MAPPING])
 
     for i,line in enumerate(lines[1:]): #exclude first line
         #print("rcsv",[line])
@@ -795,7 +839,7 @@ def main():
         
         pointer.draw()
         pygame.display.flip()
-        pg.time.wait(30)
+        pg.time.wait(60)
 
 
 

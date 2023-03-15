@@ -97,7 +97,7 @@ while 1:
     pygame.draw.rect(window,[100,0,0,127],[10,10,10,10])
 
     fr = font15.render("{:02}".format(i) ,1, (100,100,255,255))
-    window.blit(fr,(100,0))
+    window.blit(fr,(40,30))
 
     
     rgb = [255,255,255]

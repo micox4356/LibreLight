@@ -701,8 +701,9 @@ def main():
         # GRID loop
         try:
             ddd = 1023 #univ 3 512
-            FUNC = data[ddd]
-            FUNC = dataA[gobo_ch-1]
+            #FUNC = data[ddd]
+            FUNC2 = dataA[gobo_ch-1]
+            FUNC = FUNC2
             #print("FUNC", FUNC )#:ddd+512])
             #FUNC = 15
         except Exception as e:

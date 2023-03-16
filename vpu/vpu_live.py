@@ -9,7 +9,7 @@ from optparse import OptionParser
 ...
 parser = OptionParser()
 parser.add_option("-m", "--mode", dest="mode",
-                  help="pixel mode") #, metavar="FILE")
+                  help="pixel mode pix,x,y --mode 40,10,8") #, metavar="FILE")
 
 parser.add_option("-X", "--XX", dest="XX", #default=1,
                   help="x-split") #, metavar="FILE")
@@ -27,10 +27,10 @@ parser.add_option("", "--gobo-ch", dest="gobo_ch",#default=1,
 
 #os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
 parser.add_option("", "--win-pos", dest="win_pos",default="200,164",
-                  help="SDL_VIDEO_WINDOW_POS") #, metavar="FILE")
+                  help="SDL_VIDEO_WINDOW_POS --win-pos=200,164") #, metavar="FILE")
 
 parser.add_option("", "--pixel-mapping", dest="pixel_mapping",default=0,
-                  help="pixel_mapping file/on") #, metavar="FILE")
+                  help="pixel_mapping file/on --pixel-mapping=_x") #, metavar="FILE")
 
 
 #parser.add_option("-f", "--file", dest="filename",

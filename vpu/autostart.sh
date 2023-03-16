@@ -20,8 +20,8 @@ screen -m -d -S ASP -- python3 /opt/LibreLight/ASP/ArtNetProcessor.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/3d/demo_shader_live.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/shader_live.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5
-screen -m -d -S vpu1_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -X 12 --pixel-map=_1
-screen -m -d -S vpu2_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -X 4 --win-pos 450,164 --start-univ=4 --gobo-ch=2 --pixel-map=_2
+screen -m -d -S vpu1_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -X 12 --pixel-map=_1 --gobo-ch=11
+screen -m -d -S vpu2_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -X 4  --pixel-map=_2 --gobo-ch=21 --win-pos 450,164 --start-univ=4 
 
 sleep 3
 screen -ls

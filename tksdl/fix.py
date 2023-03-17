@@ -181,6 +181,42 @@ class Button():
                         else:
                             self.on = 1
 
+def draw_box(pos1,pos2,color=[128,128,128],text=1):
+
+        color = [200,0,0,127]
+
+        if text:
+            fr = font15.render("A" ,1, (200,200,200))
+            window.blit(fr,pos1)
+
+            fr = font15.render("B" ,1, (200,200,200))
+            window.blit(fr,[pos2[0]-10,pos2[1]-10])
+
+        # h unten
+        _pos1 = [pos1[0],pos2[1]]
+        _pos2 = [pos2[0],pos2[1]]
+        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+
+        color = [255,255,0,127]
+        # h rechts
+        _pos1 = [pos2[0],pos1[1]]
+        _pos2 = [pos2[0],pos2[1]]
+        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+
+
+        color = [0,200,0,127]
+        # h links
+        _pos1 = [pos1[0],pos1[1]]
+        _pos2 = [pos1[0],pos2[1]]
+        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+
+
+        color = [0,0,200,127]
+        # h oben
+        _pos1 = [pos1[0],pos1[1]]
+        _pos2 = [pos2[0],pos1[1]]
+        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+
 main_size=(500,500)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -215,12 +251,15 @@ class Gevent():
 
         color = [200,0,0,127]
 
+        draw_box(self.pos1,self.pos2)
+        return 0
 
         fr = font15.render("A" ,1, (200,200,200))
         window.blit(fr,self.pos1)
 
         fr = font15.render("B" ,1, (200,200,200))
         window.blit(fr,[self.pos2[0]-10,self.pos2[1]-10])
+        
 
         # h unten
         pos1 = [self.pos1[0],self.pos2[1]]

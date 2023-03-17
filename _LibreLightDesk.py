@@ -20,7 +20,7 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 """
 import random
 rnd_id = str(random.randint(1000,9000))
-rnd_id += " beta 22.10 "
+rnd_id += " beta 23.03 "
 import subprocess
 import string
 _gcmd=['git', 'rev-parse', '--short', 'HEAD']

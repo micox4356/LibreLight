@@ -388,13 +388,25 @@ def jclient_send(data):
             try:
                 dmx = int(jdata["DMX"])
                 if int(dmx) >= 1: # ignore DMX lower one
-                    if "FIX" in jdata and "ATTR" in jdata:    
-                        fix = jdata["FIX"]
-                        attr = jdata["ATTR"]
-                        # find dmx-fine channel
-                        jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
-                    if "ATTR" in jdata and not jdata["ATTR"].startswith("_"):
+
+                    if "ATTR" not in jdata:
+                        # for fx off
                         jdatas.append(jdata)
+
+                    else: # with "ATTR"
+                        if "FIX" in jdata:    
+                            fix = jdata["FIX"]
+                            attr = jdata["ATTR"]
+                            # find dmx-fine channel
+                            jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
+
+                        if jdata["ATTR"].startswith("_"):
+                            # ignore attr "_" 
+                            # bug with "S" attr._ACTIVE breaks preset_go
+                            pass 
+                        else:
+                            jdatas.append(jdata)
+
                 else:
                     cprint("jclient_send, ignore DMX ",color="red")
                     cprint("-- ",jdata,color="red")

@@ -384,6 +384,7 @@ def jclient_send(data):
                 cprint("",jdata,color="red")
                 cprint("-----",color="red")
         elif "DMX" in jdata:
+            #print(jdata)
             try:
                 dmx = int(jdata["DMX"])
                 if int(dmx) >= 1: # ignore DMX lower one
@@ -392,7 +393,8 @@ def jclient_send(data):
                         attr = jdata["ATTR"]
                         # find dmx-fine channel
                         jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
-                    jdatas.append(jdata)
+                    if "ATTR" in jdata and not jdata["ATTR"].startswith("_"):
+                        jdatas.append(jdata)
                 else:
                     cprint("jclient_send, ignore DMX ",color="red")
                     cprint("-- ",jdata,color="red")

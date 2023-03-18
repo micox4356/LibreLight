@@ -574,7 +574,7 @@ def init_grid(mapping=0):
         try:
             log = open(grid_file,"r")
         except:
-            generate_grid()
+            generate_grid(mapping=mapping)
             log = open(grid_file,"r")
         lines = log.readlines()
     else:

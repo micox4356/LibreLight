@@ -3665,7 +3665,7 @@ class Window():
 
         global _shift_key
         #cprint("<GUI>",event,color="yellow")
-        #cprint("<GUI>",event.state,data,[event.type],color="yellow")
+        #cprint("<GUI>",event.state,data,[event.type,event.keysym],color="yellow")
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
             value = 0
@@ -3720,6 +3720,14 @@ class Window():
                 nr = nr-1+161  
                 cprint("NUM-KEY",value,nr)
                 master.preset_go(nr-1,xfade=None,val=value)
+            elif "numbersign" == event.keysym and value: # is char "#"
+
+                PRESETS.backup_presets()
+                FIXTURES.backup_patch()
+
+                #save_window_position()
+                #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
+                #e.cb(event=event)
             elif "End" == event.keysym:
                 FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")

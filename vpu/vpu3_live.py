@@ -143,7 +143,7 @@ _x2 = _x
 
 try:
     if options.XX:
-        _x2 = int(options.XX)
+        pass#_x2 = int(options.XX)
 except Exception as e:
     print( "Exc",options.mode,e)
 print("_x2 , -X",_x2)
@@ -212,8 +212,8 @@ try:
     wy = 80+block[1] * _y 
     main_size=(wx,wy)
     if PIXEL_MAPPING >= 1:
-        pm_wy = wy
-        main_size=(wx,wy*2)
+        pm_wy = 120+block[0] * 8 
+        main_size=(wx,wy+pm_wy)
 
 except Exception as e:
     print("Exception:",e)
@@ -383,6 +383,8 @@ class POINTER():
         print("draw",x,y,pos)
         pos[0] += x
         pos[1] += y
+        fix_x= self.fix.x
+        fix_y= self.fix.y +y
         print("draw",x,y,pos)
 
         if self.on:
@@ -391,10 +393,10 @@ class POINTER():
 
         
             # mouse grid posision
-            fr = font15.render("{}/{}".format(self.fix.x+1,self.fix.y) ,1, (200,200,200))
+            fr = font15.render("{}/{}".format(fix_x+1,fix_y) ,1, (200,200,200))
             
-            _nr = self.fix.y * _x + self.fix.x +1
-            #fr = font15.render("{:02} {}/{}".format(_nr, self.fix.x+1,self.fix.y+1 ) ,1, (200,200,200))
+            _nr = fix_y * _x + fix_x +1
+            #fr = font15.render("{:02} {}/{}".format(_nr, fix_x+1,fix_y+1 ) ,1, (200,200,200))
             fr = font15.render("{:02}".format(_nr ) ,1, (200,200,200))
 
             window.blit(fr,(pos[0]+2,pos[1]+2 ))
@@ -407,7 +409,7 @@ class POINTER():
         window.blit(fr,(10,1))
 
         # univers
-        #fr = font15.render("{:02}:{:03}".format(self.fix.univ,self.fix.dmx) ,1, (200,200,200))
+        #fr = font15.render("{:02}:{:03}".format(fix.univ,fix.dmx) ,1, (200,200,200))
         #window.blit(fr,(300,10))
         
         # pointer
@@ -418,12 +420,12 @@ class POINTER():
 
         # crosshair
         self.rgb = [0,0,200]
-        pygame.draw.line(window,self.rgb, (self.x-p,self.y) , (self.x-2,self.y) ) 
-        pygame.draw.line(window,self.rgb, (self.x,self.y-p) , (self.x,self.y-2) ) 
+        pygame.draw.line(window,self.rgb, (self.x-p,self.y) , (self.x-2,self.y),4 ) 
+        pygame.draw.line(window,self.rgb, (self.x,self.y-p) , (self.x,self.y-2),4 ) 
 
         self.rgb = [0,200,0]
-        pygame.draw.line(window,self.rgb, (self.x+2,self.y) , (self.x+p,self.y) ) 
-        pygame.draw.line(window,self.rgb, (self.x,self.y+2) , (self.x,self.y+p) ) 
+        pygame.draw.line(window,self.rgb, (self.x+2,self.y) , (self.x+p,self.y),4 ) 
+        pygame.draw.line(window,self.rgb, (self.x,self.y+2) , (self.x,self.y+p),4 ) 
         self.rgb = [200,0,0]
 
 pointer = POINTER()
@@ -747,8 +749,11 @@ def reshape(x,y):
     fr_r = fr.get_rect(center=(x+int(wx/2),y+pm_wy+35))
     #window.blit(fr,(x+int(wx/2),y+pm_wy))
     window.blit(fr,fr_r)
-
+    j = 0
     for fix in _GRID:
+        if j >= 8*8:
+            break
+        j+=1
         ii = i
         #z= i # helping border offset 
         pos = fix.POS(40,60)
@@ -760,7 +765,7 @@ def reshape(x,y):
                 xpos = fix2.POS(40,60)
                 break
 
-        sub = grab(xpos[0],xpos[1]+wy,xpos[2],xpos[3])
+        sub = grab(xpos[0],xpos[1]+pm_wy,xpos[2],xpos[3])
         if sub:
             window.blit(sub, (x+pos[0]+z,y+pos[1]+z))
 
@@ -780,7 +785,7 @@ def reshape(x,y):
 
         # overwrite number overlay
         if NR:
-            pygame.draw.rect(window,[100,0,0],[x+pos[0]+2+z,y+pos[1]+2+z-wy,12,9])
+            pygame.draw.rect(window,[200,200,200],[x+pos[0]+2+z,y+pos[1]+2+z-pm_wy,12,9])
 
         if NR:# == 2:
             if counter +5 < time.time():
@@ -794,7 +799,7 @@ def reshape(x,y):
                 fr = font15.render("{:02}".format(fix._id) ,1, (255,255,0))
             else:
                 fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
-            window.blit(fr,(x+pos[0]+2+z,y+pos[1]+2+z-wy))
+            window.blit(fr,(x+pos[0]+2+z,y+pos[1]+2+z-pm_wy))
         i += 1
 
     # frame box
@@ -844,7 +849,7 @@ def main():
         pygame.display.flip()
         event()
 
-        window.fill((20,20,0))
+        window.fill((10,0,20))
         calc_fps()
         draw_overlay()
 
@@ -984,17 +989,21 @@ def main():
 
         # DRAW FIX NUMBER on TOP
         i=0
+        y=0
         for fix in GRID:
             pos = fix.POS(40,60+pm_wy)
             rgb = fix.rgb
+
+
             if NR:
                 pygame.draw.rect(window,[0,0,0],[pos[0]+2,pos[1]+2,12,9])
+                if fix._id%_x-1 == 0: # line break border
+                    pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+4),(pos[0],pos[1]+pos[3]-4),1)
+                    pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+pos[3]/2),(pos[0]+pos[2]/2,pos[1]+pos[3]/2),1)
+                if fix._id%_x == 0: # line break border
+                    pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,pos[1]+4),(pos[0]+pos[2]-1,pos[1]+pos[3]-4),1)
+                    pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,pos[1]+pos[3]/2),(pos[0]+pos[2]/2-1,pos[1]+pos[3]/2),1)
 
-            #if NR == 1:
-            #    fr = font15.render("{:02}".format(i+1) ,1, (200,0,255))
-            #    window.blit(fr,(pos[0]+2,pos[1]+2))
-            #elif NR == 2:
-            if NR:# == 2:
                 if counter +5 < time.time():
                     counter = time.time()
                     try:
@@ -1008,21 +1017,11 @@ def main():
                 window.blit(fr,(pos[0]+2,pos[1]+2))
             i += 1
  
-        
-        #color=window.get_at((70, 70))
-        #print("pix",color)
-        #surface.set_at((x, y), color)
-
-        #from pygame import gfxdraw
-        #gfxdraw.pixel(surface, x, y, color)
-        
         pointer.draw(0,pm_wy) #wy
         
 
-        #fr = font80.render("{:05}".format(int((time.time()-START)*100)*-1) ,1, (25,200,25))
-        #fr = font80.render("{}".format(int(t1.get()*100)) ,1, (25,200,25))
         fr = font80.render("{:0.2f}".format(t1.get()) ,1, (25,20,205))
-        window.blit(fr,(110+count_tilt,150+pm_wy+math.sin(count_tilt/100*3.1)*100))
+        window.blit(fr,(80+count_tilt,100+pm_wy+math.sin(count_tilt/100*3.1)*100))
 
         count_tilt += 1
         if count_tilt > 80:
@@ -1031,7 +1030,7 @@ def main():
 
         #fr = font80.render("{:05}".format(int((time.time()-START)*100)) ,1, (25,20,205))
         fr = font80.render("{:0.2f}".format(t2.get()) ,1, (25,200,5))
-        window.blit(fr,(110,240+pm_wy))
+        window.blit(fr,(80,140+pm_wy))
 
         if PIXEL_MAPPING >= 1:
             reshape(0,0) #start pos

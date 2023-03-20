@@ -32,6 +32,8 @@ parser.add_option("", "--win-pos", dest="win_pos",default="200,164",
 parser.add_option("", "--pixel-mapping", dest="pixel_mapping",default=0,
                   help="pixel_mapping file/on --pixel-mapping=_x") #, metavar="FILE")
 
+parser.add_option("", "--countdown", dest="countdown",#default=1,
+                  help="enable countdown") #, metavar="FILE")
 
 #parser.add_option("-f", "--file", dest="filename",
 #                  help="write report to FILE", metavar="FILE")
@@ -208,7 +210,7 @@ print("  ",[options.pixel_mapping],"grid_file",grid_file)
 
 main_size=(600,500)
 try:
-    if _x < 8:
+    if _x < 8 and PIXEL_MAPPING > 1:
         wx = 60+block[0] * 8
     else:
         wx = 60+block[0] * _x 
@@ -1055,20 +1057,20 @@ def main():
  
         pointer.draw(0,pm_wy) #wy
         
+        if options.countdown:
+            #fr = font80.render("{:0.2f}".format(t1.get()) ,1, (25,20,205))
+            fr = font80.render("{:0}".format(int(t1.get())) ,1, (25,20,205))
+            window.blit(fr,(80+count_tilt,int(60+pm_wy+math.sin(count_tilt/100*3.1)*20)))
 
-        #fr = font80.render("{:0.2f}".format(t1.get()) ,1, (25,20,205))
-        fr = font80.render("{:0}".format(int(t1.get())) ,1, (25,20,205))
-        window.blit(fr,(80+count_tilt,int(100+pm_wy+math.sin(count_tilt/100*3.1)*100)))
-
-        count_tilt += 1
-        if count_tilt > 80:
-            count_tilt = 0
+            count_tilt += 1
+            if count_tilt > 40:
+                count_tilt = 0
 
 
-        #fr = font80.render("{:05}".format(int((time.time()-START)*100)) ,1, (25,20,205))
-        #fr = font80.render("{:0.2f}".format(t2.get()) ,1, (25,200,5))
-        fr = font80.render("{:0}".format(int(t2.get())) ,1, (25,200,5))
-        window.blit(fr,(80,140+pm_wy))
+            #fr = font80.render("{:05}".format(int((time.time()-START)*100)) ,1, (25,20,205))
+            #fr = font80.render("{:0.2f}".format(t2.get()) ,1, (25,200,5))
+            fr = font80.render("{:0}".format(int(t2.get())) ,1, (25,200,5))
+            window.blit(fr,(80,60+pm_wy))
 
         if PIXEL_MAPPING >= 1:
             reshape(0,0) #start pos

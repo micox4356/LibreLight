@@ -208,7 +208,10 @@ print("  ",[options.pixel_mapping],"grid_file",grid_file)
 
 main_size=(600,500)
 try:
-    wx = 60+block[0] * _x 
+    if _x < 8:
+        wx = 60+block[0] * 8
+    else:
+        wx = 60+block[0] * _x 
     wy = 80+block[1] * _y 
     main_size=(wx,wy)
     if PIXEL_MAPPING >= 1:
@@ -380,12 +383,12 @@ class POINTER():
 
     def draw(self,x,y):
         pos = self.pos[:]
-        print("draw",x,y,pos)
+        #print("draw",x,y,pos)
         pos[0] += x
         pos[1] += y
         fix_x= self.fix.x
         fix_y= self.fix.y +y
-        print("draw",x,y,pos)
+        #print("draw",x,y,pos)
 
         if self.on:
             pygame.draw.rect(window,self.rgb,pos)
@@ -462,14 +465,15 @@ def event():
         _mod = None
         if "mod" in event.dict:
             _mod  = event.mod 
-        print( " ")
-        print( "{:.02f}".format( time.time() - START ))
-        print("button -",_button,end="\t| ")
-        #print("state  -",_state)
-        print("pos    -",_pos)
-        print("type   -",_type, end="\t| ")
-        print("key    -",_key)
-        print("mod    -",_mod)
+        if 0:
+            print( " ")
+            print( "{:.02f}".format( time.time() - START ))
+            print("button -",_button,end="\t| ")
+            #print("state  -",_state)
+            print("pos    -",_pos)
+            print("type   -",_type, end="\t| ")
+            print("key    -",_key)
+            print("mod    -",_mod)
 
         try:
             if _type == 5:
@@ -484,7 +488,7 @@ def event():
 
             if _pos:
                 posA = _pos 
-                fix = find_pix(_pos[0]-40,_pos[1]-60)
+                fix = find_pix(_pos[0]-40,_pos[1]-60+pm_wy)
                 if fix:
                     pos = fix.POS(40,60+pm_wy) 
                     rgb = [0,0,0] 
@@ -554,8 +558,10 @@ def generate_grid(mapping=0):
 
     y=0
     x=0
-    for i in range((_y)*(_x)):
-        if x > _x and i%_x == 0:
+    #for i in range((_y)*(_x)):
+    for i in range((8)*(8)):
+        #if x > _x and i%_x == 0:
+        if x > 8 and i%8 == 0:
             print("--> -->")
             x=0
             y+=1
@@ -567,7 +573,7 @@ def generate_grid(mapping=0):
         line="{},{},{},{},{},{}\n".format(i+1,_univ,_dmx+1,pos[0],pos[1],ch)
         line="{},{},{},{},{}\n".format(_univ,_dmx+1,x,y,ch)
         line="{},{},x\n".format(i+1,i+1)
-        print("wcsv:",[line])
+        #print("wcsv:",[line])
         #if PIXEL_MAPPING:
         #    log.write(line)
         _log.append(line)
@@ -638,13 +644,16 @@ def find_pix(x,y):
         Y = 0
 
         pos = fix.POS()
+        #pos = fix.POS()
+        #pos = fix.POS(40,60-pm_wy)
+        #pos = fix.POS(x,y+pm_wy)#40,60)
         if x > pos[0] and x < pos[0]+pos[2]:
             X = 1
         if y > pos[1] and y < pos[1]+pos[3]:
             Y = 1
         if X and Y:
-            print(pos,x,y)
-            print("find",X,Y)
+            #print(pos,x,y)
+            #print("find",X,Y)
             return fix
             
 GRID = []
@@ -716,18 +725,23 @@ def grab(x=55,y=55,w=60,h=60):
         #pixArray = pygame.PixelArray(screen)
         crop = pygame.Surface((w,h))
         crop.blit(sub, (0,0))
-    except Exception as e:
-        print("exception",e,"line715")
+    except ValueError as e:
+        pass#print("exception",e,"line715")
+    #except Exception as e:
+    #    print("exception",e,"line715")
+    #print(rect)
         
     return crop
 
-def reshape(x,y):
 
+
+def reshape(x,y):
     if PIXEL_MAPPING <= 0:
         return None
 
     global GRID
     global _GRID
+
     i = 0
     counter = 0
     z=0
@@ -735,7 +749,6 @@ def reshape(x,y):
     x_max = 0
     y_min = 99999
     y_max = 0
-
 
     fr = font.render("OUTPUT MAP".format(t1.get()) ,1, (255,255,255))
     fr_r = fr.get_rect(center=(x+int(wx/2),y+pm_wy-5))
@@ -749,58 +762,69 @@ def reshape(x,y):
     fr_r = fr.get_rect(center=(x+int(wx/2),y+pm_wy+35))
     #window.blit(fr,(x+int(wx/2),y+pm_wy))
     window.blit(fr,fr_r)
+
+
     j = 0
     for fix in _GRID:
-        if j >= 8*8:
+        if j >= 8*8: # max output size
             break
+        #if j >= _x*_y: # max input size
+        #    break
         j+=1
         ii = i
         #z= i # helping border offset 
         pos = fix.POS(40,60)
         rgb = fix.rgb
 
-        xpos = pos[:]
+        # green
+        pygame.draw.rect(window,[0,40,0],pos)
+
+        xposs = [] #None #pos[:]
         for fix2 in GRID:
             if fix._id == fix2._id:
-                xpos = fix2.POS(40,60)
-                break
+                xposs.append( fix2.POS(40,60) )
 
-        sub = grab(xpos[0],xpos[1]+pm_wy,xpos[2],xpos[3])
-        if sub:
-            window.blit(sub, (x+pos[0]+z,y+pos[1]+z))
+        for xpos in xposs:
+            sub = grab(xpos[0],xpos[1]+pm_wy,xpos[2],xpos[3])
+            if sub:
+                if 1:#j <= _x*_y: # max input size
+                    window.blit(sub, (x+pos[0]+z,y+pos[1]+z))
+            else:
+                # red
+                pygame.draw.rect(window,[40,0,0],pos) #[x+pos[0]+2+z,y+pos[1]+2+z-pm_wy,12,9])
 
-        if xpos[0] < x_min:
-            x_min = xpos[0]
-        if xpos[0] > x_max:
-            x_max += xpos[2]
 
-        if xpos[1] < y_min:
-            y_min = xpos[1]
-        if xpos[1] > x_max:
-            y_max += xpos[3]
-        # DRAW FIX NUMBER on TOP
+            if xpos[0] < x_min:
+                x_min = xpos[0]
+            if xpos[0] > x_max:
+                x_max += xpos[2]
 
-        pos = fix.POS(40,60+pm_wy)
-        rgb = fix.rgb
+            if xpos[1] < y_min:
+                y_min = xpos[1]
+            if xpos[1] > x_max:
+                y_max += xpos[3]
+            # DRAW FIX NUMBER on TOP
+
+        #apos = pos
+        #argb = rgb
+        apos = fix.POS(40,60+pm_wy)
+        argb = fix.rgb
 
         # overwrite number overlay
-        if NR:
-            pygame.draw.rect(window,[200,200,200],[x+pos[0]+2+z,y+pos[1]+2+z-pm_wy,12,9])
+        if  NR:
+            #pygame.draw.rect(window,[30,40,0],apos)
+            pygame.draw.rect(window,[200,0,0],[x+apos[0]+2+z,y+apos[1]+2+z-pm_wy,12,9])
 
         if NR:# == 2:
-            if counter +5 < time.time():
-                counter = time.time()
-                try:
-                    GRID =  init_grid(_x=_x,_y=_y) #init_gird()
-                    _GRID =  init_grid(_x=8,_y=8,mapping=1) #init_gird()
-                except Exception as e:
-                    print("Except: grid re init",e)
             if fix._id != i+1:
                 fr = font15.render("{:02}".format(fix._id) ,1, (255,255,0))
+                window.blit(fr,(x+apos[0]+2+z,y+apos[1]+2+z-pm_wy))
+                #print(fix._id,xposs,pos)
             else:
                 fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
-            window.blit(fr,(x+pos[0]+2+z,y+pos[1]+2+z-pm_wy))
+                window.blit(fr,(x+apos[0]+2+z,y+apos[1]+2+z-pm_wy))
         i += 1
+        #print("--#")
 
     # frame box
     #pygame.draw.box(window,[100,0,0],[x+x_min,y+x_min,x_max+x_min,y_min+y_max])
@@ -827,6 +851,14 @@ class Timer():
             self.reset()
         return self.timer
 
+def reload_grid():
+    global GRID
+    global _GRID
+    try:
+        GRID =  init_grid(_x=_x,_y=_y) #init_gird()
+        _GRID =  init_grid(_x=8,_y=8,mapping=1) #init_gird()
+    except Exception as e:
+        print("Except: grid re init",e)
 
 t1 = Timer(143)
 time.sleep(0.33)
@@ -834,10 +866,15 @@ t2 = Timer(11)
 
 count_tilt = 0
 def main():
-    global IP,GRID,FUNC
+    global IP
+    global GRID
+    global _GRID
+    global FUNC
     global count_tilt
+
     counter = time.time()
     GRID =  init_grid(_x=_x,_y=_y) #init_gird()
+    #GRID =  init_grid(_x=8,_y=8) #init_gird()
     print("GRID LEN:",len(GRID))
 
 
@@ -846,6 +883,8 @@ def main():
     r = ""
     IP = "xx"
     while running:
+        #reload_grid()
+
         pygame.display.flip()
         event()
 
@@ -999,17 +1038,14 @@ def main():
                 pygame.draw.rect(window,[0,0,0],[pos[0]+2,pos[1]+2,12,9])
                 if fix._id%_x-1 == 0: # line break border
                     pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+4),(pos[0],pos[1]+pos[3]-4),1)
-                    pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+pos[3]/2),(pos[0]+pos[2]/2,pos[1]+pos[3]/2),1)
+                    pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+int(pos[3]/2)),(pos[0]+int(pos[2]/2),int(pos[1]+pos[3]/2)),1)
                 if fix._id%_x == 0: # line break border
                     pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,pos[1]+4),(pos[0]+pos[2]-1,pos[1]+pos[3]-4),1)
-                    pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,pos[1]+pos[3]/2),(pos[0]+pos[2]/2-1,pos[1]+pos[3]/2),1)
+                    pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,int(pos[1]+pos[3]/2)),(pos[0]+int(pos[2]/2-1),int(pos[1]+pos[3]/2)),1)
 
                 if counter +5 < time.time():
                     counter = time.time()
-                    try:
-                        GRID =  init_grid(_x=_x,_y=_y) #init_gird()
-                    except Exception as e:
-                        print("Except: grid re init",e)
+                    reload_grid()
                 if fix._id != i+1:
                     fr = font15.render("{:02}".format(fix._id) ,1, (255,255,0))
                 else:
@@ -1020,8 +1056,9 @@ def main():
         pointer.draw(0,pm_wy) #wy
         
 
-        fr = font80.render("{:0.2f}".format(t1.get()) ,1, (25,20,205))
-        window.blit(fr,(80+count_tilt,100+pm_wy+math.sin(count_tilt/100*3.1)*100))
+        #fr = font80.render("{:0.2f}".format(t1.get()) ,1, (25,20,205))
+        fr = font80.render("{:0}".format(int(t1.get())) ,1, (25,20,205))
+        window.blit(fr,(80+count_tilt,int(100+pm_wy+math.sin(count_tilt/100*3.1)*100)))
 
         count_tilt += 1
         if count_tilt > 80:
@@ -1029,7 +1066,8 @@ def main():
 
 
         #fr = font80.render("{:05}".format(int((time.time()-START)*100)) ,1, (25,20,205))
-        fr = font80.render("{:0.2f}".format(t2.get()) ,1, (25,200,5))
+        #fr = font80.render("{:0.2f}".format(t2.get()) ,1, (25,200,5))
+        fr = font80.render("{:0}".format(int(t2.get())) ,1, (25,200,5))
         window.blit(fr,(80,140+pm_wy))
 
         if PIXEL_MAPPING >= 1:

@@ -960,8 +960,9 @@ def main():
                             count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
                         except Exception as e:
                             pass
-                    if count["_SEC"] < 0:
-                        count["_SEC"] = 0
+                    if type(count["_SEC"]) is int:
+                        if count["_SEC"] < 0:
+                            count["_SEC"] = 0
 
                     if count["CONTROL"] >= 60 and count["CONTROL"] < 70:
                         count["_SEC"] = "HSN"
@@ -971,6 +972,8 @@ def main():
                         count["_SEC"] = "GO"
                     if count["CONTROL"] >= 90 and count["CONTROL"] < 100:
                         count["_SEC"] = "PARTY"
+                    if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
+                        count["_SEC"] = ">{}<".format(cDMX+1)
 
                     count["RED"]   = dataA[cDMX+6]
                     count["GREEN"] = dataA[cDMX+7]

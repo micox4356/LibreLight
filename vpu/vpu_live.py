@@ -71,6 +71,18 @@ def select_ip(ips, univ=2): # artnet univ
 
 FUNC = 0
 
+COUNTER = []
+
+if options.countdown:
+    
+    cdmx_start = options.countdown.split(",")
+    for cdmx in cdmx_start:
+        try:
+            cdmx = int(cdmx)
+            COUNTER.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
+        except Exception as e:
+            print("EXCEPTION COUNTER INIT ",cdmx)
+
 
 
 def read_dmx(ip):
@@ -210,7 +222,7 @@ print("  ",[options.pixel_mapping],"grid_file",grid_file)
 
 main_size=(600,500)
 try:
-    if _x < 8 and PIXEL_MAPPING > 1:
+    if _x < 8 and PIXEL_MAPPING >= 1:
         wx = 60+block[0] * 8
     else:
         wx = 60+block[0] * _x 
@@ -815,7 +827,7 @@ def reshape(x,y):
         # overwrite number overlay
         if  NR:
             #pygame.draw.rect(window,[30,40,0],apos)
-            pygame.draw.rect(window,[200,0,0],[x+apos[0]+2+z,y+apos[1]+2+z-pm_wy,12,9])
+            pygame.draw.rect(window,[20,40,0],[x+apos[0]+2+z,y+apos[1]+2+z-pm_wy,12,9])
 
         if NR:# == 2:
             if fix._id != i+1:
@@ -922,6 +934,53 @@ def main():
         #data3 = read_dmx(ip)
         #data.extend(data3)
         
+        if options.countdown:
+            for count in COUNTER:
+                cDMX=count["DMX"]-1
+                try:
+                    count["DIM"]   = dataA[cDMX]
+                    count["PAN"]   = dataA[cDMX+1]
+                    count["TILT"]  = dataA[cDMX+2]
+                    count["CONTROL"] = dataA[cDMX+3]
+
+                    if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
+                        count["_time"] = int(time.time()*10)/10
+                        count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+                    if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
+                        count["_RUN"] = 0 
+                    if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
+                        count["_RUN"] = 1
+
+
+
+                    count["SIZE"]  = dataA[cDMX+4]
+                    count["SEC"]   = dataA[cDMX+5]
+                    if count["_RUN"]:
+                        try:
+                            count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+                        except Exception as e:
+                            pass
+                    if count["_SEC"] < 0:
+                        count["_SEC"] = 0
+
+                    if count["CONTROL"] >= 60 and count["CONTROL"] < 70:
+                        count["_SEC"] = "HSN"
+                    if count["CONTROL"] >= 70 and count["CONTROL"] < 80:
+                        count["_SEC"] = "LOS"
+                    if count["CONTROL"] >= 80 and count["CONTROL"] < 90:
+                        count["_SEC"] = "GO"
+                    if count["CONTROL"] >= 90 and count["CONTROL"] < 100:
+                        count["_SEC"] = "PARTY"
+
+                    count["RED"]   = dataA[cDMX+6]
+                    count["GREEN"] = dataA[cDMX+7]
+                    count["BLUE"]  = dataA[cDMX+8]
+                except Exception as e:
+                    print("EXC FUNC",e,count)
+                #print(count)
+
+
+
         # GRID loop
         try:
             ddd = 1023 #univ 3 512
@@ -932,6 +991,8 @@ def main():
             #FUNC = 15
         except Exception as e:
             print("EXC FUNC",e)
+
+
         i = 0
         dmx = 1
         h = 1
@@ -1006,6 +1067,11 @@ def main():
                     pygame.draw.rect(window,srgb,spos)
 
 
+            for subfix in fix.sub_fix:#calc(data):
+                subfix.calc(data)
+                #fix = subfix
+                spos = subfix.POS(40,60+pm_wy)
+                srgb = subfix.rgb
 
                 # draw row/col grid number
                 if subfix.pos[0] == 0:
@@ -1057,20 +1123,56 @@ def main():
  
         pointer.draw(0,pm_wy) #wy
         
+
+        #COUNTER.append({"DMX":31,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":0})
         if options.countdown:
-            #fr = font80.render("{:0.2f}".format(t1.get()) ,1, (25,20,205))
-            fr = font80.render("{:0}".format(int(t1.get())) ,1, (25,20,205))
-            window.blit(fr,(80+count_tilt,int(60+pm_wy+math.sin(count_tilt/100*3.1)*20)))
+            for count in COUNTER:
+                cpan = 0
+                ctilt = 0
+                cr=255
+                cg=255
+                cb=255
+                csize=10
+                cdim=0
+                k = "DIM"
+                if k in count:
+                    cdim = int(count[k])
+                k = "RED"
+                if k in count:
+                    cr = int(count[k])
+                k = "GREEN"
+                if k in count:
+                    cg = int(count[k])
+                k = "BLUE"
+                if k in count:
+                    cb = int(count[k])
 
-            count_tilt += 1
-            if count_tilt > 40:
-                count_tilt = 0
+                k = "SIZE"
+                if k in count:
+                    csize = int(count[k])
+                if csize < 5:
+                    csize = 5
 
+                k = "PAN"
+                if k in count:
+                    cpan = int(count[k])/255*(block[0] *_x)
+                    cpan = int(cpan)
+                k = "TILT"
+                if k in count:
+                    ctilt = int(count[k])/255*(block[1] *_y)
+                    ctilt = int(ctilt)
 
-            #fr = font80.render("{:05}".format(int((time.time()-START)*100)) ,1, (25,20,205))
-            #fr = font80.render("{:0.2f}".format(t2.get()) ,1, (25,200,5))
-            fr = font80.render("{:0}".format(int(t2.get())) ,1, (25,200,5))
-            window.blit(fr,(80,60+pm_wy))
+                ddim = cdim/255
+                if "DIM" in count and count["DIM"] > 0:
+                    tmp_font = pygame.font.SysFont("freemonobold",int(block[0]/100*csize))
+                    rgb =(int(cr*ddim),int(cg*ddim),int(cb*ddim),cdim) 
+                    try:
+                        fr = tmp_font.render("{:0}".format(int(count["_SEC"])) ,1, rgb)
+                    except:
+                        fr = tmp_font.render("{}".format((count["_SEC"])) ,1, rgb)
+                    fr_r = fr.get_rect(center=(60+cpan,60+ctilt+pm_wy))
+                    pygame.draw.rect(window,[0,0,0],fr_r)
+                    window.blit(fr,fr_r)
 
         if PIXEL_MAPPING >= 1:
             reshape(0,0) #start pos

@@ -1179,10 +1179,25 @@ def main():
                 if "DIM" in count and count["DIM"] > 0:
                     tmp_font = pygame.font.SysFont("freemonobold",int(block[0]/100*csize))
                     rgb =(int(cr*ddim),int(cg*ddim),int(cb*ddim),cdim) 
+                    
+                    _sec = count["_SEC"]
+                    
                     try:
-                        fr = tmp_font.render("{:0}".format(int(count["_SEC"])) ,1, rgb)
+                        _sec = int(count["_SEC"])
                     except:
+                        pass
+
+                    if type(_sec) is int:
+                        #print(_sec)
+                        if _sec <= 60:
+                            fr = tmp_font.render("{:0}".format(_sec) ,1, rgb)
+                        else:
+                            _xx = time.strftime("%M:%S",time.localtime(_sec))
+                            #print("_xx",_xx)
+                            fr = tmp_font.render("{}".format(_xx) ,1, rgb)
+                    else:
                         fr = tmp_font.render("{}".format((count["_SEC"])) ,1, rgb)
+
                     fr_r = fr.get_rect(center=(60+cpan-(block[0]),60+ctilt+pm_wy))
                     pygame.draw.rect(window,[0,0,0],fr_r)
                     window.blit(fr,fr_r)

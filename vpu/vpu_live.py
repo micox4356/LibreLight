@@ -1168,11 +1168,11 @@ def main():
 
                 k = "PAN"
                 if k in count:
-                    cpan = int(count[k])/255*(block[0] *_x)
+                    cpan = int(count[k])/255*(block[0] *(_x))
                     cpan = int(cpan)
                 k = "TILT"
                 if k in count:
-                    ctilt = int(count[k])/255*(block[1] *_y)
+                    ctilt = int(count[k])/255*(block[1] *(_y))
                     ctilt = int(ctilt)
 
                 ddim = cdim/255
@@ -1183,7 +1183,7 @@ def main():
                         fr = tmp_font.render("{:0}".format(int(count["_SEC"])) ,1, rgb)
                     except:
                         fr = tmp_font.render("{}".format((count["_SEC"])) ,1, rgb)
-                    fr_r = fr.get_rect(center=(60+cpan,60+ctilt+pm_wy))
+                    fr_r = fr.get_rect(center=(60+cpan-(block[0]),60+ctilt+pm_wy))
                     pygame.draw.rect(window,[0,0,0],fr_r)
                     window.blit(fr,fr_r)
 

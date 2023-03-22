@@ -22,10 +22,10 @@ screen -m -d -S ASP -- python3 /opt/LibreLight/ASP/ArtNetProcessor.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5
 # Ayrton VPU Offset Y ___ Y ___ (Ghost 255)
 #screen -m -d -S vpu1_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -X 12 --pixel-map=_1 --gobo-ch=11
-screen -m -d -S vpu1_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5 -X 12 --pixel-map=_1 --gobo-ch=11 --countdown=51,61
+screen -m -d -S vpu1_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5 -X 12 --pixel-map=_1 --gobo-ch=11 --countdown=31,51
 # Ayrton VPU Offset X 235 Y 253 (Pannel 255)  7,5m-4m ... 9,5m-4m
 #screen -m -d -S vpu2_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,8,8 -X 4  --pixel-map=_2 --gobo-ch=21 --win-pos 430,164 --start-univ=4 
-screen -m -d -S vpu2_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,4,6 -X 4  --pixel-map=_2 --gobo-ch=21 --win-pos 430,164 --start-univ=4 --countdown=31,51
+screen -m -d -S vpu2_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,4,6 -X 4  --pixel-map=_2 --gobo-ch=21 --win-pos 430,164 --start-univ=4 --countdown=71,91
 
 sleep 3
 screen -ls

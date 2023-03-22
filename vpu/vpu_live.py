@@ -874,6 +874,16 @@ def reload_grid():
     except Exception as e:
         print("Except: grid re init",e)
 
+VPU_TEXT = []
+def load_vpu_text(nr=0):
+    txt = "NONE"
+    if not VPU_TEXT:
+        pass #create VPU_TEXT_FILE
+    if len(VPU_TEXT) > nr:
+        txt = VPU_TEXT[0]
+    return txt
+
+
 t1 = Timer(143)
 time.sleep(0.33)
 t2 = Timer(11)
@@ -965,13 +975,13 @@ def main():
                             count["_SEC"] = 0
 
                     if count["CONTROL"] >= 60 and count["CONTROL"] < 70:
-                        count["_SEC"] = "HSN"
+                        count["_SEC"] = "HSN" #text 1
                     if count["CONTROL"] >= 70 and count["CONTROL"] < 80:
-                        count["_SEC"] = "LOS"
+                        count["_SEC"] = "LOS" #text 2
                     if count["CONTROL"] >= 80 and count["CONTROL"] < 90:
-                        count["_SEC"] = "GO"
+                        count["_SEC"] = "GO" #text 3
                     if count["CONTROL"] >= 90 and count["CONTROL"] < 100:
-                        count["_SEC"] = "PARTY"
+                        count["_SEC"] = "PARTY" #text 4
                     if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
                         count["_SEC"] = ">{}<".format(cDMX+1)
 

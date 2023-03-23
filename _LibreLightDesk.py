@@ -3938,7 +3938,8 @@ if __run_main:
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
-    w = Window("MAIN",master=1,width=85,height=H1//2,left=L0,top=TOP,resize=0)
+    #w = Window("MAIN",master=1,width=95,height=H1//2,left=L0,top=TOP,resize=0)
+    w = Window("MAIN",master=1,width=100,height=H1,left=L0,top=TOP,resize=1)
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
@@ -3946,8 +3947,13 @@ if __run_main:
     data.append({"text":"PATCH"})
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})
-    data.append({"text":"EXEC"})
+    data.append({"text":"EXEC","name":"EXEC-BTN"})
     data.append({"text":"EXEC-WING"})
+    data.append({"text":"---"})
+    data.append({"text":"ENCODER"})
+    data.append({"text":"COMMAND"})
+    data.append({"text":"COLORPICKER","name":"COLOR"})
+    data.append({"text":"FX"})
     gui_menu = GUI_menu(w.tk,data)
 
     window_manager = gui_menu.window_manager #= window_manager

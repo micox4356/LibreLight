@@ -1412,10 +1412,17 @@ class GUI_menu():
         self.b = tk.Label(self.frame,bg="lightblue", text="MAIN:MENU",width=8,height=1)
         self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
         r+=1
+        h = 2
         for row in data:
             #print(i)
             #row = data[i]
-            self.b = tk.Button(self.frame,bg="lightgrey", text=row["text"],width=8,height=2)
+            if row["text"] == "---":
+                h=1
+            if "name" in row:
+                self.b = tk.Button(self.frame,bg="lightgrey", text=row["name"],width=8,height=h)
+            else:
+                self.b = tk.Button(self.frame,bg="lightgrey", text=row["text"],width=8,height=h)
+
             self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             row["elem"] = self.b

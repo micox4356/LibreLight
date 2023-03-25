@@ -204,6 +204,7 @@ fr = font.render("hallo" ,1, (200,0,255))
 
 PIXEL_MAPPING = 0
 grid_file = "/tmp/vpu_grid_hd.csv"
+text_file = "/home/user/LibreLight/vpu_text_hd.csv"
 pm_wy = 0
 if options.pixel_mapping:
     PIXEL_MAPPING = 1
@@ -213,6 +214,7 @@ if options.pixel_mapping:
     path = path.replace("\"","-")
     path = path.replace("'","-")
     grid_file = "/home/user/LibreLight/vpu_grid_hd{}.csv".format(path)
+    text_file = "/home/user/LibreLight/vpu_text_hd{}.csv".format(path)
     #_x = 8
     #_y = 8
 
@@ -541,6 +543,40 @@ def calc_fps():
         fps = frame #frame_t- t #frame
         frame = 1
         frame_t = time.time()
+
+
+TEXT_BLOCK = []
+
+def _create_text_block():
+    print("======== CREATE NEW TEXT FILE !!",text_file)
+    f = open(text_file,"w")
+    for i in range(10):
+        f.write("TEXT {}\n".format(i+1))
+    f.close()
+
+def open_text_block():
+    print("======== OPEN TEXT FILE !!",text_file)
+    _lines = []
+    try:
+        f = open(text_file,"r")
+        _lines = f.readlines()
+        f.close()
+    except FileNotFoundError as e:
+        print("TEXT",e)
+        _create_text_block()
+
+    if len(_lines) <= 0:
+        _create_text_block()
+    lines = []
+    for l in _lines:
+        print(">> ",l.strip())
+        lines.append(l.strip())
+    if len(lines) <= 10:
+        for i in range(10-len(lines)):
+            lines.append("LINE ERROR")
+    return lines
+TEXT_BLOCK = open_text_block()
+TEXT_BLOCK_TIME = time.time()
 
 # ===== GUI =========
 
@@ -895,6 +931,8 @@ def main():
     global _GRID
     global FUNC
     global count_tilt
+    global TEXT_BLOCK
+    global TEXT_BLOCK_TIME
 
     counter = time.time()
     GRID =  init_grid(_x=_x,_y=_y) #init_gird()
@@ -907,6 +945,10 @@ def main():
     r = ""
     IP = "xx"
     while running:
+
+        if  TEXT_BLOCK_TIME+5 < time.time():
+            TEXT_BLOCK = open_text_block()
+            TEXT_BLOCK_TIME = time.time()
         #reload_grid()
 
         pygame.display.flip()
@@ -973,15 +1015,15 @@ def main():
                     if type(count["_SEC"]) is int:
                         if count["_SEC"] < 0:
                             count["_SEC"] = 0
+                    for ti in range(10):
+                        #print(ti,(ti+6)*10)
+                        if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
+                            count["_SEC"] = "HSN" #text 1
+                            try:
+                                count["_SEC"] = TEXT_BLOCK[ti]
+                            except Exception as e:
+                                pass
 
-                    if count["CONTROL"] >= 60 and count["CONTROL"] < 70:
-                        count["_SEC"] = "HSN" #text 1
-                    if count["CONTROL"] >= 70 and count["CONTROL"] < 80:
-                        count["_SEC"] = "LOS" #text 2
-                    if count["CONTROL"] >= 80 and count["CONTROL"] < 90:
-                        count["_SEC"] = "GO" #text 3
-                    if count["CONTROL"] >= 90 and count["CONTROL"] < 100:
-                        count["_SEC"] = "PARTY" #text 4
                     if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
                         count["_SEC"] = ">{}<".format(cDMX+1)
 

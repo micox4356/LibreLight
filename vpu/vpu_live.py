@@ -1018,7 +1018,7 @@ def main():
                     for ti in range(10):
                         #print(ti,(ti+6)*10)
                         if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
-                            count["_SEC"] = "HSN" #text 1
+                            count["_SEC"] = "----" #text 1
                             try:
                                 count["_SEC"] = TEXT_BLOCK[ti]
                             except Exception as e:

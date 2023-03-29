@@ -6,19 +6,32 @@ class Vopen():
     def __init__(self):
         cap = cv2.VideoCapture('/home/user/Downloads/video.mp4')
         #cap = cv2.VideoCapture('/home/user/Downloads/video.ogv')
+        cap = cv2.VideoCapture('/home/user/Downloads/bbb_sunflower_480x320.mp4')
         self.cap = cap
     def init(self):
         success, img = self.cap.read()
+        try:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        except:pass
         self.shape = img.shape[1::-1]
+        #print( img.shape[0:10] )
         return success,self.shape
     def read(self):
         success, img = self.cap.read()
+        try:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        except:
+            pass
+        #cv2.CvtColor(img, im, cv.CV_BGR2RGB)
+        #print( img.shape[0:10] )
+        #print( self.shape )
         return success,img
 
 v = Vopen()
 success,shape = v.init()
 
-wn = pygame.display.set_mode(shape)
+wn = pygame.display.set_mode(shape,pygame.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+#wn = pygame.display.set_mode(shape)
 window = wn
 clock = pygame.time.Clock()
 
@@ -40,8 +53,9 @@ while success:
         if event.type == pygame.QUIT:
             success = False
     try:
-        wn.blit(pygame.image.frombuffer(img.tobytes(), shape, "RGB"), (0, 0))
-        #wn.blit(pygame.image.frombuffer(img.tobytes(), shape, "BGR"), (0, 0))
+        im = pygame.image.frombuffer(img.tobytes(), shape, "RGB")
+        #im = pygame.image.frombuffer(img.tobytes(), shape, "BGR")
+        wn.blit(im, (0, 0))
     except AttributeError as e:
         print("except",e)
         time.sleep(1)

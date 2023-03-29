@@ -21,6 +21,11 @@ pkg="xdotool x11-xserver-utils xinput xautomation"
 apt install -y $pkg 
 
 echo ""
+echo "-- media pkg's"
+pkg="python3-opencv ffmpeg"
+apt install -y $pkg 
+
+echo ""
 echo "-- python pkg's"
 pkg="python3-tk python3-pygame memcached python3-memcache python3-pip python3-pyglet idle"
 apt install -y $pkg 
@@ -30,6 +35,8 @@ echo "-- python 3d pkg's"
 pkg="python3-opengl python3-pyglet python3-pil "
 apt install -y $pkg 
 #exit
+
+
 
 echo ""
 echo "-- python-pip pkg's"

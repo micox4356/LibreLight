@@ -59,11 +59,11 @@ for i in range(6): # fixtures
     att.append("DIM")
     att.append("DIM-FINE")
     att.append("RED")
-    att.append("RED-FINE")
+    att.append("")#RED-FINE")
     att.append("GREEN")
-    att.append("GREEN-FINE")
+    att.append("")#GREEN-FINE")
     att.append("BLUE")
-    att.append("BLUE-FINE")
+    att.append("")#BLUE-FINE")
     att.append("") # 10 ctc
     att.append("") # 11 grün-mag
     att.append("") # 12 color 

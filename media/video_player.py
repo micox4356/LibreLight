@@ -2,6 +2,7 @@
 import cv2
 import pygame
 import time
+import os
 
 class Vopen():
     def __init__(self):
@@ -17,6 +18,11 @@ class Vopen():
 
     def init(self):
         print(self,"init()",self.fname)
+        if not os.path.isfile(self.fname):
+            print()
+            print("video file does not exits !! >",self.fname)
+            print()
+            exit()
         self.buffer = []
         cap = cv2.VideoCapture(self.fname)
 

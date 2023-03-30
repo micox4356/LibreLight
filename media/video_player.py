@@ -14,7 +14,7 @@ class Vopen():
         self.init()
 
     def init(self):
-        print(self,"init()")
+        print(self,"init()",self.fname)
         cap = cv2.VideoCapture(self.fname)
         self.cap = cap
         self.success, self.img = self.cap.read()
@@ -24,16 +24,16 @@ class Vopen():
         self.shape = self.img.shape[1::-1]
 
     def read(self):
-        print(self,"read()")
+        #print(self,"read()")
         self.success, self.img = self.cap.read()
-        print(self.success)
+        #print(self.success)
         try:
             self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
         except Exception as e:
             print("exception 432",e)
 
     def next(self):
-        print(self,"play",time.time())
+        #print(self,"play",time.time())
         self.read()
         try:
             self.im = pygame.image.frombuffer(self.img.tobytes(), self.shape, "RGB")
@@ -42,22 +42,21 @@ class Vopen():
             print("except",e)
             time.sleep(1)
             self.init()
-            self.success,self.shape = v.init()
 
     def draw(self,wn):
         if self.success:
             wn.blit(self.im, (self.x, self.y))
 
 v = Vopen()
-#success,shape = v.init()
+
 shape = [300,300]
 if v.shape:
     shape  = v.shape
 
-wn = pygame.display.set_mode(v.shape,pygame.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#wn = pygame.display.set_mode(shape)
+wn = pygame.display.set_mode(v.shape,pygame.RESIZABLE)
 window = wn
 clock = pygame.time.Clock()
+pygame.display.set_caption('LibreLight VIDEO PLAYER')
 
 def grab(x=55,y=55,w=60,h=60):
     # usage
@@ -78,14 +77,14 @@ while v.success and success:
         if event.type == pygame.QUIT:
             success = False
     
-    if max_frame < 300:
+    if 1: #max_frame < 300:
         v.next()
         max_frame+=1
     #print(i)
     v.draw(wn) #,x=0,y=0)
 
     sub = grab()
-    window.blit(sub, (500,10))
+    wn.blit(sub, (500,10))
     pygame.display.update()
     clock.tick(60)
 

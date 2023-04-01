@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-try:
-    import cv2
-except:
-    cv2 = None
-
+#import cv2
 import pygame
 import pygame.font
 import time
@@ -19,7 +15,15 @@ class Vopen():
         self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
         self.x = 0
         self.y = 0
-        
+        self.cap = None
+        self.shape = [200,200]  
+        self.success = 1
+        self.cv2 = None
+        try:
+            self.cv2 = cv2
+        except:
+            pass
+
         self.im = None
         self.pos = 0
         self.buffer = []
@@ -34,13 +38,13 @@ class Vopen():
             exit()
         self.buffer = []
 
-        if cv2:
-            cap = cv2.VideoCapture(self.fname)
+        if self.cv2:
+            cap = self.cv2.VideoCapture(self.fname)
 
             self.cap = cap
             self.success, self.img = self.cap.read()
             try:
-                self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
                 #self.buffer.append(self.img)
                 self.pos = 0
             except:pass
@@ -48,15 +52,17 @@ class Vopen():
 
     def read(self):
         #print(self,"read()")
-        self.success, self.img = self.cap.read()
         #print(self.success)
         try:
-            self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+            self.success, self.img = self.cap.read()
+            self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
         except Exception as e:
             print("exception 432",e)
     def prev(self):
         self.pos -= 1
         if self.pos < 0:
+            self.pos = len(self.buffer)-1
+        if self.pos >= len(self.buffer):
             self.pos = len(self.buffer)-1
         self.im = self.buffer[self.pos]
 
@@ -78,7 +84,7 @@ class Vopen():
             self.init()
 
     def draw(self,wn=None):
-        if self.success and wn: # is not None:
+        if self.success and wn and self.im: # is not None:
             wn.blit(self.im, (self.x, self.y))
 
     def overlay(self,wn=None,mode="x"):
@@ -102,6 +108,8 @@ wn = pygame.display.set_mode(v.shape,pygame.RESIZABLE)
 window = wn
 clock = pygame.time.Clock()
 pygame.display.set_caption('LibreLight VIDEO PLAYER (BOUNCE-LOOP)')
+window.fill((30,30,20))
+pygame.display.update()
 
 def grab(x=55,y=55,w=60,h=60):
     # usage
@@ -126,6 +134,7 @@ loop = 1
 run = 1
 while v.success and success:
     
+    window.fill((30,30,20))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             success = False
@@ -144,6 +153,14 @@ while v.success and success:
                    run = 0
                else:
                    run = 1
+
+    # error message
+    pygame.draw.rect(wn,[255,0,0],[18,48,100,20])
+    font15 = pygame.font.SysFont("freemonobold",20)
+    fr = font15.render("NO VIDEO" ,1, (0,0,0))
+    wn.blit(fr,(20,50))
+
+
 
     d = "PAUSE"
     if run:

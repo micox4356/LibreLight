@@ -37,6 +37,12 @@ apt install -y $pkg
 #exit
 
 
+echo ""
+echo "-- update pip"
+su -- user <<EOF
+id
+pip install pip --upgrade
+EOF
 
 echo ""
 echo "-- python-pip pkg's"

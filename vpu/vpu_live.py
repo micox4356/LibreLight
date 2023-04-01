@@ -35,6 +35,9 @@ parser.add_option("", "--pixel-mapping", dest="pixel_mapping",default=0,
 parser.add_option("", "--countdown", dest="countdown",#default=1,
                   help="enable countdown") #, metavar="FILE")
 
+parser.add_option("", "--videoplayer", dest="videoplayer",#default=1,
+                  help="enable videoplayer") #, metavar="FILE")
+
 #parser.add_option("-f", "--file", dest="filename",
 #                  help="write report to FILE", metavar="FILE")
 #parser.add_option("-q", "--quiet",
@@ -68,6 +71,12 @@ def select_ip(ips, univ=2): # artnet univ
     for ip in ips:
         if "ltp-out" in ip and _univ in ip:
             return ip
+
+cv2 = None
+try:
+    if int(options.videoplayer) > 0:
+        import cv2
+except:pass
 
 FUNC = 0
 
@@ -115,6 +124,126 @@ def read_dmx(ip):
 
 # ===== ARTNET DMX =========
 
+
+
+class Vopen():
+    def __init__(self):
+        self.fname = '/home/user/Downloads/video.mp4'
+        self.fname = '/home/user/Downloads/video.ogv'
+        self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
+        self.scale = 50 #%
+        self.x = 0
+        self.y = 0
+        self.cap = None
+        self.shape = [200,200]  
+        self.success = 1
+        self.cv2 = None
+        try:
+            self.cv2 = cv2
+        except:
+            pass
+
+        self.im = None
+        self.pos = 0
+        self.buffer = []
+        self.init()
+
+    def init(self):
+        print(self,"init()",self.fname)
+        if not os.path.isfile(self.fname):
+            print()
+            print("video file does not exits !! >",self.fname)
+            print()
+            exit()
+        self.buffer = []
+
+        if self.cv2:
+            cap = self.cv2.VideoCapture(self.fname)
+
+            self.cap = cap
+            self.success, self.img = self.cap.read()
+            try:
+                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+
+                #self.shape = self.img.shape[:2]
+                #self.img = self.rescale_frame(self.img, percent=10)
+                #self.buffer.append(self.img)
+                self.pos = 0
+            except:pass
+            self.shape = self.img.shape[1::-1]
+            for i in range(900):
+                self.read()
+
+    def read(self):
+        #print(self,"read()")
+        #print(self.success)
+        try:
+            self.success, self.img = self.cap.read()
+
+            self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+            self.img = self.rescale_frame(self.img, percent=self.scale)
+            #self.shape = self.img.shape[:2]
+            #self.img = self.rescale_frame(self.img, percent=0)
+            self.shape = self.img.shape[1::-1]
+        except Exception as e:
+            print("exception 432",e)
+
+    def prev(self):
+        self.pos -= 1
+        if self.pos < 0:
+            self.pos = len(self.buffer)-1
+        if self.pos >= len(self.buffer):
+            self.pos = len(self.buffer)-1
+        self.im = self.buffer[self.pos]
+
+    def rescale_frame(self,frame, percent=75):
+        width  = int(frame.shape[1] * percent/ 100)
+        height = int(frame.shape[0] * percent/ 100)
+        dim = (width, height)
+        return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
+
+    def next(self):
+        #print(self,"play",time.time())
+        #print(dir(self.cap))
+        #print(self.cap.set.__doc__)
+        #print(self.cap.grab.__doc__)
+         
+        self.read()
+        try:
+            img = self.img #self.rescale_frame(self.img, percent=30)
+            self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
+            self.buffer.append(self.im)
+            self.pos += 1
+            # wn.blit(im, (self.x, self.y))
+        except AttributeError as e:
+            print("except",e)
+            time.sleep(1)
+            self.init()
+
+    def draw(self,wn=None):
+        if self.success and wn and self.im: # is not None:
+            wn.blit(self.im, (self.x, self.y))
+
+    def overlay(self,wn=None,mode="x"):
+        # overlay 
+        pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+self.img.shape[0],140,20])
+        font15 = pygame.font.SysFont("freemonobold",17)
+        fr = font15.render(">:{}".format(mode) ,1, (0,0,0))
+        wn.blit(fr,(3+self.x,4+self.y+self.img.shape[0]))
+
+        fr = font15.render("FRAME:{}".format(self.pos) ,1, (0,0,0))
+        wn.blit(fr,(45+self.x,4+self.y+self.img.shape[0]))
+
+
+video1 = None
+options_videoplayer = 0
+if type(options.videoplayer) is str:
+    try:
+        options_videoplayer = int(options.videoplayer)
+        video1 = Vopen()
+    except:pass
+
+# ===== ======
 
 
 p = 16
@@ -165,6 +294,7 @@ print("_x2 , -X",_x2)
 import pygame
 import pygame.gfxdraw
 import pygame.font
+clock = pygame.time.Clock()
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
 if options.win_pos:
@@ -1176,7 +1306,6 @@ def main():
                 window.blit(fr,(pos[0]+2,pos[1]+2))
             i += 1
  
-        pointer.draw(0,pm_wy) #wy
         
 
         #COUNTER.append({"DMX":31,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":0})
@@ -1244,13 +1373,34 @@ def main():
                     pygame.draw.rect(window,[0,0,0],fr_r)
                     window.blit(fr,fr_r)
 
+        #print( [options_videoplayer] )
+        if video1:
+            video1.pos 
+            video1.x=40
+            video1.y=60+pm_wy
+            video1.scale = options_videoplayer
+            video1.next()
+            #video1.prev()
+
+            video1.draw(window) #,x=0,y=0)
+
+            # overlay 
+            video1.overlay(window,"run")
+
+        pointer.draw(0,pm_wy) #wy
+
         if PIXEL_MAPPING >= 1:
             reshape(0,0) #start pos
         else:
             reshape(spos[0]+spos[2]+20,10) #start pos
 
+
+
+
+
         pygame.display.flip()
-        pg.time.wait(60)
+        #pg.time.wait(15)
+        clock.tick(60)
 
 
 

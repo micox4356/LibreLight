@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#import cv2
+import cv2
 import pygame
 import pygame.font
 import time
@@ -13,6 +13,7 @@ class Vopen():
         self.fname = '/home/user/Downloads/video.mp4'
         self.fname = '/home/user/Downloads/video.ogv'
         self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
+        self.scale = 80 #%
         self.x = 0
         self.y = 0
         self.cap = None
@@ -45,19 +46,30 @@ class Vopen():
             self.success, self.img = self.cap.read()
             try:
                 self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+
+                #self.shape = self.img.shape[:2]
+                #self.img = self.rescale_frame(self.img, percent=10)
                 #self.buffer.append(self.img)
                 self.pos = 0
             except:pass
             self.shape = self.img.shape[1::-1]
+            for i in range(900):
+                self.read()
 
     def read(self):
         #print(self,"read()")
         #print(self.success)
         try:
             self.success, self.img = self.cap.read()
+
             self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+            self.img = self.rescale_frame(self.img, percent=self.scale)
+            #self.shape = self.img.shape[:2]
+            #self.img = self.rescale_frame(self.img, percent=0)
+            self.shape = self.img.shape[1::-1]
         except Exception as e:
             print("exception 432",e)
+
     def prev(self):
         self.pos -= 1
         if self.pos < 0:
@@ -65,6 +77,12 @@ class Vopen():
         if self.pos >= len(self.buffer):
             self.pos = len(self.buffer)-1
         self.im = self.buffer[self.pos]
+
+    def rescale_frame(self,frame, percent=75):
+        width  = int(frame.shape[1] * percent/ 100)
+        height = int(frame.shape[0] * percent/ 100)
+        dim = (width, height)
+        return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
 
     def next(self):
         #print(self,"play",time.time())
@@ -74,7 +92,8 @@ class Vopen():
          
         self.read()
         try:
-            self.im = pygame.image.frombuffer(self.img.tobytes(), self.shape, "RGB")
+            img = self.img #self.rescale_frame(self.img, percent=30)
+            self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
             self.buffer.append(self.im)
             self.pos += 1
             # wn.blit(im, (self.x, self.y))
@@ -89,13 +108,16 @@ class Vopen():
 
     def overlay(self,wn=None,mode="x"):
         # overlay 
-        font15 = pygame.font.SysFont("freemonobold",20)
+        shape = self.img.shape
+        shape = [0,0,0]
+        pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+shape[0],140,20])
+        font15 = pygame.font.SysFont("freemonobold",17)
         fr = font15.render(">:{}".format(mode) ,1, (0,0,0))
-        wn.blit(fr,(10,10))
+        wn.blit(fr,(3+self.x,4+self.y+shape[0]))
 
-        font15 = pygame.font.SysFont("freemonobold",20)
         fr = font15.render("FRAME:{}".format(self.pos) ,1, (0,0,0))
-        wn.blit(fr,(110,10))
+        wn.blit(fr,(45+self.x,4+self.y+shape[0]))
+
 
 v = Vopen()
 
@@ -163,6 +185,9 @@ while v.success and success:
 
 
     d = "PAUSE"
+    #v.pos 
+    #v.next()
+    #v.prev()
     if run:
         if loop:
             d = "PLAY"

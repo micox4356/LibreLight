@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-import cv2
+
+try:
+    import cv2
+except:
+    cv2 = None
+
 import pygame
 import pygame.font
 import time
@@ -14,6 +19,7 @@ class Vopen():
         self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
         self.x = 0
         self.y = 0
+        
         self.im = None
         self.pos = 0
         self.buffer = []
@@ -27,16 +33,18 @@ class Vopen():
             print()
             exit()
         self.buffer = []
-        cap = cv2.VideoCapture(self.fname)
 
-        self.cap = cap
-        self.success, self.img = self.cap.read()
-        try:
-            self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
-            #self.buffer.append(self.img)
-            self.pos = 0
-        except:pass
-        self.shape = self.img.shape[1::-1]
+        if cv2:
+            cap = cv2.VideoCapture(self.fname)
+
+            self.cap = cap
+            self.success, self.img = self.cap.read()
+            try:
+                self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+                #self.buffer.append(self.img)
+                self.pos = 0
+            except:pass
+            self.shape = self.img.shape[1::-1]
 
     def read(self):
         #print(self,"read()")
@@ -73,11 +81,22 @@ class Vopen():
         if self.success and wn: # is not None:
             wn.blit(self.im, (self.x, self.y))
 
+    def overlay(self,wn=None,mode="x"):
+        # overlay 
+        font15 = pygame.font.SysFont("freemonobold",20)
+        fr = font15.render(">:{}".format(mode) ,1, (0,0,0))
+        wn.blit(fr,(10,10))
+
+        font15 = pygame.font.SysFont("freemonobold",20)
+        fr = font15.render("FRAME:{}".format(self.pos) ,1, (0,0,0))
+        wn.blit(fr,(110,10))
+
 v = Vopen()
 
 shape = [300,300]
 if v.shape:
     shape  = v.shape
+
 
 wn = pygame.display.set_mode(v.shape,pygame.RESIZABLE)
 window = wn
@@ -96,6 +115,9 @@ def grab(x=55,y=55,w=60,h=60):
     return crop
 
 
+class VideoDemo():
+    def __init__(self):
+        pass
 
 max_frame=0
 success=1
@@ -146,13 +168,7 @@ while v.success and success:
         v.draw(wn) #,x=0,y=0)
 
         # overlay 
-        font15 = pygame.font.SysFont("freemonobold",20)
-        fr = font15.render(">:{}".format(d) ,1, (0,0,0))
-        wn.blit(fr,(10,10))
-
-        font15 = pygame.font.SysFont("freemonobold",20)
-        fr = font15.render("FRAME:{}".format(v.pos) ,1, (0,0,0))
-        wn.blit(fr,(110,10))
+        v.overlay(wn,d)
 
         sub = grab()
         wn.blit(sub, (500,10))

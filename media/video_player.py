@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import cv2
 import pygame
+import pygame.font
 import time
 import os
+
+pygame.init() 
 
 class Vopen():
     def __init__(self):
@@ -92,6 +95,8 @@ def grab(x=55,y=55,w=60,h=60):
     crop.blit(sub, (0,0))
     return crop
 
+
+
 max_frame=0
 success=1
 
@@ -118,13 +123,15 @@ while v.success and success:
                else:
                    run = 1
 
-    
+    d = "PAUSE"
     if run:
         if loop:
+            d = "PLAY"
             if max_frame < 100:
                 v.next()
                 max_frame+=1
             else:
+                d = "REVERSE"
                 #max_frame = 0
                 #v.init()
                 v.prev()
@@ -137,6 +144,15 @@ while v.success and success:
     #print(i)
     if wn:
         v.draw(wn) #,x=0,y=0)
+
+        # overlay 
+        font15 = pygame.font.SysFont("freemonobold",20)
+        fr = font15.render(">:{}".format(d) ,1, (0,0,0))
+        wn.blit(fr,(10,10))
+
+        font15 = pygame.font.SysFont("freemonobold",20)
+        fr = font15.render("FRAME:{}".format(v.pos) ,1, (0,0,0))
+        wn.blit(fr,(110,10))
 
         sub = grab()
         wn.blit(sub, (500,10))

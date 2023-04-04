@@ -4,6 +4,8 @@ import random
 import time
 import os
 
+import _thread as thread
+
 
 from optparse import OptionParser
 ...
@@ -124,6 +126,10 @@ def read_dmx(ip):
 
 # ===== ARTNET DMX =========
 
+VIDEO = []
+            
+#cdmx = 0
+VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
 
 
 class Vopen():
@@ -134,8 +140,10 @@ class Vopen():
         self.scale = 50 #%
         self.x = 0
         self.y = 0
+        self.init_count = 0
         self.cap = None
         self.shape = [200,200]  
+        self.img = None
         self.success = 1
         self.cv2 = None
         try:
@@ -149,6 +157,14 @@ class Vopen():
         self.init()
 
     def init(self):
+        #self.init_count += 1
+        #if self.init_count % 100 != 0:
+        #    return
+        #thread.start_new_thread(self._init,())
+        self._init()
+        self.init_count = 1
+
+    def _init(self):
         print(self,"init()",self.fname)
         if not os.path.isfile(self.fname):
             print()
@@ -178,15 +194,22 @@ class Vopen():
         #print(self,"read()")
         #print(self.success)
         try:
+            if self.cap is None:
+                self.init()
+                return 
             self.success, self.img = self.cap.read()
-
+            
+            if not self.success:
+                self.init_count = 0
             self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
             #self.shape = self.img.shape[:2]
             #self.img = self.rescale_frame(self.img, percent=0)
             self.shape = self.img.shape[1::-1]
         except Exception as e:
+            #if self.init_count % 100 == 0:
             print("exception 432",e)
+            self.init()
 
     def prev(self):
         self.pos -= 1
@@ -211,13 +234,16 @@ class Vopen():
         self.read()
         try:
             img = self.img #self.rescale_frame(self.img, percent=30)
+            if img is None:
+                return 
             self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
             self.buffer.append(self.im)
             self.pos += 1
             # wn.blit(im, (self.x, self.y))
         except AttributeError as e:
-            print("except",e)
-            time.sleep(1)
+            time.sleep(.05)
+            #if self.init_count % 100 == 0:
+            print("except 776",e)
             self.init()
 
     def draw(self,wn=None):
@@ -226,13 +252,17 @@ class Vopen():
 
     def overlay(self,wn=None,mode="x"):
         # overlay 
-        pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+self.img.shape[0],140,20])
+        img_shape = [100,100]
+        if type(self.img) is list:
+            img_shape = self.img.shape
+
+        pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+img_shape[0],140,20])
         font15 = pygame.font.SysFont("freemonobold",17)
         fr = font15.render(">:{}".format(mode) ,1, (0,0,0))
-        wn.blit(fr,(3+self.x,4+self.y+self.img.shape[0]))
+        wn.blit(fr,(3+self.x,4+self.y+img_shape[0]))
 
         fr = font15.render("FRAME:{}".format(self.pos) ,1, (0,0,0))
-        wn.blit(fr,(45+self.x,4+self.y+self.img.shape[0]))
+        wn.blit(fr,(45+self.x,4+self.y+img_shape[0]))
 
 
 video1 = None
@@ -335,6 +365,7 @@ fr = font.render("hallo" ,1, (200,0,255))
 PIXEL_MAPPING = 0
 grid_file = "/tmp/vpu_grid_hd.csv"
 text_file = "/home/user/LibreLight/vpu_text_hd.csv"
+play_list = "/tmp/vpu_playlist_hd.csv"
 pm_wy = 0
 if options.pixel_mapping:
     PIXEL_MAPPING = 1
@@ -345,6 +376,7 @@ if options.pixel_mapping:
     path = path.replace("'","-")
     grid_file = "/home/user/LibreLight/vpu_grid_hd{}.csv".format(path)
     text_file = "/home/user/LibreLight/vpu_text_hd{}.csv".format(path)
+    play_list = "/home/user/LibreLight/vpu_playlist_hd{}.csv".format(path)
     #_x = 8
     #_y = 8
 
@@ -699,7 +731,7 @@ def open_text_block():
         _create_text_block()
     lines = []
     for l in _lines:
-        print(">> ",l.strip())
+        #print(">> ",l.strip())
         lines.append(l.strip())
     if len(lines) <= 10:
         for i in range(10-len(lines)):
@@ -708,6 +740,43 @@ def open_text_block():
 TEXT_BLOCK = open_text_block()
 TEXT_BLOCK_TIME = time.time()
 
+# video playlist 
+
+PLAYLIST = []
+
+def _create_playlist():
+    print("======== CREATE NEW PLAYLIST FILE !!",play_list)
+    f = open(play_list,"w")
+    for i in range(10):
+        f.write("Video-file {}\n".format(i+1))
+    f.close()
+
+def open_playlist():
+    print("======== OPEN PLAYLIST FILE !!",play_list)
+    _lines = []
+    try:
+        f = open(play_list,"r")
+        _lines = f.readlines()
+        f.close()
+    except FileNotFoundError as e:
+        print("TEXT",e)
+        _create_playlist()
+
+    if len(_lines) <= 0:
+        _create_playlist()
+
+    lines = []
+    for l in _lines:
+        print(">> ",l.strip())
+        lines.append(l.strip())
+
+    if len(lines) <= 10:
+        for i in range(10-len(lines)):
+            lines.append("LINE ERROR")
+    return lines
+
+PLAYLIST_TIME = time.time()
+PLAYLIST = open_playlist()
 # ===== GUI =========
 
 
@@ -742,7 +811,7 @@ def generate_grid(mapping=0):
     for i in range((8)*(8)):
         #if x > _x and i%_x == 0:
         if x > 8 and i%8 == 0:
-            print("--> -->")
+            #print("--> -->")
             x=0
             y+=1
         
@@ -1063,6 +1132,8 @@ def main():
     global count_tilt
     global TEXT_BLOCK
     global TEXT_BLOCK_TIME
+    global PLAYLIST
+    global PLAYLIST_TIME
 
     counter = time.time()
     GRID =  init_grid(_x=_x,_y=_y) #init_gird()
@@ -1079,6 +1150,11 @@ def main():
         if  TEXT_BLOCK_TIME+5 < time.time():
             TEXT_BLOCK = open_text_block()
             TEXT_BLOCK_TIME = time.time()
+
+        if  PLAYLIST_TIME+6 < time.time():
+            PLAYLIST = open_playlist()
+            PLAYLIST_TIME = time.time()
+
         #reload_grid()
 
         pygame.display.flip()
@@ -1162,6 +1238,56 @@ def main():
                     count["BLUE"]  = dataA[cDMX+8]
                 except Exception as e:
                     print("EXC FUNC",e,count)
+                #print(count)
+
+
+        
+        if options_videoplayer:
+            for count in VIDEO:
+                cDMX=count["DMX"]-1
+                try:
+                    count["DIM"]   = dataA[cDMX]
+                    count["PAN"]   = dataA[cDMX+1]
+                    count["TILT"]  = dataA[cDMX+2]
+                    count["CONTROL"] = dataA[cDMX+3]
+
+                    if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
+                        count["_time"] = int(time.time()*10)/10
+                        count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+                    if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
+                        count["_RUN"] = 0 
+                    if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
+                        count["_RUN"] = 1
+
+
+
+                    count["SIZE"]  = dataA[cDMX+4]
+                    count["SEC"]   = dataA[cDMX+5]
+                    if count["_RUN"]:
+                        try:
+                            count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+                        except Exception as e:
+                            pass
+                    if type(count["_SEC"]) is int:
+                        if count["_SEC"] < 0:
+                            count["_SEC"] = 0
+                    for ti in range(10):
+                        #print(ti,(ti+6)*10)
+                        if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
+                            count["_SEC"] = "----" #text 1
+                            try:
+                                count["_SEC"] = TEXT_BLOCK[ti]
+                            except Exception as e:
+                                pass
+
+                    if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
+                        count["_SEC"] = ">{}<".format(cDMX+1)
+
+                    count["RED"]   = dataA[cDMX+6]
+                    count["GREEN"] = dataA[cDMX+7]
+                    count["BLUE"]  = dataA[cDMX+8]
+                except Exception as e:
+                    print("VIDEOPLAYER EXCEPT FUNC",e,count)
                 #print(count)
 
 
@@ -1375,16 +1501,46 @@ def main():
 
         #print( [options_videoplayer] )
         if video1:
+            for count in VIDEO:
+                cpan = 0
+                ctilt = 0
+                cr=255
+                cg=255
+                cb=255
+                csize=10
+                cdim=0
+                k = "DIM"
+                if k in count:
+                    cdim = int(count[k])
+
+                k = "SIZE"
+                if k in count:
+                    csize = int(count[k])
+                if csize < 5:
+                    csize = 5
+
+                k = "PAN"
+                if k in count:
+                    cpan = int(count[k])/255*(block[0] *(_x))
+                    cpan = int(cpan)
+                k = "TILT"
+                if k in count:
+                    ctilt = int(count[k])/255*(block[1] *(_y))
+                    ctilt = int(ctilt)
+
             video1.pos 
-            video1.x=40
-            video1.y=60+pm_wy
-            video1.scale = options_videoplayer
-            video1.next()
-            #video1.prev()
+            video1.x=40+cpan
+            video1.y=60+pm_wy+ctilt
+            #video1.scale = int(options_videoplayer*(csize/255))
+            video1.scale = int((csize))
 
-            video1.draw(window) #,x=0,y=0)
+            if cdim:
+                video1.next()
+                #video1.prev()
 
-            # overlay 
+                video1.draw(window) #,x=0,y=0)
+
+                # overlay 
             video1.overlay(window,"run")
 
         pointer.draw(0,pm_wy) #wy
@@ -1402,6 +1558,10 @@ def main():
         #pg.time.wait(15)
         clock.tick(60)
 
+        if 'SDL_VIDEO_WINDOW_POS' in os.environ:
+            del os.environ['SDL_VIDEO_WINDOW_POS'] #= '%i,%i' % (200,164)
+        #if 'SDL_VIDEO_CENTERED' in os.environ['SDL_VIDEO_CENTERED']:
+        #    del os.environ['SDL_VIDEO_CENTERED'] #= '0'
 
 
 if __name__ == "__main__":

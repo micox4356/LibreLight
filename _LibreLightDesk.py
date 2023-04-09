@@ -58,7 +58,7 @@ space_font = None
 import tkinter.simpledialog
 from idlelib.tooltip import Hovertip
 
-
+INIT_OK = 0
 _global_short_key = 1
 
 
@@ -1635,6 +1635,9 @@ class Xevent():
     def cb(self,event):
         cprint("EVENT cb",self.attr,self.mode,event,color='yellow')
         print(["type",event.type,"num",event.num])
+
+        global INIT_OK
+        INIT_OK = 1
         try:
             change = 0
             if "keysym" in dir(event):
@@ -3628,7 +3631,8 @@ class Window():
         self.tk.geometry(geo)
         self.show()
     def update_idle_task(self):
-        tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+        if INIT_OK:
+            tkinter.Tk.update_idletasks(gui_menu_gui.tk)
         pass
     def close_app_win(self,event=None):
         print("close_app_win",self,event)
@@ -3875,6 +3879,9 @@ class Refresher():
 
     def _refresh(self):
         print(self,"_refresh()")
+        if not INIT_OK:
+            return
+
         self.time_max = time.time()
         self.time     = time.time()
         self.update = 0
@@ -3887,8 +3894,9 @@ class Refresher():
     def loop(self,args={}):
         while 1:
             try:
-                self.refresh()
-                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                if INIT_OK:
+                    self.refresh()
+                    tkinter.Tk.update_idletasks(gui_menu_gui.tk)
             except Exception as e:
                 print("loop exc",e)
                 traceback.print_exc()
@@ -3970,11 +3978,11 @@ if __run_main:
     window_manager.new(w,name)
 
     name="CONFIG"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
     #draw_preset(master,w1)#w.tk)
-    window_manager.new(w,name)
+    #window_manager.new(w,name)
 
     name="DIMMER"
     w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
@@ -4081,16 +4089,16 @@ if __run_main:
     window_manager.new(w,name)
 
     name="TableA"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
-    x=TableFrame(root=w.tk)#,left=80,top=620)
-    w.show()
-    data =[]
-    for a in range(40):
-        data.append(["E","E{}".format(a+1)])
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
+    #x=TableFrame(root=w.tk)#,left=80,top=620)
+    #w.show()
+    #data =[]
+    #for a in range(40):
+    #    data.append(["E","E{}".format(a+1)])
 
-    x.draw(data=data,head=["E","C"],config=[12,5,5])
-    w=x.bframe
+    #x.draw(data=data,head=["E","C"],config=[12,5,5])
+    #w=x.bframe
 
     #window_manager.new(w,name)
 

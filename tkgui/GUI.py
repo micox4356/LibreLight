@@ -1401,6 +1401,8 @@ class WindowManager():
 class GUI_menu():
     def __init__(self,root,data,title="tilte",width=800):
         global tk
+        global INIT_OK
+
         self.window_manager = WindowManager()
         self.data = data
         self.data2 = {}
@@ -1430,6 +1432,7 @@ class GUI_menu():
             r+=1
             i+=1
         self.frame.pack()
+        INIT_OK = 1
     def callback(self,event,data={}):
         global window_manager
         print("callback543",self,event,data)

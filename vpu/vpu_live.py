@@ -157,59 +157,46 @@ class Vopen():
         self.init()
 
     def init(self):
-        #self.init_count += 1
-        #if self.init_count % 100 != 0:
-        #    return
-        #thread.start_new_thread(self._init,())
-        self._init()
+        #self._init()
+        thread.start_new_thread(self._init,())
         self.init_count = 1
 
     def _init(self):
-        print(self,"init()",self.fname)
+        print(self)
+        print("videoplayer.init()",self.fname)
+
         if not os.path.isfile(self.fname):
             print()
             print("video file does not exits !! >",self.fname)
             print()
             exit()
-        self.buffer = []
 
         if self.cv2:
             cap = self.cv2.VideoCapture(self.fname)
-
             self.cap = cap
-            self.success, self.img = self.cap.read()
-            try:
-                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-
-                #self.shape = self.img.shape[:2]
-                #self.img = self.rescale_frame(self.img, percent=10)
-                #self.buffer.append(self.img)
-                self.pos = 0
-            except:pass
-            self.shape = self.img.shape[1::-1]
-            for i in range(900):
-                self.read()
+            success = 1
+            while success:
+                success, self.img = self.cap.read()
+                #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+                self.buffer.append(self.img)
+                if len(self.buffer) % 100 == 0:
+                    print("video read",len(self.buffer))
+            self.pos = 0
+            self.img = self.buffer[self.pos]
+            self.success = 1
 
     def read(self):
         #print(self,"read()")
-        #print(self.success)
         try:
-            if self.cap is None:
-                self.init()
-                return 
-            self.success, self.img = self.cap.read()
-            
-            if not self.success:
-                self.init_count = 0
+            self.img = self.buffer[self.pos]
             self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
-            #self.shape = self.img.shape[:2]
-            #self.img = self.rescale_frame(self.img, percent=0)
+            self.pos += 1
+            #print("video.read",self.pos)
             self.shape = self.img.shape[1::-1]
         except Exception as e:
-            #if self.init_count % 100 == 0:
             print("exception 432",e)
-            self.init()
+            #self.init()
 
     def prev(self):
         self.pos -= 1
@@ -226,25 +213,31 @@ class Vopen():
         return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
 
     def next(self):
-        #print(self,"play",time.time())
-        #print(dir(self.cap))
-        #print(self.cap.set.__doc__)
-        #print(self.cap.grab.__doc__)
+        #print(self,"next",time.time())
+        #self.success = 0
          
         self.read()
         try:
+            if len(self.buffer) % 100 == 0:
+                print("video pos",self.pos)
             img = self.img #self.rescale_frame(self.img, percent=30)
             if img is None:
                 return 
             self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
-            self.buffer.append(self.im)
+            #print(type(self.im))
+            #self.buffer.append(self.im)
             self.pos += 1
+            if self.pos > len(self.buffer):
+                self.pos = 0
             # wn.blit(im, (self.x, self.y))
+            #self.success = 1
         except AttributeError as e:
             time.sleep(.05)
             #if self.init_count % 100 == 0:
             print("except 776",e)
-            self.init()
+            #self.init()
+        except Exception as e:
+            print("except 756",e)
 
     def draw(self,wn=None):
         if self.success and wn and self.im: # is not None:
@@ -984,13 +977,15 @@ def grab(x=55,y=55,w=60,h=60):
 
 
 
-def reshape(x,y):
+def reshape(_x,_y):
     if PIXEL_MAPPING <= 0:
         return None
 
     global GRID
     global _GRID
 
+    x = _x
+    y = _y
     i = 0
     counter = 0
     z=0
@@ -1101,6 +1096,7 @@ class Timer():
         return self.timer
 
 def reload_grid():
+    print("==== reload_grid")
     global GRID
     global _GRID
     try:
@@ -1119,6 +1115,370 @@ def load_vpu_text(nr=0):
     return txt
 
 
+
+grid_counter = time.time()
+def draw_fix_nr(GRID):
+    global grid_counter
+    i=0
+    y=0
+
+    for fix in GRID:
+        pos = fix.POS(40,60+pm_wy)
+        rgb = fix.rgb
+
+
+        if NR:
+            pygame.draw.rect(window,[0,0,0],[pos[0]+2,pos[1]+2,12,9])
+            if fix._id%_x-1 == 0: # line break border
+                pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+4),(pos[0],pos[1]+pos[3]-4),1)
+                pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+int(pos[3]/2)),(pos[0]+int(pos[2]/2),int(pos[1]+pos[3]/2)),1)
+            if fix._id%_x == 0: # line break border
+                pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,pos[1]+4),(pos[0]+pos[2]-1,pos[1]+pos[3]-4),1)
+                pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,int(pos[1]+pos[3]/2)),(pos[0]+int(pos[2]/2-1),int(pos[1]+pos[3]/2)),1)
+
+            if grid_counter +5 < time.time():
+                grid_counter = time.time()
+                reload_grid()
+            if fix._id != i+1:
+                fr = font15.render("{:02}".format(fix._id) ,1, (255,255,0))
+            else:
+                fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
+            window.blit(fr,(pos[0]+2,pos[1]+2))
+        i += 1
+ 
+
+def draw_counter(COUNTER):
+    for count in COUNTER:
+        cpan = 0
+        ctilt = 0
+        cr=255
+        cg=255
+        cb=255
+        csize=10
+        cdim=0
+        k = "DIM"
+        if k in count:
+            cdim = int(count[k])
+        k = "RED"
+        if k in count:
+            cr = int(count[k])
+        k = "GREEN"
+        if k in count:
+            cg = int(count[k])
+        k = "BLUE"
+        if k in count:
+            cb = int(count[k])
+
+        k = "SIZE"
+        if k in count:
+            csize = int(count[k])
+        if csize < 5:
+            csize = 5
+
+        k = "PAN"
+        if k in count:
+            cpan = int(count[k])/255*(block[0] *(_x))
+            cpan = int(cpan)
+        k = "TILT"
+        if k in count:
+            ctilt = int(count[k])/255*(block[1] *(_y))
+            ctilt = int(ctilt)
+
+        ddim = cdim/255
+        if "DIM" in count and count["DIM"] > 0:
+            tmp_font = pygame.font.SysFont("freemonobold",int(block[0]/100*csize))
+            rgb =(int(cr*ddim),int(cg*ddim),int(cb*ddim),cdim) 
+            
+            _sec = count["_SEC"]
+            
+            try:
+                _sec = int(count["_SEC"])
+            except:
+                pass
+
+            if type(_sec) is int:
+                #print(_sec)
+                if _sec <= 60:
+                    fr = tmp_font.render("{:0}".format(_sec) ,1, rgb)
+                else:
+                    _xx = time.strftime("%M:%S",time.localtime(_sec))
+                    #print("_xx",_xx)
+                    fr = tmp_font.render("{}".format(_xx) ,1, rgb)
+            else:
+                fr = tmp_font.render("{}".format((count["_SEC"])) ,1, rgb)
+
+            fr_r = fr.get_rect(center=(60+cpan-(block[0]),60+ctilt+pm_wy))
+            pygame.draw.rect(window,[0,0,0],fr_r)
+            window.blit(fr,fr_r)
+
+def draw_video(VIDEO):
+    for count in VIDEO:
+        cpan = 0
+        ctilt = 0
+        cr=255
+        cg=255
+        cb=255
+        csize=10
+        cdim=0
+        k = "DIM"
+        if k in count:
+            cdim = int(count[k])
+
+        k = "SIZE"
+        if k in count:
+            csize = int(count[k])
+        if csize < 5:
+            csize = 5
+
+        k = "PAN"
+        if k in count:
+            cpan = int(count[k])/255*(block[0] *(_x))
+            cpan = int(cpan)
+        k = "TILT"
+        if k in count:
+            ctilt = int(count[k])/255*(block[1] *(_y))
+            ctilt = int(ctilt)
+
+    video1.pos 
+    video1.x=40+cpan
+    video1.y=60+pm_wy+ctilt
+    #video1.scale = int(options_videoplayer*(csize/255))
+    video1.scale = int((csize))
+
+    if cdim:
+        video1.next()
+        #video1.prev()
+
+        video1.draw(window) #,x=0,y=0)
+
+        # overlay 
+    video1.overlay(window,"run")
+
+
+
+def counter_dmx(COUNTER,dataA):
+    for count in COUNTER:
+        cDMX=count["DMX"]-1
+        try:
+            count["DIM"]   = dataA[cDMX]
+            count["PAN"]   = dataA[cDMX+1]
+            count["TILT"]  = dataA[cDMX+2]
+            count["CONTROL"] = dataA[cDMX+3]
+
+            if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
+                count["_time"] = int(time.time()*10)/10
+                count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+            if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
+                count["_RUN"] = 0 
+            if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
+                count["_RUN"] = 1
+
+
+
+            count["SIZE"]  = dataA[cDMX+4]
+            count["SEC"]   = dataA[cDMX+5]
+            if count["_RUN"]:
+                try:
+                    count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+                except Exception as e:
+                    pass
+            if type(count["_SEC"]) is int:
+                if count["_SEC"] < 0:
+                    count["_SEC"] = 0
+            for ti in range(10):
+                #print(ti,(ti+6)*10)
+                if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
+                    count["_SEC"] = "----" #text 1
+                    try:
+                        count["_SEC"] = TEXT_BLOCK[ti]
+                    except Exception as e:
+                        pass
+
+            if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
+                count["_SEC"] = ">{}<".format(cDMX+1)
+
+            count["RED"]   = dataA[cDMX+6]
+            count["GREEN"] = dataA[cDMX+7]
+            count["BLUE"]  = dataA[cDMX+8]
+        except Exception as e:
+            print("EXC FUNC",e,count)
+        #print(count)
+
+
+def video_dmx(VIDEO,dataA):
+    for count in VIDEO:
+        cDMX=count["DMX"]-1
+        try:
+            count["DIM"]   = dataA[cDMX]
+            count["PAN"]   = dataA[cDMX+1]
+            count["TILT"]  = dataA[cDMX+2]
+            count["CONTROL"] = dataA[cDMX+3]
+
+            if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
+                count["_time"] = int(time.time()*10)/10
+                count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+            if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
+                count["_RUN"] = 0 
+            if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
+                count["_RUN"] = 1
+
+
+
+            count["SIZE"]  = dataA[cDMX+4]
+            count["SEC"]   = dataA[cDMX+5]
+            if count["_RUN"]:
+                try:
+                    count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+                except Exception as e:
+                    pass
+            if type(count["_SEC"]) is int:
+                if count["_SEC"] < 0:
+                    count["_SEC"] = 0
+            for ti in range(10):
+                #print(ti,(ti+6)*10)
+                if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
+                    count["_SEC"] = "----" #text 1
+                    try:
+                        count["_SEC"] = TEXT_BLOCK[ti]
+                    except Exception as e:
+                        pass
+
+            if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
+                count["_SEC"] = ">{}<".format(cDMX+1)
+
+            count["RED"]   = dataA[cDMX+6]
+            count["GREEN"] = dataA[cDMX+7]
+            count["BLUE"]  = dataA[cDMX+8]
+        except Exception as e:
+            print("VIDEOPLAYER EXCEPT FUNC",e,count)
+        #print(count)
+
+def read_dmx_data(ip,ips):
+    ip = select_ip(ips,univ=START_UNIV)
+    IP = ip
+    data = read_dmx(ip)
+
+
+    ip = select_ip(ips,univ=START_UNIV+1)
+    data3 = read_dmx(ip)
+    data.extend(data3)
+
+    ip = select_ip(ips,univ=START_UNIV+2)
+    data3 = read_dmx(ip)
+    data.extend(data3)
+
+    ip = select_ip(ips,univ=START_UNIV+4)
+    data3 = read_dmx(ip)
+    data.extend(data3)
+
+    #ip = select_ip(ips,univ=START_UNIV+5)
+    #data3 = read_dmx(ip)
+    #data.extend(data3)
+    
+    return data
+
+def draw_gobo(GRID,data):
+
+    i = 0
+    dmx = 1
+    h = 1
+    v = 1
+    for fix in GRID:
+        pos = fix.POS(40,60+pm_wy)
+        rgb = fix.rgb
+
+
+        if 1:
+            # draw row/col grid number
+            if fix.pos[0] == 0:
+                fr = font12.render("{}".format(fix.pos[1]+1) ,1, (200,200,200))
+                window.blit(fr,(10,pos[1]+3 ))
+            if fix.pos[1] == 0:
+                fr = font12.render("{}".format(fix.pos[0]+1) ,1, (200,200,200))
+                window.blit(fr,(pos[0]+2,35 ))
+
+        pygame.draw.rect(window,rgb,pos)
+
+
+        # DRAW SUB-FIXTURE
+        j = 0
+        for subfix in fix.sub_fix:#calc(data):
+            subfix.calc(data)
+            #fix = subfix
+            spos = subfix.POS(40,60+pm_wy)
+            srgb = subfix.rgb
+
+            #print(fix.dmx,rgb,pos)
+            #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
+            #FUNC = 0
+            if FUNC > 10 and FUNC <= 20: # big dot
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+            elif FUNC > 20 and FUNC <= 30:#small dot
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+            elif FUNC > 30 and FUNC <= 40:#donut
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+            elif FUNC > 40 and FUNC <= 50: # rec with hole
+                pygame.draw.rect(window,srgb,spos)
+                draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+            elif FUNC > 50 and FUNC <= 60: # rec with big hole
+                pygame.draw.rect(window,srgb,spos)
+                draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+            elif FUNC > 60 and FUNC <= 70: # rec with donat
+                pygame.draw.rect(window,srgb,spos)
+                draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+            elif FUNC > 70 and FUNC <= 80: # rec boarder
+                pygame.draw.rect(window,srgb,[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
+            elif FUNC > 80 and FUNC <= 90: # rec big boarder
+                pygame.draw.rect(window,srgb,[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
+            elif FUNC > 90 and FUNC <= 100: # rec thin line
+                pygame.draw.rect(window,srgb,spos)
+                pygame.draw.rect(window,[0,0,0],[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
+            elif FUNC > 100 and FUNC <= 110: # rec big line
+                pygame.draw.rect(window,srgb,spos)
+                pygame.draw.rect(window,[0,0,0],[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
+            elif FUNC > 110 and FUNC <= 120: # rec with dot
+                pygame.draw.rect(window,srgb,spos)
+                pygame.draw.rect(window,[0,0,0],[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+            elif FUNC > 120 and FUNC <= 130: # rec inline
+                pygame.draw.rect(window,srgb,[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
+                pygame.draw.rect(window,[0,0,0],[spos[0]+3,spos[1]+3,spos[2]-6,spos[3]-6])
+            elif FUNC > 130 and FUNC <= 140: # 3 dot (heart)
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2)+2,spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2)-2,spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
+                draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)+2),int(spos[3]/3.5))
+            else:
+                pygame.draw.rect(window,srgb,spos)
+
+
+        for subfix in fix.sub_fix:#calc(data):
+            subfix.calc(data)
+            #fix = subfix
+            spos = subfix.POS(40,60+pm_wy)
+            srgb = subfix.rgb
+
+            # draw row/col grid number
+            if subfix.pos[0] == 0:
+                fr = font12.render("{}".format(v ) ,1, (200,200,200))
+                window.blit(fr,(25,spos[1] ))
+                v += 1
+            if subfix.pos[1] == 0:
+                fr = font12.render("{}".format(1) ,1, (200,200,200))
+                fr = font12.render("{}".format(h ) ,1, (200,200,200))
+                h+=1
+                window.blit(fr,(spos[0],50 ))
+
+
+            if p >= 40:
+                if NR:
+                    #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
+                    fr = font15.render("{:02}".format(subfix._id) ,1, (250,200,5))
+                    window.blit(fr,(spos[0]+2,spos[1]+10))
+            j += 1
+        i += 1
+
 t1 = Timer(143)
 time.sleep(0.33)
 t2 = Timer(11)
@@ -1135,7 +1495,6 @@ def main():
     global PLAYLIST
     global PLAYLIST_TIME
 
-    counter = time.time()
     GRID =  init_grid(_x=_x,_y=_y) #init_gird()
     #GRID =  init_grid(_x=8,_y=8) #init_gird()
     print("GRID LEN:",len(GRID))
@@ -1155,7 +1514,6 @@ def main():
             PLAYLIST = open_playlist()
             PLAYLIST_TIME = time.time()
 
-        #reload_grid()
 
         pygame.display.flip()
         event()
@@ -1171,124 +1529,14 @@ def main():
         dataA = read_dmx(ip)
         # ----
 
-        ip = select_ip(ips,univ=START_UNIV)
-        IP = ip
-        data = read_dmx(ip)
+        data = read_dmx_data(ip,ips)
 
 
-        ip = select_ip(ips,univ=START_UNIV+1)
-        data3 = read_dmx(ip)
-        data.extend(data3)
-
-        ip = select_ip(ips,univ=START_UNIV+2)
-        data3 = read_dmx(ip)
-        data.extend(data3)
-
-        ip = select_ip(ips,univ=START_UNIV+4)
-        data3 = read_dmx(ip)
-        data.extend(data3)
-
-        #ip = select_ip(ips,univ=START_UNIV+5)
-        #data3 = read_dmx(ip)
-        #data.extend(data3)
-        
         if options.countdown:
-            for count in COUNTER:
-                cDMX=count["DMX"]-1
-                try:
-                    count["DIM"]   = dataA[cDMX]
-                    count["PAN"]   = dataA[cDMX+1]
-                    count["TILT"]  = dataA[cDMX+2]
-                    count["CONTROL"] = dataA[cDMX+3]
-
-                    if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
-                        count["_time"] = int(time.time()*10)/10
-                        count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
-                    if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
-                        count["_RUN"] = 0 
-                    if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
-                        count["_RUN"] = 1
-
-
-
-                    count["SIZE"]  = dataA[cDMX+4]
-                    count["SEC"]   = dataA[cDMX+5]
-                    if count["_RUN"]:
-                        try:
-                            count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
-                        except Exception as e:
-                            pass
-                    if type(count["_SEC"]) is int:
-                        if count["_SEC"] < 0:
-                            count["_SEC"] = 0
-                    for ti in range(10):
-                        #print(ti,(ti+6)*10)
-                        if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
-                            count["_SEC"] = "----" #text 1
-                            try:
-                                count["_SEC"] = TEXT_BLOCK[ti]
-                            except Exception as e:
-                                pass
-
-                    if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
-                        count["_SEC"] = ">{}<".format(cDMX+1)
-
-                    count["RED"]   = dataA[cDMX+6]
-                    count["GREEN"] = dataA[cDMX+7]
-                    count["BLUE"]  = dataA[cDMX+8]
-                except Exception as e:
-                    print("EXC FUNC",e,count)
-                #print(count)
-
-
+            counter_dmx(COUNTER,dataA)
         
         if options_videoplayer:
-            for count in VIDEO:
-                cDMX=count["DMX"]-1
-                try:
-                    count["DIM"]   = dataA[cDMX]
-                    count["PAN"]   = dataA[cDMX+1]
-                    count["TILT"]  = dataA[cDMX+2]
-                    count["CONTROL"] = dataA[cDMX+3]
-
-                    if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
-                        count["_time"] = int(time.time()*10)/10
-                        count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
-                    if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
-                        count["_RUN"] = 0 
-                    if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
-                        count["_RUN"] = 1
-
-
-
-                    count["SIZE"]  = dataA[cDMX+4]
-                    count["SEC"]   = dataA[cDMX+5]
-                    if count["_RUN"]:
-                        try:
-                            count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
-                        except Exception as e:
-                            pass
-                    if type(count["_SEC"]) is int:
-                        if count["_SEC"] < 0:
-                            count["_SEC"] = 0
-                    for ti in range(10):
-                        #print(ti,(ti+6)*10)
-                        if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
-                            count["_SEC"] = "----" #text 1
-                            try:
-                                count["_SEC"] = TEXT_BLOCK[ti]
-                            except Exception as e:
-                                pass
-
-                    if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
-                        count["_SEC"] = ">{}<".format(cDMX+1)
-
-                    count["RED"]   = dataA[cDMX+6]
-                    count["GREEN"] = dataA[cDMX+7]
-                    count["BLUE"]  = dataA[cDMX+8]
-                except Exception as e:
-                    print("VIDEOPLAYER EXCEPT FUNC",e,count)
-                #print(count)
+            video_dmx(VIDEO,dataA)
 
 
 
@@ -1304,251 +1552,27 @@ def main():
             print("EXC FUNC",e)
 
 
-        i = 0
-        dmx = 1
-        h = 1
-        v = 1
-        for fix in GRID:
-            pos = fix.POS(40,60+pm_wy)
-            rgb = fix.rgb
-
-
-            if 1:
-                # draw row/col grid number
-                if fix.pos[0] == 0:
-                    fr = font12.render("{}".format(fix.pos[1]+1) ,1, (200,200,200))
-                    window.blit(fr,(10,pos[1]+3 ))
-                if fix.pos[1] == 0:
-                    fr = font12.render("{}".format(fix.pos[0]+1) ,1, (200,200,200))
-                    window.blit(fr,(pos[0]+2,35 ))
-
-            pygame.draw.rect(window,rgb,pos)
-
-
-            # DRAW SUB-FIXTURE
-            j = 0
-            for subfix in fix.sub_fix:#calc(data):
-                subfix.calc(data)
-                #fix = subfix
-                spos = subfix.POS(40,60+pm_wy)
-                srgb = subfix.rgb
-
-                #print(fix.dmx,rgb,pos)
-                #pygame.draw.circle(window,rgb,(pos[0]+int(pos[2]/2),pos[1]+int(pos[3]/2)),int(pos[3]/2))
-                #FUNC = 0
-                if FUNC > 10 and FUNC <= 20: # big dot
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
-                elif FUNC > 20 and FUNC <= 30:#small dot
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 30 and FUNC <= 40:#donut
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
-                    draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 40 and FUNC <= 50: # rec with hole
-                    pygame.draw.rect(window,srgb,spos)
-                    draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 50 and FUNC <= 60: # rec with big hole
-                    pygame.draw.rect(window,srgb,spos)
-                    draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
-                elif FUNC > 60 and FUNC <= 70: # rec with donat
-                    pygame.draw.rect(window,srgb,spos)
-                    draw_circle(window,[0,0,0],(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/2))
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 70 and FUNC <= 80: # rec boarder
-                    pygame.draw.rect(window,srgb,[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
-                elif FUNC > 80 and FUNC <= 90: # rec big boarder
-                    pygame.draw.rect(window,srgb,[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
-                elif FUNC > 90 and FUNC <= 100: # rec thin line
-                    pygame.draw.rect(window,srgb,spos)
-                    pygame.draw.rect(window,[0,0,0],[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
-                elif FUNC > 100 and FUNC <= 110: # rec big line
-                    pygame.draw.rect(window,srgb,spos)
-                    pygame.draw.rect(window,[0,0,0],[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
-                elif FUNC > 110 and FUNC <= 120: # rec with dot
-                    pygame.draw.rect(window,srgb,spos)
-                    pygame.draw.rect(window,[0,0,0],[spos[0]+1,spos[1]+1,spos[2]-2,spos[3]-2])
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                elif FUNC > 120 and FUNC <= 130: # rec inline
-                    pygame.draw.rect(window,srgb,[spos[0]+2,spos[1]+2,spos[2]-4,spos[3]-4])
-                    pygame.draw.rect(window,[0,0,0],[spos[0]+3,spos[1]+3,spos[2]-6,spos[3]-6])
-                elif FUNC > 130 and FUNC <= 140: # 3 dot (heart)
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2)+2,spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2)-2,spos[1]+int(spos[3]/2)),int(spos[3]/3.5))
-                    draw_circle(window,srgb,(spos[0]+int(spos[2]/2),spos[1]+int(spos[3]/2)+2),int(spos[3]/3.5))
-                else:
-                    pygame.draw.rect(window,srgb,spos)
-
-
-            for subfix in fix.sub_fix:#calc(data):
-                subfix.calc(data)
-                #fix = subfix
-                spos = subfix.POS(40,60+pm_wy)
-                srgb = subfix.rgb
-
-                # draw row/col grid number
-                if subfix.pos[0] == 0:
-                    fr = font12.render("{}".format(v ) ,1, (200,200,200))
-                    window.blit(fr,(25,spos[1] ))
-                    v += 1
-                if subfix.pos[1] == 0:
-                    fr = font12.render("{}".format(1) ,1, (200,200,200))
-                    fr = font12.render("{}".format(h ) ,1, (200,200,200))
-                    h+=1
-                    window.blit(fr,(spos[0],50 ))
-
-
-                if p >= 40:
-                    if NR:
-                        #fr = font15.render("{:02}".format(j+1) ,1, (0,200,255))
-                        fr = font15.render("{:02}".format(subfix._id) ,1, (250,200,5))
-                        window.blit(fr,(spos[0]+2,spos[1]+10))
-                j += 1
-            i += 1
-
+        draw_gobo(GRID,data) 
 
         # DRAW FIX NUMBER on TOP
-        i=0
-        y=0
-        for fix in GRID:
-            pos = fix.POS(40,60+pm_wy)
-            rgb = fix.rgb
-
-
-            if NR:
-                pygame.draw.rect(window,[0,0,0],[pos[0]+2,pos[1]+2,12,9])
-                if fix._id%_x-1 == 0: # line break border
-                    pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+4),(pos[0],pos[1]+pos[3]-4),1)
-                    pygame.draw.line(window,[255,255,0],(pos[0],pos[1]+int(pos[3]/2)),(pos[0]+int(pos[2]/2),int(pos[1]+pos[3]/2)),1)
-                if fix._id%_x == 0: # line break border
-                    pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,pos[1]+4),(pos[0]+pos[2]-1,pos[1]+pos[3]-4),1)
-                    pygame.draw.line(window,[255,255,255],(pos[0]+pos[2]-1,int(pos[1]+pos[3]/2)),(pos[0]+int(pos[2]/2-1),int(pos[1]+pos[3]/2)),1)
-
-                if counter +5 < time.time():
-                    counter = time.time()
-                    reload_grid()
-                if fix._id != i+1:
-                    fr = font15.render("{:02}".format(fix._id) ,1, (255,255,0))
-                else:
-                    fr = font15.render("{:02}".format(fix._id) ,1, (100,100,255))
-                window.blit(fr,(pos[0]+2,pos[1]+2))
-            i += 1
- 
+        draw_fix_nr(GRID)
         
 
         #COUNTER.append({"DMX":31,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":0})
         if options.countdown:
-            for count in COUNTER:
-                cpan = 0
-                ctilt = 0
-                cr=255
-                cg=255
-                cb=255
-                csize=10
-                cdim=0
-                k = "DIM"
-                if k in count:
-                    cdim = int(count[k])
-                k = "RED"
-                if k in count:
-                    cr = int(count[k])
-                k = "GREEN"
-                if k in count:
-                    cg = int(count[k])
-                k = "BLUE"
-                if k in count:
-                    cb = int(count[k])
-
-                k = "SIZE"
-                if k in count:
-                    csize = int(count[k])
-                if csize < 5:
-                    csize = 5
-
-                k = "PAN"
-                if k in count:
-                    cpan = int(count[k])/255*(block[0] *(_x))
-                    cpan = int(cpan)
-                k = "TILT"
-                if k in count:
-                    ctilt = int(count[k])/255*(block[1] *(_y))
-                    ctilt = int(ctilt)
-
-                ddim = cdim/255
-                if "DIM" in count and count["DIM"] > 0:
-                    tmp_font = pygame.font.SysFont("freemonobold",int(block[0]/100*csize))
-                    rgb =(int(cr*ddim),int(cg*ddim),int(cb*ddim),cdim) 
-                    
-                    _sec = count["_SEC"]
-                    
-                    try:
-                        _sec = int(count["_SEC"])
-                    except:
-                        pass
-
-                    if type(_sec) is int:
-                        #print(_sec)
-                        if _sec <= 60:
-                            fr = tmp_font.render("{:0}".format(_sec) ,1, rgb)
-                        else:
-                            _xx = time.strftime("%M:%S",time.localtime(_sec))
-                            #print("_xx",_xx)
-                            fr = tmp_font.render("{}".format(_xx) ,1, rgb)
-                    else:
-                        fr = tmp_font.render("{}".format((count["_SEC"])) ,1, rgb)
-
-                    fr_r = fr.get_rect(center=(60+cpan-(block[0]),60+ctilt+pm_wy))
-                    pygame.draw.rect(window,[0,0,0],fr_r)
-                    window.blit(fr,fr_r)
+            draw_counter(COUNTER)
 
         #print( [options_videoplayer] )
         if video1:
-            for count in VIDEO:
-                cpan = 0
-                ctilt = 0
-                cr=255
-                cg=255
-                cb=255
-                csize=10
-                cdim=0
-                k = "DIM"
-                if k in count:
-                    cdim = int(count[k])
-
-                k = "SIZE"
-                if k in count:
-                    csize = int(count[k])
-                if csize < 5:
-                    csize = 5
-
-                k = "PAN"
-                if k in count:
-                    cpan = int(count[k])/255*(block[0] *(_x))
-                    cpan = int(cpan)
-                k = "TILT"
-                if k in count:
-                    ctilt = int(count[k])/255*(block[1] *(_y))
-                    ctilt = int(ctilt)
-
-            video1.pos 
-            video1.x=40+cpan
-            video1.y=60+pm_wy+ctilt
-            #video1.scale = int(options_videoplayer*(csize/255))
-            video1.scale = int((csize))
-
-            if cdim:
-                video1.next()
-                #video1.prev()
-
-                video1.draw(window) #,x=0,y=0)
-
-                # overlay 
-            video1.overlay(window,"run")
+            draw_video(VIDEO)
 
         pointer.draw(0,pm_wy) #wy
-
+        spos = [0,0,0,0]
         if PIXEL_MAPPING >= 1:
             reshape(0,0) #start pos
         else:
             reshape(spos[0]+spos[2]+20,10) #start pos
+            #reshape(spos[0]+spos[2]+20,10) #start pos
 
 
 
@@ -1556,7 +1580,7 @@ def main():
 
         pygame.display.flip()
         #pg.time.wait(15)
-        clock.tick(60)
+        clock.tick(10)
 
         if 'SDL_VIDEO_WINDOW_POS' in os.environ:
             del os.environ['SDL_VIDEO_WINDOW_POS'] #= '%i,%i' % (200,164)

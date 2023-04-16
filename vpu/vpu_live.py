@@ -48,6 +48,11 @@ parser.add_option("", "--videoplayer", dest="videoplayer",#default=1,
 
 (options, args) = parser.parse_args()
 
+for o in dir(options):
+    if "_" in o:
+        continue
+    print(o,options.__getattribute__(o))
+
 START = time.time()
 
 # ===== ARTNET DMX =========
@@ -74,14 +79,8 @@ def select_ip(ips, univ=2): # artnet univ
         if "ltp-out" in ip and _univ in ip:
             return ip
 
-cv2 = None
-try:
-    if int(options.videoplayer) > 0:
-        import cv2
-except:pass
 
 FUNC = 0
-
 COUNTER = []
 
 if options.countdown:
@@ -126,18 +125,16 @@ def read_dmx(ip):
 
 # ===== ARTNET DMX =========
 
-VIDEO = []
-            
-#cdmx = 0
-VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
 
 
 class Vopen():
-    def __init__(self):
+
+    def __init__(self,dmx=None):
         self.fname = '/home/user/Downloads/video.mp4'
         self.fname = '/home/user/Downloads/video.ogv'
         self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
         self.scale = 50 #%
+        self.dmx=dmx
         self.x = 0
         self.y = 0
         self.init_count = 0
@@ -147,6 +144,7 @@ class Vopen():
         self.success = 1
         self.cv2 = None
         try:
+            global cv2
             self.cv2 = cv2
         except:
             pass
@@ -178,9 +176,12 @@ class Vopen():
             while success:
                 success, self.img = self.cap.read()
                 #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+                self.img = self.rescale_frame2(self.img, 100)
                 self.buffer.append(self.img)
                 if len(self.buffer) % 100 == 0:
-                    print("video read",len(self.buffer))
+                    _id = str(self.__repr__)[-5:-1]
+                    print(_id,"video read",self.dmx,len(self.buffer))
             self.pos = 0
             self.img = self.buffer[self.pos]
             self.success = 1
@@ -189,7 +190,7 @@ class Vopen():
         #print(self,"read()")
         try:
             self.img = self.buffer[self.pos]
-            self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+            #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
             self.pos += 1
             #print("video.read",self.pos)
@@ -206,6 +207,13 @@ class Vopen():
             self.pos = len(self.buffer)-1
         self.im = self.buffer[self.pos]
 
+    def rescale_frame2(self,frame, width):
+        height = int(frame.shape[0]/frame.shape[1] * width )
+        dim = (width, height)
+        #print("rescale_frame2",dim)
+        #sys.exit()
+        return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
+
     def rescale_frame(self,frame, percent=75):
         width  = int(frame.shape[1] * percent/ 100)
         height = int(frame.shape[0] * percent/ 100)
@@ -219,7 +227,9 @@ class Vopen():
         self.read()
         try:
             if len(self.buffer) % 100 == 0:
-                print("video pos",self.pos)
+                #print("video pos",self.pos)
+                _id = str(self.__repr__)[-5:-1]
+                print(_id,"video pos",self.dmx,self.pos,len(self.buffer))
             img = self.img #self.rescale_frame(self.img, percent=30)
             if img is None:
                 return 
@@ -258,13 +268,27 @@ class Vopen():
         wn.blit(fr,(45+self.x,4+self.y+img_shape[0]))
 
 
-video1 = None
-options_videoplayer = 0
+VIDEO = []
+videoplayer=[]            
+cv2 = None
+
 if type(options.videoplayer) is str:
     try:
-        options_videoplayer = int(options.videoplayer)
-        video1 = Vopen()
+        import cv2
     except:pass
+    max_videoplayer = 2
+    dmx_start =  options.videoplayer.split(",")
+    for cdmx in dmx_start:
+        if len(videoplayer) > max_videoplayer:
+            print("-- videoplayer max count {} !! break".format(max_videoplayer))
+            break
+        print("-- videoplayer dmx:",cdmx)
+        try:
+            cdmx = int(cdmx)
+            videoplayer.append( Vopen(cdmx) )
+            VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
+        except Exception as e:
+            print("EXCEPTION COUNTER INIT ",cdmx)
 
 # ===== ======
 
@@ -1212,6 +1236,8 @@ def draw_counter(COUNTER):
             window.blit(fr,fr_r)
 
 def draw_video(VIDEO):
+    global videplayer
+    i = 0
     for count in VIDEO:
         cpan = 0
         ctilt = 0
@@ -1239,22 +1265,23 @@ def draw_video(VIDEO):
             ctilt = int(count[k])/255*(block[1] *(_y))
             ctilt = int(ctilt)
 
-    video1.pos 
-    video1.x=40+cpan
-    video1.y=60+pm_wy+ctilt
-    #video1.scale = int(options_videoplayer*(csize/255))
-    video1.scale = int((csize))
+        video1 = videoplayer[i]
+        video1.pos 
+        video1.x=40+cpan
+        video1.y=60+pm_wy+ctilt
+        video1.scale = int((csize))
 
-    if cdim:
-        video1.next()
-        #video1.prev()
+        if cdim:
+            video1.next()
+            #video1.prev()
 
-        video1.draw(window) #,x=0,y=0)
+            video1.draw(window) #,x=0,y=0)
 
-        # overlay 
-    video1.overlay(window,"run")
+            # overlay 
+            video1.overlay(window,"run")
 
 
+        i += 1
 
 def counter_dmx(COUNTER,dataA):
     for count in COUNTER:
@@ -1535,7 +1562,7 @@ def main():
         if options.countdown:
             counter_dmx(COUNTER,dataA)
         
-        if options_videoplayer:
+        if VIDEO:
             video_dmx(VIDEO,dataA)
 
 
@@ -1562,8 +1589,7 @@ def main():
         if options.countdown:
             draw_counter(COUNTER)
 
-        #print( [options_videoplayer] )
-        if video1:
+        if VIDEO:
             draw_video(VIDEO)
 
         pointer.draw(0,pm_wy) #wy

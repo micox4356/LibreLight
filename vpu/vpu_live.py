@@ -125,14 +125,24 @@ def read_dmx(ip):
 
 # ===== ARTNET DMX =========
 
-
+PLAYLIST = []
+try:
+    PLAYLIST = open_playlist()
+except:pass
 
 class Vopen():
 
     def __init__(self,dmx=None):
+        global PLAYLIST
         self.fpath = '/home/user/Downloads/'
         self.fpath = '/home/user/LibreLight/video/'
         self.fname = 'bbb_sunflower_480x320.mp4'
+        #self.fname = 'no-video.mp4'
+        try:
+            self.fname = PLAYLIST[0]
+        except Exception as e:
+            print("Exception set video from PLAYLIST 5543",e)
+
         self.scale = 50 #%
         self.dmx=dmx
         self.x = 0
@@ -183,7 +193,7 @@ class Vopen():
                     self.buffer.append(self.img)
                     if len(self.buffer) % 100 == 0:
                         _id = str(self.__repr__)[-5:-1]
-                        print(_id,"video read",self.dmx,len(self.buffer))
+                        print(_id,"video read",self.dmx,len(self.buffer),self.fname)
                         time.sleep(0.2)
                     time.sleep(0.005)
                 except Exception as e:
@@ -194,6 +204,8 @@ class Vopen():
 
     def read(self):
         #print(self,"read()")
+        if len(self.buffer) <= 0:
+            return
         try:
             if self.pos >= len(self.buffer):
                 self.pos = len(self.buffer)-1
@@ -208,7 +220,7 @@ class Vopen():
             #print("video.read",self.pos)
             self.shape = self.img.shape[1::-1]
         except Exception as e:
-            print("exception 432",e)
+            print("exception 432",e,len(self.buffer),self.fname)
             #self.init()
 
     def prev(self):
@@ -241,7 +253,7 @@ class Vopen():
             if len(self.buffer) % 100 == 0:
                 #print("video pos",self.pos)
                 _id = str(self.__repr__)[-5:-1]
-                print(_id,"video pos",self.dmx,self.pos,len(self.buffer))
+                print(_id,"video pos",self.dmx,self.pos,len(self.buffer),self.fname)
             img = self.img #self.rescale_frame(self.img, percent=30)
             if img is None:
                 return 

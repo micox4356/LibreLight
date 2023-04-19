@@ -143,6 +143,7 @@ class Vopen():
         self.img = None
         self.success = 1
         self.cv2 = None
+        self._run = 0
         try:
             global cv2
             self.cv2 = cv2
@@ -189,10 +190,16 @@ class Vopen():
     def read(self):
         #print(self,"read()")
         try:
+            if self.pos >= len(self.buffer):
+                self.pos = len(self.buffer)-1
             self.img = self.buffer[self.pos]
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
-            self.pos += 1
+            if self._run:
+                self.pos += 4
+
+            if self.pos >= len(self.buffer):
+                self.pos = len(self.buffer)-1
             #print("video.read",self.pos)
             self.shape = self.img.shape[1::-1]
         except Exception as e:
@@ -236,7 +243,10 @@ class Vopen():
             self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
             #print(type(self.im))
             #self.buffer.append(self.im)
-            self.pos += 1
+
+            if self._run:
+                self.pos += 4
+
             if self.pos > len(self.buffer):
                 self.pos = 0
             # wn.blit(im, (self.x, self.y))
@@ -1266,6 +1276,9 @@ def draw_video(VIDEO):
             ctilt = int(ctilt)
 
         video1 = videoplayer[i]
+        k = "_RUN"
+        if k in count:
+            video1._run = count[k]
         video1.pos 
         video1.x=40+cpan
         video1.y=60+pm_wy+ctilt
@@ -1293,7 +1306,6 @@ def counter_dmx(COUNTER,dataA):
             count["CONTROL"] = dataA[cDMX+3]
 
             if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
-                count["_time"] = int(time.time()*10)/10
                 count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
             if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
                 count["_RUN"] = 0 
@@ -1343,35 +1355,19 @@ def video_dmx(VIDEO,dataA):
 
             if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
                 count["_time"] = int(time.time()*10)/10
-                count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
+
             if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
+                if count["_RUN"] == 1:
+                    print(  "_RUN:0",count["DMX"]-1)
                 count["_RUN"] = 0 
+
             if count["CONTROL"] >= 30 and count["CONTROL"] < 40:
+                if count["_RUN"] == 0:
+                    print(  "_RUN:1",count["DMX"]-1)
                 count["_RUN"] = 1
-
-
 
             count["SIZE"]  = dataA[cDMX+4]
             count["SEC"]   = dataA[cDMX+5]
-            if count["_RUN"]:
-                try:
-                    count["_SEC"] = int(count["SEC"] - (time.time() - count["_time"]))
-                except Exception as e:
-                    pass
-            if type(count["_SEC"]) is int:
-                if count["_SEC"] < 0:
-                    count["_SEC"] = 0
-            for ti in range(10):
-                #print(ti,(ti+6)*10)
-                if count["CONTROL"] >= (ti+6)*10 and count["CONTROL"] < (ti+7)*10:
-                    count["_SEC"] = "----" #text 1
-                    try:
-                        count["_SEC"] = TEXT_BLOCK[ti]
-                    except Exception as e:
-                        pass
-
-            if count["CONTROL"] >= 250 and count["CONTROL"] < 256:
-                count["_SEC"] = ">{}<".format(cDMX+1)
 
             count["RED"]   = dataA[cDMX+6]
             count["GREEN"] = dataA[cDMX+7]

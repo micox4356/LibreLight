@@ -185,6 +185,7 @@ class Vopen():
                         _id = str(self.__repr__)[-5:-1]
                         print(_id,"video read",self.dmx,len(self.buffer))
                         time.sleep(0.2)
+                    time.sleep(0.005)
                 except Exception as e:
                     print("Excetpion","_init",self,e)
             self.pos = 0

@@ -130,9 +130,9 @@ def read_dmx(ip):
 class Vopen():
 
     def __init__(self,dmx=None):
-        self.fname = '/home/user/Downloads/video.mp4'
-        self.fname = '/home/user/Downloads/video.ogv'
-        self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
+        self.fpath = '/home/user/Downloads/'
+        self.fpath = '/home/user/LibreLight/video/'
+        self.fname = 'bbb_sunflower_480x320.mp4'
         self.scale = 50 #%
         self.dmx=dmx
         self.x = 0
@@ -162,27 +162,31 @@ class Vopen():
 
     def _init(self):
         print(self)
-        print("videoplayer.init()",self.fname)
+        print("videoplayer.init()",self.fpath,self.fname)
 
-        if not os.path.isfile(self.fname):
+        if not os.path.isfile(self.fpath+self.fname):
             print()
-            print("video file does not exits !! >",self.fname)
+            print("video file does not exits !! >",self.fpath,self.fname)
             print()
             exit()
 
         if self.cv2:
-            cap = self.cv2.VideoCapture(self.fname)
+            cap = self.cv2.VideoCapture(self.fpath+self.fname)
             self.cap = cap
             success = 1
             while success:
-                success, self.img = self.cap.read()
-                #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-                self.img = self.rescale_frame2(self.img, 100)
-                self.buffer.append(self.img)
-                if len(self.buffer) % 100 == 0:
-                    _id = str(self.__repr__)[-5:-1]
-                    print(_id,"video read",self.dmx,len(self.buffer))
+                try:
+                    success, self.img = self.cap.read()
+                    #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+                    self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+                    self.img = self.rescale_frame2(self.img, 100)
+                    self.buffer.append(self.img)
+                    if len(self.buffer) % 100 == 0:
+                        _id = str(self.__repr__)[-5:-1]
+                        print(_id,"video read",self.dmx,len(self.buffer))
+                        time.sleep(0.2)
+                except Exception as e:
+                    print("Excetpion","_init",self,e)
             self.pos = 0
             self.img = self.buffer[self.pos]
             self.success = 1
@@ -773,9 +777,11 @@ PLAYLIST = []
 
 def _create_playlist():
     print("======== CREATE NEW PLAYLIST FILE !!",play_list)
+    os.system("mkdir -p /home/user/LibreLight/video")
     f = open(play_list,"w")
-    for i in range(10):
-        f.write("Video-file {}\n".format(i+1))
+    f.write("bbb_sunflower_480x320.mp4\n")
+    for i in range(10-1):
+        f.write("Video-file {}\n".format(i+1+1))
     f.close()
 
 def open_playlist():

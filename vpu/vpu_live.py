@@ -143,6 +143,11 @@ class Vopen():
         except Exception as e:
             print("Exception set video from PLAYLIST 5543",e)
 
+        self.time = 0
+        self.t_delta = 0 
+        self.t_last  = time.time()
+
+        self.fps = 0
         self.scale = 50 #%
         self.dmx=dmx
         self.x = 0
@@ -159,7 +164,6 @@ class Vopen():
             self.cv2 = cv2
         except:
             pass
-
         self.im = None
         self.pos = 0
         self.buffer = []
@@ -187,19 +191,23 @@ class Vopen():
             while success:
                 try:
                     success, self.img = self.cap.read()
+                    if self.fps == 0:
+                        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+                        #print("fps",self.fps)
+                    
                     #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
                     self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
                     self.img = self.rescale_frame2(self.img, 100)
                     self.buffer.append(self.img)
                     if len(self.buffer) % 100 == 0:
                         _id = str(self.__repr__)[-5:-1]
-                        print(_id,"video read",self.dmx,len(self.buffer),self.fname)
+                        print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps)
                         time.sleep(0.2)
                     time.sleep(0.005)
                 except Exception as e:
                     print("Excetpion","_init",self,e)
             self.pos = 0
-            self.img = self.buffer[self.pos]
+            self.img = self.buffer[int(self.pos)]
             self.success = 1
 
     def read(self):
@@ -208,15 +216,22 @@ class Vopen():
             return
         try:
             if self.pos >= len(self.buffer):
-                self.pos = len(self.buffer)-1
-            self.img = self.buffer[self.pos]
+                self.pos = 0 #len(self.buffer)-1
+            self.img = self.buffer[int(self.pos)]
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
             if self._run:
-                self.pos += 4
+                t = time.time()
+                self.t_delta = t-self.t_last 
+                self.t_last = t
+                self.pos += self.t_delta*self.fps
+            else:
+                t = time.time()
+                self.t_delta = 0 
+                self.t_last = t
 
             if self.pos >= len(self.buffer):
-                self.pos = len(self.buffer)-1
+                self.pos = 0 #len(self.buffer)-1
             #print("video.read",self.pos)
             self.shape = self.img.shape[1::-1]
         except Exception as e:
@@ -229,7 +244,7 @@ class Vopen():
             self.pos = len(self.buffer)-1
         if self.pos >= len(self.buffer):
             self.pos = len(self.buffer)-1
-        self.im = self.buffer[self.pos]
+        self.im = self.buffer[int(self.pos)]
 
     def rescale_frame2(self,frame, width):
         height = int(frame.shape[0]/frame.shape[1] * width )
@@ -261,8 +276,18 @@ class Vopen():
             #print(type(self.im))
             #self.buffer.append(self.im)
 
+            #self.pos = int(self.time * self.fps)
             if self._run:
-                self.pos += 4
+                t = time.time()
+                self.t_delta = t-self.t_last 
+                self.t_last = t
+                self.pos += self.t_delta*self.fps
+            else:
+                t = time.time()
+                self.t_delta = 0 
+                self.t_last = t
+            #if self._run:
+            #    self.pos += 2
 
             if self.pos > len(self.buffer):
                 self.pos = 0
@@ -1275,6 +1300,8 @@ def draw_video(VIDEO):
         cb=255
         csize=10
         cdim=0
+        
+
         k = "DIM"
         if k in count:
             cdim = int(count[k])
@@ -1295,9 +1322,18 @@ def draw_video(VIDEO):
             ctilt = int(ctilt)
 
         video1 = videoplayer[i]
+        k = "_reset"
+        if k in count:
+            if count[k]:
+                count[k] = 0
+                video1.pos = 0 
+
         k = "_RUN"
         if k in count:
             video1._run = count[k]
+
+
+
         video1.pos 
         video1.x=40+cpan
         video1.y=60+pm_wy+ctilt
@@ -1373,7 +1409,7 @@ def video_dmx(VIDEO,dataA):
             count["CONTROL"] = dataA[cDMX+3]
 
             if count["CONTROL"] >= 10 and count["CONTROL"] < 20:
-                count["_time"] = int(time.time()*10)/10
+                count["_reset"] = 1
 
             if count["CONTROL"] >= 20 and count["CONTROL"] < 30:
                 if count["_RUN"] == 1:
@@ -1521,6 +1557,39 @@ def draw_gobo(GRID,data):
             j += 1
         i += 1
 
+ips=[]
+dataA=[]
+data=[]
+
+def dmx_raw():
+    global ips,dataA,data
+    ips = read_index()
+    
+    # ----
+    ip = select_ip(ips,univ=1) # univ 1 gobo
+    dataA = read_dmx(ip)
+    # ----
+
+    data = read_dmx_data(ip,ips)
+
+
+    if options.countdown:
+        counter_dmx(COUNTER,dataA)
+    
+    if VIDEO:
+        video_dmx(VIDEO,dataA)
+    return ips,dataA,data
+
+
+def dmx_loop():
+    while 1:
+        dmx_raw()
+        time.sleep(0.1)
+
+dmx_raw()
+
+thread.start_new_thread(dmx_loop,())
+
 t1 = Timer(143)
 time.sleep(0.33)
 t2 = Timer(11)
@@ -1536,11 +1605,13 @@ def main():
     global TEXT_BLOCK_TIME
     global PLAYLIST
     global PLAYLIST_TIME
+    global dataA
 
     GRID =  init_grid(_x=_x,_y=_y) #init_gird()
     #GRID =  init_grid(_x=8,_y=8) #init_gird()
     print("GRID LEN:",len(GRID))
 
+    #thread.start_new_thread( video_dmx_loop,(VIDEO,dataA) )
 
     s=time.time()
     print("run")
@@ -1564,21 +1635,7 @@ def main():
         calc_fps()
         draw_overlay()
 
-        ips = read_index()
-        
-        # ----
-        ip = select_ip(ips,univ=1) # univ 1 gobo
-        dataA = read_dmx(ip)
-        # ----
 
-        data = read_dmx_data(ip,ips)
-
-
-        if options.countdown:
-            counter_dmx(COUNTER,dataA)
-        
-        if VIDEO:
-            video_dmx(VIDEO,dataA)
 
 
 

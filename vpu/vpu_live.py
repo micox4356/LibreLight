@@ -150,6 +150,7 @@ class Vopen():
         self.fps = 0
         self.scale = 50 #%
         self.dmx=dmx
+        self.dim = 0
         self.x = 0
         self.y = 0
         self.init_count = 0
@@ -198,10 +199,18 @@ class Vopen():
                     #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
                     self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
                     self.img = self.rescale_frame2(self.img, 100)
+                    #ret, self.img = self.cv2.threshold(self.img, 100, 130, self.cv2.THRESH_BINARY) # treshold
+                    #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
+                    
+                    #M = cv2.getPerspectiveTransform(Punkte_A, Punkte_B)
+                    #warped = cv2.warpPerspective(Bild, m, (420,594))
+                    
+                    #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
+                    
                     self.buffer.append(self.img)
                     if len(self.buffer) % 100 == 0:
                         _id = str(self.__repr__)[-5:-1]
-                        print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps)
+                        print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps,self.dim)
                         time.sleep(0.2)
                     time.sleep(0.005)
                 except Exception as e:
@@ -269,6 +278,10 @@ class Vopen():
                 #print("video pos",self.pos)
                 _id = str(self.__repr__)[-5:-1]
                 print(_id,"video pos",self.dmx,self.pos,len(self.buffer),self.fname)
+
+            # add DIMER to videplayer
+            self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
+            
             img = self.img #self.rescale_frame(self.img, percent=30)
             if img is None:
                 return 
@@ -1055,7 +1068,8 @@ def grab(x=55,y=55,w=60,h=60):
 
 
 
-def reshape(_x,_y):
+def reshape(_x,_y): 
+    """reshape LED-WALL Block/Pixel mapping"""
     if PIXEL_MAPPING <= 0:
         return None
 
@@ -1302,9 +1316,13 @@ def draw_video(VIDEO):
         cdim=0
         
 
+        video1 = videoplayer[i]
         k = "DIM"
         if k in count:
             cdim = int(count[k])
+            video1.dim = cdim
+        if i == 0:
+            print(i,cdim)
 
         k = "SIZE"
         if k in count:
@@ -1321,7 +1339,8 @@ def draw_video(VIDEO):
             ctilt = int(count[k])/255*(block[1] *(_y))
             ctilt = int(ctilt)
 
-        video1 = videoplayer[i]
+        
+
         k = "_reset"
         if k in count:
             if count[k]:
@@ -1576,7 +1595,7 @@ def dmx_raw():
     if options.countdown:
         counter_dmx(COUNTER,dataA)
     
-    if VIDEO:
+    if len(VIDEO) > 0:
         video_dmx(VIDEO,dataA)
     return ips,dataA,data
 

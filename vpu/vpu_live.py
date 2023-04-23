@@ -1321,8 +1321,8 @@ def draw_video(VIDEO):
         if k in count:
             cdim = int(count[k])
             video1.dim = cdim
-        if i == 0:
-            print(i,cdim)
+        #if i == 0:
+        #    print(i,cdim)
 
         k = "SIZE"
         if k in count:

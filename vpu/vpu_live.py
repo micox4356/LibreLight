@@ -1118,16 +1118,16 @@ def reshape(_x,_y):
     y_min = 99999
     y_max = 0
 
-    fr = font.render("OUTPUT MAP".format(t1.get()) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(x+int(wx/2),y+pm_wy-5))
+    fr = font.render("OUTPUT".format(t1.get()) ,1, (255,255,255))
+    fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy-5))
     #window.blit(fr,(x+int(wx/2),y+pm_wy))
     window.blit(fr,fr_r)
-    fr = font.render("↑    ↑    ↑".format(t1.get()) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(x+int(wx/2),y+pm_wy+15))
+    fr = font.render("↑  ↑    MAP    ↑  ↑".format(t1.get()) ,1, (255,255,255))
+    fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy+15))
     #window.blit(fr,(x+int(wx/2),y+pm_wy))
     window.blit(fr,fr_r)
     fr = font.render("INPUT".format(t1.get()) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(x+int(wx/2),y+pm_wy+35))
+    fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy+35))
     #window.blit(fr,(x+int(wx/2),y+pm_wy))
     window.blit(fr,fr_r)
 

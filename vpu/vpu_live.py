@@ -130,10 +130,12 @@ try:
     PLAYLIST = open_playlist()
 except:pass
 
+
 class Vopen():
 
-    def __init__(self,dmx=None):
+    def __init__(self,dmx=None,_id=None):
         global PLAYLIST
+        self._id = _id
         self.fpath = '/home/user/Downloads/'
         self.fpath = '/home/user/LibreLight/video/'
         self.fname = 'bbb_sunflower_480x320.mp4'
@@ -324,19 +326,33 @@ class Vopen():
         if type(self.img) is list:
             img_shape = self.img.shape
 
-        pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+img_shape[0],140,20])
-        font15 = pygame.font.SysFont("freemonobold",17)
-        fr = font15.render(">:{}".format(mode) ,1, (0,0,0))
-        wn.blit(fr,(3+self.x,4+self.y+img_shape[0]))
 
-        fr = font15.render("FRAME:{}".format(self.pos) ,1, (0,0,0))
-        wn.blit(fr,(45+self.x,4+self.y+img_shape[0]))
+        #pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+img_shape[0],140,20])
+        pygame.draw.rect(wn,[255,200,0],[5,main_size[1]-(self._id+1)*35,300,28])
+        font15 = pygame.font.SysFont("freemonobold",17)
+
+
+        #fr = font15.render("F:{}".format(self.pos) ,1, (0,0,0))
+        pz = 0
+        try:
+            #pz = int((self.pos/len(self.buffer))*100)
+            pz = (len(self.buffer)/self.fps)
+        except:pass
+        fr = font15.render("FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}".format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz ) ,1, (0,0,0))
+        #wn.blit(fr,(45+self.x,4+self.y+img_shape[0]))
+        wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
+
+        fr = font15.render(" {} >:{}".format(self._id+1,mode) ,1, (0,0,0))
+        #wn.blit(fr,(3+self.x,4+self.y+img_shape[0]))
+        wn.blit(fr,(3,main_size[1]-(self._id+1)*35+15))
+        fr = font15.render("{}".format(self.fname) ,1, (0,0,0))
+        wn.blit(fr,(45,main_size[1]-(self._id+1)*35+15))
 
 
 VIDEO = []
 videoplayer=[]            
 cv2 = None
-
+_vid = 0
 if type(options.videoplayer) is str:
     try:
         import cv2
@@ -350,7 +366,8 @@ if type(options.videoplayer) is str:
         print("-- videoplayer dmx:",cdmx)
         try:
             cdmx = int(cdmx)
-            videoplayer.append( Vopen(cdmx) )
+            videoplayer.append( Vopen(cdmx,_id=_vid) )
+            _vid += 1
             VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
         except Exception as e:
             print("EXCEPTION COUNTER INIT ",cdmx)
@@ -459,6 +476,7 @@ if options.pixel_mapping:
     grid_file = "/home/user/LibreLight/vpu_grid_hd{}.csv".format(path)
     text_file = "/home/user/LibreLight/vpu_text_hd{}.csv".format(path)
     play_list = "/home/user/LibreLight/vpu_playlist_hd{}.csv".format(path)
+    play_list = "/home/user/LibreLight/video/" #.format(path)
     #_x = 8
     #_y = 8
 
@@ -473,10 +491,16 @@ try:
     else:
         wx = 60+block[0] * _x 
     wy = 80+block[1] * _y 
+    #pm_wy = wy
+
+    if type(options.videoplayer) is str:
+        wy += 150 # video playlist
+
     main_size=(wx,wy)
     if PIXEL_MAPPING >= 1:
         pm_wy = 120+block[0] * 8 
         main_size=(wx,wy+pm_wy)
+
 
 except Exception as e:
     print("Exception:",e)
@@ -827,7 +851,7 @@ TEXT_BLOCK_TIME = time.time()
 PLAYLIST = []
 
 def _create_playlist():
-    print("======== CREATE NEW PLAYLIST FILE !!",play_list)
+    print("======== CREATE NEW PLAYLIST DIR !!",play_list)
     os.system("mkdir -p /home/user/LibreLight/video")
     f = open(play_list,"w")
     f.write("bbb_sunflower_480x320.mp4\n")
@@ -836,23 +860,31 @@ def _create_playlist():
     f.close()
 
 def open_playlist():
-    print("======== OPEN PLAYLIST FILE !!",play_list)
+    print("======== OPEN PLAYLIST DIR !!",play_list)
     _lines = []
     try:
-        f = open(play_list,"r")
-        _lines = f.readlines()
-        f.close()
+        #f = open(play_list,"r")
+        _lines = os.listdir(play_list)
+        #_lines = f.readlines()
+        #f.close()
     except FileNotFoundError as e:
         print("TEXT",e)
-        _create_playlist()
+        pass#_create_playlist()
 
     if len(_lines) <= 0:
-        _create_playlist()
+        pass#_create_playlist()
 
     lines = []
+    i=0
     for l in _lines:
-        print(">> ",l.strip())
-        lines.append(l.strip())
+        #print(">> ",l.strip(),len(lines))
+        if "_" in l:
+            ll = l.split("_",1)
+            print(">> ",ll)
+            try:
+                lll = int(ll[0])
+                lines.append(l.strip())
+            except:pass
 
     if len(lines) <= 10:
         for i in range(10-len(lines)):
@@ -1306,6 +1338,7 @@ def draw_counter(COUNTER):
 def draw_video(VIDEO):
     global videplayer
     i = 0
+
     for count in VIDEO:
         cpan = 0
         ctilt = 0
@@ -1360,15 +1393,29 @@ def draw_video(VIDEO):
 
         if cdim:
             video1.next()
+        i += 1
+
+    i=0
+    for count in VIDEO:
+        video1 = videoplayer[i]
+        if cdim:
             #video1.prev()
-
             video1.draw(window) #,x=0,y=0)
+        i+=1
 
+    #pm_wy = 120+block[0] * 8 
+    #wy = 80+block[1] * _y 
+    pygame.draw.rect(window,[0,0,0],[0,pm_wy+(80+block[1]*_y)+10,800,800])
+
+    i=0
+    for count in VIDEO:
+        video1 = videoplayer[i]
+        if 1:#cdim:
             # overlay 
             video1.overlay(window,"run")
-
-
         i += 1
+
+
 
 def counter_dmx(COUNTER,dataA):
     for count in COUNTER:
@@ -1440,7 +1487,7 @@ def video_dmx(VIDEO,dataA):
                     print(  "_RUN:1",count["DMX"]-1)
                 count["_RUN"] = 1
 
-            count["SIZE"]  = dataA[cDMX+4]
+            count["SIZE"]  = dataA[cDMX+4]#*2
             count["SEC"]   = dataA[cDMX+5]
 
             count["RED"]   = dataA[cDMX+6]
@@ -1697,7 +1744,8 @@ def main():
 
         pygame.display.flip()
         #pg.time.wait(15)
-        clock.tick(10)
+        #clock.tick(10)
+        clock.tick(25)
 
         if 'SDL_VIDEO_WINDOW_POS' in os.environ:
             del os.environ['SDL_VIDEO_WINDOW_POS'] #= '%i,%i' % (200,164)

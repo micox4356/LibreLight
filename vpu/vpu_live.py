@@ -135,19 +135,21 @@ class Vopen():
 
     def __init__(self,dmx=None,_id=None):
         global PLAYLIST
+        #self.lock = _thread.allocate_lock()
+        #self.lock.acquire()
+        #self._thread = 0
+        #self.lock.release()
+
         self._id = _id
         self.fpath = '/home/user/Downloads/'
         self.fpath = '/home/user/LibreLight/video/'
-        self.fname = 'bbb_sunflower_480x320.mp4'
+        self.fname = '' #'bbb_sunflower_480x320.mp4'
         #self.fname = 'no-video.mp4'
         try:
             self.fname = PLAYLIST[0]
         except Exception as e:
-            print("Exception set video from PLAYLIST 5543",e)
+            print("Exception set video from PLAYLIST 5543:",e)
 
-        self.time = 0
-        self.t_delta = 0 
-        self.t_last  = time.time()
 
         self.fps = 0
         self.scale = 50 #%
@@ -162,20 +164,46 @@ class Vopen():
         self.success = 1
         self.cv2 = None
         self._run = 0
+        self._video_nr = 0
         try:
             global cv2
             self.cv2 = cv2
         except:
             pass
-        self.im = None
-        self.pos = 0
-        self.buffer = []
+
         self.init()
 
     def init(self):
+        print("---- ---- Vopen.init()",[self.fname,self._video_nr])
+        print(PLAYLIST)
+        self.time = 0
+        self.t_delta = 0 
+        self.t_last  = time.time()
+        self.im = None
+        self.pos = 0
+        self.buffer = []
         #self._init()
-        thread.start_new_thread(self._init,())
+        self._thread = 0
+        #thread.start_new_thread(self._init,())
+        self._init()
         self.init_count = 1
+
+    def select_video(self,dmx_value):
+        try:
+            dmx_value = int(dmx_value/10)
+
+            if self._video_nr != dmx_value:
+                self._video_nr = dmx_value
+
+                if self._video_nr < len(PLAYLIST):
+                    self.fname = str(PLAYLIST[self._video_nr])
+                    self.init()
+
+        except Exception as e:
+            print("Vopen.select_video()",dmx_value,e)
+
+    def close_cap():
+        print(dir(self.Rcap)) # = self.cv2.VideoCapture(self.fpath+self.fname)
 
     def _init(self):
         print(self)
@@ -185,22 +213,42 @@ class Vopen():
             print()
             print("video file does not exits !! >",self.fpath,self.fname)
             print()
-            exit()
-
+            #exit()
+    
+        self.Rsuccess = 0
         if self.cv2:
-            cap = self.cv2.VideoCapture(self.fpath+self.fname)
-            self.cap = cap
-            success = 1
-            while success:
+            self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
+            self.Rsuccess = 1
+            #self._thread = 1
+            self._read()
+
+    def _read(self):
+            success = self.Rsuccess
+            #while success:
+            if success and self.fname:
+                cap = self.Rcap
+                _break = 0
+
+                #self.lock.acquire()
+                #if self._thread == 1:
+                #    _break = 1
+                #self.lock.release()
+
+                #if _break:
+                #    break
                 try:
-                    success, self.img = self.cap.read()
+                    success, self.img = cap.read()
+                    if not success:
+                        return
+                    #print(dir(self.img))
+
                     if self.fps == 0:
-                        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+                        self.fps = cap.get(cv2.CAP_PROP_FPS)
                         #print("fps",self.fps)
                     
                     #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
                     self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-                    self.img = self.rescale_frame2(self.img, 100)
+                    self.img = self.rescale_frame2(self.img, 200)
                     #ret, self.img = self.cv2.threshold(self.img, 100, 130, self.cv2.THRESH_BINARY) # treshold
                     #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
                     
@@ -213,12 +261,13 @@ class Vopen():
                     if len(self.buffer) % 100 == 0:
                         _id = str(self.__repr__)[-5:-1]
                         print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps,self.dim)
-                        time.sleep(0.2)
-                    time.sleep(0.005)
+                        #time.sleep(0.2)
+                    #time.sleep(0.005)
+                    #self.Rsuccess = success
                 except Exception as e:
-                    print("Excetpion","_init",self,e)
-            self.pos = 0
-            self.img = self.buffer[int(self.pos)]
+                    print("Excetpion","_init",self,e,end="")
+            #self.pos = 0
+            #self.img = self.buffer[int(self.pos)]
             self.success = 1
 
     def read(self):
@@ -227,7 +276,8 @@ class Vopen():
             return
         try:
             if self.pos >= len(self.buffer):
-                self.pos = 0 #len(self.buffer)-1
+                #self.pos = 0 # restart
+                self.pos = len(self.buffer)-1 
             self.img = self.buffer[int(self.pos)]
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
@@ -242,7 +292,8 @@ class Vopen():
                 self.t_last = t
 
             if self.pos >= len(self.buffer):
-                self.pos = 0 #len(self.buffer)-1
+                #self.pos = 0 #len(self.buffer)-1
+                self.pos = len(self.buffer)-1 
             #print("video.read",self.pos)
             self.shape = self.img.shape[1::-1]
         except Exception as e:
@@ -279,7 +330,7 @@ class Vopen():
             if len(self.buffer) % 100 == 0:
                 #print("video pos",self.pos)
                 _id = str(self.__repr__)[-5:-1]
-                print(_id,"video pos",self.dmx,self.pos,len(self.buffer),self.fname)
+                #print(_id,"video pos",self.dmx,self.pos,len(self.buffer),self.fname)
 
             # add DIMER to videplayer
             self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
@@ -306,6 +357,7 @@ class Vopen():
 
             if self.pos > len(self.buffer):
                 self.pos = 0
+                self.pos = len(self.buffer)-1 
             # wn.blit(im, (self.x, self.y))
             #self.success = 1
         except AttributeError as e:
@@ -338,15 +390,19 @@ class Vopen():
             #pz = int((self.pos/len(self.buffer))*100)
             pz = (len(self.buffer)/self.fps)
         except:pass
-        fr = font15.render("FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}".format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz ) ,1, (0,0,0))
+        try:
+            fr = font15.render("FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}".format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz ) ,1, (0,0,0))
+        except:
+            fr = font15.render("FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}".format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) ,1, (0,0,0))
         #wn.blit(fr,(45+self.x,4+self.y+img_shape[0]))
         wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
 
-        fr = font15.render(" {} >:{}".format(self._id+1,mode) ,1, (0,0,0))
+        fr = font15.render(" {} {} >:{} ".format(self._id+1,self._video_nr,mode) ,1, (0,0,0))
         #wn.blit(fr,(3+self.x,4+self.y+img_shape[0]))
         wn.blit(fr,(3,main_size[1]-(self._id+1)*35+15))
+
         fr = font15.render("{}".format(self.fname) ,1, (0,0,0))
-        wn.blit(fr,(45,main_size[1]-(self._id+1)*35+15))
+        wn.blit(fr,(52,main_size[1]-(self._id+1)*35+15))
 
 
 VIDEO = []
@@ -368,10 +424,22 @@ if type(options.videoplayer) is str:
             cdmx = int(cdmx)
             videoplayer.append( Vopen(cdmx,_id=_vid) )
             _vid += 1
-            VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
+            VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"VIDEO":"3","RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
         except Exception as e:
             print("EXCEPTION COUNTER INIT ",cdmx)
 
+def loop_videoplayer():
+    while 1:
+        _videoplayer = videoplayer[:]
+        #print(".")
+        for i in _videoplayer: #.append( Vopen(cdmx,_id=_vid) )
+            try:
+                i._read() # read next frame from file
+            except Exception as e:
+                print("EXCEPTION loop_videoplayer ")
+        time.sleep(0.005)
+
+thread.start_new_thread(loop_videoplayer,())
 # ===== ======
 
 
@@ -865,6 +933,7 @@ def open_playlist():
     try:
         #f = open(play_list,"r")
         _lines = os.listdir(play_list)
+        _lines.sort()
         #_lines = f.readlines()
         #f.close()
     except FileNotFoundError as e:
@@ -874,21 +943,24 @@ def open_playlist():
     if len(_lines) <= 0:
         pass#_create_playlist()
 
-    lines = []
+    lines = ['']*25 # first is empty
     i=0
     for l in _lines:
         #print(">> ",l.strip(),len(lines))
+        l = l.strip()
         if "_" in l:
             ll = l.split("_",1)
             print(">> ",ll)
+            #ll = int(ll)
             try:
                 lll = int(ll[0])
-                lines.append(l.strip())
+                #lines.append(l.strip())
+                lines[lll] = l
             except:pass
 
     if len(lines) <= 10:
         for i in range(10-len(lines)):
-            lines.append("LINE ERROR")
+            lines.append("")#"LINE ERROR")
     return lines
 
 PLAYLIST_TIME = time.time()
@@ -1045,39 +1117,39 @@ if gobo_ch <= 0:
 
 def draw_box(pos1,pos2,color=[128,128,128],text=1):
 
-        color = [200,0,0,127]
+    color = [200,0,0,127]
 
-        if text:
-            fr = font15.render("A" ,1, (200,200,200))
-            window.blit(fr,pos1)
+    if text:
+        fr = font15.render("A" ,1, (200,200,200))
+        window.blit(fr,pos1)
 
-            fr = font15.render("B" ,1, (200,200,200))
-            window.blit(fr,[pos2[0]-10,pos2[1]-10])
+        fr = font15.render("B" ,1, (200,200,200))
+        window.blit(fr,[pos2[0]-10,pos2[1]-10])
 
-        # h unten
-        _pos1 = [pos1[0],pos2[1]]
-        _pos2 = [pos2[0],pos2[1]]
-        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    # h unten
+    _pos1 = [pos1[0],pos2[1]]
+    _pos2 = [pos2[0],pos2[1]]
+    pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
-        color = [255,255,0,127]
-        # h rechts
-        _pos1 = [pos2[0],pos1[1]]
-        _pos2 = [pos2[0],pos2[1]]
-        pygame.draw.aaline(window,color,_pos1,_pos2,1)
-
-
-        color = [0,200,0,127]
-        # h links
-        _pos1 = [pos1[0],pos1[1]]
-        _pos2 = [pos1[0],pos2[1]]
-        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    color = [255,255,0,127]
+    # h rechts
+    _pos1 = [pos2[0],pos1[1]]
+    _pos2 = [pos2[0],pos2[1]]
+    pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
 
-        color = [0,0,200,127]
-        # h oben
-        _pos1 = [pos1[0],pos1[1]]
-        _pos2 = [pos2[0],pos1[1]]
-        pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    color = [0,200,0,127]
+    # h links
+    _pos1 = [pos1[0],pos1[1]]
+    _pos2 = [pos1[0],pos2[1]]
+    pygame.draw.aaline(window,color,_pos1,_pos2,1)
+
+
+    color = [0,0,200,127]
+    # h oben
+    _pos1 = [pos1[0],pos1[1]]
+    _pos2 = [pos2[0],pos1[1]]
+    pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
 def grab(x=55,y=55,w=60,h=60):
     # usage
@@ -1350,6 +1422,20 @@ def draw_video(VIDEO):
         
 
         video1 = videoplayer[i]
+        k = "VIDEO"
+        if k in count:
+            #video1.select_video(count[k])
+
+            play_nr = int(count[k]/10)
+            if play_nr != video1._video_nr:
+                print( "+ + + +  + + + + + + +", play_nr , video1._video_nr ,str(video1))
+                _vid  = video1._id
+                _cdmx = video1.dmx
+
+                video1 = Vopen(cdmx,_id=_vid) 
+                video1.select_video(count[k])
+                videoplayer[i] = video1
+
         k = "DIM"
         if k in count:
             cdim = int(count[k])
@@ -1373,6 +1459,7 @@ def draw_video(VIDEO):
             ctilt = int(ctilt)
 
         
+
 
         k = "_reset"
         if k in count:
@@ -1490,9 +1577,10 @@ def video_dmx(VIDEO,dataA):
             count["SIZE"]  = dataA[cDMX+4]#*2
             count["SEC"]   = dataA[cDMX+5]
 
-            count["RED"]   = dataA[cDMX+6]
-            count["GREEN"] = dataA[cDMX+7]
-            count["BLUE"]  = dataA[cDMX+8]
+            count["VIDEO"] = dataA[cDMX+6]
+            #count["RED"]   = dataA[cDMX+6]
+            #count["GREEN"] = dataA[cDMX+7]
+            #count["BLUE"]  = dataA[cDMX+8]
         except Exception as e:
             print("VIDEOPLAYER EXCEPT FUNC",e,count)
         #print(count)

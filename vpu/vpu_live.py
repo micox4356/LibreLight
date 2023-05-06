@@ -343,10 +343,16 @@ class Vopen():
         yellow[1] = int(yellow[1]*self.dim/255)  
         yellow[2] = int(yellow[2]*self.dim/255)  
         #print(yellow)
-        pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
-        pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
-        pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
-        pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+        if 0: #corner left up
+            pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
+            pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
+            pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+        if 1: #corner right down
+            pygame.draw.rect(wn,yellow,[self.x-__xw,self.y-__yw,__xw,__yw])
+            pygame.draw.rect(wn,[25,20,20],[self.x+1-__xw,self.y+1-__yw,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow,[self.x+2-__xw,self.y+2-__yw],[self.x+__xw-4-__xw,self.y+__yw-4-__yw])
+            pygame.draw.line(wn,yellow,[self.x+__xw-4-__xw,self.y+2-__yw],[self.x+2-__xw,self.y+__yw-4-__yw])
 
         pz = 0
         txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
@@ -358,7 +364,7 @@ class Vopen():
         wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
 
         if self.success and wn and self.im: # is not None:
-            wn.blit(self.im, (self.x, self.y))
+            wn.blit(self.im, (int(self.x-__xw), int(self.y-__yw)))
 
     def overlay(self,wn=None,mode="x"):
         # overlay 
@@ -1187,6 +1193,9 @@ def reshape(_x,_y):
     y_min = 99999
     y_max = 0
 
+    # black background for -> output MAP
+    pygame.draw.rect(window,[0,0,20],[0,60,wx,pm_wy-10]) 
+
     fr = font.render("OUTPUT".format(t1.get()) ,1, (255,255,255))
     fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy-5))
     #window.blit(fr,(x+int(wx/2),y+pm_wy))
@@ -1371,10 +1380,12 @@ def draw_counter(COUNTER):
         k = "PAN"
         if k in count:
             cpan = int(count[k])/255*(block[0] *(_x))
+            #cpan = int(cpan * 1.2)
             cpan = int(cpan)
         k = "TILT"
         if k in count:
             ctilt = int(count[k])/255*(block[1] *(_y))
+            #ctilt = int(cpan * 1.2)
             ctilt = int(ctilt)
 
         ddim = cdim/255
@@ -1442,17 +1453,20 @@ def draw_video(VIDEO):
 
         k = "SIZE"
         if k in count:
-            csize = int(count[k])
+            csize = int(count[k]/16*p)
         if csize < 5:
             csize = 5
 
         k = "PAN"
+        cpan_max = block[0] *(_x) #+block[0]
         if k in count:
-            cpan = int(count[k])/255*(block[0] *(_x))
+            cpan = int(count[k]) / 255*cpan_max
             cpan = int(cpan)
         k = "TILT"
+
+        ctilt_max = block[1] *(_y) #+block[1]
         if k in count:
-            ctilt = int(count[k])/255*(block[1] *(_y))
+            ctilt = int(count[k]) / 255*ctilt_max
             ctilt = int(ctilt)
 
         
@@ -1471,8 +1485,8 @@ def draw_video(VIDEO):
 
 
         video1.pos 
-        video1.x=40+cpan
-        video1.y=60+pm_wy+ctilt
+        video1.x=40+0+cpan 
+        video1.y=60+0+pm_wy+ctilt
         video1.scale = int((csize))
 
         if cdim:

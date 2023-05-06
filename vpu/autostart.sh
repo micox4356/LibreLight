@@ -7,8 +7,6 @@ set -x
 #screen -XS "vnc" quit
 screen -XS "ASP" quit
 screen -XS "shader" quit
-screen -XS "vpu1_out" quit
-screen -XS "vpu2_out" quit
 
 screen -m -d -S vnc -- x11vnc -forever
 
@@ -20,6 +18,9 @@ screen -m -d -S ASP -- python3 /opt/LibreLight/ASP/ArtNetProcessor.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/3d/demo_shader_live.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/shader_live.py
 #screen -m -d -S shader -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5
+
+screen -XS "vpu1_out" quit
+screen -XS "vpu2_out" quit
 
 # Ayrton VPU Offset Y ___ Y ___ (Ghost 255)
 screen -m -d -S vpu1_out -- python3 /opt/LibreLight/Xdesk/vpu/vpu_live.py -m 16,12,5 -X 12 --pixel-map=_1 --gobo-ch=11 --countdown=31,51,151,171 --videoplayer=181,201

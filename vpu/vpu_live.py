@@ -212,17 +212,23 @@ class Vopen():
         self.Rsuccess = 0
         if self.cv2:
             self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
+            self.Rcap.read()
+
+            self.Rfvs = FileVideoStream(self.fpath+self.fname).start()
             self.Rsuccess = 1
             self._read()
 
     def _read(self):
         success = self.Rsuccess
+        ok = 0
         if success and self.fname:
             cap = self.Rcap
+            #fvs = self.Rfvs
             _break = 0
 
             try:
                 success, self.img = cap.read()
+                #self.img = fvs.read()
                 if not success:
                     self.end = 1
                     return
@@ -241,6 +247,7 @@ class Vopen():
                 #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
                 
                 self.buffer.append(self.img)
+                ok = 1
                 if len(self.buffer) % 100 == 0:
                     _id = str(self.__repr__)[-5:-1]
                     print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps,self.dim)
@@ -248,6 +255,7 @@ class Vopen():
             except Exception as e:
                 print("Excetpion","_init",self,e,end="")
         self.success = 1
+        return ok
 
     def read(self):
         if len(self.buffer) <= 0:
@@ -258,7 +266,8 @@ class Vopen():
             self.img = self.buffer[int(self.pos)]
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
-            if self._run:
+
+            if self._run: # and len(self.buffer) > 400:
                 t = time.time()
                 self.t_delta = t-self.t_last 
                 self.t_last = t
@@ -311,19 +320,20 @@ class Vopen():
                 return 
             self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
 
-            if self._run:
+            if self._run and len(self.buffer) > 30:
                 t = time.time()
                 self.t_delta = t-self.t_last 
                 self.t_last = t
                 self.pos += self.t_delta*self.fps
+                #self.pos += 4 # speedupt for testing
             else:
                 t = time.time()
                 self.t_delta = 0 
                 self.t_last = t
 
-            if self.pos > len(self.buffer):
-                self.pos = 0
-                self.pos = len(self.buffer)-1 
+            if self.pos >= len(self.buffer):
+                self.pos = 0 # restart
+                #self.pos = len(self.buffer)-1 # stay at the end
 
         except AttributeError as e:
             time.sleep(.05)
@@ -355,13 +365,13 @@ class Vopen():
             pygame.draw.line(wn,yellow,[self.x+__xw-4-__xw,self.y+2-__yw],[self.x+2-__xw,self.y+__yw-4-__yw])
 
         pz = 0
-        txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
-        txt = txt.format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) 
-        if self.end:
-            fr = font15.render(txt,1, (0,255,0))
-        else:
-            fr = font15.render(txt,1, (255,0,0))
-        wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
+        #txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
+        #txt = txt.format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) 
+        #if self.end:
+        #    fr = font15.render(txt,1, (0,255,0))
+        #else:
+        #    fr = font15.render(txt,1, (255,0,0))
+        #wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
 
         if self.success and wn and self.im: # is not None:
             wn.blit(self.im, (int(self.x-__xw), int(self.y-__yw)))
@@ -384,12 +394,11 @@ class Vopen():
         pygame.draw.rect(wn,rgb,[220,main_size[1]-(self._id+1)*35,80,13])
 
         _line = "error no _line"
+        _line ="FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
         if self.fps == 0: # check if div zerro
-            _line ="FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
             _line = _line.format(self.fps,int(self.pos),len(self.buffer),(-1),pz )
         else:
             pz = (len(self.buffer)/self.fps)
-            _line = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
             _line = _line.format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz )  
 
         fr = font15.render(_line ,1, (0,0,0))
@@ -409,11 +418,18 @@ class Vopen():
 VIDEO = []
 videoplayer=[]            
 cv2 = None
+FileVideoStream = None
+
 _vid = 0
 if type(options.videoplayer) is str:
     try:
         import cv2
-    except:
+    except Exception as e:
+        print("Except Import:",e)
+    try:
+        # faster video reading ... ???
+        from imutils.video import FileVideoStream
+    except Exception as e:
         print("Except Import:",e)
 
     max_videoplayer = 4
@@ -435,12 +451,19 @@ def loop_videoplayer():
     while 1:
         _videoplayer = videoplayer[:]
         #print(".")
+        ok = 0
         for i in _videoplayer: #.append( Vopen(cdmx,_id=_vid) )
             try:
-                i._read() # read next frame from file
+                r = i._read() # read next frame from file
+                if r:
+                    ok = 1
             except Exception as e:
-                print("EXCEPTION loop_videoplayer ")
-        time.sleep(0.005)
+                print("EXCEPTION loop_videoplayer ",e)
+            time.sleep(0.002)
+        if ok == 0:
+            time.sleep(0.1)
+        else:
+            time.sleep(0.005)
 
 thread.start_new_thread(loop_videoplayer,())
 # ===== ======
@@ -569,7 +592,7 @@ try:
 
     main_size=(wx,wy)
     if PIXEL_MAPPING >= 1:
-        pm_wy = 120+block[0] * 8 
+        pm_wy = 11*p #+ p*3
         main_size=(wx,wy+pm_wy)
 
 
@@ -1195,18 +1218,19 @@ def reshape(_x,_y):
 
     # black background for -> output MAP
     pygame.draw.rect(window,[0,0,20],[0,60,wx,pm_wy-10]) 
+    
+    tmp_font = pygame.font.SysFont("freemonobold",int(p*0.8))
 
-    fr = font.render("OUTPUT".format(t1.get()) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy-5))
-    #window.blit(fr,(x+int(wx/2),y+pm_wy))
+    fr   = tmp_font.render("OUTPUT" ,1, (255,255,255))
+    fr_r = fr.get_rect(center=(x+int(wx/2),int(60+pm_wy-p*1.5)))
     window.blit(fr,fr_r)
-    fr = font.render("↑  ↑    MAP    ↑  ↑".format(t1.get()) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy+15))
-    #window.blit(fr,(x+int(wx/2),y+pm_wy))
+
+    fr   = tmp_font.render("↑  ↑    MAP    ↑  ↑" ,1, (255,255,255))
+    fr_r = fr.get_rect(center=(x+int(wx/2),int(60+pm_wy-p)))
     window.blit(fr,fr_r)
-    fr = font.render("INPUT".format(t1.get()) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(x+int(wx/3),y+pm_wy+35))
-    #window.blit(fr,(x+int(wx/2),y+pm_wy))
+
+    fr   = tmp_font.render("INPUT" ,1, (255,255,255))
+    fr_r = fr.get_rect(center=(x+int(wx/2),int(60+pm_wy-p/2)))
     window.blit(fr,fr_r)
 
 
@@ -1214,8 +1238,6 @@ def reshape(_x,_y):
     for fix in _GRID:
         if j >= 8*8: # max output size
             break
-        #if j >= _x*_y: # max input size
-        #    break
         j+=1
         ii = i
         #z= i # helping border offset 
@@ -1822,12 +1844,12 @@ def main():
         
 
         #COUNTER.append({"DMX":31,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":0})
-        if options.countdown:
-            draw_counter(COUNTER)
 
         if VIDEO:
             draw_video(VIDEO)
 
+        if options.countdown:
+            draw_counter(COUNTER)
         pointer.draw(0,pm_wy) #wy
         spos = [0,0,0,0]
         if PIXEL_MAPPING >= 1:

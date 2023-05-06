@@ -135,10 +135,6 @@ class Vopen():
 
     def __init__(self,dmx=None,_id=None):
         global PLAYLIST
-        #self.lock = _thread.allocate_lock()
-        #self.lock.acquire()
-        #self._thread = 0
-        #self.lock.release()
 
         self._id = _id
         self.fpath = '/home/user/Downloads/'
@@ -164,6 +160,7 @@ class Vopen():
         self.success = 1
         self.cv2 = None
         self._run = 0
+        self.end = 0
         self._video_nr = 0
         try:
             global cv2
@@ -182,9 +179,6 @@ class Vopen():
         self.im = None
         self.pos = 0
         self.buffer = []
-        #self._init()
-        self._thread = 0
-        #thread.start_new_thread(self._init,())
         self._init()
         self.init_count = 1
 
@@ -219,64 +213,47 @@ class Vopen():
         if self.cv2:
             self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
             self.Rsuccess = 1
-            #self._thread = 1
             self._read()
 
     def _read(self):
-            success = self.Rsuccess
-            #while success:
-            if success and self.fname:
-                cap = self.Rcap
-                _break = 0
+        success = self.Rsuccess
+        if success and self.fname:
+            cap = self.Rcap
+            _break = 0
 
-                #self.lock.acquire()
-                #if self._thread == 1:
-                #    _break = 1
-                #self.lock.release()
+            try:
+                success, self.img = cap.read()
+                if not success:
+                    self.end = 1
+                    return
 
-                #if _break:
-                #    break
-                try:
-                    success, self.img = cap.read()
-                    if not success:
-                        return
-                    #print(dir(self.img))
+                if self.fps == 0:
+                    self.fps = cap.get(cv2.CAP_PROP_FPS)
+                
+                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+                self.img = self.rescale_frame2(self.img, 200)
+                #ret, self.img = self.cv2.threshold(self.img, 100, 130, self.cv2.THRESH_BINARY) # treshold
+                #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
+                
+                #M = cv2.getPerspectiveTransform(Punkte_A, Punkte_B)
+                #warped = cv2.warpPerspective(Bild, m, (420,594))
+                
+                #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
+                
+                self.buffer.append(self.img)
+                if len(self.buffer) % 100 == 0:
+                    _id = str(self.__repr__)[-5:-1]
+                    print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps,self.dim)
 
-                    if self.fps == 0:
-                        self.fps = cap.get(cv2.CAP_PROP_FPS)
-                        #print("fps",self.fps)
-                    
-                    #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-                    self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-                    self.img = self.rescale_frame2(self.img, 200)
-                    #ret, self.img = self.cv2.threshold(self.img, 100, 130, self.cv2.THRESH_BINARY) # treshold
-                    #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
-                    
-                    #M = cv2.getPerspectiveTransform(Punkte_A, Punkte_B)
-                    #warped = cv2.warpPerspective(Bild, m, (420,594))
-                    
-                    #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
-                    
-                    self.buffer.append(self.img)
-                    if len(self.buffer) % 100 == 0:
-                        _id = str(self.__repr__)[-5:-1]
-                        print(_id,"video read",self.dmx,len(self.buffer),self.fname,"fps",self.fps,self.dim)
-                        #time.sleep(0.2)
-                    #time.sleep(0.005)
-                    #self.Rsuccess = success
-                except Exception as e:
-                    print("Excetpion","_init",self,e,end="")
-            #self.pos = 0
-            #self.img = self.buffer[int(self.pos)]
-            self.success = 1
+            except Exception as e:
+                print("Excetpion","_init",self,e,end="")
+        self.success = 1
 
     def read(self):
-        #print(self,"read()")
         if len(self.buffer) <= 0:
             return
         try:
             if self.pos >= len(self.buffer):
-                #self.pos = 0 # restart
                 self.pos = len(self.buffer)-1 
             self.img = self.buffer[int(self.pos)]
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
@@ -311,8 +288,6 @@ class Vopen():
     def rescale_frame2(self,frame, width):
         height = int(frame.shape[0]/frame.shape[1] * width )
         dim = (width, height)
-        #print("rescale_frame2",dim)
-        #sys.exit()
         return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
 
     def rescale_frame(self,frame, percent=75):
@@ -322,27 +297,20 @@ class Vopen():
         return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
 
     def next(self):
-        #print(self,"next",time.time())
-        #self.success = 0
          
         self.read()
         try:
             if len(self.buffer) % 100 == 0:
-                #print("video pos",self.pos)
                 _id = str(self.__repr__)[-5:-1]
-                #print(_id,"video pos",self.dmx,self.pos,len(self.buffer),self.fname)
 
             # add DIMER to videplayer
             self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
             
-            img = self.img #self.rescale_frame(self.img, percent=30)
+            img = self.img 
             if img is None:
                 return 
             self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
-            #print(type(self.im))
-            #self.buffer.append(self.im)
 
-            #self.pos = int(self.time * self.fps)
             if self._run:
                 t = time.time()
                 self.t_delta = t-self.t_last 
@@ -352,14 +320,11 @@ class Vopen():
                 t = time.time()
                 self.t_delta = 0 
                 self.t_last = t
-            #if self._run:
-            #    self.pos += 2
 
             if self.pos > len(self.buffer):
                 self.pos = 0
                 self.pos = len(self.buffer)-1 
-            # wn.blit(im, (self.x, self.y))
-            #self.success = 1
+
         except AttributeError as e:
             time.sleep(.05)
             #if self.init_count % 100 == 0:
@@ -369,6 +334,29 @@ class Vopen():
             print("except 756",e)
 
     def draw(self,wn=None):
+
+        # draw video background box
+        __xw = int(370*self.scale/255)
+        __yw = int(235*self.scale/255)
+        yellow = [105,50,0]
+        yellow[0] = int(yellow[0]*self.dim/255)  
+        yellow[1] = int(yellow[1]*self.dim/255)  
+        yellow[2] = int(yellow[2]*self.dim/255)  
+        #print(yellow)
+        pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
+        pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
+        pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
+        pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+
+        pz = 0
+        txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
+        txt = txt.format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) 
+        if self.end:
+            fr = font15.render(txt,1, (0,255,0))
+        else:
+            fr = font15.render(txt,1, (255,0,0))
+        wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
+
         if self.success and wn and self.im: # is not None:
             wn.blit(self.im, (self.x, self.y))
 
@@ -378,31 +366,38 @@ class Vopen():
         if type(self.img) is list:
             img_shape = self.img.shape
 
-
-        #pygame.draw.rect(wn,[255,200,0],[5+self.x-3,4+self.y-1+img_shape[0],140,20])
         pygame.draw.rect(wn,[255,200,0],[5,main_size[1]-(self._id+1)*35,300,28])
         font15 = pygame.font.SysFont("freemonobold",17)
 
-
-        #fr = font15.render("F:{}".format(self.pos) ,1, (0,0,0))
         pz = 0
-        try:
-            #pz = int((self.pos/len(self.buffer))*100)
+
+        if self.end:
+            rgb = [ 100,255,100]
+        else:
+            rgb = [255,100,0]
+        pygame.draw.rect(wn,rgb,[220,main_size[1]-(self._id+1)*35,80,13])
+
+        _line = "error no _line"
+        if self.fps == 0: # check if div zerro
+            _line ="FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
+            _line = _line.format(self.fps,int(self.pos),len(self.buffer),(-1),pz )
+        else:
             pz = (len(self.buffer)/self.fps)
-        except:pass
-        try:
-            fr = font15.render("FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}".format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz ) ,1, (0,0,0))
-        except:
-            fr = font15.render("FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}".format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) ,1, (0,0,0))
-        #wn.blit(fr,(45+self.x,4+self.y+img_shape[0]))
+            _line = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
+            _line = _line.format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz )  
+
+        fr = font15.render(_line ,1, (0,0,0))
         wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
 
+        if self._run:
+            mode = "run"
+        else:
+            mode = "pause"
         fr = font15.render(" {} {} >:{} ".format(self._id+1,self._video_nr,mode) ,1, (0,0,0))
-        #wn.blit(fr,(3+self.x,4+self.y+img_shape[0]))
         wn.blit(fr,(3,main_size[1]-(self._id+1)*35+15))
 
         fr = font15.render("{}".format(self.fname) ,1, (0,0,0))
-        wn.blit(fr,(52,main_size[1]-(self._id+1)*35+15))
+        wn.blit(fr,(60,main_size[1]-(self._id+1)*35+15))
 
 
 VIDEO = []
@@ -412,8 +407,10 @@ _vid = 0
 if type(options.videoplayer) is str:
     try:
         import cv2
-    except:pass
-    max_videoplayer = 2
+    except:
+        print("Except Import:",e)
+
+    max_videoplayer = 4
     dmx_start =  options.videoplayer.split(",")
     for cdmx in dmx_start:
         if len(videoplayer) > max_videoplayer:
@@ -1492,7 +1489,7 @@ def draw_video(VIDEO):
 
     #pm_wy = 120+block[0] * 8 
     #wy = 80+block[1] * _y 
-    pygame.draw.rect(window,[0,0,0],[0,pm_wy+(80+block[1]*_y)+10,800,800])
+    #pygame.draw.rect(window,[0,0,0],[0,pm_wy+(80+block[1]*_y)+10,800,800])
 
     i=0
     for count in VIDEO:
@@ -1765,7 +1762,6 @@ def main():
     #GRID =  init_grid(_x=8,_y=8) #init_gird()
     print("GRID LEN:",len(GRID))
 
-    #thread.start_new_thread( video_dmx_loop,(VIDEO,dataA) )
 
     s=time.time()
     print("run")

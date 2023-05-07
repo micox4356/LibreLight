@@ -279,7 +279,7 @@ class Vopen():
 
             if self.pos >= len(self.buffer):
                 #self.pos = 0 #len(self.buffer)-1
-                self.pos = len(self.buffer)-1 
+                self.pos = 0 # len(self.buffer)-1 
             #print("video.read",self.pos)
             self.shape = self.img.shape[1::-1]
         except Exception as e:

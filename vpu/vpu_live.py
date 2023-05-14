@@ -3,6 +3,8 @@ import math
 import random
 import time
 import os
+import sys
+import gc
 
 import _thread as thread
 
@@ -130,6 +132,328 @@ try:
     PLAYLIST = open_playlist()
 except:pass
 
+class Vopen_NEW():
+
+    def __init__(self,dmx=None,_id=None):
+        global PLAYLIST
+
+        self._id = _id
+        self.fpath = '/home/user/Downloads/'
+        self.fpath = '/home/user/LibreLight/video/'
+        self.fname = '' #'bbb_sunflower_480x320.mp4'
+        #self.fname = 'no-video.mp4'
+        try:
+            self.fname = PLAYLIST[0]
+        except Exception as e:
+            print("Exception set video from PLAYLIST 5543:",e)
+
+
+        self.fps = 0
+        self.scale = 50 #%
+        self.dmx=dmx
+        self.dim = 0
+        self.x = 0
+        self.y = 0
+        self.init_count = 0
+        self.cap = None
+        self.shape = [200,200]  
+        self.img = None
+        self.success = 1
+        self.cv2 = None
+        self._run = 0
+        self.end = 0
+        self._video_nr = 0
+
+        self.ready  = 0
+
+        self.shape_x = 370
+        self.shape_y = 235
+        try:
+            global cv2
+            self.cv2 = cv2
+        except:
+            pass
+
+        self.init()
+
+    def init(self):
+        print("---- ---- Vopen.init()",[self.fname,self._video_nr])
+        print(PLAYLIST)
+        self.time = 0
+        self.t_delta = 0 
+        self.t_last  = time.time()
+        self.im = None
+        self.pos = 0
+        self.buffer = []
+        self._init()
+        self.init_count = 1
+
+    def select_video(self,dmx_value):
+        try:
+            dmx_value = int(dmx_value/10)
+
+            if self._video_nr != dmx_value:
+                self._video_nr = dmx_value
+
+                if self._video_nr < len(PLAYLIST):
+                    self.fname = str(PLAYLIST[self._video_nr])
+                    self.init()
+
+        except Exception as e:
+            print("Vopen.select_video()",dmx_value,e)
+
+
+    def close_cap():
+        pass
+
+    def _init(self):
+        self.cap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_FFMPEG) 
+        self.Rcap = self.cap
+        self.success, self.img = self.cap.read()
+
+    def _del(self):
+        pass
+
+
+    def _read(self):
+        ok = 0
+        if self.success:
+            self.success, self.img = self.cap.read()
+
+            if self.fps == 0:
+                self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+            
+            self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+            self.img = self.rescale_frame2(self.img, 200)
+            #self.shape = self.img.shape[1::-1]
+            self.buffer.append(self.img)
+
+            #self.buffer.append(self.img)
+
+            s = sys.getsizeof(self.buffer)/1024
+            #print(s)
+            ok = 1
+            self.ready = 1
+        #if len(self.buffer) >= 30:
+        #    self.ready = 1
+        return ok
+    def read(self):
+        if len(self.buffer) <= 0:
+            return
+        try:
+            if self.pos >= len(self.buffer):
+                self.pos = len(self.buffer)-1 
+            self._img = self.buffer[int(self.pos)]
+            self.img = self._img
+            #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
+            self.img = self.rescale_frame(self.img, percent=self.scale)
+            self.shape = self.img.shape[1::-1]
+
+            if self._run: # and len(self.buffer) > 400:
+                t = time.time()
+                self.t_delta = t-self.t_last 
+                self.t_last = t
+                self.pos += self.t_delta*self.fps
+            else:
+                t = time.time()
+                self.t_delta = 0 
+                self.t_last = t
+
+            if self.pos >= len(self.buffer):
+                #self.pos = 0 #len(self.buffer)-1
+                self.pos = 0 # len(self.buffer)-1 
+            #print("video.read",self.pos)
+            #self.shape = self.img.shape[1::-1]
+        except Exception as e:
+            print("exception 432",e,len(self.buffer),self.fname)
+            #self.init()
+
+    def prev(self):
+        pass
+
+    def rescale_frame2(self,frame, width):
+        height = int(frame.shape[0]/frame.shape[1] * width )
+        dim = (width, height)
+        return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
+
+    def rescale_frame(self,frame, percent=75):
+        width  = int(frame.shape[1] * percent/ 100)
+        height = int(frame.shape[0] * percent/ 100)
+        dim = (width, height)
+        return self.cv2.resize(frame, dim, interpolation =cv2.INTER_AREA)
+
+    def next(self):
+         
+        self.read()
+        try:
+            if len(self.buffer) % 100 == 0:
+                _id = str(self.__repr__)[-5:-1]
+
+            # add DIMER to videplayer
+            self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
+            
+            img = self.img 
+            if img is None:
+                return 
+            shape = img.shape[1::-1]
+            im = pygame.image.frombuffer(img.tobytes(), shape, "RGB")
+            self.im = im
+
+            if self._run and len(self.buffer) > 30:
+                t = time.time()
+                self.t_delta = t-self.t_last 
+                self.t_last = t
+                self.pos += self.t_delta*self.fps
+                #self.pos += 4 # speedupt for testing
+            else:
+                t = time.time()
+                self.t_delta = 0 
+                self.t_last = t
+
+            if self.pos >= len(self.buffer):
+                self.pos = 0 # restart
+                #self.pos = len(self.buffer)-1 # stay at the end
+
+        except AttributeError as e:
+            time.sleep(.05)
+            #if self.init_count % 100 == 0:
+            print("except 776",str(self).split(" ")[-1],e)
+            #self.init()
+        except Exception as e:
+            print("except 756",str(self).split(" ")[-1], e)
+
+    def draw(self,wn=None):
+        
+        if self.dim <= 1:
+            return
+
+        if self.scale < 255*.05:
+            self.scale = 255*0.05
+
+        # draw video background box
+        __xw = int(self.shape_x*self.scale/255)
+        __yw = int(self.shape_y*self.scale/255)
+    
+        #xx ,yy = (370,235)
+        xx = self.shape_x #= xx
+        yy = self.shape_y #= yy
+        try:
+            xx ,yy = self.im.get_size()[:2]
+            self.shape_x = xx
+            self.shape_y = yy
+        except AttributeError as e:
+            pass
+
+        xx = int(xx*self.scale/255)
+        yy = int(yy*self.scale/255)
+
+
+        __xw = int(xx) #*self.scale/255)
+        __yw = int(yy) #*self.scale/255)
+        yellow = [105,50,0]
+        yellow[0] = int(yellow[0]*self.dim/255)  
+        yellow[1] = int(yellow[1]*self.dim/255)  
+        yellow[2] = int(yellow[2]*self.dim/255)  
+        #print(yellow)
+        if 1: #corner left up
+            p1 = [self.x+2,self.y+2]  
+            p2 = [self.x+__xw-4,self.y+__yw-4]
+            p3 = [self.x+__xw-4,self.y+2]
+            p4 = [self.x+2,self.y+__yw-4]
+
+            p1 = [self.x,self.y]  
+            p2 = [self.x+__xw,self.y+__yw]
+            p3 = [self.x+__xw,self.y]
+            p4 = [self.x,self.y+__yw]
+            
+            hx=int(xx/2)
+            hy=int(yy/2)
+            #print(hx,hy,xx,yy) #,ratio)
+            #print("-")
+            #print(sys.getsizeof(self.buffer))
+            #print(sys.getsizeof(self))
+            #print(sys.getsizeof(self.Rcap))
+            #print(dir(self.Rcap))
+            p1 = [self.x-hx,self.y-hy]  
+            p2 = [self.x+__xw-hx,self.y+__yw-hy]
+            p3 = [self.x+__xw-hx,self.y-hy]
+            p4 = [self.x-hx,self.y+__yw-hy]
+
+            pygame.draw.rect(wn,yellow    ,[p1[0]  ,p1[1]  ,__xw  ,__yw])
+            pygame.draw.rect(wn,[25,20,20],[p1[0]+1,p1[1]+1,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow    ,p1      ,p2)
+            pygame.draw.line(wn,yellow    ,p3      ,p4)
+        if 0: #corner left up
+            pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
+            pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
+            pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+        if 0: #corner right down
+            pygame.draw.rect(wn,yellow,[self.x-__xw,self.y-__yw,__xw,__yw])
+            pygame.draw.rect(wn,[25,20,20],[self.x+1-__xw,self.y+1-__yw,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow,[self.x+2-__xw,self.y+2-__yw],[self.x+__xw-4-__xw,self.y+__yw-4-__yw])
+            pygame.draw.line(wn,yellow,[self.x+__xw-4-__xw,self.y+2-__yw],[self.x+2-__xw,self.y+__yw-4-__yw])
+
+        #pygame.draw.line(wn,yellow,[self.x,self.y],[self.x,self.y+300])
+        #pygame.draw.line(wn,yellow,[self.x,self.y],[self.x+300,self.y])
+        pz = 0
+        #txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
+        #txt = txt.format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) 
+        #if self.end:
+        #    fr = font15.render(txt,1, (0,255,0))
+        #else:
+        #    fr = font15.render(txt,1, (255,0,0))
+        #wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
+
+        if self.ready and wn and self.im: # is not None:
+            #wn.blit(self.im, (int(self.x), int(self.y)))
+            #wn.blit(self.im, (int(self.x-__xw), int(self.y-__yw)))
+            #xx ,yy = self._img.shape[:2]
+            xx ,yy = self.im.get_size()[:2]
+            #print(xx,yy)
+            #wn.blit(self.im, (int(self.x+xx/2), int(self.y+yy/2)))
+            wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy/2)))
+
+    def overlay(self,wn=None,mode="x"):
+        # overlay 
+        y = main_size[1]-(self._id+1)*50
+        pygame.draw.rect(wn,[255,200,0],[5,y,300,28+15])
+        font15 = pygame.font.SysFont("freemonobold",17)
+
+        pz = 0
+
+        if self.end:
+            rgb = [ 100,255,100]
+        else:
+            rgb = [255,100,0]
+        pygame.draw.rect(wn,rgb,[220,y,80,13])
+
+        _line = "error no _line"
+        _line ="F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
+        if self.fps == 0: # check if div zerro
+            fps = 1
+            _line = _line.format(int(self.pos),len(self.buffer),(-1),pz )
+        else:
+            pz = (len(self.buffer)/self.fps)
+            _line = _line.format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz )  
+
+        fr = font15.render(_line ,1, (0,0,0))
+        wn.blit(fr,(10,y))
+
+        if self._run:
+            mode = "run"
+        else:
+            mode = "pause"
+        txt = "fps:{} id:{} nr:{} scale:{} "
+        txt = txt.format(self.fps,self._id+1,self._video_nr,int(self.scale) ) 
+        fr = font15.render(txt,1, (0,0,0))
+        wn.blit(fr,(3,y+15))
+
+        txt = "{}: {}"
+        txt = txt.format(mode,self.fname ) 
+        fr = font15.render(txt,1, (0,0,0))
+        wn.blit(fr,(3,y+30))
+
 
 class Vopen():
 
@@ -162,6 +486,10 @@ class Vopen():
         self._run = 0
         self.end = 0
         self._video_nr = 0
+
+
+        self.shape_x = 370
+        self.shape_y = 235
         try:
             global cv2
             self.cv2 = cv2
@@ -211,12 +539,40 @@ class Vopen():
     
         self.Rsuccess = 0
         if self.cv2:
-            self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
+            #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
+            #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_GSTREAMER) 
+            #GSTREAMER Assertion fctx->async_lock failed at libavcodec/pthread_frame.c:175
+            self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_FFMPEG) 
+            #FFMPEG malloc(): unsorted double linked list corrupted ... Abgebrochen
+
             self.Rcap.read()
 
             self.Rfvs = FileVideoStream(self.fpath+self.fname).start()
             self.Rsuccess = 1
             self._read()
+    def _del(self):
+        #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
+        #for i in dir(self.Rcap):
+        #    print(i)
+
+        #print()
+        #for i in dir(self.cv2):
+        #    print(i)
+        time.sleep(0.01)
+
+        self.buffer = [] #.append(self.img)
+        self.Rcap.release()
+        self.Rcap.retrieve()
+
+        self.Rcap = None
+        self.cap = None
+        del self.Rcap #.release()
+        #time.sleep(4)
+        #sys.exit()
+        #gc.collect()
+        #import gc
+        gc.collect()
+
 
     def _read(self):
         success = self.Rsuccess
@@ -230,6 +586,8 @@ class Vopen():
                 success, self.img = cap.read()
                 #self.img = fvs.read()
                 if not success:
+                    self.Rcap.release()
+                    self.Rcap.retrieve()
                     self.end = 1
                     return
 
@@ -263,7 +621,8 @@ class Vopen():
         try:
             if self.pos >= len(self.buffer):
                 self.pos = len(self.buffer)-1 
-            self.img = self.buffer[int(self.pos)]
+            self._img = self.buffer[int(self.pos)]
+            self.img = self._img
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
 
@@ -344,28 +703,78 @@ class Vopen():
             print("except 756",e)
 
     def draw(self,wn=None):
-
+        
         if self.dim <= 1:
             return
+
+        if self.scale < 255*.05:
+            self.scale = 255*0.05
+
         # draw video background box
-        __xw = int(370*self.scale/255)
-        __yw = int(235*self.scale/255)
+        __xw = int(self.shape_x*self.scale/255)
+        __yw = int(self.shape_y*self.scale/255)
+    
+        #xx ,yy = (370,235)
+        xx = self.shape_x #= xx
+        yy = self.shape_y #= yy
+        try:
+            xx ,yy = self.im.get_size()[:2]
+            self.shape_x = xx
+            self.shape_y = yy
+        except AttributeError as e:
+            pass
+
+        xx = int(xx*self.scale/255)
+        yy = int(yy*self.scale/255)
+
+        __xw = int(xx) #*self.scale/255)
+        __yw = int(yy) #*self.scale/255)
         yellow = [105,50,0]
         yellow[0] = int(yellow[0]*self.dim/255)  
         yellow[1] = int(yellow[1]*self.dim/255)  
         yellow[2] = int(yellow[2]*self.dim/255)  
         #print(yellow)
+        if 1: #corner left up
+            p1 = [self.x+2,self.y+2]  
+            p2 = [self.x+__xw-4,self.y+__yw-4]
+            p3 = [self.x+__xw-4,self.y+2]
+            p4 = [self.x+2,self.y+__yw-4]
+
+            p1 = [self.x,self.y]  
+            p2 = [self.x+__xw,self.y+__yw]
+            p3 = [self.x+__xw,self.y]
+            p4 = [self.x,self.y+__yw]
+            
+            hx=int(xx/2)
+            hy=int(yy/2)
+            #print(hx,hy,xx,yy) #,ratio)
+            #print("-")
+            #print(sys.getsizeof(self.buffer))
+            #print(sys.getsizeof(self))
+            #print(sys.getsizeof(self.Rcap))
+            #print(dir(self.Rcap))
+            p1 = [self.x-hx,self.y-hy]  
+            p2 = [self.x+__xw-hx,self.y+__yw-hy]
+            p3 = [self.x+__xw-hx,self.y-hy]
+            p4 = [self.x-hx,self.y+__yw-hy]
+
+            pygame.draw.rect(wn,yellow    ,[p1[0]  ,p1[1]  ,__xw  ,__yw])
+            pygame.draw.rect(wn,[25,20,20],[p1[0]+1,p1[1]+1,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow    ,p1      ,p2)
+            pygame.draw.line(wn,yellow    ,p3      ,p4)
         if 0: #corner left up
             pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
             pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
             pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
             pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
-        if 1: #corner right down
+        if 0: #corner right down
             pygame.draw.rect(wn,yellow,[self.x-__xw,self.y-__yw,__xw,__yw])
             pygame.draw.rect(wn,[25,20,20],[self.x+1-__xw,self.y+1-__yw,__xw-2,__yw-2])
             pygame.draw.line(wn,yellow,[self.x+2-__xw,self.y+2-__yw],[self.x+__xw-4-__xw,self.y+__yw-4-__yw])
             pygame.draw.line(wn,yellow,[self.x+__xw-4-__xw,self.y+2-__yw],[self.x+2-__xw,self.y+__yw-4-__yw])
 
+        #pygame.draw.line(wn,yellow,[self.x,self.y],[self.x,self.y+300])
+        #pygame.draw.line(wn,yellow,[self.x,self.y],[self.x+300,self.y])
         pz = 0
         #txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
         #txt = txt.format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) 
@@ -376,13 +785,16 @@ class Vopen():
         #wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
 
         if self.success and wn and self.im: # is not None:
-            wn.blit(self.im, (int(self.x-__xw), int(self.y-__yw)))
+            #wn.blit(self.im, (int(self.x), int(self.y)))
+            #wn.blit(self.im, (int(self.x-__xw), int(self.y-__yw)))
+            #xx ,yy = self._img.shape[:2]
+            xx ,yy = self.im.get_size()[:2]
+            #print(xx,yy)
+            #wn.blit(self.im, (int(self.x+xx/2), int(self.y+yy/2)))
+            wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy/2)))
 
     def overlay(self,wn=None,mode="x"):
         # overlay 
-        img_shape = [100,100]
-        if type(self.img) is list:
-            img_shape = self.img.shape
 
         pygame.draw.rect(wn,[255,200,0],[5,main_size[1]-(self._id+1)*35,300,28])
         font15 = pygame.font.SysFont("freemonobold",17)
@@ -470,6 +882,43 @@ def loop_videoplayer():
 thread.start_new_thread(loop_videoplayer,())
 # ===== ======
 
+#self.fname = PLAYLIST[0]
+videoplayer2 = []
+def loop2_videoplayer():
+    while 1:
+        print()
+        print()
+        print()
+        for i,v in enumerate(PLAYLIST):
+            try:
+                video1 = videoplayer2[i] 
+                video1.select_video(i)
+            except:
+                vi = Vopen(181,1) 
+                videoplayer2.append( vi )
+
+
+        _videoplayer = videoplayer2[:]
+        #print(".")
+        ok = 0
+        j =0 
+        for i in _videoplayer: #.append( Vopen(cdmx,_id=_vid) )
+            try:
+                r = i._read() # read next frame from file
+                #print(j,len(videoplayer2),i,len(i.buffer))
+                if r:
+                    print(j,len(videoplayer2),i,len(i.buffer))
+                    ok = 1
+            except Exception as e:
+                print("EXCEPTION loop2_videoplayer ",e)
+            time.sleep(0.002)
+            j += 1
+        if ok == 0:
+            pass#time.sleep(0.01)
+        else:
+            pass#time.sleep(0.005)
+
+#thread.start_new_thread(loop2_videoplayer,())
 
 p = 16
 block = [p,p]
@@ -1464,10 +1913,14 @@ def draw_video(VIDEO):
                 print( "+ + + +  + + + + + + +", play_nr , video1._video_nr ,str(video1))
                 _vid  = video1._id
                 _cdmx = video1.dmx
+                del_video1 = video1
 
                 video1 = Vopen(cdmx,_id=_vid) 
                 video1.select_video(count[k])
                 videoplayer[i] = video1
+
+                del_video1._del()
+                del del_video1
 
         k = "DIM"
         if k in count:

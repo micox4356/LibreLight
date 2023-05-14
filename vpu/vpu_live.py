@@ -345,6 +345,8 @@ class Vopen():
 
     def draw(self,wn=None):
 
+        if self.dim <= 1:
+            return
         # draw video background box
         __xw = int(370*self.scale/255)
         __yw = int(235*self.scale/255)
@@ -1441,6 +1443,7 @@ def draw_video(VIDEO):
     global videplayer
     i = 0
 
+    # set DMX-VALUE to videoplayer Object
     for count in VIDEO:
         cpan = 0
         ctilt = 0
@@ -1515,24 +1518,19 @@ def draw_video(VIDEO):
             video1.next()
         i += 1
 
+    # draw
+
     i=0
     for count in VIDEO:
         video1 = videoplayer[i]
-        if cdim:
-            #video1.prev()
-            video1.draw(window) #,x=0,y=0)
+        video1.draw(window) #,x=0,y=0)
         i+=1
 
-    #pm_wy = 120+block[0] * 8 
-    #wy = 80+block[1] * _y 
-    #pygame.draw.rect(window,[0,0,0],[0,pm_wy+(80+block[1]*_y)+10,800,800])
 
     i=0
     for count in VIDEO:
         video1 = videoplayer[i]
-        if 1:#cdim:
-            # overlay 
-            video1.overlay(window,"run")
+        video1.overlay(window,"run")
         i += 1
 
 
@@ -1817,7 +1815,7 @@ def main():
         pygame.display.flip()
         event()
 
-        window.fill((10,0,20))
+        window.fill((10,0,30))
         calc_fps()
         draw_overlay()
 
@@ -1850,6 +1848,7 @@ def main():
 
         if options.countdown:
             draw_counter(COUNTER)
+
         pointer.draw(0,pm_wy) #wy
         spos = [0,0,0,0]
         if PIXEL_MAPPING >= 1:

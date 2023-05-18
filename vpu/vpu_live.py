@@ -102,12 +102,10 @@ if options.countdown:
 
 
 def read_dmx(ip):
-    global frame
     r = ""
     if ip:
         #t = int(math.sin(time.time() - s)*10)
         r = mc.get(ip) #"2.0.0.13:2")
-        frame += 1
         rr = [0]*512
         for i,v in enumerate(r):
             try: #cleanup ltp-out to int
@@ -135,6 +133,9 @@ PLAYLIST = []
 try:
     PLAYLIST = open_playlist()
 except:pass
+
+#import json
+#import pickle
 
 
 class Vopen():
@@ -227,14 +228,16 @@ class Vopen():
         self.Rsuccess = 0
         if self.cv2:
             #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
+
             #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_GSTREAMER) 
             #GSTREAMER Assertion fctx->async_lock failed at libavcodec/pthread_frame.c:175
+            
             self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_FFMPEG) 
             #FFMPEG malloc(): unsorted double linked list corrupted ... Abgebrochen
 
             self.Rcap.read()
 
-            self.Rfvs = FileVideoStream(self.fpath+self.fname).start()
+            #self.Rfvs = FileVideoStream(self.fpath+self.fname).start()
             self.Rsuccess = 1
             self._read()
     def _del(self):
@@ -245,7 +248,7 @@ class Vopen():
         #print()
         #for i in dir(self.cv2):
         #    print(i)
-        time.sleep(0.01)
+        #time.sleep(0.01)
 
         self.buffer = [] #.append(self.img)
         self.Rcap.release()
@@ -270,20 +273,24 @@ class Vopen():
             _break = 0
 
             try:
-                success, self.img = cap.read()
+                success, img = cap.read()
                 #self.img = fvs.read()
                 if not success:
                     self.Rcap.release()
                     self.Rcap.retrieve()
                     self.end = 1
+                    #j = json.dumps(self.buffer) #.append(img)
+                    #f = open("/tmp/buff")
+                    #f.write(j)
+                    #f.close()
                     return
 
                 if self.fps == 0:
                     self.fps = cap.get(cv2.CAP_PROP_FPS)
                 
-                self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
-                self.img = self.rescale_frame2(self.img, 200)
-                #ret, self.img = self.cv2.threshold(self.img, 100, 130, self.cv2.THRESH_BINARY) # treshold
+                img = self.cv2.cvtColor(img, self.cv2.COLOR_BGR2RGB)
+                img = self.rescale_frame2(img, 200)
+                #ret, img = self.cv2.threshold(img, 100, 130, self.cv2.THRESH_BINARY) # treshold
                 #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
                 
                 #M = cv2.getPerspectiveTransform(Punkte_A, Punkte_B)
@@ -292,7 +299,7 @@ class Vopen():
                 #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
                 
                 # store frame into buffer list
-                self.buffer.append(self.img)
+                self.buffer.append(img)
                 ok = 1
                 if len(self.buffer) % 100 == 0:
                     _id = str(self.__repr__)[-5:-1]
@@ -351,7 +358,8 @@ class Vopen():
         # restart at the end
         if self.pos >= len(self.buffer):
             self.pos = 0 
-
+        
+        self.img = None
         self._img = self.buffer[int(self.pos)]
         self.img = self._img
 
@@ -375,6 +383,7 @@ class Vopen():
             img = self.img 
             if img is None:
                 return 
+            self.im = None
             self.im = pygame.image.frombuffer(img.tobytes(), self.shape, "RGB")
 
             #self.next_frame()
@@ -559,7 +568,8 @@ def loop_videoplayer():
                     ok = 1
             except Exception as e:
                 print("EXCEPTION loop_videoplayer ",e)
-            time.sleep(0.002)
+            #time.sleep(0.002)
+        #time.sleep(1/120)
         if ok == 0:
             time.sleep(0.1)
         else:
@@ -1024,16 +1034,22 @@ def event():
 
 
 fps = 0
+fps2 = 0
 frame = 0
+frame2 = 0
 frame_t = time.time()
+frame2_t = time.time()
 IP = "yyy"
 def draw_overlay():
-    global fps
-    fr = font.render("FPS:{}".format(fps) ,1, (200,0,255))
+    global fps,fps2
+    fr = font15.render("DMX-FPS:{}".format(fps) ,1, (200,0,255))
     window.blit(fr,(10,10))
 
+    fr = font15.render("GUI-FPS  :{}".format(fps2) ,1, (200,0,255))
+    window.blit(fr,(10,20))
+
     fr = font.render("ip:{}".format(IP) ,1, (200,0,255))
-    window.blit(fr,(80,10))
+    window.blit(fr,(90,10))
 
 def calc_fps():
     global fps,frame,frame_t
@@ -1042,6 +1058,14 @@ def calc_fps():
         fps = frame #frame_t- t #frame
         frame = 1
         frame_t = time.time()
+
+def calc_fps2():
+    global fps2,frame2,frame2_t
+    t = time.time()
+    if frame2_t+0.1 < t:
+        fps2 = frame2*10 #frame_t- t #frame
+        frame2 = 1
+        frame2_t = t #time.time()
 
 
 TEXT_BLOCK = []
@@ -1886,6 +1910,9 @@ dataA=[]
 data=[]
 
 def dmx_raw():
+    global frame
+    frame += 1
+
     global ips,dataA,data
     ips = read_index()
     
@@ -1908,7 +1935,8 @@ def dmx_raw():
 def dmx_loop():
     while 1:
         dmx_raw()
-        time.sleep(0.1)
+        time.sleep(1/40) # fast high cpu
+        #time.sleep(1/25)
 
 dmx_raw()
 
@@ -1930,6 +1958,7 @@ def main():
     global PLAYLIST
     global PLAYLIST_TIME
     global dataA
+    global frame2
 
     GRID =  init_grid(_x=_x,_y=_y) #init_gird()
     #GRID =  init_grid(_x=8,_y=8) #init_gird()
@@ -1956,6 +1985,7 @@ def main():
 
         window.fill((10,0,30))
         calc_fps()
+        calc_fps2()
         draw_overlay()
 
 
@@ -2001,15 +2031,17 @@ def main():
 
 
         pygame.display.flip()
-        #pg.time.wait(15)
-        #clock.tick(10)
+        #pg.time.wait(55)
+        #clock.tick(120) # fast hight cpu
+
         clock.tick(25)
+        #time.sleep(1/120)
 
         if 'SDL_VIDEO_WINDOW_POS' in os.environ:
             del os.environ['SDL_VIDEO_WINDOW_POS'] #= '%i,%i' % (200,164)
         #if 'SDL_VIDEO_CENTERED' in os.environ['SDL_VIDEO_CENTERED']:
         #    del os.environ['SDL_VIDEO_CENTERED'] #= '0'
-
+        frame2 += 1
 
 if __name__ == "__main__":
     main()

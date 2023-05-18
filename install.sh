@@ -57,6 +57,7 @@ pip install glnext
 #pip install glnext_compiler
 pip install glcontext
 pip3 install pyopengltk
+pip install imutils
 EOF
 
 echo ""

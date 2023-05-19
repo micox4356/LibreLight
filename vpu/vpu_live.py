@@ -520,7 +520,7 @@ class Vopen():
         wn.blit(fr,(3,main_size[1]-(self._id+1)*35+15))
 
         fr = font15.render("{}".format(self.fname) ,1, (0,0,0))
-        wn.blit(fr,(60,main_size[1]-(self._id+1)*35+15))
+        wn.blit(fr,(70,main_size[1]-(self._id+1)*35+15))
 
 Vopen = Vopen
 

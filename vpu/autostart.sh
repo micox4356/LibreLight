@@ -8,7 +8,7 @@ set -x
 screen -XS "ASP" quit
 screen -XS "shader" quit
 
-screen -m -d -S vnc -- x11vnc -forever
+screen -m -d -S vnc -- x11vnc -forever -shared
 
 #x=$(screen -ls | grep ASP | wc -c)
 #echo "$x"

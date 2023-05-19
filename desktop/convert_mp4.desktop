@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=convert mp4
+Comment=verkleinert die Videodateien in der Auflösung
+Exec=xterm -e 'python3 /home/user/LibreLight/video/converter/convert.py'
+Icon=view-restore
+Path=/home/user/LibreLight/video/converter/
+Terminal=true
+StartupNotify=false

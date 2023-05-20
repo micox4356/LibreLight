@@ -1347,7 +1347,7 @@ def save_window_position_loop(): # like autosave
             print("save_loop",e)
     thread.start_new_thread(loop,())
 
-def load_window_position():
+def load_window_position(_filter=""):
     try:
         base = Base()
         fname = "/home/user/LibreLight"
@@ -1366,15 +1366,20 @@ def load_window_position():
             if not win:
                 continue
             if k in data:
+                cprint("set_win_pos",k)
                 try:
                     #print("> ",[k,data[k]])
-                    win.tk.geometry(data[k])
+                    if _filter:
+                        if _filter == k:
+                            win.tk.geometry(data[k])
+                    else:
+                        win.tk.geometry(data[k])
                 except Exception as e:
-                    cprint("load_window_position Exception:",e,color="red")
+                    cprint("load_window_position 544 Exception:",e,color="red")
             #print("winfo",k,win.tk.geometry())
         f.close()
     except Exception as e:
-        cprint("load_window_position Exception:",e,color="red")
+        cprint("load_window_position 345 Exception:",e,color="red")
         return 
  
 class Xevent():
@@ -2584,7 +2589,9 @@ class PopupList():
         self.cb = cb
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")
-        w = Window(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
+        #w = Window(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
+        args = {"title":self.name,"master":master,"width":width,"height":height,"exit":exit,"left":left,"top":top,"cb":cb}
+        w = Window(args)
         self.w = w
         w.show()
     def sframe(self,line1="<line1>",line2="<line2>",data=[]):
@@ -3565,17 +3572,25 @@ from tkinter import PhotoImage
 _shift_key = 0
 
 class Window():
-    def __init__(self,title="tilte",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
+    def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
+
+        #def __init__(self,title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
+        self.args = {"title":"title","master":0,"width":100,"height":100,"left":None,"top":None,"exit":0,"cb":None,"resize":1}
+        self.args.update(args)
+        #for k,v in args.items():
+        #    #print(k,v)
+        #    self.__setattr__(k,v)
+
         global lf_nr
         #ico_path="/opt/LibreLight/Xdesk/icon/"
         ico_path="./icon/"
         self.cb = cb
 
-        if master: 
+        if self.args["master"]: 
             self.tk = tkinter.Tk()
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
             self.tk.withdraw() # do not draw
-            self.tk.resizable(resize,resize)
+            self.tk.resizable(self.args["resize"],self.args["resize"])
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             print(defaultFont)
             defaultFont.configure(family="FreeSans",
@@ -3593,21 +3608,21 @@ class Window():
             self.tk.iconify()
             #self.tk.withdraw() # do not draw
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
-            self.tk.resizable(resize,resize)
+            self.tk.resizable(self.args["resize"],self.args["resize"])
             
             try:
-                if "COLORPICKER" in title:
+                if "COLORPICKER" in self.args["title"]:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
-                elif "ENCODER" in title:
+                elif "ENCODER" in self.args["title"]:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"enc.png"))
-                elif "EXEC" in title:
+                elif "EXEC" in self.args["title"]:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"exec.png"))
-                elif "FX" in title:
+                elif "FX" in self.args["title"]:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"fx.png"))
                 else:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
             except Exception as e:
-                print("Exception on load window icon",title)
+                print("Exception on load window icon",self.args["title"])
                 print("Exception:",e)
             #time.sleep(3)
             self.tk.deiconify()
@@ -3618,14 +3633,14 @@ class Window():
         self.tk.bind("<Button>",self.callback)
         self.tk.bind("<Key>",self.callback)
         self.tk.bind("<KeyRelease>",self.callback)
-        self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
+        self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
         lf_nr+=1
         #self.tk.geometry("270x600+0+65")
-        geo ="{}x{}".format(width,height)
-        if left is not None:
-            geo += "+{}".format(left)
-            if top is not None:
-                geo += "+{}".format(top)
+        geo ="{}x{}".format(self.args["width"],self.args["height"])
+        if self.args["left"] is not None:
+            geo += "+{}".format(self.args["left"])
+            if self.args["top"] is not None:
+                geo += "+{}".format(self.args["top"])
 
         #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
@@ -3637,7 +3652,8 @@ class Window():
     def close_app_win(self,event=None):
         print("close_app_win",self,event)
         if exit:
-            save_window_position()
+            if self.title == "MAIN":
+               save_window_position()
             self.tk.destroy()
         try:
             self.cb("<exit>").cb()
@@ -3932,6 +3948,33 @@ def loops(**args):
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
 
+def create_EXEC_WING(args={}):#name,master=0,width=600,height=415,left=0,top=0,H1=100,W1=100):
+    #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
+    #w = Window(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
+    #w = Window(name,master=master,width=width,height=height,left=left,top=top)
+    #args = {"title":name,"master":master,"width":width,"height":height,"left":left,"top":top}
+    w = Window(args)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    w1 = tk.Frame(w.tk,width=W1,height=H1)
+    w1.pack()
+    data=[]
+    for i in range(10*3):
+        data.append({"EXEC"+str(i):"EXEC"})
+    obj=GUI_ExecWingLayout(w1,data)
+    window_manager.new(w,name,obj)
+    return w,name,obj
+
+class create_buffer():
+    def __init__(self,cb,args={}):
+        self.args = args
+        self.cb= cb
+    def create(self):
+        cprint()
+        cprint(self,"create",self.args["title"],color="green")
+        r = self.cb(args=self.args) 
+        #self.name,self.master,self.width,self.height,self.left,self.top,self.H1,self.W1)
+        return r
+
 if __run_main:
     print("main")
     #thread.start_new_thread(refresher_fix.loop,())
@@ -3947,7 +3990,9 @@ if __run_main:
     HTB = 23 # hight of the titlebar from window manager
 
     #w = Window("MAIN",master=1,width=95,height=H1//2,left=L0,top=TOP,resize=0)
-    w = Window("MAIN",master=1,width=100,height=H1,left=L0,top=TOP,resize=1)
+    args = {"title":"MAIN","master":1,"width":100,"height":H1,"left":L0,"top":TOP,"resize":1}
+    #w = Window("MAIN",master=1,width=100,height=H1,left=L0,top=TOP,resize=1)
+    w = Window(args)
     gui_menu_gui = w
     data = []
     #data.append({"text":"COMMAND"})
@@ -3970,7 +4015,9 @@ if __run_main:
 
 
     name="EXEC"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    w = Window(args)
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
     #draw_preset(master,w1)#w.tk)
@@ -3979,20 +4026,26 @@ if __run_main:
 
     name="CONFIG"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    w = Window(args)
     #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
     #draw_preset(master,w1)#w.tk)
     #window_manager.new(w,name)
 
     name="DIMMER"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    w = Window(args)
     w2 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_dim = w1 # w.tk
     #master.draw_dim(w1.tk)
     window_manager.new(w,name)
 
     name="FIXTURES"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    w = Window(args)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_fix = w1 #w.tk
     #draw_fix(master,w1,w2)#.tk)
@@ -4002,7 +4055,9 @@ if __run_main:
 
 
     name="FIXTURE-EDITOR"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    w = Window(args)
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
     for i in range((24+12)*15):
@@ -4012,7 +4067,9 @@ if __run_main:
 
     name="MASTER-WING"
     #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = Window(name,master=0,width=75,height=405,left=L0,top=TOP+H1-220)
+    #w = Window(name,master=0,width=75,height=405,left=L0,top=TOP+H1-220)
+    args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220}
+    w = Window(args)
     #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     w1 = tk.Frame(w.tk,width=W1,height=H1)
     w1.pack()
@@ -4023,20 +4080,16 @@ if __run_main:
     window_manager.new(w,name)
 
     name="EXEC-WING"
-    #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    w = Window(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    w1 = tk.Frame(w.tk,width=W1,height=H1)
-    w1.pack()
-    data=[]
-    for i in range(10*3):
-        data.append({"EXEC"+str(i):"EXEC"})
-    obj=GUI_ExecWingLayout(w1,data)
-    window_manager.new(w,name,obj)
-
+    #create_EXEC_WING(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
+    args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
+    c = create_buffer(create_EXEC_WING,args)#name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2,H1=H1,W1=W1)
+    c.create()
+    create_buffer_fader_wing = c
 
     name="ENCODER"
-    w = Window(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
+    #w = Window(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
+    args = {"title":name,"master":0,"width":620,"height":113,"left":L0+710,"top":TOP+H1+15+HTB*2}
+    w = Window(args)
     _ENCODER_WINDOW = w
     draw_enc(master,w.tk)#Xroot)
     window_manager.new(w,name)
@@ -4047,35 +4100,47 @@ if __run_main:
     #draw_enc(master,w.tk)#Xroot)
 
     name = "SETUP"
-    w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP,resize=0)
+    #w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP,resize=0)
+    args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
+    w = Window(args)
     w.tk.title("SETUP   SHOW:"+master.base.show_name)
     draw_setup(master,w.tk)
     window_manager.new(w,name)
 
     name = "COMMAND"
-    w = Window(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81,resize=0)#+96)
+    args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":0}
+    w = Window(args)
+    #w = Window(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81,resize=0)#+96)
     draw_command(master,w.tk)
     window_manager.new(w,name)
 
     name = "LIVE"
-    w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235,resize=0)#250)
+    #w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235,resize=0)#250)
+    args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":0}
+    w = Window(args)
     draw_live(master,w.tk)
     window_manager.new(w,name)
 
     name = "CLOCK"
-    w = Window(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
+    #w = Window(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
+    args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
+    w = Window(args)
     draw_clock(master,w.tk)
     window_manager.new(w,name)
 
     name="FX"
-    w = Window(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302,resize=0)#317)
+    #w = Window(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302,resize=0)#317)
+    args = {"title":name,"master":0,"width":415,"height":297,"left":L1+10+W1,"top":TOP+302,"resize":0}
+    w = Window(args)
     #frame_fx = w.tk
     draw_fx(master,w.tk)
     window_manager.new(w,name)
 
 
     name="PATCH"
-    w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    w = Window(args)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     main_preset_frame = w1
     gui_patch = GUI_PATCH(master,main_preset_frame)
@@ -4084,7 +4149,9 @@ if __run_main:
 
     #LibreLightDesk
     name="COLORPICKER"
-    w = Window(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
+    #w = Window(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
+    args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
+    w = Window(args)
     draw_colorpicker(master,w.tk,FIXTURES,master)
     window_manager.new(w,name)
 

@@ -36,17 +36,49 @@ parser.add_option("-g", "--gobo-ch", dest="gobo_ch",#default=1,
 
 (options, args) = parser.parse_args()
 
+def load_window_position():
+    try:
+        base = Base()
+        fname = "/home/user/LibreLight"
+        fname = base.show_path1 +base.show_name 
+        fname +=  "/gui.txt"
+        print("load_window_position",fname)
+        f = open(fname,"r")
+        data = {}
+        for line in f.readlines():
+            line = line.strip()
+            if " " in line:
+                k,geo = line.split(" ",1)
+                data[k] = geo
+
+        for k,win in window_manager.windows.items():
+            if not win:
+                continue
+            if k in data:
+                try:
+                    #print("> ",[k,data[k]])
+                    win.tk.geometry(data[k])
+                except Exception as e:
+                    cprint("load_window_position Exception:",e,color="red")
+            #print("winfo",k,win.tk.geometry())
+        f.close()
+    except Exception as e:
+        cprint("load_window_position Exception:",e,color="red")
+        return 
 
 # ===== GUI =========
 import pygame
 import pygame.gfxdraw
 import pygame.font
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,55)
-os.environ['SDL_VIDEO_CENTERED'] = '0'
+#os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,55)
+#os.environ['SDL_VIDEO_CENTERED'] = '0'
 
 pg = pygame
 pygame.init()
+import random
+CAPTION = 'NEXTGEN GUI id:{}'.format(random.randint(10000,90000))
+pg.display.set_caption(CAPTION)
 pygame.mixer.quit()
 
 
@@ -220,7 +252,6 @@ def draw_box(pos1,pos2,color=[128,128,128],text=1):
 main_size=(500,500)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 #pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-pg.display.set_caption('NEXTGEN GUI')
 
 class Gevent():
     def __init__(self):
@@ -323,6 +354,17 @@ class Gevent():
 global_event = Gevent()
 
 
+import sys
+sys.path.insert(0,"tool")
+#import tool.movewin
+import movewin
+_id = movewin.winfo(CAPTION)
+c1 = movewin.movewin(_id,200,50)
+os.system(c1)
+c1 = movewin.activate(_id)
+os.system(c1)
+#exit()
+
 def main():
     START = time.time()
     running = 1
@@ -422,7 +464,7 @@ def main():
         global_event.draw()
 
         
-        pygame.display.flip()
+        #pygame.display.flip()
         pg.time.wait(30)
         pg.time.wait(30)
         #pg.time.wait(30)
@@ -432,7 +474,6 @@ def main():
             fps = frame
             frame = 0
             START = time.time()
-
 
 if __name__ == "__main__":
     main()

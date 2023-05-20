@@ -2,6 +2,7 @@
 import tkinter as tk
 from __main__ import *
 
+
 class Event():
     def __init__(self,name):
         self.name=name
@@ -1380,7 +1381,16 @@ class WindowManager():
     def top(self,name):
         name = str(name)
         if name in self.windows:
-            self.windows[name].tk.state(newstate='normal')
+            import __main__ as m
+            print(dir(m))
+            try:
+                self.windows[name].tk.state(newstate='normal')
+            except:
+
+                c = m.create_buffer_fader_wing 
+                r = c.create()
+                self.windows[r[1]]= r[2]
+                m.load_window_position(_filter=name)
             self.windows[name].tk.attributes('-topmost',True)
             self.windows[name].tk.attributes('-topmost',False)
             self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)

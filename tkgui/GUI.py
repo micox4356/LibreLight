@@ -1342,6 +1342,12 @@ class WindowManager():
         self.obj = {}
         self.nr= 0
         self.first=""
+
+    def update(self,w,name="",obj=None):
+        for k in self.windows:
+            if k == name:
+                self.windows[str(name)] = w
+                self.obj[str(name)] = obj
     def new(self,w,name="",obj=None):
         if not self.first:
             if name:
@@ -1382,15 +1388,22 @@ class WindowManager():
         name = str(name)
         if name in self.windows:
             import __main__ as m
-            print(dir(m))
+            #print(dir(m))
             try:
                 self.windows[name].tk.state(newstate='normal')
-            except:
+            except Exception as e:
+                cprint("exception",e,color="red")
+                cprint(name,self.windows[name])
 
                 c = m.create_buffer_fader_wing 
-                r = c.create()
-                self.windows[r[1]]= r[2]
+                w,_name,obj = c.create()
+                print("recreate",w,name,_name,r,obj)
+                m.window_manager.update(w,name,obj)
+
+                cprint("reposition",name)
                 m.load_window_position(_filter=name)
+                #m.window_manager.new(w,name,obj)
+
             self.windows[name].tk.attributes('-topmost',True)
             self.windows[name].tk.attributes('-topmost',False)
             self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
@@ -1444,8 +1457,8 @@ class GUI_menu():
         self.frame.pack()
         INIT_OK = 1
     def callback(self,event,data={}):
-        global window_manager
-        print("callback543",self,event,data)
+        #print("callback543",self,event,data)
+        print("callback543",self,event) #,data)
         #window_manager.top(data["text"])# = WindowManager()
         self.window_manager.top(data["text"])# = WindowManager()
     def update(self,button,text):

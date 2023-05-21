@@ -296,8 +296,13 @@ def set_exec_fader(nr,val,color=""):
     try:
         exec_wing.set_fader(nr,val,color=color)
     except Exception as e:
-        print("exception",e)
+        print("- exception:",e)
     #print("remote in:",round(time.time(),0),"x",i,v)
+
+def set_exec_fader_all():
+    cprint( "set_exec_fader_all()",color="green")
+    for nr in range(10):
+        set_exec_fader(nr,0) #,color="#fff")
 
 # remote input - start (memcached)
 def JCB(x):
@@ -1342,19 +1347,23 @@ def save_window_position(save_as=""):
         cprint("- fname",fname)
         f = open(fname,"w")
         for k,win in window_manager.windows.items():
-            print("-- save:win:pos",win,k)
-            if not win:
-                continue
-            #print("d",dir(win))
-            #print("winfo",k,win.tk.geometry())
-            line="{} {}\n".format(k,win.tk.geometry())
-            #print("> ",[line])
-            f.write( line )
-            f.flush()
-        f.close()
+            try:
+                print("-- save:win:pos",win,k)
+                if not win:
+                    continue
+                #print("d",dir(win))
+                #print("winfo",k,win.tk.geometry())
+                line="{} {}\n".format(k,win.tk.geometry())
+                #print("> ",[line])
+                f.write( line )
+                f.flush()
+            except Exception as e:
+                cprint("- save_window_position Exception:",e,color="red")
     except Exception as e:
         cprint("- save_window_position Exception:",e,color="red")
-        return 
+    finally:
+        f.close()
+
 
 def save_window_position_loop(): # like autosave
     def loop():
@@ -1782,7 +1791,6 @@ class Xevent():
 def wheel(event,d=None):
     print("wheel",event,d)
     
-import copy
 
 
 
@@ -3598,16 +3606,13 @@ _shift_key = 0
 
 class Window():
     def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
-
-        #def __init__(self,title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
+        global lf_nr
         self.args = {"title":"title","master":0,"width":100,"height":100,"left":None,"top":None,"exit":0,"cb":None,"resize":1}
         self.args.update(args)
-        #for k,v in args.items():
-        #    #print(k,v)
-        #    self.__setattr__(k,v)
+        
+        cprint("Window.init()",id(self.args),color="yellow")
+        cprint("  ",self.args,color="yellow")
 
-        global lf_nr
-        #ico_path="/opt/LibreLight/Xdesk/icon/"
         ico_path="./icon/"
         self.cb = cb
 
@@ -3621,7 +3626,6 @@ class Window():
             defaultFont.configure(family="FreeSans",
                                    size=10,
                                    weight="bold")
-            #self.tk.option_add("*Font", FontBold)
             # MAIN MENUE
             try:
                 self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
@@ -3675,7 +3679,7 @@ class Window():
             tkinter.Tk.update_idletasks(gui_menu_gui.tk)
         pass
     def close_app_win(self,event=None):
-        print("close_app_win",self,event)
+        cprint("close_app_win",self,event,color="red")
         if exit:
             if self.title == "MAIN":
                save_window_position()
@@ -3683,14 +3687,15 @@ class Window():
         try:
             self.cb("<exit>").cb()
         except Exception as e:
-            print("EXCETPION close_app",e)
+            cprint("EXCETPION: close_app_win",e,self,color="red")
 
     def title(self,title=None):
         if title is None:
             return self.tk.title()
         else:
             #return self.tk.title(title)
-            return self.tk.title(""+str(title)+" "+str(lf_nr)+":"+str(rnd_id))
+            self.args["title"] = title
+            return self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
     def show(self):
         self.tk.deiconify()
         pass
@@ -3928,10 +3933,13 @@ class Refresher():
         self.time_max = time.time()
         self.time     = time.time()
         self.update = 0
-        if self.name == "fix": # exec
-            master._refresh_fix()
-        else:
-            master._refresh_exec()
+        try:
+            if self.name == "fix": # exec
+                master._refresh_fix()
+            else:
+                master._refresh_exec()
+        except Exception as e:
+            print("_refresh except:",e)
         print("t=",self.time_max- time.time())
 
     def loop(self,args={}):
@@ -3963,7 +3971,6 @@ else:
 
 
 
-
 refresher_fix = Refresher()
 refresher_fix.name = "fix"
 
@@ -3975,32 +3982,36 @@ def loops(**args):
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
 
-def create_EXEC_WING(args={}):#name,master=0,width=600,height=415,left=0,top=0,H1=100,W1=100):
-    #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    #w = Window(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
-    #w = Window(name,master=master,width=width,height=height,left=left,top=top)
-    #args = {"title":name,"master":master,"width":width,"height":height,"left":left,"top":top}
-    w = Window(args)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    w1 = tk.Frame(w.tk,width=W1,height=H1)
-    w1.pack()
-    data=[]
-    for i in range(10*3):
-        data.append({"EXEC"+str(i):"EXEC"})
-    obj=GUI_ExecWingLayout(w1,data)
-    #window_manager.new(w,name,obj)
-    return w,name,obj
 
-class create_buffer():
-    def __init__(self,cb,args={}):
-        self.args = args
-        self.cb= cb
+class window_create_buffer():
+    def __init__(self,args,cls,data,cb_ok=None,scroll=0,gui=None):
+        self.args   = args.copy()
+        self.cls    = cls
+        self.cb_ok  = cb_ok
+        self.data   = data
+        self.scroll = scroll
+        self.gui    = gui
+
     def create(self):
         cprint()
-        cprint(self,"create",self.args["title"],color="green")
-        w,name,obj = self.cb(args=self.args) 
-        #self.name,self.master,self.width,self.height,self.left,self.top,self.H1,self.W1)
-        return w,name,obj
+        cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
+
+        obj = None
+        w = Window(self.args)
+
+        if self.scroll:
+            w1 = ScrollFrame(w.tk,width=self.args["width"],height=self.args["height"])
+        else:
+            w1 = tk.Frame(w.tk,width=self.args["width"],height=self.args["height"])
+            w1.pack()
+
+        if self.gui:
+            self.cls(self.gui,w1,self.data) #PRESETS):
+        else:
+            obj=self.cls(w1,self.data) 
+        return w,obj,self.cb_ok
+
+window_init_buffer = {}
 
 if __run_main:
     print("main")
@@ -4043,13 +4054,23 @@ if __run_main:
 
     name="EXEC"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    w = Window(args)
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    #frame_exe = w.tk
-    #draw_preset(master,w1)#w.tk)
-    draw_exec(master,w1,PRESETS)#w.tk)
-    window_manager.new(w,name)
+
+    cls   = draw_exec #GUI_ExecWingLayout
+    cb_ok = None #set_exec_fader_all
+    data  = PRESETS
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,scroll=1,gui=master)
+    window_init_buffer[name] = c
+    w,obj,cb_ok = c.create()
+    window_manager.new(w,name,obj=obj)
+    if cb_ok:
+        cb_ok()
+    
+    if 0: # draw EXEC -BTN second time fail TODO
+        c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,scroll=1,gui=master)
+        window_init_buffer[name] = c
+        w,obj,cb_ok = c.create()
+        window_manager.update(w,name,obj=obj)
 
     name="CONFIG"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
@@ -4107,12 +4128,21 @@ if __run_main:
     window_manager.new(w,name)
 
     name="EXEC-WING"
-    #create_EXEC_WING(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
     args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
-    c = create_buffer(create_EXEC_WING,args)#name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2,H1=H1,W1=W1)
-    w,name,obj = c.create()
-    create_buffer_fader_wing = c
+    data=[]
+    for i in range(10*3):
+        data.append({"EXEC"+str(i):"EXEC"})
+
+    cls   = GUI_ExecWingLayout
+    cb_ok = set_exec_fader_all
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok)
+    window_init_buffer[name] = c
+    w,obj,cb_ok = c.create()
     window_manager.new(w,name,obj)
+    if cb_ok:
+        cb_ok()
+
 
     name="ENCODER"
     #w = Window(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
@@ -4211,9 +4241,6 @@ if __run_main:
     window_manager.new(w,name)
 
 
-    #Set EXEC-FADER SIZE TO 0 on Startup
-    for nr in range(10):
-        set_exec_fader(nr,0) #,color="#fff")
 
     load_window_position()
 

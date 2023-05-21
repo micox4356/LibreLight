@@ -1300,7 +1300,7 @@ class GUI_MasterWingLayout():
             txt = data["Value"]
             print(self,"._cb()",txt)
             self.name["text"] = "{}".format(txt)
-            print("change_dmx",[_event,self])
+            print("set_name",[_event,self])
         dialog._cb = _cb
         dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
 
@@ -1310,7 +1310,7 @@ class GUI_MasterWingLayout():
         
     def _event_redraw(self,_event=None):
         nr = 0
-        print("change_dmx",[_event,self])
+        print("_event_redraw",[_event,self])
         for i,btn in enumerate(self.elem):
             btn.set_label("{} D:{}".format(i+1,nr))
             btn.nr = nr+i
@@ -1393,16 +1393,19 @@ class WindowManager():
                 self.windows[name].tk.state(newstate='normal')
             except Exception as e:
                 cprint("exception",e,color="red")
-                cprint(name,self.windows[name])
+                cprint("info",name,self.windows[name],color="red")
 
-                c = m.create_buffer_fader_wing 
-                w,_name,obj = c.create()
-                print("recreate",w,name,_name,r,obj)
-                m.window_manager.update(w,name,obj)
+                #c = m.create_buffer_fader_wing 
+                print( name in m.window_init_buffer)
+                print( m.window_init_buffer)
+                if name in m.window_init_buffer:
+                    c = m.window_init_buffer[name] 
+                    w,obj,cb_ok = c.create()
+                    m.window_manager.update(w,name,obj)
 
-                cprint("reposition",name)
-                m.load_window_position(_filter=name)
-                #m.window_manager.new(w,name,obj)
+                    if cb_ok:
+                        cb_ok()
+                    m.load_window_position(_filter=name)
 
             self.windows[name].tk.attributes('-topmost',True)
             self.windows[name].tk.attributes('-topmost',False)

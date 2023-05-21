@@ -110,6 +110,7 @@ class ExecButton(MiniButton):
             self.text = text
         else:
             text = self.text
+
         self.bb.delete("label")
         txt2 = text
         try:

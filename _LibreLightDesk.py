@@ -19,17 +19,30 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 (c) 2012 micha@librelight.de
 """
 import random
-rnd_id = str(random.randint(1000,9000))
-rnd_id += " beta 23-03 "
 import subprocess
 import string
+
+rnd_id  = str(random.randint(100,900))
+rnd_id += " beta"
+rnd_id2 = ""
+rnd_id3 = ""
+
+try:
+    _gcmd=['git','log','-1', '--format=%ci']
+    r = subprocess.check_output(_gcmd)
+    rnd_id3 += " " + r.decode('ascii').strip().split()[0]
+except:pass
+rnd_id += rnd_id3
+
 _gcmd=['git', 'rev-parse', '--short', 'HEAD']
 try:
     r = subprocess.check_output(_gcmd)
-    rnd_id += r.decode('ascii').strip()
+    rnd_id2 += " "+r.decode('ascii').strip()
 except Exception as e:
-    rnd_id += " no git" 
+    rnd_id2 += " no git" 
     #rnd_id += " ".join(_gcmd) +str(e)
+rnd_id += rnd_id2
+
 
 try:
     xtitle = __file__
@@ -62,7 +75,40 @@ INIT_OK = 0
 _global_short_key = 1
 
 
+gcolor = 1
+def cprint(*text,color="blue",space=" ",end="\n"):
+    #return 0 #disable print dbg
+    if not gcolor:
+        print(text)
+        return 0
 
+    if color == "green":
+        txt = '\033[92m'
+    elif color == "red":
+        txt = '\033[0;31m\033[1m'
+    elif color == "yellow":
+        txt = '\033[93m\033[1m'
+    elif color == "cyan":
+        txt = '\033[96m'
+    else:
+        txt = '\033[94m'
+    for t in text:
+        txt += str(t ) +" "
+    #HEADER = '\033[95m'
+    #OKBLUE = '\033[94m'
+    #OKCYAN = '\033[96m'
+    #OKGREEN = '\033[92m'
+    #WARNING = '\033[93m'
+    #FAIL = '\033[91m'
+    #ENDC = '\033[0m'
+    #BOLD = '\033[1m'
+    #UNDERLINE = '\033[4m'
+    txt += '\033[0m'
+    print(txt,end=end)
+    #return txt
+
+cprint("________________________________")
+ 
 
 
 
@@ -87,9 +133,10 @@ try:
         f.close()
         print("Exception:",e)
 
+    cprint("config read")
     for line in lines:
         line=line.strip()
-        print("config read",line)
+        cprint("- config:",line)
         row = json.loads(line) 
         _config.append(row)
 
@@ -283,12 +330,13 @@ except Exception as e:
 
 class MC():
     def __init__(self,server="127.0.0.1",port=11211):
-        print("----------- MC")
+        cprint("MC.init() ----------" ,server,port,color="red")
         try:
-            self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+            #self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+            self.mc = memcache.Client(['{}:{}'.format(server,port)], debug=0)
             #self.init()
         except Exception as e:
-            print("Exception",e)
+            print("-- Exception",e)
 
         # def init(self):
         data = {}
@@ -297,22 +345,25 @@ class MC():
         index = self.mc.get("index")
         if index:
             for i in index:
-                print("key",i)
+                print("-- key",i)
 
         self.fader_map = []
         for i in range(30+1):
             self.fader_map.append({"UNIV":0,"DMX":0})
 
         try:
-            f = open("/home/user/LibreLight/fader.json")
+            fname = "/home/user/LibreLight/fader.json"
+            f = open(fname)
             lines = f.readlines()
+            cprint("FADER MAP",fname)
+
             for i,line in enumerate(lines):
                 jdata = json.loads(line)
-                print("fader_map ->>",i,jdata)
+                print("-- fader_map ->>",i,jdata)
                 self.fader_map[i] = jdata
 
         except Exception as e:
-            print("Except Fader_map",e)
+            print("-- Except Fader_map",e)
         #exit()
 
     def ok(self):
@@ -610,40 +661,7 @@ class dummy_event():
         self.set_value=-1
 
 
-gcolor = 1
-def cprint(*text,color="blue",space=" ",end="\n"):
-    #return 0 #disable print dbg
-    if not gcolor:
-        print(text)
-        return 0
 
-    if color == "green":
-        txt = '\033[92m'
-    elif color == "red":
-        txt = '\033[0;31m\033[1m'
-    elif color == "yellow":
-        txt = '\033[93m\033[1m'
-    elif color == "cyan":
-        txt = '\033[96m'
-    else:
-        txt = '\033[94m'
-    for t in text:
-        txt += str(t ) +" "
-    #HEADER = '\033[95m'
-    #OKBLUE = '\033[94m'
-    #OKCYAN = '\033[96m'
-    #OKGREEN = '\033[92m'
-    #WARNING = '\033[93m'
-    #FAIL = '\033[91m'
-    #ENDC = '\033[0m'
-    #BOLD = '\033[1m'
-    #UNDERLINE = '\033[4m'
-    txt += '\033[0m'
-    print(txt,end=end)
-    #return txt
-
-cprint("________________________________")
- 
 def process_wings(xfixtures):
     """process the wing's of selected fixtures
     input: [1,2,3,4,10,12,13,14]
@@ -1312,6 +1330,8 @@ class Xevent_fx():
         return 1 
         
 def save_window_position(save_as=""):
+    print()
+    cprint("save_window_position",[save_as])
     try:
         base = Base()
         fname = "/home/user/LibreLight"
@@ -1319,10 +1339,10 @@ def save_window_position(save_as=""):
         if save_as:
             fname = save_as 
         fname +=  "/gui.txt"
-        print("save_window_position",fname)
+        cprint("- fname",fname)
         f = open(fname,"w")
         for k,win in window_manager.windows.items():
-            print("save:win:pos",win,k)
+            print("-- save:win:pos",win,k)
             if not win:
                 continue
             #print("d",dir(win))
@@ -1333,7 +1353,7 @@ def save_window_position(save_as=""):
             f.flush()
         f.close()
     except Exception as e:
-        cprint("save_window_position Exception:",e,color="red")
+        cprint("- save_window_position Exception:",e,color="red")
         return 
 
 def save_window_position_loop(): # like autosave
@@ -1348,12 +1368,14 @@ def save_window_position_loop(): # like autosave
     thread.start_new_thread(loop,())
 
 def load_window_position(_filter=""):
+    print()
+    cprint("load_window_position",[_filter])
     try:
         base = Base()
         fname = "/home/user/LibreLight"
         fname = base.show_path1 +base.show_name 
         fname +=  "/gui.txt"
-        print("load_window_position",fname)
+        cprint("- fname:",fname)
         f = open(fname,"r")
         data = {}
         for line in f.readlines():
@@ -1365,21 +1387,24 @@ def load_window_position(_filter=""):
         for k,win in window_manager.windows.items():
             if not win:
                 continue
-            if k in data:
-                cprint("set_win_pos",k)
-                try:
-                    #print("> ",[k,data[k]])
-                    if _filter:
-                        if _filter == k:
-                            win.tk.geometry(data[k])
-                    else:
-                        win.tk.geometry(data[k])
-                except Exception as e:
-                    cprint("load_window_position 544 Exception:",e,color="red")
+
+            if k not in data:
+                continue
+            w = data[k] 
+
+            if _filter:
+                if _filter != k:
+                    continue
+
+            cprint("- set_win_pos","filter:",[_filter],"Name: {:<20}".format(k),w,win)
+            try:
+                win.tk.geometry(w)
+            except Exception as e:
+                cprint("- load_window_position 544 Exception:",e,color="red")
             #print("winfo",k,win.tk.geometry())
         f.close()
     except Exception as e:
-        cprint("load_window_position 345 Exception:",e,color="red")
+        cprint("- load_window_position 345 Exception:",e,color="red")
         return 
  
 class Xevent():
@@ -3803,6 +3828,8 @@ class WindowManager():
 
     def top(self,name):
         name = str(name)
+        for n in self.windows:
+            print("TOP",n) #self.get("")
         if name in self.windows:
             self.windows[name].tk.state(newstate='normal')
             self.windows[name].tk.attributes('-topmost',True)
@@ -3961,7 +3988,7 @@ def create_EXEC_WING(args={}):#name,master=0,width=600,height=415,left=0,top=0,H
     for i in range(10*3):
         data.append({"EXEC"+str(i):"EXEC"})
     obj=GUI_ExecWingLayout(w1,data)
-    window_manager.new(w,name,obj)
+    #window_manager.new(w,name,obj)
     return w,name,obj
 
 class create_buffer():
@@ -3971,9 +3998,9 @@ class create_buffer():
     def create(self):
         cprint()
         cprint(self,"create",self.args["title"],color="green")
-        r = self.cb(args=self.args) 
+        w,name,obj = self.cb(args=self.args) 
         #self.name,self.master,self.width,self.height,self.left,self.top,self.H1,self.W1)
-        return r
+        return w,name,obj
 
 if __run_main:
     print("main")
@@ -4083,8 +4110,9 @@ if __run_main:
     #create_EXEC_WING(name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2)
     args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
     c = create_buffer(create_EXEC_WING,args)#name,master=0,width=600,height=415,left=L1,top=TOP+H1+HTB*2,H1=H1,W1=W1)
-    c.create()
+    w,name,obj = c.create()
     create_buffer_fader_wing = c
+    window_manager.new(w,name,obj)
 
     name="ENCODER"
     #w = Window(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)

@@ -115,28 +115,36 @@ class ExecButton(MiniButton):
         try:
             text = text.split("\n")[1]
         except:pass
+
+
         if "grün" in text.lower() or "green" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="green",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="green",tag="label")
+        elif "purple" in text.lower() or "purple" in text.lower():
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="#800080",tag="label")
+        elif "lime" in text.lower() or "lime" in text.lower():
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="#00ff00",tag="label")
         elif "blau" in text.lower() or "blue" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="blue",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="blue",tag="label")
         elif "rot" in text.lower() or "red" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="red",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="red",tag="label")
         elif "orange" in text.lower():# or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="orange",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="orange",tag="label")
         elif "weiß" in text.lower() or "white" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="white",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="white",tag="label")
         elif "cyan" in text.lower():# or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="cyan",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="cyan",tag="label")
         elif "gelb" in text.lower() or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="yellow",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="yellow",tag="label")
+        elif "pink" in text.lower() or "pink" in text.lower():
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="#ff69b4",tag="label")
         elif "mage" in text.lower() or "mage" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,20,37,fill="magenta",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="magenta",tag="label")
 
         if "nebel" in text.lower()  or "smoke" in text.lower() or "haze" in text.lower():
-            self.l = self.bb.create_rectangle(10,27,60,37,fill="white",tag="label")
+            self.l = self.bb.create_rectangle(10,29,60,39,fill="white",tag="label")
         if "mh " in text.lower() or " mh" in text.lower() :
-            self.l = self.bb.create_rectangle(30,27,35,32,fill="black",tag="label")
-            self.l = self.bb.create_rectangle(28,34,37,37,fill="black",tag="label")
+            self.l = self.bb.create_rectangle(30,29,35,32,fill="black",tag="label")
+            self.l = self.bb.create_rectangle(28,34,37,39,fill="black",tag="label")
         if "off" in text.lower(): 
             self.l = self.bb.create_rectangle(50,30,55,35,fill="black",tag="label")
         if "dim" in text.lower() or "front" in text.lower()  or "on" in text.lower(): 
@@ -144,7 +152,7 @@ class ExecButton(MiniButton):
             self.l = self.bb.create_rectangle(50,30,55,35,fill="white",tag="label")
             #self.l = self.bb.create_line(56,36,58,36,fill="black",tag="label")
         if "circle" in text.lower(): 
-            self.l = self.bb.create_oval(30,27,40,37,fill="",tag="label")
+            self.l = self.bb.create_oval(30,29,40,39,fill="",tag="label")
         if "pan" in text.lower(): 
             self.l = self.bb.create_line(20,34 ,45,34,fill="black",arrow=tk.BOTH,tag="label")
         if "tilt" in text.lower(): 
@@ -172,9 +180,14 @@ class ExecButton(MiniButton):
                     elif ts == 5:
                         xfont = self.x7font
 
-                
-                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
-                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+                if len(t) > 14:
+                    t2 = t[:14]
+                    t3 = t[14:]
+                    self.l = self.bb.create_text(37,z*10+9-2,text=t2,anchor="c",tag="label",fill=self.fg,font=xfont)
+                    self.l = self.bb.create_text(37,z*10+9+6,text=t3,anchor="c",tag="label",fill=self.fg,font=xfont)
+                else:
+                    self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
+                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             else:
                 self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             z+=1

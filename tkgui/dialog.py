@@ -102,6 +102,8 @@ class Dialog():
     def event(self,event,**args):
         print(self,"event",event)
 
+        #global _global_short_key 
+
         if 1:#else:
             input_event_blocker.set( self.e , self.e_txt)
             input_event_blocker.event(event) #,args)
@@ -109,7 +111,7 @@ class Dialog():
             if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
                 self.ok()
 
-            if _global_short_key == 0:
+            if 1: #_global_short_key == 0:
                 if event.keysym == "Escape":
                     self.close()
 

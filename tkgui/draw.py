@@ -1,6 +1,7 @@
 
 
 import tkinter as tk
+import traceback
 
 from __main__ import *
 
@@ -92,19 +93,24 @@ class MiniButton:
 
 class ExecButton(MiniButton):
     def __init__(self,root,width=72,height=38,text="button"):
-        super().__init__(root,width,height,text)
         self.text = "1\n2\n3\n"
+        super().__init__(root,width,height,text)
         self.x9font = tk.font.Font(family="FreeSans", size=9, weight="bold")
         self.x8font = tk.font.Font(family="FreeSans", size=8, weight="bold")
         self.x7font = tk.font.Font(family="FreeSans", size=7, weight="bold")
         self.x6font = tk.font.Font(family="FreeSans", size=6, weight="bold")
         self.x5font = tk.font.Font(family="FreeSans", size=5, weight="bold")
+        #print(self,"init()",[self.text])
     def config(self,**args):
         self._configure(**args)
         self._label()
     def configure(self,**args):
         self._configure(**args)
         self._label()
+    def dbg_info(self):
+        print(self,"_label()",[self.text])
+        for i in dir(self.bb):
+            print("-",i)
     def _label(self,text=None):
         if type(text) is str:
             self.text = text
@@ -195,7 +201,6 @@ class ExecButton(MiniButton):
 
 
 
-
 def draw_command(gui,xframe):
     frame_cmd=xframe
     i=0
@@ -276,7 +281,8 @@ def draw_preset(gui,xframe,PRESETS):
     
     frame = tk.Frame(root,bg="black")
     frame.pack(fill=tk.X, side=tk.TOP)
-   
+    #time.sleep(0.1)
+    gui.elem_presets = {}
     i=0
     for k in PRESETS.val_presets:
         if i%(10*8)==0 or i ==0:
@@ -325,14 +331,17 @@ def draw_preset(gui,xframe,PRESETS):
             gui.elem_presets[k] = b
         #b.pack(expand=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
+
+        b.config(text="xx")
         c+=1
         if c >=10:
             c=0
             r+=1
     time.sleep(0.1)
     gui._refresh_exec()
-    gui.refresh_exec()
-    gui.refresh_exec()
+    #gui.refresh_exec()
+    #gui.refresh_exec()
+    print("##################################")
 
 
 def draw_input(gui):

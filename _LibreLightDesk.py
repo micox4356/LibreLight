@@ -21,6 +21,7 @@ along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
 import random
 import subprocess
 import string
+import copy
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"

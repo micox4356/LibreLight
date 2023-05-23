@@ -22,6 +22,7 @@ import random
 import subprocess
 import string
 import copy
+import traceback
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
@@ -931,7 +932,7 @@ def process_effect(wing_buffer,fx_name=""):
 
     if jdatas and not modes.val("BLIND"):
         jclient_send(jdatas)
-    master.refresh_fix()
+    master._refresh_fix()
 
     return jdatas
 
@@ -1309,7 +1310,7 @@ class Xevent_fx():
                     FIXTURES.fx_off("all")
                     CONSOLE.fx_off("all")
                     CONSOLE.flash_off("all")
-                    master.refresh_fix()
+                    master._refresh_fix()
                     return 0
 
                 #if event.num == 1:
@@ -1597,7 +1598,7 @@ class Xevent():
                 if event.num == 1:
                     ok = FIXTURES.clear()
                     if ok:
-                        master.refresh_fix()
+                        master._refresh_fix()
                     modes.val(self.attr,0)
 
 
@@ -1633,15 +1634,14 @@ class Xevent():
 
         if self.mode == "ENCODER":
             if self._encoder(event):
-                #master._refresh_fix() # now
                 master.refresh_fix() # delayed
-                #master._refresh_fix() # now
                 refresher_fix.reset() # = Refresher()
 
         if self.mode == "ENCODER2":
             if self._encoder(event):
                 master.refresh_fix() # delayed
                 refresher_fix.reset() # = Refresher()
+
         if self.mode == "INVERT":
             print("INVERT",event)
             if self._encoder(event):
@@ -1683,7 +1683,7 @@ class Xevent():
             if "keysym" in dir(event):
                 if "Escape" == event.keysym:
                     ok = FIXTURES.clear()
-                    master.refresh_fix()
+                    master._refresh_fix()
                     print()
                     return 0
 
@@ -1695,6 +1695,8 @@ class Xevent():
                 self.live(event)
             elif self.mode == "ENCODER":
                 self.encoder(event)
+                master._refresh_fix()
+
             elif self.mode == "ENCODER2":
                 self.encoder(event)
             elif self.mode == "INVERT":
@@ -1736,26 +1738,30 @@ class Xevent():
                         if modes.val("REC"):
                             self.data.preset_rec(nr)
                             modes.val("REC",0)
+                            master._refresh_exec(nr=nr)
                         elif modes.val("DEL"):
                             ok=PRESETS.delete(nr)
                             if ok:
                                 modes.val("DEL",0)
-                                master.refresh_exec()
+                                #master.refresh_exec()
+                                master._refresh_exec(nr=nr)
                         elif modes.val("COPY"):
                             ok=PRESETS.copy(nr)
                             if ok:
                                 modes.val("COPY",0)
-                                master.refresh_exec()
+                                master._refresh_exec(nr=nr)
                         elif modes.val("MOVE"):
-                            ok=PRESETS.move(nr)
+                            ok,cnr,bnr=PRESETS.move(nr)
                             if ok:
                                 #modes.val("MOVE",0) # keep MOVE on
-                                master.refresh_exec()
+                                master._refresh_exec(nr=nr)
+                                master._refresh_exec(nr=bnr)
                         elif modes.val("CFG-BTN"):
                             master.btn_cfg(nr)
-
+                            #master._refresh_exec(nr=nr)
                         elif modes.val("LABEL"):#else:
                             master.label(nr)
+                            #master._refresh_exec(nr=nr)
 
                         elif modes.val("EDIT"):
                             FIXTURES.clear()
@@ -2119,7 +2125,7 @@ class MASTER():
                     self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
 
             modes.val("CFG-BTN",0)
-            master._refresh_exec()
+            master._refresh_exec(nr=nr)
         dialog._cb = _cb
 
         if 1: # testing:
@@ -2137,7 +2143,7 @@ class MASTER():
                 self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
             modes.val("LABEL", 0)
 
-            master._refresh_exec()
+            master._refresh_exec(nr=nr)
 
         dialog._cb= _cb #_x(nr)
         dialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
@@ -2176,11 +2182,27 @@ class MASTER():
     def refresh_exec(self):
         refresher_exec.reset() # = Refresher()
 
-    def _refresh_exec(self):
+    def _refresh_exec(self,nr=None):
         cprint("PRESET.refresh_exec()")
+        refresher_exec.reset() # = Refresher()
         
         self._XX +=1
+        self._nr_ok = 0
         for k in PRESETS.val_presets: 
+
+            if nr:
+                if self._nr_ok:
+                    break
+                if nr != k:
+                    continue
+                else:
+                    self._nr_ok = 1
+                    b = self.elem_presets[k]
+                    print(dir(b))
+                    #tkinter.Tk.update_idletasks(b)
+                    tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+
+
             label = ""
 
             if k not in self.elem_presets:
@@ -3442,6 +3464,7 @@ class Presets():
         if self.val_presets[nr]["CFG"]["BUTTON"] is None:
             self.val_presets[nr]["CFG"]["BUTTON"] = ""
 
+        master._refresh_exec(nr=nr)
         print("EEE", self.val_presets[nr]["CFG"]["BUTTON"] )
         return self.val_presets[nr]["CFG"]["BUTTON"] 
 
@@ -3509,6 +3532,7 @@ class Presets():
         cprint("PRESETS.move",self._last_copy,"to",nr)
         if nr >= 0: 
             last = self._last_copy
+
             if modes.val("MOVE"):
                 modes.val("MOVE",2)
             ok= self.copy(nr,overwrite=0)
@@ -3517,15 +3541,15 @@ class Presets():
                     modes.val("MOVE",3)
                 cprint("PRESETS.move OK",color="red")
                 #self.delete(last)
-                return ok #ok
+                return ok,nr,last #ok
             
-        return 0 # on error reset move
+        return 0,nr,last # on error reset move
     def delete(self,nr):
         cprint("PRESETS.delete",nr)
         ok=0
         if nr in self.val_presets:
             self.val_presets[nr] = OrderedDict()
-            self.label_presets[nr] = ""
+            self.label_presets[nr] = "-"
             ok = 1
         self.check_cfg(nr)
         return ok
@@ -3680,7 +3704,7 @@ class Window():
             tkinter.Tk.update_idletasks(gui_menu_gui.tk)
         pass
     def close_app_win(self,event=None):
-        cprint("close_app_win",self,event,color="red")
+        cprint("close_app_win",self,event,self.args["title"],color="red")
         if exit:
             if self.title == "MAIN":
                save_window_position()
@@ -3906,6 +3930,7 @@ class Refresher():
     def __init__(self):
         self.time = time.time()
         self.time_max = time.time()
+        self.time_delta = 15
         self.update = 1
         self.name = "fix" # exec
 
@@ -3916,12 +3941,12 @@ class Refresher():
     def refresh(self):
         #print("refresh",self.update,int((self.time-time.time())*1000))
 
-        if self.time_max+15 < time.time():
-            #print("----- MAX REFRES TIMEOUT -----")
-            self._refresh()
+        #if self.time_max+self.time_delta < time.time():
+        #    #print("----- MAX REFRES TIMEOUT -----")
+        #    self._refresh()
 
         if self.update: 
-            if self.time+0.2 < time.time():
+            if self.time+self.time_delta < time.time():
                 self._refresh()
         else:
             self.time = time.time() #+.1
@@ -3941,6 +3966,8 @@ class Refresher():
                 master._refresh_exec()
         except Exception as e:
             print("_refresh except:",e)
+            traceback.print_exc()
+            print()
         print("t=",self.time_max- time.time())
 
     def loop(self,args={}):
@@ -3958,7 +3985,6 @@ class Refresher():
 
             time.sleep(0.2)
 
-
 print("main",__name__)
 
 
@@ -3973,9 +3999,12 @@ else:
 
 
 refresher_fix = Refresher()
+refresher_fix.time_delta = 0.25
 refresher_fix.name = "fix"
 
 refresher_exec = Refresher()
+
+refresher_exec.time_delta = 35
 refresher_exec.name = "exec"
 
 def loops(**args):

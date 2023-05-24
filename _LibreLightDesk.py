@@ -1738,6 +1738,7 @@ class Xevent():
                         if modes.val("REC"):
                             self.data.preset_rec(nr)
                             modes.val("REC",0)
+                            time.sleep(0.05)
                             master._refresh_exec(nr=nr)
                         elif modes.val("DEL"):
                             ok=PRESETS.delete(nr)
@@ -2182,25 +2183,26 @@ class MASTER():
     def refresh_exec(self):
         refresher_exec.reset() # = Refresher()
 
-    def _refresh_exec(self,nr=None):
+    def _refresh_exec(self,nr=-1):
+        s = time.time()
         cprint("PRESET.refresh_exec()")
         refresher_exec.reset() # = Refresher()
         
         self._XX +=1
         self._nr_ok = 0
         for k in PRESETS.val_presets: 
+            _bg = "grey"
+            _ba = "grey"
+            _fg = "lightgrey"
+            _text = "N/V"
 
-            if nr:
+            if nr >= 0:
                 if self._nr_ok:
                     break
                 if nr != k:
                     continue
                 else:
                     self._nr_ok = 1
-                    b = self.elem_presets[k]
-                    print(dir(b))
-                    #tkinter.Tk.update_idletasks(b)
-                    tkinter.Tk.update_idletasks(gui_menu_gui.tk)
 
 
             label = ""
@@ -2217,6 +2219,7 @@ class MASTER():
             fx_only = 0
             if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
                 sdata = PRESETS.val_presets[k]
+
                 #print("sdata7654",sdata)
                 BTN="go"
                 if "CFG" in sdata:#["BUTTON"] = "GO"
@@ -2224,10 +2227,14 @@ class MASTER():
                         BTN = sdata["CFG"]["BUTTON"]
                 #txt=str(k+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+label
                 txt="{} {} {}\n{}".format(k+1,BTN,len(sdata)-1,label)
-                #txt+=str(self._XX)
-                b.configure(text= txt)
-                b.configure(bg="yellow")
-                b.config(activebackground="yellow")
+                _text = txt
+                if b.text != txt: # TODO
+                    #txt+=str(self._XX)
+                    #b.configure(text= txt)
+                    _text = txt
+                    _bg="yellow"
+                    _ba="yellow"
+
                 if len(sdata) > 1:
                     ifval = 1
                     fx_color = 0
@@ -2249,97 +2256,122 @@ class MASTER():
 
                     b.configure(fg= "black")
                     if val_color:
-                        b.configure(bg="gold")
-                        b.config(activebackground="#ffaa55")
+                        _bg = "gold"
+                        _ba = "#ffaa55"
                         if fx_color:
-                            b.configure(fg = "blue")
+                            _fg = "blue"
                     else:   
                         if fx_color:
                             fx_only = 1
                 else:
-                    b.configure(bg="grey")
-                    b.config(activebackground="#aaa")
+                    _bg = "grey"
+                    _ba = "#aaa"
 
 
             if "\n" in txt:
                 txt1 = txt.split("\n")[0]
 
-            b.configure(fg="black")
+            _fg = "black"
             if ifval:
                 if fx_only:
-                    b.configure(bg = "cyan")
-                    b.config(activebackground="#55d4ff")
+                    _bg = "cyan"
+                    _ba = "#55d4ff"
 
                 if "SEL" in txt1:
                     b.configure(bg="#77f")
+                    _bg = "#77f"
             else: 
-                b.configure(bg="grey")
-                b.configure(fg="darkgrey") #black")
+                _bg = "grey"
+                _fg = "darkgrey"
 
                 if "SEL" in txt1:
-                    b.configure(fg="blue")
+                    _fg = "blue"
                 elif "ON" in txt1:
-                    b.configure(fg="#040")
+                    _fg = "#040"
                 elif "GO" in txt1:
-                    b.configure(fg="#555")
+                    _fg = "#555"
 
             if "FL" in txt1:
-                b.configure(fg="#00e")
+                _fg = "#00e"
 
+            b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
+        time.sleep(0.01)
+        #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+        #time.sleep(0.01)
     def refresh_fix(self):
         refresher_fix.reset() # = Refresher()
     def _refresh_fix(self):
+        s=time.time(); _XXX=0
         c_d =0
         c_f =0
         c_a =0
         for fix in FIXTURES.fixtures:                            
             sdata = FIXTURES.fixtures[fix]                            
             _c_a = 0
+
+            if fix not in self.elem_attr:
+                cprint("_refresh_fix fix not in self.elem_attr (no Button)",fix,color="red")
+                continue
+            elem_attr_fix = self.elem_attr[fix]
+
+            _dim_in_flag = 0
+            if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
+                _dim_in_flag = 1
+
             for attr in sdata["ATTRIBUT"]:
-                #if attr.startswith("_"):
-                #    continue
+                row = sdata["ATTRIBUT"][attr]
+
                 if attr.endswith("-FINE"):
                     continue
 
-                v2 = sdata["ATTRIBUT"][attr]["VALUE"]
-                if fix in self.elem_attr:
-                    b_attr = attr
-                    if b_attr == "_ACTIVE":
-                        b_attr = "S"
-                    if b_attr in self.elem_attr[fix]:
-                        elem = self.elem_attr[fix][b_attr]
-                        #print( "::::",attr,v2,elem)
-                        if elem:
-                            if not attr.startswith("_"):
-                                elem["text"] = "{} {:0.2f}".format(attr,v2)
-                            if sdata["ATTRIBUT"][attr]["ACTIVE"]:
-                                elem["bg"] = "yellow"
-                                elem.config(activebackground="yellow")
-                                if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
-                                    c_d+=1
-                                else:
-                                    _c_a += 1
-                            else:
-                                elem["bg"] = "grey"
-                                elem.config(activebackground="grey")
+                b_attr = attr
+                if b_attr == "_ACTIVE":
+                    b_attr = "S"
+                if b_attr not in elem_attr_fix:
+                    continue
 
-                            if "FX2" not in sdata["ATTRIBUT"][attr]: # insert FX2 excetption
-                                sdata["ATTRIBUT"][attr]["FX2"] = OrderedDict()
-                                
-                            if sdata["ATTRIBUT"][attr]["FX"]:
-                                elem["fg"] = "blue"
-                            elif sdata["ATTRIBUT"][attr]["FX2"]:
-                                elem["fg"] = "red"
-                            else:
-                                elem["fg"] = "black"
+                elem = elem_attr_fix[b_attr]
+                if not elem:
+                    continue
+
+                if not attr.startswith("_"):
+                    v2 = row["VALUE"]
+                    _text  = "{} {:0.2f}".format(attr,v2) # ~0.2 sec
+                    if elem["text"] != _text: #"{} {:0.2f}".format(attr,v2)
+                        elem["text"] = _text #"{} {:0.2f}".format(attr,v2)
+
+                if row["ACTIVE"]:
+                    if elem["bg"] != "yellow":
+                        elem["bg"] = "yellow"
+                        elem.config(activebackground="yellow")
+
+                    #if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
+                    if _dim_in_flag:
+                        c_d+=1
                     else:
-                        print( ":::;",attr,v2,elem)
+                        _c_a += 1
+                else:
+                    if elem["bg"] != "grey":
+                        elem["bg"] = "grey"
+                        elem.config(activebackground="grey")
+
+                if "FX2" not in row: # insert FX2 excetption
+                    row["FX2"] = OrderedDict()
+                    
+                if row["FX"]:
+                    elem["fg"] = "blue"
+                elif row["FX2"]:
+                    elem["fg"] = "red"
+                else:
+                    elem["fg"] = "black"
+
             c_a += _c_a
             if _c_a>0:
                 c_f +=1
 
         c_a2=0
 
+        cprint("fix:",_XXX,round(time.time()-s,2),color="red");_XXX += 1
         if c_f > 0:
             c_a2 = round(c_a/c_f,2)
             if c_a2 % 1 > 0:
@@ -2361,6 +2393,7 @@ class MASTER():
             gui_menu.config("DIMMER","activebackground","")
         gui_menu.update("DIMMER","{}".format(c_d))
 
+        cprint("fix:",_XXX,round(time.time()-s),color="red"); _XXX += 1
     def preset_rec(self,nr):
         print("------- STORE PRESET")
         data = FIXTURES.get_active()
@@ -3441,7 +3474,9 @@ class Presets():
             if "BUTTON" in sdata["CFG"]:
                 BTN = sdata["CFG"]["BUTTON"]
         _label = self.label_presets[nr] # = label
-        txt=str(nr+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+_label
+        #txt=str(nr+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+_label
+        #txt=str(nr+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+_label
+        txt="{} {} {}\n{}".format(nr+1,BTN,len(sdata)-1,_label)
         print("get_btn_txt",nr,[txt])
         return txt
 
@@ -4004,7 +4039,7 @@ refresher_fix.name = "fix"
 
 refresher_exec = Refresher()
 
-refresher_exec.time_delta = 35
+refresher_exec.time_delta = 30
 refresher_exec.name = "exec"
 
 def loops(**args):

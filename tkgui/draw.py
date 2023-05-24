@@ -65,8 +65,9 @@ class MiniButton:
             z+=1
     def _configure(self,**args):
         if "text" in args:
-            self.text = args["text"]
-            self._label(self.text)
+            if self.text != args["text"]:
+                self.text = args["text"]
+                self._label(self.text)
         if "bg" in args:
             #print(dir(self.bb))
             self.bb.configure(bg=args["bg"])
@@ -93,7 +94,7 @@ class MiniButton:
 
 class ExecButton(MiniButton):
     def __init__(self,root,width=72,height=38,text="button"):
-        self.text = "1\n2\n3\n"
+        #self.text = "1\n2\n3\n"
         super().__init__(root,width,height,text)
         self.x9font = tk.font.Font(family="FreeSans", size=9, weight="bold")
         self.x8font = tk.font.Font(family="FreeSans", size=8, weight="bold")
@@ -113,9 +114,11 @@ class ExecButton(MiniButton):
             print("-",i)
     def _label(self,text=None):
         if type(text) is str:
+            if self.text == text:
+                return
             self.text = text
         else:
-            text = self.text
+            text = self.text[:]
 
         self.bb.delete("label")
         txt2 = text
@@ -198,6 +201,8 @@ class ExecButton(MiniButton):
             else:
                 self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
             z+=1
+        #self.bb.update(0)
+        #self.bb.after(0)
 
 
 

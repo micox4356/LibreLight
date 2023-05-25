@@ -3572,7 +3572,7 @@ class Presets():
             if modes.val("MOVE"):
                 modes.val("MOVE",2)
             ok= self.copy(nr,overwrite=0)
-            if ok and last:
+            if ok and last >= 0:
                 if modes.val("MOVE"):
                     modes.val("MOVE",3)
                 cprint("PRESETS.move OK",color="red")

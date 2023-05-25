@@ -4169,10 +4169,12 @@ if __run_main:
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     w = Window(args)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
+    draw_config(master,w1)#.tk)#Xroot)
+    #draw_enc(master,w.tk)#Xroot)
     #draw_preset(master,w1)#w.tk)
-    #window_manager.new(w,name)
+    window_manager.new(w,name)
 
     name="DIMMER"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)

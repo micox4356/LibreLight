@@ -1419,6 +1419,26 @@ def load_window_position(_filter=""):
         cprint("- load_window_position 345 Exception:",e,color="red")
         return 
  
+class BLINKI():
+    def __init__(self,e):
+        self.e = e
+    def blink(self):
+        e = self.e
+        e.config(bg='green')
+        duration = 150
+        for i in range(8):
+            d = i * duration
+            if i % 2 == 0:
+                e.after(d, lambda: e.config(bg='white')) # after 1000ms
+                e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
+            else:
+                e.after(d, lambda: e.config(bg='orange')) # after 1000ms
+                e.after(d, lambda: e.config(activebackground='orange')) # after 1000ms
+        i+=1
+        duration = 150
+        e.after(d, lambda: e.config(bg='white')) # after 1000ms
+        e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
+
 class Xevent():
     """ global input event Handeler for short cut's ... etc
     """
@@ -1449,6 +1469,8 @@ class Xevent():
                 self.elem["bg"] = "lightgrey"
                 #self.elem["fg"] = "lightgrey"
                 self.elem.config(activebackground="lightgrey")
+                b = BLINKI(self.elem)
+                b.blink()
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
                 base = Base()
@@ -3776,10 +3798,10 @@ class Window():
 
         global _shift_key
         #cprint("<GUI>",event,color="yellow")
-        #cprint("<GUI>",event.state,data,[event.type,event.keysym],color="yellow")
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
             value = 0
+        #cprint("<GUI>",event.state,data,value,[event.type,event.keysym],color="yellow")
         if "keysym" in dir(event):
             if "Escape" == event.keysym:
                 FIXTURES.clear()
@@ -3832,11 +3854,16 @@ class Window():
                 cprint("NUM-KEY",value,nr)
                 master.preset_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
-
+                print("numbersign !!")
+                e = master.commands.elem["SAVE\nSHOW"]
+                print(e)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
 
-                #save_window_position()
+                save_window_position()
+
+                b = BLINKI(e)
+                b.blink()
                 #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
                 #e.cb(event=event)
             elif "End" == event.keysym:
@@ -4040,7 +4067,7 @@ refresher_fix.name = "fix"
 
 refresher_exec = Refresher()
 
-refresher_exec.time_delta = 30
+refresher_exec.time_delta = 10 #0
 refresher_exec.name = "exec"
 
 def loops(**args):
@@ -4249,7 +4276,8 @@ if __run_main:
     #w = Window(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
     w = Window(args)
-    draw_clock(master,w.tk)
+    cclock = X_CLOCK()
+    cclock.draw_clock(master,w.tk)
     window_manager.new(w,name)
 
     name="FX"

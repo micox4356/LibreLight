@@ -1804,7 +1804,10 @@ class Xevent():
                         
                 if event.num == 3:
                     if not modes.val("REC"):
-                        self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=255)
+                        if str(event.type) == '4': #4 ButtonPress
+                            self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=255)
+                        else:
+                            self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=0)
                         
                 print()
                 return 0
@@ -2510,7 +2513,7 @@ class MASTER():
         #print(len(self.elem_presets) )
         if len(self.elem_presets) > nr: # RED BUTTON IF PRESSED
             #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
-            if val:
+            if val:# or value:
                 #self.elem_presets[nr].config(borderwidth=1)
                 self.elem_presets[nr].config(bg="red")
             else:

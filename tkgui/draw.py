@@ -22,7 +22,8 @@ class MiniButton:
         #self.bind("<ButtonPress>", self.on_press)
         #self.bind("<ButtonRelease>", self.on_release)
         #self.bind("<ButtonRelease-1>", self.on_release)
-
+        self._last_label_id = 0
+        self._label_ring = ["labelA","labelB"]
         self.activebackground="lightgrey"
         self.defaultBackground="grey"
 
@@ -55,14 +56,23 @@ class MiniButton:
 
     def _label(self,text="1\n2\n3\n"):
         z = 0
-        self.bb.delete("label")
+        tag = self._label_ring[self._last_label_id]
+        #self.bb.delete("label")
         self.label = []
         for t in text.split("\n"):
-            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label")
+            self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag=tag)
             #self.l["color"] = self.fg
             self.label.append(self.l)
             
             z+=1
+        self.delete_tag()
+    def delete_tag(self):
+        self._last_label_id += 1
+        if self._last_label_id >=len(self._label_ring ):
+            self._last_label_id = 0
+        tag = self._label_ring[self._last_label_id]
+        self.bb.delete(tag)
+
     def _configure(self,**args):
         if "text" in args:
             if self.text != args["text"]:
@@ -119,8 +129,10 @@ class ExecButton(MiniButton):
             self.text = text
         else:
             text = self.text[:]
-
-        self.bb.delete("label")
+        
+        tag = self._label_ring[self._last_label_id]
+        #self.bb.delete("labelB")
+        #self.bb.delete("labelA")
         txt2 = text
         try:
             text = text.split("\n")[1]
@@ -128,45 +140,45 @@ class ExecButton(MiniButton):
 
 
         if "grün" in text.lower() or "green" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="green",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="green",tag=tag)
         elif "purple" in text.lower() or "purple" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="#800080",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="#800080",tag=tag)
         elif "lime" in text.lower() or "lime" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="#00ff00",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="#00ff00",tag=tag)
         elif "blau" in text.lower() or "blue" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="blue",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="blue",tag=tag)
         elif "rot" in text.lower() or "red" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="red",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="red",tag=tag)
         elif "orange" in text.lower():# or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="orange",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="orange",tag=tag)
         elif "weiß" in text.lower() or "white" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="white",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="white",tag=tag)
         elif "cyan" in text.lower():# or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="cyan",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="cyan",tag=tag)
         elif "gelb" in text.lower() or "yellow" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="yellow",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="yellow",tag=tag)
         elif "pink" in text.lower() or "pink" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="#ff69b4",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="#ff69b4",tag=tag)
         elif "mage" in text.lower() or "mage" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,20,39,fill="magenta",tag="label")
+            self.l = self.bb.create_rectangle(10,29,20,39,fill="magenta",tag=tag)
 
         if "nebel" in text.lower()  or "smoke" in text.lower() or "haze" in text.lower():
-            self.l = self.bb.create_rectangle(10,29,60,39,fill="white",tag="label")
+            self.l = self.bb.create_rectangle(10,29,60,39,fill="white",tag=tag)
         if "mh " in text.lower() or " mh" in text.lower() :
-            self.l = self.bb.create_rectangle(30,29,35,32,fill="black",tag="label")
-            self.l = self.bb.create_rectangle(28,34,37,39,fill="black",tag="label")
+            self.l = self.bb.create_rectangle(30,29,35,32,fill="black",tag=tag)
+            self.l = self.bb.create_rectangle(28,34,37,39,fill="black",tag=tag)
         if "off" in text.lower(): 
-            self.l = self.bb.create_rectangle(50,30,55,35,fill="black",tag="label")
+            self.l = self.bb.create_rectangle(50,30,55,35,fill="black",tag=tag)
         if "dim" in text.lower() or "front" in text.lower()  or "on" in text.lower(): 
-            #self.l = self.bb.create_line(56,30,60,28,fill="black",tag="label")
-            self.l = self.bb.create_rectangle(50,30,55,35,fill="white",tag="label")
-            #self.l = self.bb.create_line(56,36,58,36,fill="black",tag="label")
+            #self.l = self.bb.create_line(56,30,60,28,fill="black",tag=tag)
+            self.l = self.bb.create_rectangle(50,30,55,35,fill="white",tag=tag)
+            #self.l = self.bb.create_line(56,36,58,36,fill="black",tag=tag)
         if "circle" in text.lower(): 
-            self.l = self.bb.create_oval(30,29,40,39,fill="",tag="label")
+            self.l = self.bb.create_oval(30,29,40,39,fill="",tag=tag)
         if "pan" in text.lower(): 
-            self.l = self.bb.create_line(20,34 ,45,34,fill="black",arrow=tk.BOTH,tag="label")
+            self.l = self.bb.create_line(20,34 ,45,34,fill="black",arrow=tk.BOTH,tag=tag)
         if "tilt" in text.lower(): 
-            self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag="label")
+            self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag=tag)
 
         text = txt2
         z = 0
@@ -193,16 +205,18 @@ class ExecButton(MiniButton):
                 if len(t) > 14:
                     t2 = t[:14]
                     t3 = t[14:]
-                    self.l = self.bb.create_text(37,z*10+9-2,text=t2,anchor="c",tag="label",fill=self.fg,font=xfont)
-                    self.l = self.bb.create_text(37,z*10+9+6,text=t3,anchor="c",tag="label",fill=self.fg,font=xfont)
+                    self.l = self.bb.create_text(37,z*10+9-2,text=t2,anchor="c",tag=tag,fill=self.fg,font=xfont)
+                    self.l = self.bb.create_text(37,z*10+9+6,text=t3,anchor="c",tag=tag,fill=self.fg,font=xfont)
                 else:
-                    self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg,font=xfont)
-                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+                    self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag=tag,fill=self.fg,font=xfont)
+                #self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag=tag,fill=self.fg)
             else:
-                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag="label",fill=self.fg)
+                self.l = self.bb.create_text(37,z*10+9,text=t,anchor="c",tag=tag,fill=self.fg)
             z+=1
         #self.bb.update(0)
         #self.bb.after(0)
+
+        self.delete_tag()
 
 
 
@@ -729,37 +743,50 @@ def draw_setup(gui,xframe):
 
 
 
-def _loop_clock(b):
-    xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
-    xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
-    while 1:
-        #b["text"] = 
-        d = time.strftime("%Y-%m-%d")
-        s = time.strftime("%X")
-        b.delete("all")
-        b.create_text(170,41,text=s,fill="#aa0" ,font=xfont)
-        b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1)
-    
-        time.sleep(1)
-        #exit()
 
 
-def draw_clock(gui,xframe):
-    frame_cmd=xframe
-    
-    frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
-    comm = "xx"
-    
-    xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
-    b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
+class X_CLOCK():
+    def __init__(self):
+        self._last_label_id = 1
+        self._label_ring = [ "labelA","labelB"]
 
-    #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
-    #b.config(activebackground="lightgreen")
-    #b.config(background="lightgreen")
-    b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
-    #b["text"] = time.strftime("%Y-%m-%d %X")
-    thread.start_new_thread(_loop_clock,(b,))
+    def loop_clock(self,b):
+        xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
+        xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
+        while 1:
+            tag = self._label_ring[self._last_label_id]
+            #b["text"] = 
+            d = time.strftime("%Y-%m-%d")
+            s = time.strftime("%X")
+            #b.delete("all")
+            b.create_text(170,41,text=s,fill="#aa0" ,font=xfont,tag=tag)
+            b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1,tag=tag)
+        
+            self.delete_tag()
+            time.sleep(1)
+            #exit()
+    def delete_tag(self):
+        self._last_label_id += 1
+        if self._last_label_id >=len(self._label_ring ):
+            self._last_label_id = 0
+        tag = self._label_ring[self._last_label_id]
+        self.bb.delete(tag)
+    def draw_clock(self,gui,xframe):
+        frame_cmd=xframe
+        
+        frame = tk.Frame(frame_cmd,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+        comm = "xx"
+        
+        xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
+        b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
+        self.bb = b
+        #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
+        #b.config(activebackground="lightgreen")
+        #b.config(background="lightgreen")
+        b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
+        #b["text"] = time.strftime("%Y-%m-%d %X")
+        thread.start_new_thread(self.loop_clock,(b,))
 
 
 

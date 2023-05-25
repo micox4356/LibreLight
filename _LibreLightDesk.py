@@ -2505,6 +2505,16 @@ class MASTER():
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()
             self.refresh_fix()
+        
+        #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
+        #print(len(self.elem_presets) )
+        if len(self.elem_presets) > nr: # RED BUTTON IF PRESSED
+            #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
+            if val:
+                #self.elem_presets[nr].config(borderwidth=1)
+                self.elem_presets[nr].config(bg="red")
+            else:
+                self._refresh_exec()
         cprint("preset_go",time.time()-t_start)
 
     def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0,nr=None):

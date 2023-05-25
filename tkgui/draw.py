@@ -763,7 +763,7 @@ class X_CLOCK():
             b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1,tag=tag)
         
             self.delete_tag()
-            time.sleep(1)
+            time.sleep(0.2)
             #exit()
     def delete_tag(self):
         self._last_label_id += 1

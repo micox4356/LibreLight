@@ -363,7 +363,8 @@ def draw_preset(gui,xframe,PRESETS):
     print("##################################")
 
 
-def draw_input(gui):
+def draw_input(gui,root2):
+
     i=0
     c=0
     r=0
@@ -513,9 +514,96 @@ def draw_colorpicker(gui,xframe,FIXTURES,master):
 
 
 
+def draw_config(gui,xframe):
+    for widget in xframe.winfo_children():
+        widget.destroy()
+
+    i=0
+    c=0
+    r=0
+    root2 = xframe
+
+    frame = tk.Frame(root2,bg="#222")
+    frame.pack(fill="both", expand=1,side=tk.TOP)
 
 
+    b = tk.Label(frame, text="",bg="#222")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=0
+    r+=1
+    b = tk.Label(frame, text="",bg="#222")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c=0
+    r+=1
+    b = tk.Label(frame, text="",bg="#222")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c=1
+    r+=1
+    
+    
+    b = tk.Label(frame, text="_________")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=1
+    b = tk.Entry(frame,bg="grey", text="",width=50)
+    gui.entry = b
+    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b.insert("end","" ) #d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
+    r+=1
+    b = tk.Entry(frame,bg="grey", text="",width=20)
+    gui.entry2 = b
+    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b.insert("end","d1:0:4")
+    r+=1
+    b = tk.Entry(frame,bg="grey", text="",width=20)
+    gui.entry3 = b
+    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    ##b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b.insert("end","fx:alloff:::")
 
+    r+=1
+
+    b = tk.Label(frame, text="",bg="#222")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=0
+    r+=1
+    b = tk.Label(frame, text="",bg="#222")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=0
+    r+=1
+    b = tk.Label(frame, text=" BATCH COMMAND ")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=0
+    r+=1
+    b1 = tk.Entry(frame,bg="grey", text="",width=50)
+    #gui.entry = b
+    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b1.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b1.insert("end","fix 1-100 patch @ 2.120")
+    r+=1
+
+    b = tk.Label(frame, text="",bg="#222")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=0
+    r+=1
+    b = tk.Label(frame, text=" BATCH COMMAND ")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    c+=0
+    r+=1
+    b2 = tk.Entry(frame,bg="grey", text="",width=50)
+    #gui.entry = b
+    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b2.grid(row=r, column=c, sticky=tk.W+tk.E)
+    b2.insert("end","SELECT 33-61 PAN,TILT")
+
+    root2.pack(fill="both",expand=1,side="top")
 
 
 
@@ -536,22 +624,6 @@ def draw_enc(gui,xframe):
     b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
-    #b = tk.Button(frame,bg="lightblue", text="",width=6)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #c+=1
-    #b = tk.Button(frame,bg="lightblue", text="",width=6)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #c+=1
-    #b = tk.Button(frame,bg="lightblue", text="",width=6)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #c+=1
-    #b = tk.Button(frame,bg="lightblue", text="",width=6)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #c+=1
-    #b = tk.Button(frame,bg="lightblue", text="",width=6)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    ##c+=1
-    #for attr in ["xx"]*23: # gui.all_attr:
     eat = gui.all_attr
 
     if len(eat) < 24:
@@ -579,11 +651,6 @@ def draw_enc(gui,xframe):
     b.bind("<Button>",Xevent(fix="SEL",elem=b,attr="INV-ATTR",data=gui,mode="INVERT").cb)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
-    #b = tk.Button(frame,bg="#00a7ff", text="INV-FIX",width=6)
-    #myTip = Hovertip(b,'INVERT FIXTURE SELECTION')
-    #b.bind("<Button>",Xevent(fix="ALL",elem=b,attr="INV-FIX",data=gui,mode="INVERT").cb)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #c+=1
 
 def _draw_fx(frame,c,r,gui,mode="FX"):
     ct  = gui.fx

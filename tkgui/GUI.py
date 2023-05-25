@@ -476,7 +476,7 @@ class GUI_PATCH():
             b = tk.Button(xframe,bg=rgb, text="from - to",width=1)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX-SUM",width=1)
+            b = tk.Button(xframe,bg=rgb, text="DMX-SUM",width=10)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(xframe,bg=rgb, text="TEST",width=1)

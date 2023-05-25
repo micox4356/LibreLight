@@ -108,6 +108,7 @@ def cprint(*text,color="blue",space=" ",end="\n"):
     txt += '\033[0m'
     print(txt,end=end)
     #return txt
+    sys.stdout.flush() # to grep output
 
 cprint("________________________________")
  

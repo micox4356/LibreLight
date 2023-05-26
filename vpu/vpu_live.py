@@ -706,6 +706,7 @@ PIXEL_MAPPING = 0
 grid_file = "/tmp/vpu_grid_hd.csv"
 text_file = "/home/user/LibreLight/vpu_text_hd.csv"
 play_list = "/tmp/vpu_playlist_hd.csv"
+play_list = "/home/user/LibreLight/video/" #.format(path)
 pm_wy = 0
 if options.pixel_mapping:
     PIXEL_MAPPING = 1
@@ -1105,30 +1106,15 @@ TEXT_BLOCK_TIME = time.time()
 
 PLAYLIST = []
 
-def _create_playlist():
-    print("======== CREATE NEW PLAYLIST DIR !!",play_list)
-    os.system("mkdir -p /home/user/LibreLight/video")
-    f = open(play_list,"w")
-    f.write("bbb_sunflower_480x320.mp4\n")
-    for i in range(10-1):
-        f.write("Video-file {}\n".format(i+1+1))
-    f.close()
 
 def open_playlist():
     print("======== OPEN PLAYLIST DIR !!",play_list)
-    _lines = []
-    try:
-        #f = open(play_list,"r")
-        _lines = os.listdir(play_list)
-        _lines.sort()
-        #_lines = f.readlines()
-        #f.close()
-    except FileNotFoundError as e:
-        print("TEXT",e)
-        pass#_create_playlist()
 
-    if len(_lines) <= 0:
-        pass#_create_playlist()
+    if not os.path.isdir(play_list):
+        os.system("mkdir -p {}".format(play_list))
+
+    _lines = os.listdir(play_list)
+    _lines.sort()
 
     lines = ['']*25 # first is empty
     i=0

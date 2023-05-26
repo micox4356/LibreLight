@@ -1,16 +1,15 @@
 #!/usr/bin/python3
 import os
-import time
 
 print("go")
-for i in os.listdir("big/"):
-    i2 = i.split(".",-1)[0] + ".mp4"
+for i in os.listdir("groß/"):
+    i2 = i.split(".",-1)[0]
     #if not i.endswith("mov"):
     #    continue
-    if os.path.isfile("big/"+i):
+    if os.path.isfile("groß/"+i):
         print(i)
          	  
-        cmd="ffmpeg -n -i 'big/"+i+"' -s 640x480 -c:a copy 'small/"+i2+"'"
+        cmd="ffmpeg -n -i 'groß/"+i+"' -s 640x480 -c:a copy 'klein/"+i2+".mp4'"
         print(cmd)
         os.system(cmd)
         print(" ")

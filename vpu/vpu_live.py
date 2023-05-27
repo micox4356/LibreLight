@@ -643,13 +643,14 @@ if options.mode:
 
     
 
-if _x < 8:
-    _x = 8
-if _y < 8:
-    _y = 8
+if _x < 1:
+    _x = 1
+if _y < 1:
+    _y = 1
+
 CFG_BLOCK["h-count"] = _x
-CFG_BLOCK["v-count"] = int(8*8/_x+0.5) #_y
-CFG_BLOCK["size"] = p
+CFG_BLOCK["v-count"] = _y # int(8*8/_x) #/_x+0.5) #_y
+CFG_BLOCK["size"]    = p
 
 print( [options.xsplit])
 print( [options.ysplit])
@@ -749,12 +750,8 @@ try:
         CFG_IN["w"] = CFG_BLOCK["size"] * 8
     else:
         wx = 30+30+block[0] * _x 
-        CFG_IN["w"] = CFG_BLOCK["size"] * CFG_BLOCK["h-count"]
+
     wy = 40+40+block[1] * _y 
-    CFG_IN["h"] = CFG_BLOCK["size"] * CFG_BLOCK["v-count"] 
-    
-    CFG_OUT["w"] = CFG_BLOCK["size"] * 8
-    CFG_OUT["h"] = CFG_BLOCK["size"] * 8
 
     if type(options.videoplayer) is str:
         wy += 150 # video playlist
@@ -769,6 +766,13 @@ try:
 except Exception as e:
     print("Exception:",e)
 
+CFG_IN["w"] = CFG_BLOCK["size"] * CFG_BLOCK["h-count"] 
+CFG_IN["h"] = CFG_BLOCK["size"] * CFG_BLOCK["v-count"] 
+
+CFG_OUT["w"] = CFG_BLOCK["size"] * 8
+CFG_OUT["h"] = CFG_BLOCK["size"] * 8
+
+
 
 def CFG_CALC_P(CFG):
     CFG["x2"] = CFG["x1"]+CFG["w"]
@@ -776,6 +780,9 @@ def CFG_CALC_P(CFG):
     CFG["p1"] = [CFG["x1"] ,CFG["y1"]] 
     CFG["p2"] = [CFG["x2"] ,CFG["y2"]] 
     print("CFG",CFG)
+
+# ?
+#CFG_IN["w"] = int(CFG_BLOCK["v-count"]-2) * CFG_BLOCK["size"] 
 
 CFG_CALC_P(CFG_IN)
 CFG_CALC_P(CFG_OUT)
@@ -1949,7 +1956,7 @@ def frame_area():
     
     p1 = CFG_IN["p1"]
     p2 = CFG_IN["p2"]
-    draw_frame(window,rgb,p1,p2,offset=0)
+    draw_frame(window,rgb,p1,p2,offset=2)
     rgb = [255,0,0]
     #draw_frame(window,rgb,p1,p2,offset=4)
 
@@ -1959,7 +1966,7 @@ def frame_area():
         p1 = CFG_OUT["p1"]
         p2 = CFG_OUT["p2"]
         #pygame.draw.line(window,rgb,p1,p2)
-        draw_frame(window,rgb,p1,p2,offset=2)
+        draw_frame(window,rgb,p1,p2,offset=3)
 
 ips=[]
 dataA=[]

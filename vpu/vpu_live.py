@@ -648,7 +648,7 @@ if _x < 8:
 if _y < 8:
     _y = 8
 CFG_BLOCK["h-count"] = _x
-CFG_BLOCK["v-count"] = 8*8/_x #_y
+CFG_BLOCK["v-count"] = int(8*8/_x+0.5) #_y
 CFG_BLOCK["size"] = p
 
 print( [options.xsplit])

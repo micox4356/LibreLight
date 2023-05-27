@@ -476,7 +476,7 @@ class Vopen():
         #    fr = font15.render(txt,1, (0,255,0))
         #else:
         #    fr = font15.render(txt,1, (255,0,0))
-        #wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
+        #wn.blit(fr,(10,MAIN_SIZE[1]-(self._id+1)*35))
 
         if self.success and wn and self.im: # is not None:
             #wn.blit(self.im, (int(self.x), int(self.y)))
@@ -490,7 +490,7 @@ class Vopen():
     def overlay(self,wn=None,mode="x"):
         # overlay 
 
-        pygame.draw.rect(wn,[255,200,0],[5,main_size[1]-(self._id+1)*35,300,28])
+        pygame.draw.rect(wn,[255,200,0],[5,MAIN_SIZE[1]-(self._id+1)*35,300,28])
         font15 = pygame.font.SysFont("freemonobold",17)
 
         pz = 0
@@ -499,7 +499,7 @@ class Vopen():
             rgb = [ 100,255,100]
         else:
             rgb = [255,100,0]
-        pygame.draw.rect(wn,rgb,[220,main_size[1]-(self._id+1)*35,80,13])
+        pygame.draw.rect(wn,rgb,[220,MAIN_SIZE[1]-(self._id+1)*35,80,13])
 
         _line = "error no _line"
         _line ="FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
@@ -510,17 +510,17 @@ class Vopen():
             _line = _line.format(self.fps,int(self.pos),len(self.buffer),(self.pos/self.fps),pz )  
 
         fr = font15.render(_line ,1, (0,0,0))
-        wn.blit(fr,(10,main_size[1]-(self._id+1)*35))
+        wn.blit(fr,(10,MAIN_SIZE[1]-(self._id+1)*35))
 
         if self._run:
             mode = "run"
         else:
             mode = "pause"
         fr = font15.render(" {} {} >:{} ".format(self._id+1,self._video_nr,mode) ,1, (0,0,0))
-        wn.blit(fr,(3,main_size[1]-(self._id+1)*35+15))
+        wn.blit(fr,(3,MAIN_SIZE[1]-(self._id+1)*35+15))
 
         fr = font15.render("{}".format(self.fname) ,1, (0,0,0))
-        wn.blit(fr,(70,main_size[1]-(self._id+1)*35+15))
+        wn.blit(fr,(70,MAIN_SIZE[1]-(self._id+1)*35+15))
 
 Vopen = Vopen
 
@@ -616,6 +616,12 @@ def loop2_videoplayer():
 
 #thread.start_new_thread(loop2_videoplayer,())
 
+# PARSE COMMANDLINE ARGUMENTS
+CFG_IN    = {"name":"CFG_IN","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300}
+CFG_OUT   = {"name":"CFG_OUT","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
+CFG_BLOCK = {"name":"CFG_BLOCK","size":16,"h-split":2,"v-split":2,"h-count":8,"v-count":8}
+
+
 p = 16
 block = [p,p]
 _x = 8
@@ -630,25 +636,34 @@ if options.mode:
         _x = int(_x)
         _y = int(_y)
         p = int(p)
+
         block = [p,p]
     except Exception as e:
         print( "Exc",options.mode,e)
 
-HD_x = 2
-HD_y = 2
+    
+
+if _x < 8:
+    _x = 8
+if _y < 8:
+    _y = 8
+CFG_BLOCK["h-count"] = _x
+CFG_BLOCK["v-count"] = 8*8/_x #_y
+CFG_BLOCK["size"] = p
 
 print( [options.xsplit])
 print( [options.ysplit])
 
 try:
     if options.xsplit:
-        HD_x = int(options.xsplit)
+        CFG_BLOCK["h-split"] = int(options.xsplit)
     if options.ysplit:
-        HD_y = int(options.ysplit)
+        CFG_BLOCK["v-split"] = int(options.ysplit)
 except Exception as e:
     print( "Exc",options.mode,e)
 
-print("HD",HD_x,HD_y)
+
+print("HD",CFG_BLOCK["h-split"],CFG_BLOCK["v-split"])
 print("xy",_x,_y)
 print("++++++++++++++++++", p,_x,_y)
 
@@ -710,6 +725,7 @@ play_list = "/home/user/LibreLight/video/" #.format(path)
 pm_wy = 0
 if options.pixel_mapping:
     PIXEL_MAPPING = 1
+    CFG_OUT["on"] = 1
     path = options.pixel_mapping
     path = path.replace("/","-")
     path = path.replace(".","-")
@@ -726,30 +742,52 @@ print("  ",[options.pixel_mapping],"grid_file",grid_file)
 #grid_file = "/home/user/LibreLight/vpu_grid_hd.csv"
 
 
-main_size=(600,500)
+MAIN_SIZE=(600,500)
 try:
     if _x < 8 and PIXEL_MAPPING >= 1:
-        wx = 60+block[0] * 8
+        wx = 30+30+block[0] * 8
+        CFG_IN["w"] = CFG_BLOCK["size"] * 8
     else:
-        wx = 60+block[0] * _x 
-    wy = 80+block[1] * _y 
-    #pm_wy = wy
+        wx = 30+30+block[0] * _x 
+        CFG_IN["w"] = CFG_BLOCK["size"] * CFG_BLOCK["h-count"]
+    wy = 40+40+block[1] * _y 
+    CFG_IN["h"] = CFG_BLOCK["size"] * CFG_BLOCK["v-count"] 
+    
+    CFG_OUT["w"] = CFG_BLOCK["size"] * 8
+    CFG_OUT["h"] = CFG_BLOCK["size"] * 8
 
     if type(options.videoplayer) is str:
         wy += 150 # video playlist
 
-    main_size=(wx,wy)
+    MAIN_SIZE=(wx,wy)
+
     if PIXEL_MAPPING >= 1:
         pm_wy = 11*p #+ p*3
-        main_size=(wx,wy+pm_wy)
-
+        CFG_IN["y1"] += 11*p
+        MAIN_SIZE=(wx,wy+pm_wy)
 
 except Exception as e:
     print("Exception:",e)
-#main_size=(280,200)
 
-main_size = (main_size[0],main_size[1])
-window = pygame.display.set_mode(main_size,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+
+def CFG_CALC_P(CFG):
+    CFG["x2"] = CFG["x1"]+CFG["w"]
+    CFG["y2"] = CFG["y1"]+CFG["h"] 
+    CFG["p1"] = [CFG["x1"] ,CFG["y1"]] 
+    CFG["p2"] = [CFG["x2"] ,CFG["y2"]] 
+    print("CFG",CFG)
+
+CFG_CALC_P(CFG_IN)
+CFG_CALC_P(CFG_OUT)
+
+print("CFG_BLOCK",CFG_BLOCK)
+print()
+print()
+print()
+print()
+print()
+
+window = pygame.display.set_mode(MAIN_SIZE,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 pg.display.set_caption('LibreLight VPU-SCREEN')
 
 
@@ -769,19 +807,19 @@ class Fix():
         self.bmp = 250
         self.sub_fix = []
         
-        sub_block =[block[0]/HD_x,block[1]/HD_y] 
+        sub_block =[block[0]/CFG_BLOCK["h-split"],block[1]/CFG_BLOCK["v-split"]] 
         if _id <= 0: #exit 
             return
 
         spalte = (_id-1)%_y +1
         zeile = int((_id-1)/_x2) #+1
-        #zeile = zeile*_x*HD_x*HD_y
+        #zeile = zeile*_x*CFG_BLOCK["h-split"]*CFG_BLOCK["v-split"]
 
-        add_row = _x*HD_x*HD_y
+        add_row = _x*CFG_BLOCK["h-split"]*CFG_BLOCK["v-split"]
 
         #zeile 1
-        sid = (_id-1)*2  + zeile*HD_x*_x2
-        #for i in range(1,HD_x):
+        sid = (_id-1)*2  + zeile*CFG_BLOCK["h-split"]*_x2
+        #for i in range(1,CFG_BLOCK["h-split"]):
         sid = sid+1
         #sid = zeile
         sub_pos= [pos[0]*block[0],pos[1]*block[1]]
@@ -795,9 +833,9 @@ class Fix():
         self.sub_fix.append(sub_fix)
 
         #zeile 2
-        sid = (_id-1)*2+1 + _x2*HD_x  + zeile*HD_x*_x2 # int(add_row)
+        sid = (_id-1)*2+1 + _x2*CFG_BLOCK["h-split"]  + zeile*CFG_BLOCK["h-split"]*_x2 # int(add_row)
         #sid = sid+1
-        #sid = HD_x
+        #sid = CFG_BLOCK["h-split"]
         sub_pos= [pos[0]*block[0],pos[1]*block[1]+block[1]/2]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
@@ -1051,6 +1089,18 @@ def draw_overlay():
 
     fr = font.render("ip:{}".format(IP) ,1, (200,0,255))
     window.blit(fr,(90,10))
+
+def draw_frame(window,rgb,p1,p2,offset=0):
+    o = offset 
+    _p1 = [p1[0]-o,p1[1]-o]
+    _p2 = [p1[0]-o,p2[1]+o]
+    pygame.draw.line(window,rgb,_p1,_p2)  # left
+    _p1 = [p2[0]+o,p2[1]+o]
+    pygame.draw.line(window,rgb,_p1,_p2)  # bottom
+    _p2 = [p2[0]+o,p1[1]-o]
+    pygame.draw.line(window,rgb,_p1,_p2)  # right
+    _p1 = [p1[0]-o,p1[1]-o]
+    pygame.draw.line(window,rgb,_p1,_p2)  # top
 
 def calc_fps():
     global fps,frame,frame_t
@@ -1364,7 +1414,8 @@ def reshape(_x,_y):
     y_max = 0
 
     # black background for -> output MAP
-    pygame.draw.rect(window,[0,0,20],[0,60,wx,pm_wy-10]) 
+    pygame.draw.rect(window,[0,0,20],[0,60,600,pm_wy-1]) 
+    pygame.draw.rect(window,[0,0,20],[wx,wy-80,400,pm_wy+10]) 
     
     tmp_font = pygame.font.SysFont("freemonobold",int(p*0.8))
 
@@ -1891,6 +1942,25 @@ def draw_gobo(GRID,data):
             j += 1
         i += 1
 
+def frame_area():
+    rgb = [255,255,0]
+    CFG = CFG_IN
+    
+    
+    p1 = CFG_IN["p1"]
+    p2 = CFG_IN["p2"]
+    draw_frame(window,rgb,p1,p2,offset=0)
+    rgb = [255,0,0]
+    #draw_frame(window,rgb,p1,p2,offset=4)
+
+
+    if CFG_OUT["on"]:
+        rgb = [255,0,0]
+        p1 = CFG_OUT["p1"]
+        p2 = CFG_OUT["p2"]
+        #pygame.draw.line(window,rgb,p1,p2)
+        draw_frame(window,rgb,p1,p2,offset=2)
+
 ips=[]
 dataA=[]
 data=[]
@@ -2013,7 +2083,7 @@ def main():
             #reshape(spos[0]+spos[2]+20,10) #start pos
 
 
-
+        frame_area()
 
 
         pygame.display.flip()

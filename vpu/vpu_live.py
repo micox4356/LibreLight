@@ -40,7 +40,10 @@ parser.add_option("", "--countdown", dest="countdown",#default=1,
                   help="enable countdown") #, metavar="FILE")
 
 parser.add_option("", "--videoplayer", dest="videoplayer",#default=1,
-                  help="enable videoplayer") #, metavar="FILE")
+              help="enable videoplayer") #, metavar="FILE")
+
+parser.add_option("", "--title", dest="title",default="SCREEN",
+              help="set title") #, metavar="FILE")
 
 #parser.add_option("-f", "--file", dest="filename",
 #                  help="write report to FILE", metavar="FILE")
@@ -795,7 +798,10 @@ print()
 print()
 
 window = pygame.display.set_mode(MAIN_SIZE,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-pg.display.set_caption('LibreLight VPU-SCREEN')
+#if options.title:
+pg.display.set_caption('LibreLight VPU-{}'.format(options.title))
+#else:
+#    pg.display.set_caption('LibreLight VPU-SCREEN')
 
 
 class Fix():

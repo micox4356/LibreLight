@@ -1,7 +1,7 @@
 
 import tkinter as tk
 from __main__ import *
-
+import lib.mytklib as mytklib
 
 class Event():
     def __init__(self,name):
@@ -1438,6 +1438,7 @@ class GUI_menu():
         c=0
         i=1
         self.b = tk.Label(self.frame,bg="lightblue", text="MAIN:MENU",width=8,height=1)
+        self.TITLE = self.b
         self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
         r+=1
         h = 2
@@ -1459,6 +1460,11 @@ class GUI_menu():
             i+=1
         self.frame.pack()
         INIT_OK = 1
+        self.start_loop()
+    def start_loop(self):
+        print(self,"--- start_bg_loop ----- xxxx")
+        thread.start_new_thread(mytklib.tk_btn_bg_loop,(self.TITLE,))
+
     def callback(self,event,data={}):
         #print("callback543",self,event,data)
         print("callback543",self,event) #,data)

@@ -184,6 +184,12 @@ class Vopen():
 
         self.init()
 
+    def __repr__(self):
+        sizeof = int(sys.getsizeof(self.buffer)/8)
+        return "< id:{} buf:{} run:{} fps:{} scale:{} name:{} {}kb>".format(
+                id(self),len(self.buffer),self._run,self.fps,self.scale
+                ,self.fname,sizeof
+                )
     def restart(self):
         print(self,"reset()")
         self.pos = 0 
@@ -1648,6 +1654,13 @@ def draw_counter(COUNTER):
             pygame.draw.rect(window,[0,0,0],fr_r)
             window.blit(fr,fr_r)
 
+class FADE():
+    def __init__(self,sec):
+        self.start = time.time()
+        self.sec = sec
+        self.val
+    def next(self):
+        pass
 def draw_video(VIDEO):
     global videplayer
     i = 0

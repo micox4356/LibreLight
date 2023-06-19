@@ -332,8 +332,10 @@ class Vopen():
         self.im = self.buffer[int(self.pos)]
 
     def rotateImage(self,image, angle):
+        if angle in [0,360]:
+            return image
         try:
-            print("EE",image.shape)
+            #print("EE",image.shape)
             shape = list(image.shape[1::-1])
             center  = ((shape[0])/2,(shape[1])/2)
             #center  = [(shape[0])/2,(shape[1])/2+35]

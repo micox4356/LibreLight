@@ -140,7 +140,6 @@ except:pass
 #import json
 #import pickle
 
-
 class Vopen():
 
     def __init__(self,dmx=None,_id=None):
@@ -159,6 +158,7 @@ class Vopen():
         self.restart_t = time.time()
         self.fps = 0
         self.scale = 50 #%
+        self.angle = 0 #%
         self.dmx=dmx
         self.dim = 0
         self.x = 0
@@ -299,6 +299,7 @@ class Vopen():
                 
                 img = self.cv2.cvtColor(img, self.cv2.COLOR_BGR2RGB)
                 img = self.rescale_frame2(img, 200)
+
                 #ret, img = self.cv2.threshold(img, 100, 130, self.cv2.THRESH_BINARY) # treshold
                 #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
                 
@@ -329,6 +330,37 @@ class Vopen():
         if self.pos >= len(self.buffer):
             self.pos = len(self.buffer)-1
         self.im = self.buffer[int(self.pos)]
+
+    def rotateImage(self,image, angle):
+        try:
+            print("EE",image.shape)
+            shape = list(image.shape[1::-1])
+            center  = ((shape[0])/2,(shape[1])/2)
+            #center  = [(shape[0])/2,(shape[1])/2+35]
+
+            rot_mat = self.cv2.getRotationMatrix2D(center,angle,1.0) 
+
+            if angle in [0,90,180,360]:
+                pass
+            else:
+                if shape[0] > shape[1]:
+                    shape = (shape[0],shape[0])
+                else:
+                    shape = (shape[1],shape[1])
+
+            frame   = self.cv2.warpAffine(image, rot_mat, shape) #,flags=self.cv2.INTER_LINEAR)
+            return frame
+        except Exception as e:
+            raise(e)
+    def moveImage(self,img,x=0,y=0):
+        # Creating a translation matrix
+        np = numpy
+        translation_matrix = np.float32([ [1,0,x], [0,1,y] ])
+
+        num_cols,num_rows = img.shape[1::-1]
+        # Image translation
+        frame = self.cv2.warpAffine(img, translation_matrix, (num_cols,num_rows))
+        return frame
 
     def rescale_frame2(self,frame, width):
         height = int(frame.shape[0]/frame.shape[1] * width )
@@ -379,6 +411,9 @@ class Vopen():
 
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
+            
+            # rotate frame BUG: x,y offset ??? !!!
+            self.img = self.rotateImage(self.img, self.angle)
 
             self.shape = self.img.shape[1::-1]
 
@@ -1673,6 +1708,7 @@ def draw_video(VIDEO):
         cg=255
         cb=255
         csize=10
+        cang=0
         cdim=0
         
 
@@ -1701,6 +1737,10 @@ def draw_video(VIDEO):
             video1.dim = cdim
         #if i == 0:
         #    print(i,cdim)
+
+        k = "ANG"
+        if k in count:
+            cang = int(count[k])
 
         k = "SIZE"
         if k in count:
@@ -1739,6 +1779,7 @@ def draw_video(VIDEO):
         video1.x=40+0+cpan 
         video1.y=60+0+pm_wy+ctilt
         video1.scale = int((csize))
+        video1.angle = int(360-(cang))
 
         if cdim:
             video1.next()
@@ -1834,9 +1875,10 @@ def video_dmx(VIDEO,dataA):
             count["SIZE"]  = dataA[cDMX+4]#*2
             count["SEC"]   = dataA[cDMX+5]
 
-            count["VIDEO"] = dataA[cDMX+6]
             #count["RED"]   = dataA[cDMX+6]
+            count["VIDEO"] = dataA[cDMX+6]
             #count["GREEN"] = dataA[cDMX+7]
+            count["ANG"] = (int(dataA[cDMX+7])/255*360)
             #count["BLUE"]  = dataA[cDMX+8]
         except Exception as e:
             print("VIDEOPLAYER EXCEPT FUNC",e,count)

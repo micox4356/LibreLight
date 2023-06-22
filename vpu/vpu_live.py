@@ -333,33 +333,64 @@ class Vopen():
 
     def rotateImage(self,image, angle):
         if angle in [0,360]:
-            return image
+            pass#return image
         try:
             #print("EE",image.shape)
             shape = list(image.shape[1::-1])
-            center  = ((shape[0])/2,(shape[1])/2)
-            #center  = [(shape[0])/2,(shape[1])/2+35]
+            bg_shape = shape[:]
 
-            rot_mat = self.cv2.getRotationMatrix2D(center,angle,1.0) 
+            delta_x = 0 # + nach rechts
+            delta_y = 0 # + nach unten
+            r = []
+            r.extend(list(range(0-3,0+3)))
+            r.extend(list(range(180-3,180+3)))
+            r.extend(list(range(360-3,360+3)))
 
-            if angle in [0,90,180,360]:
+            r2 = []
+            r2.extend(list(range(90-3,90+3)))
+            r2.extend(list(range(270-3,270+3)))
+            if angle in r:
+                pass
+            elif  0:#angle in r2:
+                # bug on 90 and 270 degrees on portrait video !! TODO
+                #shape = shape[::-1]
+                #bg_shape = shape[::-1]
+                #delta_x = (shape[1]-shape[0])/2
+                bg_shape = bg_shape[::-1]
+                delta_y = -65 #shape[1]/2 # # + nach unten
+                delta_x = 30 #shape[1]/2 # # + nach unten
+
+                delta_y -= bg_shape[1]/2 - 20
+                delta_x  = bg_shape[0]/2 - 10
+
                 pass
             else:
                 if shape[0] > shape[1]:
-                    shape = (shape[0],shape[0])
+                    # landscape video 
+                    bg_shape = (shape[0],shape[0])
+                    delta_y = (shape[0]-shape[1])/2
                 else:
-                    shape = (shape[1],shape[1])
+                    # portrait video
+                    bg_shape = (shape[1],shape[1])
+                    delta_x = (shape[1]-shape[0])/2
 
-            frame   = self.cv2.warpAffine(image, rot_mat, shape) #,flags=self.cv2.INTER_LINEAR)
+            center  = (shape[0]/2+delta_x,shape[1]/2+delta_y)
+            image = self.moveImage(image,x=delta_x,y=delta_y,shape=bg_shape)
+
+            rot_mat = self.cv2.getRotationMatrix2D(center,angle,1.0) 
+            frame   = self.cv2.warpAffine(image, rot_mat, bg_shape) #,flags=self.cv2.INTER_LINEAR)
             return frame
         except Exception as e:
             raise(e)
-    def moveImage(self,img,x=0,y=0):
+    def moveImage(self,img,x=0,y=0,shape=None):
         # Creating a translation matrix
         np = numpy
         translation_matrix = np.float32([ [1,0,x], [0,1,y] ])
-
-        num_cols,num_rows = img.shape[1::-1]
+        
+        if shape is None:
+            num_cols,num_rows = img.shape[1::-1]
+        else:
+            num_cols,num_rows = shape #[1::-1]
         # Image translation
         frame = self.cv2.warpAffine(img, translation_matrix, (num_cols,num_rows))
         return frame

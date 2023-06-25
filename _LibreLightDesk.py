@@ -2669,21 +2669,6 @@ from tkgui.GUI import *
 
 #draw_enc
 
-class LOAD_FIXTURE():
-    def __init__(self,name="",master=None):
-        self.name=name
-        self.master=master
-
-    def cb(self,event=None):
-        print("LOAD_FIXTURE",self.name,event)
-        if self.master is not None:
-            #for i in dir(self.master): #.load_MH2()
-            #    print(i)
-            if "SPARX" in self.name:
-                self.master.load_MH2()
-            else:
-                self.master.load_DIM()
-            print(dir(self.master))
 
 class LOAD_SHOW_AND_RESTAT():
     def __init__(self,fname=""):
@@ -2808,36 +2793,83 @@ def _load_show_list(frame,cb=None):
             c+=1
         r+=1
 
+def _parse_fixture_name(name):
+    out = ["FIX","MAN","CH","PATH"]
+    if name.count(".") == 2:
+        m,n,e = name.split(".")
+        out = [n,m,"0",name]
+    elif name.count("_") == 2:
+        name,e = name.split(".")
+        m,n,c = name.split("_")
+        out = [n,m,c,name]
+    else:
+        out = [name]
+    return out
 
 def _load_fixture_list(frame,cb=None,master=None,bg="black"):
     frame.configure(bg=bg)
     c=0
     r=0
     base = Base()
-    for i in ["name","stamp"]: #,"create"]:
+    for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
         b = tk.Label(frame,bg="grey",text=i)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
         c+=1
     r+=1
     blist = [] #base._list()
-    blist.append(["MAC-500","martin","z"])
-    blist.append(["MAC-2000","martin","z"])
-    blist.append(["MAC-VIPER","martin","z"])
-    blist.append(["SPARX-7","JB","z"])
-    blist.append(["SPARX-11","JB","z"])
-    blist.append(["JB-P6","JB","z"])
-    blist.append(["JB-P7","JB","z"])
-    blist.append(["JB-A7","JB","z"])
-    blist.append(["TMH-12","Eurolight","z"])
-    for i in range(10):
-        blist.append(["",""])
+    try:
+        p = "/home/user/LibreLight/fixtures/"
+        ls = os.listdir(p)
+        ls.sort()
+        for l in ls:
+            b = _parse_fixture_name(l)
+            b.append(p)
+            b.insert(0,"user")
+            blist.append(b)
+    except Exception as e:
+        print("Exce 877 ",e)
+    try:
+        p="/opt/LibreLight/Xdesk/fixtures/"
+        ls = os.listdir(p )
+        ls.sort()
+        for l in ls:
+            b = _parse_fixture_name(l)
+            b.append(p)
+            b.insert(0,"base")
+            blist.append(b)
+    except Exception as e:
+        print("Exce 878 ",e)
+
+    if not blist:
+        blist.append(["MAC-500","martin","Demo"])
+        blist.append(["MAC-2000","martin","Demo"])
+        blist.append(["MAC-VIPER","martin","Demo"])
+        blist.append(["SPARX-7","JB","Demo"])
+        blist.append(["SPARX-11","JB","Demo"])
+        blist.append(["JB-P6","JB","Demo"])
+        blist.append(["JB-P7","JB","Demo"])
+        blist.append(["JB-A7","JB","Demo"])
+        blist.append(["TMH-12","Eurolight","Demo"])
+
+    if len(blist) < 30:
+        for i in range(30-len(blist)):
+            blist.append(["{:0>4}".format(len(blist)+i+1),"",""])
 
 
     if cb is None: 
         cb = DummyCallback #("load_show_list.cb")
-
+    
+    _tmp_name = ""
+    _tmp_flag = 0
     for i in blist:
         #print(i)
+        if i[0] != _tmp_name:
+            _tmp_flag = "#aaf"
+            if i[0] == "user":
+                _tmp_flag = "#aaf"
+            if i[0] == "base":
+                _tmp_flag = "#0f0"
+
         c=0
         for j in i:
             bg="lightgrey"
@@ -2847,12 +2879,10 @@ def _load_fixture_list(frame,cb=None,master=None,bg="black"):
             elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
                 dbg = "green"
 
+            if _tmp_flag:
+                bg = "{}".format(_tmp_flag)
 
-            if c > 0:
-                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
-                b.config(activebackground=dbg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            else:
+            if c == 1:
                 if base.show_name == i[0]:
                     bg="green"
 
@@ -2862,6 +2892,10 @@ def _load_fixture_list(frame,cb=None,master=None,bg="black"):
 
                 if base.show_name == i[0]:
                     b.config(activebackground=bg)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            else:#ief c > 0:
+                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
+                b.config(activebackground=dbg)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
         r+=1

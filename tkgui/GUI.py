@@ -1,6 +1,7 @@
 
 import tkinter as tk
 from __main__ import *
+import __main__ as _M
 import lib.mytklib as mytklib
 
 class Event():
@@ -19,6 +20,21 @@ class scroll():
         canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
 
 
+class LOAD_FIXTURE():
+    def __init__(self,name="",master=None):
+        self.name=name
+        self.master=master
+
+    def cb(self,event=None):
+        print("LOAD_FIXTURE",self.name,event)
+        if self.master is not None:
+            #for i in dir(self.master): #.load_MH2()
+            #    print(i)
+            if "SPARX" in self.name:
+                self.master.load_MH2()
+            else:
+                self.master.load_DIM()
+            print(dir(self.master))
 
 class TableFrame():
     def __init__(self,root, width=50,height=100,bd=1):
@@ -725,15 +741,9 @@ class GUI_FaderLayout():
         line1="Fixture Library"
         line2="CHOOS to EDIT >> DEMO MODUS"
         cb = LOAD_FIXTURE
-        #cb.master=self
-        pw = PopupList(name,cb=cb,left=_POS_LEFT+820,bg="red")
+        pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
         frame = pw.sframe(line1=line1,line2=line2)
-        r=_load_fixture_list(frame,cb=cb,master=self,bg="red")
-
-
-        #self.elem["bg"] = "red"
-        #self.elem.config(activebackground="red")
-        #w.tk.attributes('-topmost',False)
+        r=_M._load_fixture_list(frame,cb=cb,master=self,bg="#333")
 
     def load_EMPTY(self,_event=None,attr=[]):
         #attr = [,"RED","GREEN","BLUE"]

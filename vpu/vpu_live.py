@@ -379,6 +379,7 @@ class Vopen():
             image = self.moveImage(image,x=delta_x,y=delta_y,shape=bg_shape)
 
             rot_mat = self.cv2.getRotationMatrix2D(center,angle,1.0) 
+            print("wrapAffine:", image, rot_mat, bg_shape) #,flags=self.cv2.INTER_LINEAR)
             frame   = self.cv2.warpAffine(image, rot_mat, bg_shape) #,flags=self.cv2.INTER_LINEAR)
             return frame
         except Exception as e:

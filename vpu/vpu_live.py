@@ -4,6 +4,7 @@ import random
 import time
 import os
 import sys
+import traceback
 import gc
 
 import _thread as thread
@@ -472,6 +473,9 @@ class Vopen():
             #self.init()
         except Exception as e:
             print("except 756",e)
+            print(traceback.format_exc())
+            print(sys.exc_info()[2])
+            print()
 
     def draw(self,wn=None):
         

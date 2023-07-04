@@ -217,7 +217,7 @@ if __name__ == "__main__":
         client.send(data)
         time.sleep(0.05)
     elif "client" in sys.argv:
-        c = Client()
+        c = Client(port=51111)
         if "test" in sys.argv: # test server/client
             import random 
             import string
@@ -258,7 +258,7 @@ if __name__ == "__main__":
             except Exception as e:
                 print("e",e)
     else: 
-        server = Server()
+        server = Server(port=51111)
         
         while 1:
             server.poll()

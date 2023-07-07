@@ -8,11 +8,22 @@ import select
 import zlib
 import base64
 import json 
+import time
 
 import _thread
 
 def dummyCB(msg):
-    print("dummy_CB",msg)
+    
+    t = str(time.time())[7:]
+    t = float(t)
+    t1 = 0
+
+    try:
+        cmd = json.loads(msg["cmd"])
+        t1 = cmd#[0]
+        t1 = float(t1)
+    except:pass
+    print("d:",round(t1-t,3),"dummy_CB",msg)
 
 
 

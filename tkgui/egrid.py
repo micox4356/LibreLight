@@ -24,12 +24,14 @@ class Event():
     def event(self,event):
         global value
         global event_que
-        print(self.name,event)
-        print("event:",[int(event.type),event.num])
+        #print(self.name,event)
+        #print("event:",[int(event.type),event.num])
 
         lock.acquire_lock()
-        print(lock.locked())
-        event_que.append([self,event])
+        #print(lock.locked())
+
+        t = str(time.time())[8:]
+        event_que.append([t,self,event])
         lock.release()
 
         if int(event.type) == 4:
@@ -37,7 +39,7 @@ class Event():
                 value +=1
             if event.num == 5:
                 value -=1
-            print(value)
+            #print(value)
 
         for e in data:
             t = e["text"]
@@ -141,11 +143,13 @@ l.grid(row=i,column=0)
 import _thread as thread
 import time
 
+_start = time.time()
+
 
 
 def loop():
     global event_que 
-    time.sleep(3)
+    time.sleep(1)
     c = chat.Client(port=51111)
     i=0
     while 1:
@@ -157,8 +161,12 @@ def loop():
         #print(_event_que)
 
         for i in _event_que:
+            t = str(time.time())[7:]
+            t = float(t)
             print(i)
-            c.send(str(i[1]).encode("ascii"))
+            t1 = float(i[0])
+            print("d:",round(t1-t,3))
+            c.send(str(i[0]).encode("ascii"))
         
         #c.send(s.encode("ascii"))
         #s = "hi {}".format(i)

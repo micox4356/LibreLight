@@ -3,6 +3,7 @@
 import sys
 import os
 
+event_que = []
 print( os.getcwd())
 try:
     import lib.zchat as chat
@@ -22,8 +23,15 @@ class Event():
         print("init",self)
     def event(self,event):
         global value
+        global event_que
         print(self.name,event)
         print("event:",[int(event.type),event.num])
+
+        lock.acquire_lock()
+        print(lock.locked())
+        event_que.append([self,event])
+        lock.release()
+
         if int(event.type) == 4:
             if event.num == 4:
                 value +=1
@@ -133,20 +141,45 @@ l.grid(row=i,column=0)
 import _thread as thread
 import time
 
+
+
 def loop():
+    global event_que 
     time.sleep(3)
     c = chat.Client(port=51111)
     i=0
     while 1:
-        s = "hi {}".format(i)
-        print(s)
-        c.send(s.encode("ascii"))
-        i+=1
-        time.sleep(1)
+        lock.acquire_lock()
+        #print(lock.locked())
+        _event_que = event_que[:]
+        event_que = []
+        lock.release()
+        #print(_event_que)
+
+        for i in _event_que:
+            print(i)
+            c.send(str(i[1]).encode("ascii"))
+        
+        #c.send(s.encode("ascii"))
+        #s = "hi {}".format(i)
+        #print(s)
+        #c.send(s.encode("ascii"))
+        #i+=1
+        #time.sleep(1)
         #r=c.read()
         #print(r)
+        time.sleep(0.02)
 
 thread.start_new_thread(loop,())
+lock = thread.allocate_lock()
+
+if 1:
+    # lock example
+    print(lock.locked())
+    lock.acquire_lock()
+    print(lock.locked())
+    lock.release()
+    print(lock.locked())
 
 # show window
 root.geometry("400x500")

@@ -190,8 +190,10 @@ class Client():
         try:
             self.xs.connect((self.xip, self.port)) #50000))
         except ConnectionRefusedError as e:
-            print("ConnectionRefusedError: ", "ERR: {0} ".format(e.args) ,end="")
+            print("e654 ConnectionRefusedError: ", "ERR: {0} ".format(e.args) ,end="")
             print("Server nicht ereichbar/unterbrochen")
+            print(self.xip,self.port)
+            print(self.xs)
             time.sleep(1)
             self.connect()
         print("connected !")
@@ -216,64 +218,95 @@ class Client():
 tcp_sender = Client
 
 
-if __name__ == "__main__":
-    if "data" in sys.argv:
-        i = sys.argv.index("data")
-        data = sys.argv[i+1]
-        print( i ,data)
-        data = data.encode("utf-8")
-        c = Client()
-        client = c
-        time.sleep(0.05)
-        client.send(data)
-        time.sleep(0.05)
+
+
+
+
+# test ----
+def run_client_test(c):
+    import random 
+    import string
+    client = c
+    print(" === TEST DATA START ===")
+
+    try:
+        for i in range(100):
+            x=random.choice(string.printable)
+            msg=bytes("hi"+str(x*random.randint(10,9999)),"utf-8")
+            print(x,sys.getsizeof(msg),len(msg))
+            client.send(msg)
+            time.sleep(0.01)
+    except Exception as e:
+        print("e",e)
+    finally:
+        client.close()
+
+    try:
+        client = Client()
+        for i in range(100):
+            x=random.choice(string.printable)
+            msg=bytes(x,"ho "+str(x*random.randint(10,9999)),"utf-8")
+            print(sys.getsizeof(msg),len(msg))
+            msg=zlib.compress(msg)
+            print(sys.getsizeof(msg),len(msg))
+            client.send(msg)
+            time.sleep(0.01)
+    except Exception as e:
+        print("e",e)
+    finally:
+        pass
+        #client.close()
+    print(" === TEST DATA END ===")
+
+
+
+TEST_PORT=51111
+# --- single app
+def test_client():
+    c = Client(port=TEST_PORT)
+    if "test" in sys.argv: # test server/client
+        run_client_test(c)
+
+    time.sleep(1)
+    while 1:
+        try:
+            i=""
+            i = input("cmd:")
+            c.send(bytes(i,"utf8"))
+        except Exception as e:
+            print("e445",e)
+
+def test_server():
+    server = Server(port=TEST_PORT)
+    
+    while 1:
+        server.poll()
+        time.sleep(0.00001)
+
+def test_cmd():
+    i = sys.argv.index("cmd")
+    data = sys.argv[i+1]
+    print( i ,data)
+    data = data.encode("utf-8")
+    c = Client(TEST_PORT)
+    client = c
+    time.sleep(0.05)
+    client.send(data)
+    time.sleep(0.05)
+
+
+# =======================
+def main():
+    if "cmd" in sys.argv:
+        test_cmd()
     elif "client" in sys.argv:
-        c = Client(port=51111)
-        if "test" in sys.argv: # test server/client
-            import random 
-            import string
-            client = c
-
-            try:
-                for i in range(100):
-                    x=random.choice(string.printable)
-                    msg=bytes("hi"+str(x*random.randint(10,9999)),"utf-8")
-                    print(x,sys.getsizeof(msg),len(msg))
-                    client.send(msg)
-                    time.sleep(0.01)
-            except Exception as e:
-                print("e",e)
-            finally:
-                client.close()
-
-            try:
-                client = Client()
-                for i in range(100):
-                    x=random.choice(string.printable)
-                    msg=bytes(x,"ho "+str(x*random.randint(10,9999)),"utf-8")
-                    print(sys.getsizeof(msg),len(msg))
-                    msg=zlib.compress(msg)
-                    print(sys.getsizeof(msg),len(msg))
-                    client.send(msg)
-                    time.sleep(0.01)
-            except Exception as e:
-                print("e",e)
-            finally:
-                client.close()
-        time.sleep(1)
-        while 1:
-            try:
-                i=""
-                i = input("cmd:")
-                c.send(bytes(i,"utf8"))
-            except Exception as e:
-                print("e",e)
+        test_client()
     else: 
-        server = Server(port=51111)
-        
-        while 1:
-            server.poll()
-            time.sleep(0.00001)
+        test_server()
+
+
+if __name__ == "__main__":
+    main()
 
 
 

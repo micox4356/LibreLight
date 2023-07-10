@@ -3,8 +3,11 @@ import vlc
  
 # importing time module
 import time
+import os
+
+HOME = os.getenv('HOME')
  
-media_path = "/home/user/LibreLight/music/"  
+media_path = HOME+"/LibreLight/music/"  
 fname = "1.mp3"
 def play(): 
     # creating vlc media player object

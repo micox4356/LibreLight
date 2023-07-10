@@ -7,6 +7,8 @@ import sys
 import traceback
 import gc
 
+HOME = os.getenv('HOME')
+
 import _thread as thread
 
 
@@ -147,8 +149,8 @@ class Vopen():
         global PLAYLIST
 
         self._id = _id
-        self.fpath = '/home/user/Downloads/'
-        self.fpath = '/home/user/LibreLight/video/'
+        self.fpath = HOME+'/Downloads/'
+        self.fpath = HOME+'/LibreLight/video/'
         self.fname = '' #'bbb_sunflower_480x320.mp4'
         #self.fname = 'no-video.mp4'
         try:
@@ -804,9 +806,9 @@ fr = font.render("hallo" ,1, (200,0,255))
 
 PIXEL_MAPPING = 0
 grid_file = "/tmp/vpu_grid_hd.csv"
-text_file = "/home/user/LibreLight/vpu_text_hd.csv"
+text_file = HOME+"/LibreLight/vpu_text_hd.csv"
 play_list = "/tmp/vpu_playlist_hd.csv"
-play_list = "/home/user/LibreLight/video/" #.format(path)
+play_list = HOME+"/LibreLight/video/" #.format(path)
 pm_wy = 0
 if options.pixel_mapping:
     PIXEL_MAPPING = 1
@@ -816,15 +818,15 @@ if options.pixel_mapping:
     path = path.replace(".","-")
     path = path.replace("\"","-")
     path = path.replace("'","-")
-    grid_file = "/home/user/LibreLight/vpu_grid_hd{}.csv".format(path)
-    text_file = "/home/user/LibreLight/vpu_text_hd{}.csv".format(path)
-    play_list = "/home/user/LibreLight/vpu_playlist_hd{}.csv".format(path)
-    play_list = "/home/user/LibreLight/video/" #.format(path)
+    grid_file = HOME+"/LibreLight/vpu_grid_hd{}.csv".format(path)
+    text_file = HOME+"/LibreLight/vpu_text_hd{}.csv".format(path)
+    play_list = HOME+"/LibreLight/vpu_playlist_hd{}.csv".format(path)
+    play_list = HOME+"/LibreLight/video/" #.format(path)
     #_x = 8
     #_y = 8
 
 print("  ",[options.pixel_mapping],"grid_file",grid_file)
-#grid_file = "/home/user/LibreLight/vpu_grid_hd.csv"
+#grid_file = HOME+"/LibreLight/vpu_grid_hd.csv"
 
 
 MAIN_SIZE=(600,500)

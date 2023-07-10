@@ -20,6 +20,7 @@ os.system(cmd)
 cmd =  "mkdir -p groß/"
 os.system(cmd)
 
+
 def convert_img(s,t):# to 1 sec video
     cmd="ffmpeg -y -framerate 1 -i 'groß/{}' -r 1000 'groß/{}.mp4'".format(s,t)
     cmd="ffmpeg -y -framerate 1 -i 'groß/{}' -s 640x480 -c:a copy -r 1000 'klein/{}.mp4'".format(s,t)

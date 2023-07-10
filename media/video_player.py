@@ -6,13 +6,15 @@ import pygame.font
 import time
 import os
 
+HOME = os.getenv('HOME')
+
 pygame.init() 
 
 class Vopen():
     def __init__(self):
-        self.fname = '/home/user/Downloads/video.mp4'
-        self.fname = '/home/user/Downloads/video.ogv'
-        self.fname = '/home/user/Downloads/bbb_sunflower_480x320.mp4'
+        self.fname = HOME+'/Downloads/video.mp4'
+        self.fname = HOME+'/Downloads/video.ogv'
+        self.fname = HOME+'/Downloads/bbb_sunflower_480x320.mp4'
         self.scale = 80 #%
         self.x = 0
         self.y = 0

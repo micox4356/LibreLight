@@ -4,6 +4,7 @@ import _thread as thread
 import cv2
 import sys
 
+HOME = os.getenv('HOME')
 from optparse import OptionParser
 
 parser = OptionParser()
@@ -12,7 +13,7 @@ parser.add_option("", "--videoplayer", dest="videoplayer",#default=1,
 (options, args) = parser.parse_args()
 
 PLAYLIST = []
-play_list = "/home/user/LibreLight/video/" #.format(path)
+play_list = HOME+"/LibreLight/video/" #.format(path)
 
 def open_playlist():
     print()
@@ -64,7 +65,7 @@ class Vopen2():
             self._run = 0
             self.fps = 1
             self.scale = 1
-            self.fpath = "/home/user/LibreLight/video/"
+            self.fpath = HOME+"/LibreLight/video/"
             self.fname = "xx.mp4"
             self.cv2 = cv2
             self.dim = 0

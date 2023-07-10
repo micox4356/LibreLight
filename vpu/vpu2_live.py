@@ -4,6 +4,7 @@ import random
 import time
 import os
 
+HOME = os.getenv('HOME')
 
 from optparse import OptionParser
 ...
@@ -484,7 +485,7 @@ def rDMX(univ,dmx):
     return univ*512+dmx
 
 grid_file = "/tmp/vpu_grid.csv"
-grid_file = "/home/user/LibreLight/vpu_grid_hd.csv"
+grid_file = HOME+"/LibreLight/vpu_grid_hd.csv"
 
 def generate_grid():
     log = open(grid_file,"w")

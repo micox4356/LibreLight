@@ -5,6 +5,7 @@ import time
 import os
 import sys
 
+HOME = os.getenv('HOME')
 START = time.time()
 _START = time.time()
 
@@ -39,7 +40,7 @@ parser.add_option("-g", "--gobo-ch", dest="gobo_ch",#default=1,
 def load_window_position():
     try:
         base = Base()
-        fname = "/home/user/LibreLight"
+        fname = HOME+"/LibreLight"
         fname = base.show_path1 +base.show_name 
         fname +=  "/gui.txt"
         print("load_window_position",fname)

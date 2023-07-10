@@ -62,6 +62,8 @@ import time
 import sys
 import os 
 
+HOME = os.getenv('HOME')
+
 import _thread as thread
 import traceback
 
@@ -360,7 +362,7 @@ class MC():
             self.fader_map.append({"UNIV":0,"DMX":0})
 
         try:
-            fname = "/home/user/LibreLight/fader.json"
+            fname = HOME + "/LibreLight/fader.json"
             f = open(fname)
             lines = f.readlines()
             cprint("FADER MAP",fname)
@@ -1342,7 +1344,7 @@ def save_window_position(save_as=""):
     cprint("save_window_position",[save_as])
     try:
         base = Base()
-        fname = "/home/user/LibreLight"
+        fname = HOME+"/LibreLight"
         fname = base.show_path1 +base.show_name 
         if save_as:
             fname = save_as 
@@ -1384,7 +1386,7 @@ def load_window_position(_filter=""):
     cprint("load_window_position",[_filter])
     try:
         base = Base()
-        fname = "/home/user/LibreLight"
+        fname = HOME+"/LibreLight"
         fname = base.show_path1 +base.show_name 
         fname +=  "/gui.txt"
         cprint("- fname:",fname)
@@ -1842,8 +1844,7 @@ class Base():
 
     def _init(self):
         show_name = "DemoShow"
-        self.home = os.environ['HOME'] 
-        self.show_path0 = self.home +"/LibreLight/"
+        self.show_path0 = HOME +"/LibreLight/"
         self.show_path  = self.show_path0 
         self.show_path1 = self.show_path0 + "show/"
         try:
@@ -2818,7 +2819,7 @@ def _load_fixture_list(frame,cb=None,master=None,bg="black"):
     r+=1
     blist = [] #base._list()
     try:
-        p = "/home/user/LibreLight/fixtures/"
+        p = HOME+"/LibreLight/fixtures/"
         ls = os.listdir(p)
         ls.sort()
         for l in ls:

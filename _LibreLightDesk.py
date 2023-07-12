@@ -4251,7 +4251,8 @@ if __run_main:
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
-    for i in range((24+12)*15):
+    #for i in range((24+12)*15):
+    for i in range(12*6):
         data.append({"text"+str(i):"test"})
     GUI_FaderLayout(w1,data)
     window_manager.new(w,name)

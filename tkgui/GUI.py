@@ -839,7 +839,7 @@ class GUI_FaderLayout():
         for j,e in enumerate(self.header):
             p=j+1
             #p=nr/pb
-            txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,p*pb+nr) 
+            txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,(p*pb+nr)-1) 
             print("---",j,txt,e)
             e["text"] = txt
             

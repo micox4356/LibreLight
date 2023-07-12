@@ -436,12 +436,13 @@ class Vopen():
             pass
 
         # restart at the end
-        if self.pos >= len(self.buffer):
+        if int(self.pos) >= len(self.buffer)-1:
             self.pos = 0 
         
         self.img = None
-        self._img = self.buffer[int(self.pos)]
-        self.img = self._img
+        if self.buffer:
+            self._img = self.buffer[int(self.pos)]
+            self.img = self._img
 
     def next(self):
          

@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 set -e
+exit
 
 path="/opt/LibreLight"
 SES="TKSDL.py"

@@ -1339,35 +1339,52 @@ class Xevent_fx():
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
         return 1 
         
+
+window_list_buffer = {}
+
 def save_window_position(save_as=""):
+    global window_list_buffer
     print()
     cprint("save_window_position",[save_as])
+
+    base = Base()
+    fname = HOME+"/LibreLight"
+    fname = base.show_path1 +base.show_name 
+    if save_as:
+        fname = save_as 
+    fname +=  "/gui.txt"
+    cprint("- fname",fname)
+
+    for k in window_list_buffer:
+        window_list_buffer[k][0] = 0   
+
+    for k,win in window_manager.windows.items():
+        try:
+            geo = win.tk.geometry()
+            window_list_buffer[k] = [1,k,geo]
+        except Exception as e:
+            cprint("-A save_window_position Exception:",e,color="red")
+
+    lines = ""
+    for k,data in window_list_buffer.items():
+        try:
+            print("-- save:win:pos",k,data)
+            if not data[2]:
+                continue
+            line ="{} {} {}\n"
+            line = line.format(data[0],k,data[2])
+            lines += line
+        except Exception as e:
+            cprint("-A save_window_position Exception:",e,color="red")
+
     try:
-        base = Base()
-        fname = HOME+"/LibreLight"
-        fname = base.show_path1 +base.show_name 
-        if save_as:
-            fname = save_as 
-        fname +=  "/gui.txt"
-        cprint("- fname",fname)
         f = open(fname,"w")
-        for k,win in window_manager.windows.items():
-            try:
-                print("-- save:win:pos",win,k)
-                if not win:
-                    continue
-                #print("d",dir(win))
-                #print("winfo",k,win.tk.geometry())
-                line="{} {}\n".format(k,win.tk.geometry())
-                #print("> ",[line])
-                f.write( line )
-                f.flush()
-            except Exception as e:
-                cprint("- save_window_position Exception:",e,color="red")
+        f.write( lines )
     except Exception as e:
-        cprint("- save_window_position Exception:",e,color="red")
+        cprint("-B save_window_position Exception:",e,color="red")
     finally:
-        f.close()
+        f.close() #f.flush()
+
 
 
 def save_window_position_loop(): # like autosave
@@ -1382,6 +1399,7 @@ def save_window_position_loop(): # like autosave
     thread.start_new_thread(loop,())
 
 def load_window_position(_filter=""):
+    global window_list_buffer
     print()
     cprint("load_window_position",[_filter])
     try:
@@ -1391,12 +1409,22 @@ def load_window_position(_filter=""):
         fname +=  "/gui.txt"
         cprint("- fname:",fname)
         f = open(fname,"r")
+        lines = f.readlines()
+        f.close()
+
         data = {}
-        for line in f.readlines():
+        for line in lines:
             line = line.strip()
+            print(line)
             if " " in line:
-                k,geo = line.split(" ",1)
-                data[k] = geo
+                if line.count(" ") >= 2:
+                    show,k,geo = line.split(" ",2)
+                elif line.count(" ") == 1:
+                    k,geo = line.split(" ",1)
+                    show = 1
+
+                data[k] = [show,k,geo]
+                window_list_buffer[k] = [show,k,geo]
 
         for k,win in window_manager.windows.items():
             if not win:
@@ -1404,11 +1432,13 @@ def load_window_position(_filter=""):
 
             if k not in data:
                 continue
-            w = data[k] 
 
             if _filter:
                 if _filter != k:
                     continue
+
+            w = data[k][2] 
+            
 
             cprint("- set_win_pos","filter:",[_filter],"Name: {:<20}".format(k),w,win)
             try:
@@ -2290,7 +2320,8 @@ class MASTER():
                                 if sdata[fix][attr]["VALUE"] is not None:
                                     val_color = 1
 
-                    b.configure(fg= "black")
+                    try:b.configure(fg= "black")
+                    except:pass
                     if val_color:
                         _bg = "gold"
                         _ba = "#ffaa55"
@@ -2370,36 +2401,53 @@ class MASTER():
                 if not elem:
                     continue
 
-                if not attr.startswith("_"):
-                    v2 = row["VALUE"]
-                    _text  = "{} {:0.2f}".format(attr,v2) # ~0.2 sec
-                    if elem["text"] != _text: #"{} {:0.2f}".format(attr,v2)
-                        elem["text"] = _text #"{} {:0.2f}".format(attr,v2)
+                try:
 
-                if row["ACTIVE"]:
-                    if elem["bg"] != "yellow":
-                        elem["bg"] = "yellow"
-                        elem.config(activebackground="yellow")
+                    if not attr.startswith("_"):
+                        v2 = row["VALUE"]
+                        _text  = "{} {:0.2f}".format(attr,v2) # ~0.2 sec
+                        try:
+                            if elem["text"] != _text: #"{} {:0.2f}".format(attr,v2)
+                                elem["text"] = _text #"{} {:0.2f}".format(attr,v2)
+                        except:
+                            cprint("err778",attr,elem)
 
-                    #if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
-                    if _dim_in_flag:
-                        c_d+=1
+                    if row["ACTIVE"]:
+                        try:
+                            if elem["bg"] != "yellow":
+                                elem["bg"] = "yellow"
+                                elem.config(activebackground="yellow")
+                        except:
+                            cprint("err778",attr,elem)
+
+                        #if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
+                        if _dim_in_flag:
+                            c_d+=1
+                        else:
+                            _c_a += 1
                     else:
-                        _c_a += 1
-                else:
-                    if elem["bg"] != "grey":
-                        elem["bg"] = "grey"
-                        elem.config(activebackground="grey")
+                        try:
+                            if elem["bg"] != "grey":
+                                elem["bg"] = "grey"
+                                elem.config(activebackground="grey")
+                        except:
+                            cprint("err778",attr,elem)
 
-                if "FX2" not in row: # insert FX2 excetption
-                    row["FX2"] = OrderedDict()
-                    
-                if row["FX"]:
-                    elem["fg"] = "blue"
-                elif row["FX2"]:
-                    elem["fg"] = "red"
-                else:
-                    elem["fg"] = "black"
+                    if "FX2" not in row: # insert FX2 excetption
+                        row["FX2"] = OrderedDict()
+                        
+                    try:
+                        if row["FX"]:
+                            elem["fg"] = "blue"
+                        elif row["FX2"]:
+                            elem["fg"] = "red"
+                        else:
+                            elem["fg"] = "black"
+                    except:
+                        cprint("err778",attr,elem)
+                except Exception as e:
+                    cprint("EXCEPTON 2406 ",e,color="red")
+                    cprint("err778",attr,elem)
 
             c_a += _c_a
             if _c_a>0:
@@ -3823,6 +3871,7 @@ class Window():
         if exit:
             if self.title == "MAIN":
                save_window_position()
+            
             self.tk.destroy()
         try:
             self.cb("<exit>").cb()
@@ -3941,6 +3990,9 @@ class WindowManager():
         self.nr= 0
         self.first=""
     def new(self,w,name="",obj=None):
+
+        if not w:
+            return
         if not self.first:
             if name:
                 self.first = name
@@ -3975,7 +4027,6 @@ class WindowManager():
             out = self.obj[name]
             #print(out)
             return out
-
     def top(self,name):
         name = str(name)
         for n in self.windows:
@@ -4142,7 +4193,7 @@ class window_create_buffer():
         self.scroll = scroll
         self.gui    = gui
 
-    def create(self):
+    def create(self,hidde=0):
         cprint()
         cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
 
@@ -4195,6 +4246,10 @@ if __run_main:
     data.append({"text":"COMMAND"})
     data.append({"text":"COLORPICKER","name":"COLOR"})
     data.append({"text":"FX"})
+    data.append({"text":"---"})
+    data.append({"text":"FIXTURE-EDITOR","name":"FIX-EDIT"})
+    #data.append({"text":"CLOCK"})
+    data.append({"text":"CONFIG"})
     gui_menu = GUI_menu(w.tk,data)
 
     window_manager = gui_menu.window_manager #= window_manager
@@ -4209,10 +4264,19 @@ if __run_main:
     cb_ok = None #set_exec_fader_all
     data  = PRESETS
 
+    hidde = 1
+    if name in window_list_buffer:
+        if window_list_buffer[name][0]:
+            hidde = 0
+    else:
+        hidde = 0
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,scroll=1,gui=master)
     window_init_buffer[name] = c
-    w,obj,cb_ok = c.create()
-    window_manager.new(w,name,obj=obj)
+    if hidde:
+        window_manager.new(None,name)
+    else:
+        w,obj,cb_ok = c.create(hidde=hidde)
+        window_manager.new(w,name,obj=obj)
     if cb_ok:
         cb_ok()
     
@@ -4225,46 +4289,79 @@ if __run_main:
     name="CONFIG"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    w = Window(args)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #w = Window(args)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_exe = w.tk
-    draw_config(master,w1)#.tk)#Xroot)
-    #draw_enc(master,w.tk)#Xroot)
-    #draw_preset(master,w1)#w.tk)
-    window_manager.new(w,name)
+    #draw_config(master,w1)#.tk)#Xroot)
+    cls = GUI_CONF
+    data = []
+    ##draw_enc(master,w.tk)#Xroot)
+    ##draw_preset(master,w1)#w.tk)
+    #window_manager.new(w,name)
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_init_buffer[name] = c
+    #w,obj,cb_ok = c.create()
+    #window_manager.new(w,name,obj)
+    window_manager.new(None,name) #,obj)
+
 
     name="DIMMER"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    w = Window(args)
-    w2 = ScrollFrame(w.tk,width=W1,height=H1)
-    #frame_dim = w1 # w.tk
-    #master.draw_dim(w1.tk)
-    window_manager.new(w,name)
+    #w = Window(args)
+    #w2 = ScrollFrame(w.tk,width=W1,height=H1)
+    ##frame_dim = w1 # w.tk
+    ##master.draw_dim(w1.tk)
+    #window_manager.new(w,name)
+    cls = GUI_DIM
+    #gui_fix.draw(FIXTURES)
+    data = FIXTURES
+    #window_manager.new(w,name)
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_init_buffer[name] = c
+    w,obj,cb_ok = c.create()
+    window_manager.new(w,name,obj)
+
 
     name="FIXTURES"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    w = Window(args)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #w = Window(args)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     #frame_fix = w1 #w.tk
     #draw_fix(master,w1,w2)#.tk)
-    gui_fix = GUI_FIX(master,w1,w2)
-    gui_fix.draw(FIXTURES)
-    window_manager.new(w,name)
+    #gui_fix = GUI_FIX(master,w1,w2)
+    cls = GUI_FIX
+    #gui_fix.draw(FIXTURES)
+    data = FIXTURES
+    #window_manager.new(w,name)
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_init_buffer[name] = c
+    w,obj,cb_ok = c.create()
+    window_manager.new(w,name,obj)
 
 
     name="FIXTURE-EDITOR"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    w = Window(args)
+    #w = Window(args)
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
     data=[]
     #for i in range((24+12)*15):
     for i in range(12*6):
         data.append({"text"+str(i):"test"})
-    GUI_FaderLayout(w1,data)
-    window_manager.new(w,name)
+    #GUI_FaderLayout(w1,data)
+    cls = GUI_FaderLayout
+    #window_manager.new(w,name)
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok)
+    window_init_buffer[name] = c
+    #w,obj,cb_ok = c.create()
+    #window_manager.new(w,name,obj)
+    window_manager.new(None,name)
 
     name="MASTER-WING"
     #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
@@ -4352,12 +4449,20 @@ if __run_main:
     name="PATCH"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    w = Window(args)
-    w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    main_preset_frame = w1
-    gui_patch = GUI_PATCH(master,main_preset_frame)
-    gui_patch.draw(FIXTURES)
-    window_manager.new(w,name)
+    #w = Window(args)
+    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
+    #main_preset_frame = w1
+    #gui_patch = GUI_PATCH(master,main_preset_frame)
+    cls = GUI_PATCH
+    #gui_patch.draw(FIXTURES)
+    data = FIXTURES
+    #window_manager.new(w,name)
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_init_buffer[name] = c
+    #w,obj,cb_ok = c.create()
+    #window_manager.new(w,name,obj)
+    window_manager.new(None,name) #,obj)
 
     #LibreLightDesk
     name="COLORPICKER"

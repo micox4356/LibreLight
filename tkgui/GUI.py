@@ -784,14 +784,14 @@ class GUI_FaderLayout():
         cb = LOAD_FIXTURE
         pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
         self.pw = pw
-        print(dir(pw.w))
-        print(dir(pw))
+        #print(dir(pw.w))
+        #print(dir(pw))
         frame = pw.sframe(line1=line1,line2=line2)
         r=_M._load_fixture_list(frame,cb=cb,master=self,bg="#333")
     def close_fixture_list(self):
         if self.pw:
-            print("*._"*30)
-            print(dir(self.pw.w.tk))
+            #print("*._"*30)
+            #print(dir(self.pw.w.tk))
             #self.pw.w.tk.quit()
             self.pw.w.tk.destroy()
 

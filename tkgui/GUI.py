@@ -36,7 +36,7 @@ class LOAD_FIXTURE():
                 self.master.load_MH2()
             else:
                 self.master.load_DIM()
-            print(dir(self.master))
+            #print(dir(self.master))
 
 class TableFrame():
     def __init__(self,root, width=50,height=100,bd=1):
@@ -206,6 +206,49 @@ class GUIHandler():
 
 
 
+class X_CLOCK():
+    def __init__(self):
+        self._last_label_id = 1
+        self._label_ring = [ "labelA","labelB"]
+
+    def loop_clock(self,b):
+        xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
+        xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
+        while 1:
+            tag = self._label_ring[self._last_label_id]
+            #b["text"] = 
+            d = time.strftime("%Y-%m-%d")
+            s = time.strftime("%X")
+            #b.delete("all")
+            b.create_text(170,41,text=s,fill="#aa0" ,font=xfont,tag=tag)
+            b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1,tag=tag)
+        
+            self.delete_tag()
+            time.sleep(0.2)
+            #exit()
+    def delete_tag(self):
+        self._last_label_id += 1
+        if self._last_label_id >=len(self._label_ring ):
+            self._last_label_id = 0
+        tag = self._label_ring[self._last_label_id]
+        self.bb.delete(tag)
+    def draw_clock(self,gui,xframe):
+        frame_cmd=xframe
+        
+        frame = tk.Frame(frame_cmd,bg="black")
+        frame.pack(fill=tk.X, side=tk.TOP)
+        comm = "xx"
+        
+        xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
+        b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
+        self.bb = b
+        #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
+        #b.config(activebackground="lightgreen")
+        #b.config(background="lightgreen")
+        b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
+        #b["text"] = time.strftime("%Y-%m-%d %X")
+        thread.start_new_thread(self.loop_clock,(b,))
+
 
 
 
@@ -266,25 +309,20 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
 
 
 
-
-class GUI_FIX():
-    def __init__(self,gui,xframe,yframe=None):
+class GUI_DIM():
+    def __init__(self,gui,xframe,data):
         self.gui = gui
+        self.data = data
         self.xframe = xframe
-        self.yframe = yframe
-    def draw(self,FIXTURES):
+        self.draw()
+    def draw(self):
+        FIXTURES = self.data
         gui=self.gui
         xframe=self.xframe
-        yframe=self.yframe
 
         r=0
         c=0
         frame_dim=xframe
-        if yframe:
-            frame_dim=yframe
-            for widget in yframe.winfo_children():
-                widget.destroy()
-        frame_fix=xframe
         for widget in xframe.winfo_children():
             widget.destroy()
 
@@ -292,6 +330,51 @@ class GUI_FIX():
         root = frame_dim
         dim_frame = tk.Frame(root,bg="black")
         dim_frame.pack(fill=tk.X, side=tk.TOP)
+
+        i=0
+        c=0
+        r=0
+        dim_end=0
+        for fix in FIXTURES.fixtures:
+            i+=1
+            data = FIXTURES.fixtures[fix]
+            if fix not in gui.elem_attr:
+                gui.elem_attr[fix] = {}
+            
+            kix = []
+            for ix in data["ATTRIBUT"].keys():
+                if not ix.startswith("_") and not ix.endswith("-FINE"):
+                    kix.append(ix)
+
+            if "DIM" in kix and len(kix) == 1:
+                c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
+                continue
+
+            break
+
+
+
+class GUI_FIX():
+    def __init__(self,gui,xframe,data):
+        self.gui = gui
+        self.data = data
+        self.xframe = xframe
+        self.draw()
+    def draw(self):
+        FIXTURES = self.data
+        gui=self.gui
+        xframe=self.xframe
+       
+
+        r=0
+        c=0
+        frame_dim=xframe
+        frame_fix=xframe
+        for widget in xframe.winfo_children():
+            widget.destroy()
+
+
+        root = frame_dim
         root = frame_fix
         fix_frame = tk.Frame(root,bg="black")
         fix_frame.pack(fill=tk.X, side=tk.TOP)
@@ -302,21 +385,16 @@ class GUI_FIX():
         for fix in FIXTURES.fixtures:
             i+=1
             data = FIXTURES.fixtures[fix]
-            #print("draw_fix", fix ,data )
             if fix not in gui.elem_attr:
                 gui.elem_attr[fix] = {}
             
-            #if (len(data["ATTRIBUT"].keys()) <= 1):
-            #    c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
             kix = []
             for ix in data["ATTRIBUT"].keys():
                 if not ix.startswith("_") and not ix.endswith("-FINE"):
                     kix.append(ix)
 
             if "DIM" in kix and len(kix) == 1:
-                c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
                 continue
-
 
 
             if not dim_end:
@@ -450,10 +528,14 @@ class _SET_PATCH():
 
 
 class GUI_PATCH():
-    def __init__(self,gui,yframe):
+    #def __init__(self,gui,yframe):
+    def __init__(self,gui,yframe,data):
         self.gui = gui
         self.yframe = yframe
-    def draw(self,FIXTURES): #,gui,yframe):
+        self.data = data
+        self.draw()
+    def draw(self): #,gui,yframe):
+        FIXTURES = self.data
         gui = self.gui
         yframe = self.yframe
 
@@ -723,6 +805,10 @@ class GUI_FaderLayout():
         self.b["command"] = self.save_fixture
         self.b.pack( side=tk.LEFT)
         
+        self.b = tk.Button(self.frame,bg="lightblue",text="SAVE AS", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.save_as_fixture
+        self.b.pack( side=tk.LEFT)
+
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
@@ -775,6 +861,8 @@ class GUI_FaderLayout():
         dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
 
 
+    def save_as_fixture(self,event=None):
+        print("save_as_fix",self,event)
     def save_fixture(self,event=None):
         print("save_fix",self,event)
     def open_fixture_list(self):

@@ -81,7 +81,7 @@ def draw_exec(gui,xframe,PRESETS):
 
 
 def draw_preset(gui,xframe,PRESETS):
-
+    
     i=0
     c=0
     r=0
@@ -303,96 +303,105 @@ def draw_colorpicker(gui,xframe,FIXTURES,master):
 
 
 
-def draw_config(gui,xframe):
-    for widget in xframe.winfo_children():
-        widget.destroy()
+#def draw_config(gui,xframe):
+class GUI_CONF():
+    def __init__(self,gui,xframe,data):
+        self.gui = gui
+        self.data = data
+        self.xframe = xframe
+        self.draw()
+    def draw(self):
+        gui =self.gui
+        xframe = self.xframe
+        for widget in xframe.winfo_children():
+            widget.destroy()
 
-    i=0
-    c=0
-    r=0
-    root2 = xframe
+        i=0
+        c=0
+        r=0
+        root2 = xframe
 
-    frame = tk.Frame(root2,bg="#222")
-    frame.pack(fill="both", expand=1,side=tk.TOP)
+        frame = tk.Frame(root2,bg="#222")
+        frame.pack(fill="both", expand=1,side=tk.TOP)
 
 
-    b = tk.Label(frame, text="",bg="#222")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=0
-    r+=1
-    b = tk.Label(frame, text="",bg="#222")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c=0
-    r+=1
-    b = tk.Label(frame, text="",bg="#222")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c=1
-    r+=1
-    
-    
-    b = tk.Label(frame, text="_________")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=1
-    b = tk.Entry(frame,bg="grey", text="",width=50)
-    gui.entry = b
-    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b.insert("end","" ) #d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
-    r+=1
-    b = tk.Entry(frame,bg="grey", text="",width=20)
-    gui.entry2 = b
-    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
-    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b.insert("end","d1:0:4")
-    r+=1
-    b = tk.Entry(frame,bg="grey", text="",width=20)
-    gui.entry3 = b
-    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    ##b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b.insert("end","fx:alloff:::")
+        b = tk.Label(frame, text="",bg="#222")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=0
+        r+=1
+        b = tk.Label(frame, text="",bg="#222")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c=0
+        r+=1
+        b = tk.Label(frame, text="",bg="#222")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c=1
+        r+=1
+        
+        
+        b = tk.Label(frame, text="_________")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+        b = tk.Entry(frame,bg="grey", text="",width=50)
+        gui.entry = b
+        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.insert("end","" ) #d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
+        r+=1
+        b = tk.Entry(frame,bg="grey", text="",width=20)
+        gui.entry2 = b
+        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.insert("end","d1:0:4")
+        r+=1
+        b = tk.Entry(frame,bg="grey", text="",width=20)
+        gui.entry3 = b
+        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+        ##b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b.insert("end","fx:alloff:::")
 
-    r+=1
+        r+=1
 
-    b = tk.Label(frame, text="",bg="#222")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=0
-    r+=1
-    b = tk.Label(frame, text="",bg="#222")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=0
-    r+=1
-    b = tk.Label(frame, text=" BATCH COMMAND ")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=0
-    r+=1
-    b1 = tk.Entry(frame,bg="grey", text="",width=50)
-    #gui.entry = b
-    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    b1.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b1.insert("end","fix 1-100 patch @ 2.120")
-    r+=1
+        b = tk.Label(frame, text="",bg="#222")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=0
+        r+=1
+        b = tk.Label(frame, text="",bg="#222")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=0
+        r+=1
+        b = tk.Label(frame, text=" BATCH COMMAND ")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=0
+        r+=1
+        b1 = tk.Entry(frame,bg="grey", text="",width=50)
+        #gui.entry = b
+        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+        b1.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b1.insert("end","fix 1-100 patch @ 2.120")
+        r+=1
 
-    b = tk.Label(frame, text="",bg="#222")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=0
-    r+=1
-    b = tk.Label(frame, text=" BATCH COMMAND ")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    c+=0
-    r+=1
-    b2 = tk.Entry(frame,bg="grey", text="",width=50)
-    #gui.entry = b
-    #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    b2.grid(row=r, column=c, sticky=tk.W+tk.E)
-    b2.insert("end","SELECT 33-61 PAN,TILT")
+        b = tk.Label(frame, text="",bg="#222")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=0
+        r+=1
+        b = tk.Label(frame, text=" BATCH COMMAND ")
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=0
+        r+=1
+        b2 = tk.Entry(frame,bg="grey", text="",width=50)
+        #gui.entry = b
+        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+        b2.grid(row=r, column=c, sticky=tk.W+tk.E)
+        b2.insert("end","SELECT 33-61 PAN,TILT")
 
-    root2.pack(fill="both",expand=1,side="top")
+        root2.pack(fill="both",expand=1,side="top")
 
 
 
@@ -605,49 +614,6 @@ def draw_setup(gui,xframe):
 
 
 
-
-class X_CLOCK():
-    def __init__(self):
-        self._last_label_id = 1
-        self._label_ring = [ "labelA","labelB"]
-
-    def loop_clock(self,b):
-        xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
-        xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
-        while 1:
-            tag = self._label_ring[self._last_label_id]
-            #b["text"] = 
-            d = time.strftime("%Y-%m-%d")
-            s = time.strftime("%X")
-            #b.delete("all")
-            b.create_text(170,41,text=s,fill="#aa0" ,font=xfont,tag=tag)
-            b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1,tag=tag)
-        
-            self.delete_tag()
-            time.sleep(0.2)
-            #exit()
-    def delete_tag(self):
-        self._last_label_id += 1
-        if self._last_label_id >=len(self._label_ring ):
-            self._last_label_id = 0
-        tag = self._label_ring[self._last_label_id]
-        self.bb.delete(tag)
-    def draw_clock(self,gui,xframe):
-        frame_cmd=xframe
-        
-        frame = tk.Frame(frame_cmd,bg="black")
-        frame.pack(fill=tk.X, side=tk.TOP)
-        comm = "xx"
-        
-        xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
-        b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
-        self.bb = b
-        #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
-        #b.config(activebackground="lightgreen")
-        #b.config(background="lightgreen")
-        b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
-        #b["text"] = time.strftime("%Y-%m-%d %X")
-        thread.start_new_thread(self.loop_clock,(b,))
 
 
 

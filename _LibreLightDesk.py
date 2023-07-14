@@ -1504,6 +1504,9 @@ class Xevent():
 
                 #def _cb(fname):
                 def _cb(data):
+                    if not data:
+                        print("err443",self,"_cb",data)
+                        return None
                     fname = data["Value"]
                     print(self,"save_show._cb()",fname)
                     fpath,fname = base.build_path(fname)
@@ -2139,6 +2142,9 @@ class MASTER():
         label  = PRESETS.label(nr) 
 
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             print(self,"btn_cfg._cb()",data)
             if data:
 
@@ -2164,6 +2170,9 @@ class MASTER():
     def label(self,nr):
         txt = PRESETS.label(nr) 
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"label._cb()",nr,txt)
             if txt:

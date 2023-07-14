@@ -30,7 +30,9 @@ class LOAD_FIXTURE():
         if self.master is not None:
             #for i in dir(self.master): #.load_MH2()
             #    print(i)
-            if "SPARX" in self.name:
+            if "SPARX" in self.name.upper():
+                self.master.load_MH2()
+            elif "MH" in self.name.upper():
                 self.master.load_MH2()
             else:
                 self.master.load_DIM()
@@ -402,6 +404,9 @@ class _SET_PATCH():
             val = self.data[k]
         #txt = dialog.askstring("SET","SET: {}={}".format(self.k,self.v),initialvalue=val)
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print("_SET.attr",txt)
             v = txt
@@ -535,17 +540,31 @@ class GUI_PATCH():
             c+=1
 
             command = _SET_PATCH("NAME",data["NAME"],fix,data)
-            b = tk.Button(xframe,bg="lightblue", text=data["NAME"],width=14,anchor="w",command=command.attr)
+            b = tk.Button(xframe,bg="grey", text=data["NAME"],width=14,anchor="w",command=command.attr)
             command.set_button(b)
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
+            LABEL = ""
             if len(data["ATTRIBUT"]) == 1:
-                b = tk.Button(xframe,bg="#ddd", text="DIMMER",width=8,anchor="w")
-            elif "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
-                b = tk.Button(xframe,bg="#ddd", text="MOVER",width=8,anchor="w")
+                LABEL = "DIMMER"
+            elif  "PAN" in data["ATTRIBUT"] or  "TILT" in data["ATTRIBUT"] :
+                LABEL = "MOVER"
             else:
-                b = tk.Button(xframe,bg="#ddd", text="",width=8,anchor="w")
+                LABEL = {}
+                for a in data["ATTRIBUT"]:
+                    nr = data["ATTRIBUT"][a]["NR"]
+                    if a[0] != "_":
+                        LABEL[nr] = a[0]
+                keys = list(LABEL.keys())
+                keys.sort()
+                L2 =""
+                for k in keys:
+                    L2 += LABEL[k]
+                LABEL = L2
+
+                    
+            b = tk.Button(xframe,bg="#aaa", text=LABEL,width=8,anchor="w")
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -588,11 +607,12 @@ class GUI_PATCH():
                 if k in dmx_collision:
                     if dmx_collision[k]:
                         collision.append(k)
-
-            b = tk.Button(xframe,bg="grey", text="{:3} ({})".format(max_dmx[1] , max_dmx[0]),width=4) #a,anchor="w")
+            # CH's
+            b = tk.Button(xframe,bg="#aaa", text="{:3} ({})".format(max_dmx[1] , max_dmx[0]),width=4) #a,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            #b = tk.Button(xframe,bg="#aaa", text="{:03}-{:03}".format(data["DMX"],len(data["ATTRIBUT"])+(data["DMX"])-1),width=6,anchor="w")
+                
+            # from - to    
             b = tk.Button(xframe,bg="#aaa", text="{:03} - {:03}".format(data["DMX"],max_dmx[1]+(data["DMX"]-1)),width=8,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
@@ -613,7 +633,8 @@ class GUI_PATCH():
                 return xx
 
             #print(fix)
-            b = tk.Button(xframe,bg="#aaa",fg="#225", text="TEST",width=4,anchor="w",command=x(fix))
+            #TEST BTN
+            b = tk.Button(xframe,bg="grey",fg="#000", text="TEST",width=4,anchor="w",command=x(fix))
             myTip = Hovertip(b,'BLINK DIMMER')
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             #b.command = x
@@ -651,6 +672,14 @@ class GUI_FaderLayout():
 
         self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor") #,font=font8 )
         self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="#aaa",text="FILE:") #,font=font8 )
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="#fff",text="~/LibreLight/fixtures/lalla.json") #,font=font8 )
+        self.b_path = self.b
+        self.b.pack(fill=None, side=tk.LEFT)
+
         self.frame = tk.Frame(root,bg="black",width=width)
         self.frame.pack(fill=tk.BOTH, side=tk.TOP)
         self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
@@ -683,8 +712,15 @@ class GUI_FaderLayout():
         self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="LIST", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg="lightblue",text="OPEN", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list
+        self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="#ddd",text=":")
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="SAVE", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.save_fixture
         self.b.pack( side=tk.LEFT)
         
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
@@ -727,6 +763,9 @@ class GUI_FaderLayout():
     def set_name(self,_event=None):
         txt = self.name["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"._cb()",txt)
             self.name["text"] = "{}".format(txt)
@@ -736,14 +775,25 @@ class GUI_FaderLayout():
         dialog.askstring("FIXTURE NAME:","NAME:",initialvalue=txt)
 
 
+    def save_fixture(self,event=None):
+        print("save_fix",self,event)
     def open_fixture_list(self):
         name = "FIXTURE-LIB"
         line1="Fixture Library"
         line2="CHOOS to EDIT >> DEMO MODUS"
         cb = LOAD_FIXTURE
         pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
+        self.pw = pw
+        print(dir(pw.w))
+        print(dir(pw))
         frame = pw.sframe(line1=line1,line2=line2)
         r=_M._load_fixture_list(frame,cb=cb,master=self,bg="#333")
+    def close_fixture_list(self):
+        if self.pw:
+            print("*._"*30)
+            print(dir(self.pw.w.tk))
+            #self.pw.w.tk.quit()
+            self.pw.w.tk.destroy()
 
     def load_EMPTY(self,_event=None,attr=[]):
         #attr = [,"RED","GREEN","BLUE"]
@@ -753,18 +803,26 @@ class GUI_FaderLayout():
         attr = ["DIM"]
         mode = ["F"]
         self._load_fix(None,attr,mode)
+        self.b_path["text"] = "load_DIM"
+        self.close_fixture_list()
     def load_LED(self,_event=None,attr=[]):
         attr = ["DIM","RED","GREEN","BLUE"]
         mode = ["F","F","F","F"]
         self._load_fix(None,attr,mode)
+        self.b_path["text"] = "load_LED"
+        self.close_fixture_list()
     def load_MH(self,_event=None,attr=[]):
         attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
         mode = ["F","F","F","F","S","F","F","F","F","S"]
         self._load_fix(None,attr,mode)
+        self.b_path["text"] = "load_MH"
+        self.close_fixture_list()
     def load_MH2(self,_event=None,attr=[]):
         attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO","G-ROT","PRISM","P-ROT","ZOOM","CONTR"]
         mode = ["F","F","F","F","S","F","F","F","F","S","S","S","S","F","S"]
+        self.b_path["text"] = "load_MH2"
         self._load_fix(None,attr,mode)
+        self.close_fixture_list()
 
     def _load_fix(self,_event=None,attr=[],mode=[]):
         print("load_fixture",[_event,self])
@@ -784,6 +842,9 @@ class GUI_FaderLayout():
         txt= self.entry_univ["text"]
         #def _cb(txt):
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"event_univ._cb()",txt)
             try:
@@ -802,6 +863,9 @@ class GUI_FaderLayout():
         #txt = dialog.askstring("DMX","ArtNet 1-512 (7680 max)",initialvalue=txt)
         #def _cb(txt):
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"event_dmx._cb()",txt)
             try:
@@ -896,6 +960,9 @@ class ELEM_FADER():
     def set_attr(self,_event=None):
         txt= self.attr["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"set_attr._cb()",txt)
             self._set_attr(txt)
@@ -912,6 +979,9 @@ class ELEM_FADER():
     def set_mode(self,_event=None):
         txt= self.mode["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
             w = Window("config",master=1,width=200,height=140,left=L1,top=TOP)
@@ -1003,6 +1073,9 @@ class EXEC_FADER():
     def set_attr(self,_event=None):
         txt= self.attr["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             print(self,"set_attr._cb()",data)
             if "Value" in data and type( data["Value"]) is str:
                 txt = data["Value"]
@@ -1020,6 +1093,9 @@ class EXEC_FADER():
     def set_mode(self,_event=None):
         txt= self.mode["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
             w = Window("config",master=1,width=200,height=140,left=L1,top=TOP)
@@ -1191,6 +1267,9 @@ class GUI_ExecWingLayout():
     def set_name(self,_event=None):
         txt = self.name["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"._cb()",txt)
             self.name["text"] = "{}".format(txt)
@@ -1307,6 +1386,9 @@ class GUI_MasterWingLayout():
     def set_name(self,_event=None):
         txt = self.name["text"]
         def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
             txt = data["Value"]
             print(self,"._cb()",txt)
             self.name["text"] = "{}".format(txt)

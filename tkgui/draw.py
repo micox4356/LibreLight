@@ -405,7 +405,7 @@ class GUI_CONF():
 
 
 
-def draw_enc(gui,xframe):
+def draw_enc(gui,xframe,data=[]):
 
     for widget in xframe.winfo_children():
         widget.destroy()

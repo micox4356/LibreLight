@@ -2137,34 +2137,36 @@ class MASTER():
         cprint("button_refresh",name,color)
         #if color == "gold":
         #    color2 = "yellow"
-        if color2 is None:
-            color2 = color
-        if text:
-            text = "\n"+str(text)
-        if name in self.commands.elem:
-            self.commands.elem[name]["bg"] = color
-            self.commands.elem[name]["text"] = name+ text
-            self.commands.elem[name].config(activebackground=color2)
-            if fg:
-                self.commands.elem[name]["fg"] = fg
-        elif name in self.fx.elem:
-            #todo
-            self.fx.elem[name]["bg"] = color
-            self.fx.elem[name].config(activebackground=color2)
-            if fg:
-                self.fx.elem[name]["fg"] = fg
+        try:
+            if color2 is None:
+                color2 = color
+            if text:
+                text = "\n"+str(text)
+            if name in self.commands.elem:
+                self.commands.elem[name]["bg"] = color
+                self.commands.elem[name]["text"] = name+ text
+                self.commands.elem[name].config(activebackground=color2)
+                if fg:
+                    self.commands.elem[name]["fg"] = fg
+            elif name in self.fx.elem:
+                #todo
+                self.fx.elem[name]["bg"] = color
+                self.fx.elem[name].config(activebackground=color2)
+                if fg:
+                    self.fx.elem[name]["fg"] = fg
 
-        # new version
-        for elems in [self.fx_moves]:
-            if name in elems.elem:
-                elem = elems.elem[name]
-                cprint("elem",elem)
-                elem.config(bg = color)
-                elem.config(text = name+text)
-                elem.config(activebackground=color2)
+            # new version
+            for elems in [self.fx_moves]:
+                if name in elems.elem:
+                    elem = elems.elem[name]
+                    cprint("elem",elem)
+                    elem.config(bg = color)
+                    elem.config(text = name+text)
+                    elem.config(activebackground=color2)
 
-                if fg and "fg" in elem:
-                    elem["fg"] = fg
+                    if fg and "fg" in elem:
+                        elem["fg"] = fg
+        except Exception as e:cprint("exc",self,e)
 
     def btn_cfg(self,nr,testing=0):
         cfg    = PRESETS._btn_cfg(nr) 
@@ -2380,7 +2382,7 @@ class MASTER():
             _c_a = 0
 
             if fix not in self.elem_attr:
-                cprint("_refresh_fix fix not in self.elem_attr (no Button)",fix,color="red")
+                #cprint("_refresh_fix fix not in self.elem_attr (no Button)",fix,color="red")
                 continue
             elem_attr_fix = self.elem_attr[fix]
 
@@ -2410,7 +2412,7 @@ class MASTER():
                             if elem["text"] != _text: #"{} {:0.2f}".format(attr,v2)
                                 elem["text"] = _text #"{} {:0.2f}".format(attr,v2)
                         except:
-                            cprint("err778",attr,elem)
+                            pass#cprint("err778",attr,elem)
 
                     if row["ACTIVE"]:
                         try:
@@ -2418,7 +2420,7 @@ class MASTER():
                                 elem["bg"] = "yellow"
                                 elem.config(activebackground="yellow")
                         except:
-                            cprint("err778",attr,elem)
+                            pass#cprint("err778",attr,elem)
 
                         if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 2:
                             c_d+=1
@@ -2432,7 +2434,7 @@ class MASTER():
                                 elem["bg"] = "grey"
                                 elem.config(activebackground="grey")
                         except:
-                            cprint("err778",attr,elem)
+                            pass#cprint("err778",attr,elem)
 
                     if "FX2" not in row: # insert FX2 excetption
                         row["FX2"] = OrderedDict()
@@ -2445,7 +2447,7 @@ class MASTER():
                         else:
                             elem["fg"] = "black"
                     except:
-                        cprint("err778",attr,elem)
+                        pass#cprint("err778",attr,elem)
                 except Exception as e:
                     cprint("EXCEPTON 2406 ",e,color="red")
                     cprint("err778",attr,elem)
@@ -2665,12 +2667,14 @@ class InputEventBlocker():
     def _lock(self):
         global _global_short_key
         _global_short_key = 0
-        master.commands.elem["S-KEY"]["bg"] = "red"
+        try:master.commands.elem["S-KEY"]["bg"] = "red"
+        except Exception as e:cprint("exc",self,e)
 
     def _unlock(self):
         global _global_short_key
         _global_short_key = 1
-        master.commands.elem["S-KEY"]["bg"] = "green"
+        try:master.commands.elem["S-KEY"]["bg"] = "green"
+        except Exception as e:cprint("exc",self,e)
 
     def lock(self):
         self._lock()
@@ -4266,14 +4270,17 @@ if __run_main:
     data.append({"text":"EXEC","name":"EXEC-BTN"})
     data.append({"text":"EXEC-WING"})
     data.append({"text":"---"})
-    data.append({"text":"ENCODER"})
+    data.append({"text":"SETUP"})
     data.append({"text":"COMMAND"})
-    data.append({"text":"COLORPICKER","name":"COLOR"})
+    data.append({"text":"LIVE"})
     data.append({"text":"FX"})
+    data.append({"text":"ENCODER"})
+    data.append({"text":"COLORPICKER","name":"COLOR"})
     data.append({"text":"---"})
     data.append({"text":"FIXTURE-EDITOR","name":"FIX-EDIT"})
-    #data.append({"text":"CLOCK"})
     data.append({"text":"CONFIG"})
+    data.append({"text":"CLOCK"})
+    data.append({"text":"---"})
 
     name="MAIN"
     args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
@@ -4311,7 +4318,7 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    #window_manager.top(name)
 
 
     name="DIMMER"
@@ -4323,7 +4330,7 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    #window_manager.top(name)
 
 
     name="FIXTURES"
@@ -4335,7 +4342,7 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    #window_manager.top(name)
 
 
     # -------------------------------
@@ -4351,12 +4358,12 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    #window_manager.top(name)
 
     
     # -------------------------------
     name="MASTER-WING"
-    args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220,"resize":1}
+    args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220,"resize":0}
 
     data=[]
     for i in range(2):
@@ -4393,39 +4400,61 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    #window_manager.top(name)
 
     name = "SETUP"
-    args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
-    w = Window(args)
-    w.tk.title("SETUP   SHOW:"+master.base.show_name)
-    draw_setup(master,w.tk)
-    window_manager.new(w,name)
+    args = {"title":name +" SHOW:"+master.base.show_name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
+    args["title"]  = "SETUP SHOW:"+master.base.show_name
+
+    cls = draw_setup #(master,w.tk)
+    data = []
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
+
 
     name = "COMMAND"
     args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":0}
-    w = Window(args)
-    draw_command(master,w.tk)
-    window_manager.new(w,name)
+    cls = draw_command #(master,w.tk)
+    data = []
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
     name = "LIVE"
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":0}
-    w = Window(args)
-    draw_live(master,w.tk)
-    window_manager.new(w,name)
+    cls = draw_live #(master,w.tk)
+    data = []
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
     name = "CLOCK"
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
-    w = Window(args)
     cclock = X_CLOCK()
-    cclock.draw_clock(master,w.tk)
-    window_manager.new(w,name)
+    cls = cclock.draw_clock 
+    data = []
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
     name="FX"
     args = {"title":name,"master":0,"width":415,"height":297,"left":L1+10+W1,"top":TOP+302,"resize":0}
-    w = Window(args)
-    draw_fx(master,w.tk)
-    window_manager.new(w,name)
+    cls = draw_fx #(master,w.tk)
+    data = []
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
 
     name="PATCH"
@@ -4435,14 +4464,19 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c) #,obj)
-    window_manager.top(name)
+    #window_manager.top(name)
 
     name="COLORPICKER"
     args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
-    w = Window(args)
-    draw_colorpicker(master,w.tk,FIXTURES,master)
-    window_manager.new(w,name)
-    window_manager.top(name)
+    #w = Window(args)
+    #draw_colorpicker(master,w.tk,FIXTURES,master)
+    cls = draw_colorpicker #(master,w.tk,FIXTURES,master)
+    data = [FIXTURES,master]
+    cb_ok = None #FIXTURES
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    #window_manager.top(name)
 
     name="TableA"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
@@ -4463,7 +4497,7 @@ if __run_main:
     master.render()
     window_manager.top("Table")
     #w = frame_fix #Window("OLD",master=0,width=W1,height=500,left=130,top=TOP)
-    window_manager.new(w,name)
+    #window_manager.new(w,name)
 
 
 

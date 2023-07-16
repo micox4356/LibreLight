@@ -209,44 +209,51 @@ class X_CLOCK():
     def __init__(self):
         self._last_label_id = 1
         self._label_ring = [ "labelA","labelB"]
+        self.b = tk.Canvas()
+        self.bb = tk.Canvas()
+        self.xfont  = tk.font.Font(family="FreeSans", size=65, weight="bold")
+        self.xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
 
-    def loop_clock(self,b):
-        xfont = tk.font.Font(family="FreeSans", size=65, weight="bold")
-        xfont1 = tk.font.Font(family="FreeSans", size=25, weight="bold")
+        self.write_text(text1="text1",text2="text2")
+
+    def write_text(self,text1="text1",text2="text2"):
+        tag = self._label_ring[self._last_label_id]
+        self.bb.create_text(170,41,text=text1,fill="#aa0" ,font=self.xfont,tag=tag)
+        self.bb.create_text(160,91,text=text2,fill="#aa0" ,font=self.xfont1,tag=tag)
+        self.delete_tag()
+        time.sleep(0.2)
+
+    def loop_clock(self,b=None):
         while 1:
-            tag = self._label_ring[self._last_label_id]
-            #b["text"] = 
-            d = time.strftime("%Y-%m-%d")
+            #print("x",self.bb,dir(self.bb))
+            #print(self,"x")
             s = time.strftime("%X")
-            #b.delete("all")
-            b.create_text(170,41,text=s,fill="#aa0" ,font=xfont,tag=tag)
-            b.create_text(160,91,text=d,fill="#aa0" ,font=xfont1,tag=tag)
-        
-            self.delete_tag()
-            time.sleep(0.2)
-            #exit()
+            d = time.strftime("%Y-%m-%d")
+            try:
+                self.write_text(text1=s,text2=d)
+            except:
+                break
+                cprint("CLOSE XCLOCK",self)
+
     def delete_tag(self):
         self._last_label_id += 1
         if self._last_label_id >=len(self._label_ring ):
             self._last_label_id = 0
         tag = self._label_ring[self._last_label_id]
         self.bb.delete(tag)
-    def draw_clock(self,gui,xframe):
-        frame_cmd=xframe
-        
-        frame = tk.Frame(frame_cmd,bg="black")
+
+    def draw_clock(self,gui,xframe,data=[]):
+        print("draw_clock",self)
+        xframe.pack(fill="both",expand=1)
+        frame = tk.Frame(xframe,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)
-        comm = "xx"
         
-        xfont = tk.font.Font(family="FreeSans", size=25, weight="bold")
-        b = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) #,bd="black")
-        self.bb = b
-        #b = tk.Button(frame,bg="lightgrey", text=str(comm),width=26,height=2,font=xfont)
-        #b.config(activebackground="lightgreen")
-        #b.config(background="lightgreen")
-        b.pack(fill="both",expand=1) #row=0, column=0, sticky=tk.W+tk.E)
-        #b["text"] = time.strftime("%Y-%m-%d %X")
-        thread.start_new_thread(self.loop_clock,(b,))
+        self.bb = tk.Canvas(frame,bg="black", height=105,bd=0,width=6,highlightthickness=0) 
+        self.bb.pack(fill="both",expand=1)
+
+        thread.start_new_thread(self.loop_clock,())
+
+        return self.bb
 
 
 

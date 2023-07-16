@@ -293,7 +293,7 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
     
 
 def set_exec_fader(nr,val,color=""):
-    exec_wing = window_manager.get_obj(name="EXEC-WING") #= WindowManager()
+    exec_wing = window_manager.get_obj(name="EXEC-WING") 
     if not exec_wing: 
         return
 
@@ -1361,14 +1361,20 @@ def save_window_position(save_as=""):
     for k,win in window_manager.windows.items():
         try:
             geo = win.tk.geometry()
-            window_list_buffer[k] = [1,k,geo]
+            data = [1,k,geo]
+            if k not in  window_list_buffer:
+                print("-- new:win:pos",k.ljust(15," "),data)
+            elif window_list_buffer[k][2] != geo:
+                print("-- update:win:pos",k.ljust(15," "),data)
+            window_list_buffer[k] = data
+
         except Exception as e:
             cprint("-A save_window_position Exception:",e,color="red")
 
     lines = ""
     for k,data in window_list_buffer.items():
         try:
-            print("-- save:win:pos",k,data)
+            #print("-- save:win:pos",k.ljust(15," "),data)
             if not data[2]:
                 continue
             line ="{} {} {}\n"
@@ -1415,7 +1421,7 @@ def load_window_position(_filter=""):
         data = {}
         for line in lines:
             line = line.strip()
-            print(line)
+            #print(line)
             if " " in line:
                 if line.count(" ") >= 2:
                     show,k,geo = line.split(" ",2)
@@ -1438,15 +1444,13 @@ def load_window_position(_filter=""):
                     continue
 
             w = data[k][2] 
-            
 
             cprint("- set_win_pos","filter:",[_filter],"Name: {:<20}".format(k),w,win)
             try:
                 win.tk.geometry(w)
             except Exception as e:
                 cprint("- load_window_position 544 Exception:",e,color="red")
-            #print("winfo",k,win.tk.geometry())
-        f.close()
+
     except Exception as e:
         cprint("- load_window_position 345 Exception:",e,color="red")
         return 
@@ -1489,8 +1493,6 @@ class Xevent():
                 self.elem["bg"] = "orange"
                 self.elem["text"] = "SAVING..."
                 self.elem["bg"] = "red"
-                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-                #self.elem["fg"] = "orange"
                 self.elem.config(activebackground="orange")
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
@@ -1554,8 +1556,6 @@ class Xevent():
                 self.elem["bg"] = "orange"
                 self.elem["text"] = "SAVING..."
                 self.elem["bg"] = "red"
-                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-                #self.elem["fg"] = "orange"
                 self.elem.config(activebackground="orange")
                 modes.val(self.attr,1)
                 PRESETS.backup_presets()
@@ -2363,13 +2363,16 @@ class MASTER():
 
             b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
         time.sleep(0.01)
-        #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-        #time.sleep(0.01)
     def refresh_fix(self):
         refresher_fix.reset() # = Refresher()
     def _refresh_fix(self):
         s=time.time(); _XXX=0
+        f_count = 0
+        fa_count = 0
+        d_count = 0
+        da_count = 0
         c_d =0
+        c_d2 =0
         c_f =0
         c_a =0
         for fix in FIXTURES.fixtures:                            
@@ -2381,9 +2384,6 @@ class MASTER():
                 continue
             elem_attr_fix = self.elem_attr[fix]
 
-            _dim_in_flag = 0
-            if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
-                _dim_in_flag = 1
 
             for attr in sdata["ATTRIBUT"]:
                 row = sdata["ATTRIBUT"][attr]
@@ -2420,11 +2420,12 @@ class MASTER():
                         except:
                             cprint("err778",attr,elem)
 
-                        #if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 1:
-                        if _dim_in_flag:
+                        if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 2:
                             c_d+=1
+                            d_count += 1
                         else:
                             _c_a += 1
+                            f_count += 1
                     else:
                         try:
                             if elem["bg"] != "grey":
@@ -2456,6 +2457,8 @@ class MASTER():
         c_a2=0
 
         cprint("fix:",_XXX,round(time.time()-s,2),color="red");_XXX += 1
+        print(gui_menu)
+        print(dir(gui_menu))
         if c_f > 0:
             c_a2 = round(c_a/c_f,2)
             if c_a2 % 1 > 0:
@@ -2467,7 +2470,9 @@ class MASTER():
         else:
             gui_menu.config("FIXTURES","bg","")
             gui_menu.config("FIXTURES","activebackground","")
-        gui_menu.update("FIXTURES","{} : {}".format(c_f,c_a2))
+        if c_a2 > 0:
+            c_a2-=1
+        gui_menu.update("FIXTURES","{} : {:0.02f}".format(c_f,c_a2))
 
         if c_d > 0:
             gui_menu.config("DIMMER","bg","yellow")
@@ -2475,7 +2480,9 @@ class MASTER():
         else:
             gui_menu.config("DIMMER","bg","")
             gui_menu.config("DIMMER","activebackground","")
-        gui_menu.update("DIMMER","{}".format(c_d))
+        if c_d > 0:
+            c_d-=1
+        gui_menu.update("DIMMER","{} : {}".format(d_count,c_d2))
 
         cprint("fix:",_XXX,round(time.time()-s),color="red"); _XXX += 1
     def preset_rec(self,nr):
@@ -2725,7 +2732,6 @@ from tkgui.draw import *
            
 from tkgui.GUI import *
 
-#draw_enc
 
 
 class LOAD_SHOW_AND_RESTAT():
@@ -3774,14 +3780,6 @@ class BufferVar():
 
             
 
-# GUI_FaderLayout():
-
-
-
-
-
-
-
 
 
 lf_nr = 0
@@ -3981,26 +3979,38 @@ class Window():
                 if value:
                     modes.val("DEL",1)
 
-
-
+ 
 class WindowManager():
     def __init__(self):
         self.windows = {}
         self.obj = {}
         self.nr= 0
         self.first=""
-    def new(self,w,name="",obj=None):
+        self.window_init_buffer = {}
 
-        if not w:
-            return
+    def update(self,w,name="",obj=None):
+        name = str(name)
+
+        for k in self.windows:
+            if k == name:
+                self.windows[str(name)] = w
+                self.obj[str(name)] = obj
+
+    def new(self,w,name="",obj=None,wcb=None):
+        name = str(name)
+
+        if wcb and name:
+            self.window_init_buffer[name] = wcb
+
         if not self.first:
             if name:
                 self.first = name
             else:
                 self.first = str(self.nr)
-            w.tk.state(newstate='normal')
-            w.tk.attributes('-topmost',True)
 
+            if w:
+                w.tk.state(newstate='normal')
+                w.tk.attributes('-topmost',True)
 
         if name:
             self.windows[str(name)] = w
@@ -4009,44 +4019,65 @@ class WindowManager():
             self.windows[str(self.nr)] = w
             self.obj[str(self.nr)] = obj
             self.nr+=1
-        #w.show()
+
     def mainloop(self):
         self.windows[self.first].mainloop()
 
-    def get(self,name):
-        print(self,".get(name) =",name)
+    def get_win(self,name):
+        print(self,".get_win(name) =",name)
         name = str(name)
         if name in self.windows:
             out = self.windows[name]
             print(out)
             return out
+
+    def get(self,name):
+        return get_win(name)
+
     def get_obj(self,name):
-        #print(self,".get(name) =",name)
         name = str(name)
         if name in self.windows:
             out = self.obj[name]
-            #print(out)
             return out
+
+    def create(self,name):
+        cprint( "create Window",name)
+
+        if name in self.window_init_buffer:
+            c = self.window_init_buffer[name] 
+            w,obj,cb_ok = c.create()
+            window_manager.update(w,name,obj)
+
+            if cb_ok:
+                cb_ok()
+
+            resize = 1
+            if "resize" in c.args:
+                if not c.args["resize"]:
+                    resize = 0
+            if resize:
+                load_window_position(_filter=name)
+
+    def _check(self,name):
+        try:
+            self.windows[name].tk.state(newstate='normal')
+            return 1
+        except Exception as e:
+            cprint("exception",e,color="red")
+            cprint("info",name,self.windows[name],color="red")
+
     def top(self,name):
         name = str(name)
-        for n in self.windows:
-            print("TOP",n) #self.get("")
-        if name in self.windows:
-            self.windows[name].tk.state(newstate='normal')
-            self.windows[name].tk.attributes('-topmost',True)
-            self.windows[name].tk.attributes('-topmost',False)
-            self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
-            #print("redraw",name)
-            #if name == "PATCH":
-            #    gui_patch.draw()
-            #if name == "DIMMER":
-            #    gui_fix.draw()
-            if name == "EXEC":
-                master._refresh_exec()
-                #self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
-                tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-        else:
+        if name not in self.windows:
             print(name,"not in self.windows",self.windows.keys())
+            return 
+
+        if not self._check(name):
+            self.create(name)
+
+        self.windows[name].tk.attributes('-topmost',True)
+        self.windows[name].tk.attributes('-topmost',False)
+        self.windows[name].tk.update_idletasks()
 
 
 class Console():
@@ -4089,7 +4120,6 @@ FIXTURES = Fixtures()
 def LOAD_SHOW():
     PRESETS.load_presets()
     FIXTURES.load_patch()
-    #draw_enc(gui,root2)
     #master._refresh_fix()
     #master._refresh_exec()
 LOAD_SHOW()
@@ -4195,6 +4225,7 @@ class window_create_buffer():
 
     def create(self,hidde=0):
         cprint()
+        cprint()
         cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
 
         obj = None
@@ -4206,13 +4237,9 @@ class window_create_buffer():
             w1 = tk.Frame(w.tk,width=self.args["width"],height=self.args["height"])
             w1.pack()
 
-        if self.gui:
-            self.cls(self.gui,w1,self.data) #PRESETS):
-        else:
-            obj=self.cls(w1,self.data) 
+        obj=self.cls(self.gui,w1,self.data) 
         return w,obj,self.cb_ok
 
-window_init_buffer = {}
 
 if __run_main:
     print("main")
@@ -4228,11 +4255,8 @@ if __run_main:
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
-    #w = Window("MAIN",master=1,width=95,height=H1//2,left=L0,top=TOP,resize=0)
-    args = {"title":"MAIN","master":1,"width":100,"height":H1,"left":L0,"top":TOP,"resize":1}
-    #w = Window("MAIN",master=1,width=100,height=H1,left=L0,top=TOP,resize=1)
-    w = Window(args)
-    gui_menu_gui = w
+    
+
     data = []
     #data.append({"text":"COMMAND"})
     #data.append({"text":"CONFIG"})
@@ -4250,133 +4274,103 @@ if __run_main:
     data.append({"text":"FIXTURE-EDITOR","name":"FIX-EDIT"})
     #data.append({"text":"CLOCK"})
     data.append({"text":"CONFIG"})
-    gui_menu = GUI_menu(w.tk,data)
 
-    window_manager = gui_menu.window_manager #= window_manager
-    
-    window_manager.new(w)
+    name="MAIN"
+    args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
+    cls = GUI_menu 
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
+
+    gui_menu_gui = window_manager.get_win(name)
+    gui_menu = window_manager.get_obj(name)
 
 
+    # --------------------------------
     name="EXEC"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
 
+    data  = PRESETS
     cls   = draw_exec #GUI_ExecWingLayout
     cb_ok = None #set_exec_fader_all
-    data  = PRESETS
-
-    hidde = 1
-    if name in window_list_buffer:
-        if window_list_buffer[name][0]:
-            hidde = 0
-    else:
-        hidde = 0
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,scroll=1,gui=master)
-    window_init_buffer[name] = c
-    if hidde:
-        window_manager.new(None,name)
-    else:
-        w,obj,cb_ok = c.create(hidde=hidde)
-        window_manager.new(w,name,obj=obj)
-    if cb_ok:
-        cb_ok()
     
-    if 0: # draw EXEC -BTN second time fail TODO
-        c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,scroll=1,gui=master)
-        window_init_buffer[name] = c
-        w,obj,cb_ok = c.create()
-        window_manager.update(w,name,obj=obj)
-
-    name="CONFIG"
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    #w = Window(args)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    #frame_exe = w.tk
-    #draw_config(master,w1)#.tk)#Xroot)
-    cls = GUI_CONF
-    data = []
-    ##draw_enc(master,w.tk)#Xroot)
-    ##draw_preset(master,w1)#w.tk)
-    #window_manager.new(w,name)
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
-    window_init_buffer[name] = c
-    #w,obj,cb_ok = c.create()
-    #window_manager.new(w,name,obj)
-    window_manager.new(None,name) #,obj)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
+
+
+    name="CONFIG"
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+
+    data = []
+    cls = GUI_CONF
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
 
     name="DIMMER"
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    #w = Window(args)
-    #w2 = ScrollFrame(w.tk,width=W1,height=H1)
-    ##frame_dim = w1 # w.tk
-    ##master.draw_dim(w1.tk)
-    #window_manager.new(w,name)
+
     cls = GUI_DIM
-    #gui_fix.draw(FIXTURES)
     data = FIXTURES
-    #window_manager.new(w,name)
+    ok_cb=None
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
-    window_init_buffer[name] = c
-    w,obj,cb_ok = c.create()
-    window_manager.new(w,name,obj)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
 
     name="FIXTURES"
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    #w = Window(args)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    #frame_fix = w1 #w.tk
-    #draw_fix(master,w1,w2)#.tk)
-    #gui_fix = GUI_FIX(master,w1,w2)
+
     cls = GUI_FIX
-    #gui_fix.draw(FIXTURES)
+    ok_cb=None
     data = FIXTURES
-    #window_manager.new(w,name)
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
-    window_init_buffer[name] = c
-    w,obj,cb_ok = c.create()
-    window_manager.new(w,name,obj)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
 
+    # -------------------------------
     name="FIXTURE-EDITOR"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    #w = Window(args)
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
+
     data=[]
-    #for i in range((24+12)*15):
     for i in range(12*6):
         data.append({"text"+str(i):"test"})
-    #GUI_FaderLayout(w1,data)
+    
     cls = GUI_FaderLayout
-    #window_manager.new(w,name)
+    cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok)
-    window_init_buffer[name] = c
-    #w,obj,cb_ok = c.create()
-    #window_manager.new(w,name,obj)
-    window_manager.new(None,name)
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
+    
+    # -------------------------------
     name="MASTER-WING"
-    #w = Window(name,master=0,width=730,height=205,left=L1-80,top=TOP+H1-200)
-    #w = Window(name,master=0,width=75,height=405,left=L0,top=TOP+H1-220)
-    args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220}
-    w = Window(args)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    w1 = tk.Frame(w.tk,width=W1,height=H1)
-    w1.pack()
+    args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220,"resize":1}
+
     data=[]
     for i in range(2):
         data.append({"MASTER"+str(i):"MASTER"})
-    GUI_MasterWingLayout(w1,data)
-    window_manager.new(w,name)
 
+    cls = GUI_MasterWingLayout #(w1,data)
+    cb_ok = None
+
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
+
+
+    # -------------------------------
     name="EXEC-WING"
     args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
     data=[]
@@ -4386,29 +4380,22 @@ if __run_main:
     cls   = GUI_ExecWingLayout
     cb_ok = set_exec_fader_all
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok)
-    window_init_buffer[name] = c
-    w,obj,cb_ok = c.create()
-    window_manager.new(w,name,obj)
-    if cb_ok:
-        cb_ok()
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
 
     name="ENCODER"
-    #w = Window(name,master=0,width=620,height=113,left=L0+710,top=TOP+H1+15+HTB*2)
     args = {"title":name,"master":0,"width":620,"height":113,"left":L0+710,"top":TOP+H1+15+HTB*2}
-    w = Window(args)
-    _ENCODER_WINDOW = w
-    draw_enc(master,w.tk)#Xroot)
-    window_manager.new(w,name)
+    cls = draw_enc #(master,w.tk)#Xroot)
+    cb_ok = None
+    data = master
 
-    #name="REMOTE-CONTROL"
-    #w = Window(name,master=0,width=220,height=113,left=L0+710,top=TOP+H1+HTB*2+123)
-    #_ENCODER_WINDOW = w
-    #draw_enc(master,w.tk)#Xroot)
+    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    window_manager.top(name)
 
     name = "SETUP"
-    #w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP,resize=0)
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
     w = Window(args)
     w.tk.title("SETUP   SHOW:"+master.base.show_name)
@@ -4418,19 +4405,16 @@ if __run_main:
     name = "COMMAND"
     args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":0}
     w = Window(args)
-    #w = Window(name,master=0,width=415,height=130,left=L1+10+W1,top=TOP+81,resize=0)#+96)
     draw_command(master,w.tk)
     window_manager.new(w,name)
 
     name = "LIVE"
-    #w = Window(name,master=0,width=415,height=42,left=L1+10+W1,top=TOP+235,resize=0)#250)
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":0}
     w = Window(args)
     draw_live(master,w.tk)
     window_manager.new(w,name)
 
     name = "CLOCK"
-    #w = Window(name,master=0,width=335,height=102,left=L1+10+W1+80,top=TOP+H1+HTB+160,resize=0)#250)
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
     w = Window(args)
     cclock = X_CLOCK()
@@ -4438,39 +4422,27 @@ if __run_main:
     window_manager.new(w,name)
 
     name="FX"
-    #w = Window(name,master=0,width=415,height=297,left=L1+10+W1,top=TOP+302,resize=0)#317)
     args = {"title":name,"master":0,"width":415,"height":297,"left":L1+10+W1,"top":TOP+302,"resize":0}
     w = Window(args)
-    #frame_fx = w.tk
     draw_fx(master,w.tk)
     window_manager.new(w,name)
 
 
     name="PATCH"
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    #w = Window(args)
-    #w1 = ScrollFrame(w.tk,width=W1,height=H1)
-    #main_preset_frame = w1
-    #gui_patch = GUI_PATCH(master,main_preset_frame)
     cls = GUI_PATCH
-    #gui_patch.draw(FIXTURES)
     data = FIXTURES
-    #window_manager.new(w,name)
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
-    window_init_buffer[name] = c
-    #w,obj,cb_ok = c.create()
-    #window_manager.new(w,name,obj)
-    window_manager.new(None,name) #,obj)
+    window_manager.new(None,name,wcb=c) #,obj)
+    window_manager.top(name)
 
-    #LibreLightDesk
     name="COLORPICKER"
-    #w = Window(name,master=0,width=600,height=113,left=L1+5,top=TOP+5+HTB*2+H1)
     args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
     w = Window(args)
     draw_colorpicker(master,w.tk,FIXTURES,master)
     window_manager.new(w,name)
+    window_manager.top(name)
 
     name="TableA"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
@@ -4488,12 +4460,6 @@ if __run_main:
 
 
 
-    #Xroot = tk.Tk()
-    #Xroot["bg"] = "black" #white
-    #Xroot.title( xtitle+" "+str(rnd_id) )
-    #Xroot.geometry("1024x800+130+65")
-
-
     master.render()
     window_manager.top("Table")
     #w = frame_fix #Window("OLD",master=0,width=W1,height=500,left=130,top=TOP)
@@ -4505,15 +4471,10 @@ if __run_main:
 
 
 
-    #thread.start_new_thread(refresher_fix.loop,())
-    #thread.start_new_thread(refresher_exec.loop,())
     thread.start_new_thread(loops,())
     
     try:
-        #root.mainloop()
-        #tk.mainloop()
         window_manager.mainloop()
-        
     finally:
         master.exit()
 

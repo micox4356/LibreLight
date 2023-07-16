@@ -186,7 +186,6 @@ def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
     canvas.bind("<Key>",Event("XXX").event)
     canvas.bind("<KeyRelease>",Event("XXX").event)
     return bframe
-#frame = ScrollFrame(root)
 
 class GUIHandler():
     def __init__(self):
@@ -738,7 +737,7 @@ class GUI_PATCH():
 
 
 class GUI_FaderLayout():
-    def __init__(self,root,data,title="tilte",width=800):
+    def __init__(self,root,frame,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
         self.dmx=1
@@ -749,8 +748,17 @@ class GUI_FaderLayout():
         self.elem=[]
         self.header=[]
         self.data = data
+        #cprint("GUI:",root,title)
+
+        # HEAD 1
+
+        root = frame
+        
+        #root = tk.Frame(root,bg="black",width=width)
+        #root.pack(fill=tk.BOTH, side=tk.TOP)
+
         self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        self.frame.pack(fill="x", side=tk.TOP)
 
         self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor") #,font=font8 )
         self.b.pack(fill=None, side=tk.LEFT)
@@ -762,8 +770,11 @@ class GUI_FaderLayout():
         self.b_path = self.b
         self.b.pack(fill=None, side=tk.LEFT)
 
+        # HEAD 2
+        
         self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        self.frame.pack(fill="both", side=tk.TOP)
+
         self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
         self.b.pack(fill=None, side=tk.LEFT)
         self.b = tk.Button(self.frame,bg="lightblue",text="MAC-500", width=11)
@@ -812,8 +823,8 @@ class GUI_FaderLayout():
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
-        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        # DATA
+        self.frame = ScrollFrame(root,bg="#003",width=2000 ,height=1000,bd=2) # fader frame
         r=0
         c=0
         pb=12
@@ -844,8 +855,9 @@ class GUI_FaderLayout():
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
             i+=1
-        self.frame.pack()
+        #self.frame.pack(fill="both",expand=1)
         self._event_redraw()
+
     def set_name(self,_event=None):
         txt = self.name["text"]
         def _cb(data):
@@ -1249,7 +1261,7 @@ def test(a1="",a2=""):
     print([a1,a2])
 
 class GUI_ExecWingLayout():
-    def __init__(self,root,data,title="tilte",width=800,start=81):
+    def __init__(self,root,frame,data,title="tilte",width=800,start=81):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
         self.dmx=1
@@ -1272,8 +1284,9 @@ class GUI_ExecWingLayout():
         #self.b = tk.Label(self.frame,bg="black",text="") # spacer
         #self.b.pack(fill=tk.Y, side=tk.LEFT)
 
-        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        #self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
+        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        self.frame=frame
         r=0
         c=0
         pb=10
@@ -1393,7 +1406,7 @@ class GUI_ExecWingLayout():
             e["text"] = txt
             
 class GUI_MasterWingLayout():
-    def __init__(self,root,data,title="tilte",width=800):
+    def __init__(self,root,frame,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
         self.dmx=1
@@ -1415,8 +1428,9 @@ class GUI_MasterWingLayout():
         #self.b = tk.Label(self.frame,bg="black",text="") # spacer
         #self.b.pack(fill=tk.Y, side=tk.LEFT)
 
-        self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        #self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
+        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
+        self.frame=frame
         r=0
         c=0
         pb=1
@@ -1516,104 +1530,21 @@ class BEvent():
         #print(self,event)
         self._cb(event,self._data)
 
-class WindowManager():
-    def __init__(self):
-        self.windows = {}
-        self.obj = {}
-        self.nr= 0
-        self.first=""
 
-    def update(self,w,name="",obj=None):
-        for k in self.windows:
-            if k == name:
-                self.windows[str(name)] = w
-                self.obj[str(name)] = obj
-    def new(self,w,name="",obj=None):
-        if not self.first:
-            if name:
-                self.first = name
-            else:
-                self.first = str(self.nr)
-            w.tk.state(newstate='normal')
-            w.tk.attributes('-topmost',True)
-
-
-        if name:
-            self.windows[str(name)] = w
-            self.obj[str(name)] = obj
-        else:
-            self.windows[str(self.nr)] = w
-            self.obj[str(self.nr)] = obj
-            self.nr+=1
-        #w.show()
-    def mainloop(self):
-        self.windows[self.first].mainloop()
-
-    def get(self,name):
-        print(self,".get(name) =",name)
-        name = str(name)
-        if name in self.windows:
-            out = self.windows[name]
-            print(out)
-            return out
-    def get_obj(self,name):
-        #print(self,".get(name) =",name)
-        name = str(name)
-        if name in self.windows:
-            out = self.obj[name]
-            #print(out)
-            return out
-
-    def top(self,name):
-        name = str(name)
-        if name in self.windows:
-            import __main__ as m
-            #print(dir(m))
-            try:
-                self.windows[name].tk.state(newstate='normal')
-            except Exception as e:
-                cprint("exception",e,color="red")
-                cprint("info",name,self.windows[name],color="red")
-
-                #c = m.create_buffer_fader_wing 
-                print( name in m.window_init_buffer)
-                print( m.window_init_buffer)
-                if name in m.window_init_buffer:
-                    c = m.window_init_buffer[name] 
-                    w,obj,cb_ok = c.create()
-                    m.window_manager.update(w,name,obj)
-
-                    if cb_ok:
-                        cb_ok()
-                    m.load_window_position(_filter=name)
-
-            self.windows[name].tk.attributes('-topmost',True)
-            self.windows[name].tk.attributes('-topmost',False)
-            self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
-            #print("redraw",name)
-            #if name == "PATCH":
-            #    gui_patch.draw()
-            #if name == "DIMMER":
-            #    gui_fix.draw()
-            if name == "EXEC":
-                #master._refresh_exec()
-                self.windows[name].tk.update_idletasks()# gui_menu_gui.tk)
-                #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-        else:
-            print(name,"not in self.windows",self.windows.keys())
 
 
 
 class GUI_menu():
-    def __init__(self,root,data,title="tilte",width=800):
+    def __init__(self,root,frame ,data,title="tilte"):
         global tk
         global INIT_OK
-
-        self.window_manager = WindowManager()
+        self.frame = frame
         self.data = data
-        self.data2 = {}
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        self.elem = {}
+        self.draw()
+
+    def draw(self):
+        cprint("********************",self,"draw")
         r=0
         c=0
         i=1
@@ -1622,8 +1553,8 @@ class GUI_menu():
         self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
         r+=1
         h = 2
-        for row in data:
-            #print(i)
+        for row in self.data:
+            print("draw",row)
             #row = data[i]
             if row["text"] == "---":
                 h=1
@@ -1635,12 +1566,13 @@ class GUI_menu():
             self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             row["elem"] = self.b
-            self.data2[row["text"]] = row
+            self.elem[row["text"]] = row
             r+=1
             i+=1
         self.frame.pack()
         INIT_OK = 1
         self.start_loop()
+
     def start_loop(self):
         print(self,"--- start_bg_loop ----- xxxx")
         thread.start_new_thread(mytklib.tk_btn_bg_loop,(self.TITLE,))
@@ -1648,19 +1580,19 @@ class GUI_menu():
     def callback(self,event,data={}):
         #print("callback543",self,event,data)
         print("callback543",self,event) #,data)
-        #window_manager.top(data["text"])# = WindowManager()
-        self.window_manager.top(data["text"])# = WindowManager()
+        import __main__ as m
+        m.window_manager.top(data["text"])
     def update(self,button,text):
         #print(self,button,text)
-        for k in self.data2:
-            v=self.data2[k]
+        for k in self.elem:
+            v=self.elem[k]
             #print(self,k,v)
             if button == k:
                 v["elem"]["text"] = k+"\n"+text
     def config(self,button,attr,value):
         #print("config",self,button,attr,value)
-        for k in self.data2:
-            v=self.data2[k]
+        for k in self.elem:
+            v=self.elem[k]
             #print(self,k,v)
             if button == k:
                 #print(dir(v["elem"]))

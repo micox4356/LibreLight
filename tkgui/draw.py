@@ -9,7 +9,7 @@ import lib.mytklib as mytklib
 
 
 
-def draw_command(gui,xframe):
+def draw_command(gui,xframe,data):
     frame_cmd=xframe
     i=0
     c=0
@@ -23,6 +23,7 @@ def draw_command(gui,xframe):
     #b.grid(row=r, column=c, sticky=tk.W+tk.E)
     #r+=1
     c+=1
+    gui.commands.elem = {}
     for comm in gui.commands.commands:
         if comm == "\n":
             c=0
@@ -193,7 +194,8 @@ def draw_input(gui,root2):
     b.insert("end","fx:alloff:::")
 
 
-def draw_colorpicker(gui,xframe,FIXTURES,master):
+def draw_colorpicker(gui,xframe,data):
+    FIXTURES,master = data
     import lib.colorpicker as colp
 
     class _CB():
@@ -524,7 +526,7 @@ def _draw_fx(frame,c,r,gui,mode="FX"):
 
 
 
-def draw_fx(gui,xframe):
+def draw_fx(gui,xframe,data=[]):
     frame_fx=xframe
     i=0
     c=0
@@ -556,14 +558,14 @@ def draw_fx(gui,xframe):
     c,r = _draw_fx(frame,c,r,gui,mode="FX-GENERIC")
 
 
-def draw_setup(gui,xframe):
+def draw_setup(gui,xframe,data):
     frame_cmd=xframe
     i=0
     c=0
     r=0
     
     frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
+    frame.pack(fill=tk.X, side=tk.LEFT)
    
     #b = tk.Button(frame,bg="lightblue", text="SETUP",width=6)
     #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
@@ -618,7 +620,7 @@ def draw_setup(gui,xframe):
 
 
 
-def draw_live(gui,xframe):
+def draw_live(gui,xframe,data):
     frame_cmd=xframe
     i=0
     c=0

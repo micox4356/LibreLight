@@ -1269,7 +1269,6 @@ def test(a1="",a2=""):
 
 class GUI_ExecWingLayout():
     def __init__(self,root,frame,data,title="tilte",width=800,start=81):
-        #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
         font8 = ("FreeSans",8)
         self.dmx=1
         self.univ=0
@@ -1280,20 +1279,9 @@ class GUI_ExecWingLayout():
         self.elem=[]
         self.header=[]
         self.data = data
-        #self.frame = tk.Frame(root,bg="black",width=width)
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
 
-        #self.b = tk.Label(self.frame,bg="#fff",text="Master Wing") #,font=font8 )
-        #self.b.pack(fill=None, side=tk.LEFT)
-        #self.frame = tk.Frame(root,bg="black",width=width)
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-
-        #self.b = tk.Label(self.frame,bg="black",text="") # spacer
-        #self.b.pack(fill=tk.Y, side=tk.LEFT)
-
-        #self.frame = tk.Frame(root,bg="magenta",width=width,border=2) # fader frame
-        #self.frame.pack(fill=tk.BOTH, side=tk.TOP)
-        self.frame=frame
+        self.frame = tk.Frame(frame,bg="#000",width=width,border=2)
+        self.frame.pack(fill=tk.BOTH, side=tk.TOP)
         r=0
         c=0
         pb=10

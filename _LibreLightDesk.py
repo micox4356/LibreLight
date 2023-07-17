@@ -1369,7 +1369,7 @@ def save_window_position(save_as=""):
             window_list_buffer[k] = data
 
         except Exception as e:
-            cprint("-A save_window_position Exception:",e,color="red")
+            cprint("-A save_window_position Exception:",k,e,color="red")
 
     lines = ""
     for k,data in window_list_buffer.items():
@@ -1403,6 +1403,20 @@ def save_window_position_loop(): # like autosave
         except Exception as e:
             print("save_loop",e)
     thread.start_new_thread(loop,())
+
+def get_window_position(_filter="",win=None):
+    global window_list_buffer
+    print()
+    show = None
+    k = _filter
+    geo = ""
+
+    cprint("get_window_position",[_filter])
+    if _filter in window_list_buffer:
+        show,k,geo  = window_list_buffer[_filter]
+        if win:
+            win.tk.geometry(geo)
+    return show,k,geo
 
 def load_window_position(_filter=""):
     global window_list_buffer
@@ -1828,6 +1842,7 @@ class Xevent():
                             self.data.preset_go(nr,xfade=0,event=event,val=255,button="go")
                             modes.val("EDIT", 0)
                             master.refresh_fix()
+                            refresher_fix.reset() # = Refresher()
 
                         elif modes.val("SELECT"):
                             self.data.preset_select(nr)
@@ -1835,6 +1850,9 @@ class Xevent():
                             self.data.preset_go(nr,event=event,val=255)
                     else:
                         self.data.preset_go(nr,xfade=0,event=event,val=0)
+                        print(" == "*10)
+                        master.refresh_fix()
+                        refresher_fix.reset() # = Refresher()
 
                         
                 if event.num == 3:
@@ -2368,26 +2386,28 @@ class MASTER():
     def refresh_fix(self):
         refresher_fix.reset() # = Refresher()
     def _refresh_fix(self):
+        cprint(self,"_refresh_fix")
         s=time.time(); _XXX=0
-        f_count = 0
-        fa_count = 0
-        d_count = 0
-        da_count = 0
-        c_d =0
-        c_d2 =0
-        c_f =0
-        c_a =0
+
+        menu_buff = {"DIM":0,"DIM-SUB":0,"FIX":0,"FIX-SUB":0}
+
+        elem_buffer = []
+
         for fix in FIXTURES.fixtures:                            
             sdata = FIXTURES.fixtures[fix]                            
-            _c_a = 0
 
-            if fix not in self.elem_attr:
-                #cprint("_refresh_fix fix not in self.elem_attr (no Button)",fix,color="red")
-                continue
-            elem_attr_fix = self.elem_attr[fix]
+            elem_attr_fix = None
+            if fix in self.elem_attr:
+                elem_attr_fix = self.elem_attr[fix]
 
-
+            if "DIM" in sdata["ATTRIBUT"] and "_ACTIVE" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 2:
+                KEY = "DIM-SUB"
+            else:
+                KEY = "FIX-SUB"
+            FIX = 0
+            DIM = 0
             for attr in sdata["ATTRIBUT"]:
+                _buff = {}
                 row = sdata["ATTRIBUT"][attr]
 
                 if attr.endswith("-FINE"):
@@ -2396,97 +2416,108 @@ class MASTER():
                 b_attr = attr
                 if b_attr == "_ACTIVE":
                     b_attr = "S"
-                if b_attr not in elem_attr_fix:
-                    continue
 
-                elem = elem_attr_fix[b_attr]
-                if not elem:
-                    continue
+                elem = None
+                if elem_attr_fix:
+                    if b_attr not in elem_attr_fix:
+                        continue
 
-                try:
+                    elem = elem_attr_fix[b_attr]
+                    if not elem:
+                        continue
+                
 
-                    if not attr.startswith("_"):
-                        v2 = row["VALUE"]
-                        _text  = "{} {:0.2f}".format(attr,v2) # ~0.2 sec
-                        try:
-                            if elem["text"] != _text: #"{} {:0.2f}".format(attr,v2)
-                                elem["text"] = _text #"{} {:0.2f}".format(attr,v2)
-                        except:
-                            pass#cprint("err778",attr,elem)
+                
+                if "elem" not in _buff:
+                    _buff["elem"] = elem
 
-                    if row["ACTIVE"]:
-                        try:
-                            if elem["bg"] != "yellow":
-                                elem["bg"] = "yellow"
-                                elem.config(activebackground="yellow")
-                        except:
-                            pass#cprint("err778",attr,elem)
+                if not attr.startswith("_"):
+                    v2 = row["VALUE"]
+                    #_text  = "{} {}".format(str(attr).rjust(4,"0"),str(v2).rjust(4,"0")) # ~0.2 sec
+                    _text  = "{} {}".format(attr,v2) 
+                    _buff["text"] = _text
 
-                        if "DIM" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 2:
-                            c_d+=1
-                            d_count += 1
-                        else:
-                            _c_a += 1
-                            f_count += 1
+                if row["ACTIVE"]:
+                    _buff["bg"] = "yellow"
+                    _buff["abg"] = "yellow"
+
+                    menu_buff[KEY] += 1
+                    if KEY == "DIM-SUB":
+                        DIM =1
                     else:
-                        try:
-                            if elem["bg"] != "grey":
-                                elem["bg"] = "grey"
-                                elem.config(activebackground="grey")
-                        except:
-                            pass#cprint("err778",attr,elem)
+                        FIX =1
+                else:
+                    _buff["bg"] = "grey"
+                    _buff["abg"] = "grey"
 
-                    if "FX2" not in row: # insert FX2 excetption
-                        row["FX2"] = OrderedDict()
-                        
-                    try:
-                        if row["FX"]:
-                            elem["fg"] = "blue"
-                        elif row["FX2"]:
-                            elem["fg"] = "red"
-                        else:
-                            elem["fg"] = "black"
-                    except:
-                        pass#cprint("err778",attr,elem)
-                except Exception as e:
-                    cprint("EXCEPTON 2406 ",e,color="red")
-                    cprint("err778",attr,elem)
+                if "FX2" not in row: # insert FX2 excetption
+                    row["FX2"] = OrderedDict()
+                    
+                if row["FX"]:
+                    _buff["fg"] = "blue"
+                elif row["FX2"]:
+                    _buff["fg"] = "red"
+                else:
+                    _buff["fg"] = "black"
 
-            c_a += _c_a
-            if _c_a>0:
-                c_f +=1
+                elem_buffer.append(_buff)
 
-        c_a2=0
+            menu_buff["FIX"] += FIX
+            menu_buff["DIM"] += DIM
+
+        print(" =+= "*10,"refresh_fix")
+        try:
+            for row in elem_buffer:
+                elem = row["elem"]
+                if not elem:
+                     continue
+                #print("<elem>",elem)
+                for e in row:
+                    if e == "elem":
+                        continue
+                    v = row[e]
+                    #print("confg:",["key:",e,"val:",v])
+
+                    if e == "abg":
+                        elem.config(activebackground=v)
+                    else:
+                        elem[e] = v
+
+        except Exception as e:
+            print("exc434",e)
 
         cprint("fix:",_XXX,round(time.time()-s,2),color="red");_XXX += 1
         print(gui_menu)
-        print(dir(gui_menu))
-        if c_f > 0:
-            c_a2 = round(c_a/c_f,2)
-            if c_a2 % 1 > 0:
-                gui_menu.config("FIXTURES","bg","orange")
-                gui_menu.config("FIXTURES","activebackground","orange")
-            else:
-                gui_menu.config("FIXTURES","bg","yellow")
-                gui_menu.config("FIXTURES","activebackground","yellow")
+
+        menu_buff["FIX-SUB"] -= menu_buff["FIX"]
+        if menu_buff["FIX-SUB"]:
+            gui_menu.config("FIXTURES","bg","yellow")
+            gui_menu.config("FIXTURES","activebackground","yellow")
+        elif menu_buff["FIX"]:
+            gui_menu.config("FIXTURES","bg","orange")
+            gui_menu.config("FIXTURES","activebackground","orange")
         else:
             gui_menu.config("FIXTURES","bg","")
             gui_menu.config("FIXTURES","activebackground","")
-        if c_a2 > 0:
-            c_a2-=1
-        gui_menu.update("FIXTURES","{} : {:0.02f}".format(c_f,c_a2))
 
-        if c_d > 0:
+        gui_menu.update("FIXTURES","{} : {}".format(menu_buff["FIX"],menu_buff["FIX-SUB"]))
+
+        menu_buff["DIM-SUB"] -= menu_buff["DIM"]
+        if menu_buff["DIM-SUB"]:
             gui_menu.config("DIMMER","bg","yellow")
             gui_menu.config("DIMMER","activebackground","yellow")
+        elif menu_buff["DIM"]:
+            gui_menu.config("DIMMER","bg","orange")
+            gui_menu.config("DIMMER","activebackground","orange")
         else:
             gui_menu.config("DIMMER","bg","")
             gui_menu.config("DIMMER","activebackground","")
-        if c_d > 0:
-            c_d-=1
-        gui_menu.update("DIMMER","{} : {}".format(d_count,c_d2))
+
+
+        gui_menu.update("DIMMER","{} : {}".format(menu_buff["DIM"],menu_buff["DIM-SUB"]))
 
         cprint("fix:",_XXX,round(time.time()-s),color="red"); _XXX += 1
+
     def preset_rec(self,nr):
         print("------- STORE PRESET")
         data = FIXTURES.get_active()
@@ -2511,15 +2542,15 @@ class MASTER():
             if fix == "CFG":
                 continue
             for attr in sdata[fix]:
-                v2 = sdata[fix][attr]["VALUE"]
-                v2_fx = sdata[fix][attr]["FX"]
+                #v2 = sdata[fix][attr]["VALUE"]
+                #v2_fx = sdata[fix][attr]["FX"]
                 #print( self.data.elem_attr)
-                if fix in self.elem_attr:
-                    if attr in self.elem_attr[fix]:
-                        elem = self.elem_attr[fix][attr]
-                        FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
-                        FIXTURES.fixtures[fix]["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-                        #elem["bg"] = "yellow"
+                #if fix in self.elem_attr:
+                #    if attr in self.elem_attr[fix]:
+                #        elem = self.elem_attr[fix][attr]
+                FIXTURES.fixtures[fix]["ATTRIBUT"][attr]["ACTIVE"] = 1
+                FIXTURES.fixtures[fix]["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+                #elem["bg"] = "yellow"
 
     def preset_go(self,nr,val=None,xfade=None,event=None,button="",ptfade=None):
         t_start = time.time()
@@ -4060,7 +4091,10 @@ class WindowManager():
                 if not c.args["resize"]:
                     resize = 0
             if resize:
-                load_window_position(_filter=name)
+                get_window_position(_filter=name,win=w) 
+
+            if name in ["DIMMER","FIXTURES"]:
+                refresher_fix.reset() # = Refresher()
 
     def _check(self,name):
         try:
@@ -4137,27 +4171,24 @@ class Refresher():
         self.time_max = time.time()
         self.time_delta = 15
         self.update = 1
-        self.name = "fix" # exec
+        self.name = "name" # exec
+        self.cb = None #self.dummy_cb
+    def dummy_cb(self):
+        print(self,"dummy_cd()",time.time()-self.time)
 
     def reset(self):
-        self.time = time.time() #+.1
+        self.time = time.time() 
         self.update = 1
 
     def refresh(self):
-        #print("refresh",self.update,int((self.time-time.time())*1000))
-
-        #if self.time_max+self.time_delta < time.time():
-        #    #print("----- MAX REFRES TIMEOUT -----")
-        #    self._refresh()
-
         if self.update: 
             if self.time+self.time_delta < time.time():
                 self._refresh()
         else:
-            self.time = time.time() #+.1
+            self.time = time.time() 
 
     def _refresh(self):
-        print(self,"_refresh()")
+        print("_refresh()",self.name,self)
         if not INIT_OK:
             return
 
@@ -4165,12 +4196,12 @@ class Refresher():
         self.time     = time.time()
         self.update = 0
         try:
-            if self.name == "fix": # exec
-                master._refresh_fix()
+            if self.cb:
+                self.cb()
             else:
-                master._refresh_exec()
+                self.dummy_cb()
         except Exception as e:
-            print("_refresh except:",e)
+            print("_refresh except:",e,"cb:",self.cb)
             traceback.print_exc()
             print()
         print("t=",self.time_max- time.time())
@@ -4180,7 +4211,7 @@ class Refresher():
             try:
                 if INIT_OK:
                     self.refresh()
-                    tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+                    #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
             except Exception as e:
                 print("loop exc",e)
                 traceback.print_exc()
@@ -4204,16 +4235,20 @@ else:
 
 
 refresher_fix = Refresher()
-refresher_fix.time_delta = 0.25
+refresher_fix.time_delta = 1.0 
 refresher_fix.name = "fix"
+refresher_fix.reset() 
+refresher_fix.cb = master._refresh_fix
 
 refresher_exec = Refresher()
-
 refresher_exec.time_delta = 10 #0
 refresher_exec.name = "exec"
+refresher_exec.reset() 
+refresher_exec.cb = master._refresh_exec
 
 def loops(**args):
-    time.sleep(15) # wait until draw all window's 
+    time.sleep(5) # wait until draw all window's 
+    cprint("-> run loops")
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
 
@@ -4293,6 +4328,7 @@ if __run_main:
 
     gui_menu_gui = window_manager.get_win(name)
     gui_menu = window_manager.get_obj(name)
+    master._refresh_fix()
 
 
     # --------------------------------
@@ -4396,7 +4432,7 @@ if __run_main:
     args = {"title":name,"master":0,"width":620,"height":113,"left":L0+710,"top":TOP+H1+15+HTB*2}
     cls = draw_enc #(master,w.tk)#Xroot)
     cb_ok = None
-    data = master
+    data = FIXTURES #master
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)

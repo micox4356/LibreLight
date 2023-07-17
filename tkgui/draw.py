@@ -408,7 +408,7 @@ class GUI_CONF():
 
 
 def draw_enc(gui,xframe,data=[]):
-
+    FIXTURES = data.fixtures
     for widget in xframe.winfo_children():
         widget.destroy()
 
@@ -428,7 +428,13 @@ def draw_enc(gui,xframe,data=[]):
     thread.start_new_thread(mytklib.tk_btn_bg_loop,(b,))
 
     c+=1
-    eat = gui.all_attr
+    eat = gui.all_attr[:]
+    for fix in FIXTURES:
+        for attr in FIXTURES[fix]["ATTRIBUT"]:
+            if attr.startswith("_"):
+                continue
+            if attr not in eat:
+                eat.append(attr)
 
     if len(eat) < 24:
         for i in range(24-len(eat)):

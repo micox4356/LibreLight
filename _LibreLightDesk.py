@@ -1519,6 +1519,7 @@ class Xevent():
                 self.elem.config(activebackground="lightgrey")
                 b = BLINKI(self.elem)
                 b.blink()
+                self.elem["text"] = "SAVE\nSHOW"
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
                 base = Base()
@@ -1586,7 +1587,7 @@ class Xevent():
             elif self.attr == "DRAW\nGUI":
                 #self.elem["bg"] = "orange"
                 old_text = self.elem["text"]
-                self.elem["text"] = "DRAWING..."
+                #self.elem["text"] = "DRAWING..."
                 #self.elem["bg"] = "red"
                 #time.sleep(0.05)
                 #print("redraw",name)
@@ -1594,10 +1595,11 @@ class Xevent():
                 #    gui_patch.draw()
                 #if name == "DIMMER":
                 #    gui_fix.draw()
-                self.elem["text"] = "PATCH..."
+                #self.elem["text"] = "PATCH..."
+                #self.elem["text"] = "PATCH..."
                 window_manager.top("PATCH")
                 gui_patch.draw(FIXTURES)
-                self.elem["text"] = "FIX..."
+                #self.elem["text"] = "FIX..."
                 gui_fix.draw(FIXTURES)
                 window_manager.top("FIXTURES")
                 master._refresh_exec()
@@ -2120,6 +2122,9 @@ class MASTER():
         self.all_attr =["DIM","PAN","TILT"]
         self.elem_attr = {}
         
+        self.setup_elem = {} # Elem_Container()
+        self.setup_cmd  = ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]
+
         self.fx_moves = Elem_Container()
         self.fx_moves.commands =["REC-FX","FX OFF","\n"
                 ,"FX:CIR","FX:PAN","FX:TILT", "WIDTH:\n100","DIR:\n0","INVERT:\n0","\n",
@@ -3904,6 +3909,7 @@ class Window():
         if exit:
             if self.title == "MAIN":
                save_window_position()
+            save_window_position()
             
             self.tk.destroy()
         try:
@@ -3940,7 +3946,31 @@ class Window():
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
             value = 0
-        #cprint("<GUI>",event.state,data,value,[event.type,event.keysym],color="yellow")
+        cprint("<GUI>",event.state,data,value,[event.type,event.keysym],color="yellow")
+        #print(event)
+        if "state" in dir(event) and "keysym" in dir(event):
+            #print([event.state,event.keysym,event.type])
+            if event.state == 4  and str(2) == str(event.type): # strg + s
+                if str(event.keysym) == "s":
+                    print("tTtT ReW "*20)
+                    #print("numbersign !!")
+                    PRESETS.backup_presets()
+                    FIXTURES.backup_patch()
+                    save_window_position()
+
+                    e =  master.setup_elem["SAVE\nSHOW"]
+                    #print(e)
+                    b = BLINKI(e)
+                    b.blink()
+                if str(event.keysym) == "c":
+                    PRESETS.backup_presets()
+                    FIXTURES.backup_patch()
+
+                    save_window_position()
+                    #self.elem.config(activebackground="lightgrey")
+                    LOAD_SHOW_AND_RESTAT("").cb(force=1)
+                return
+
         if "keysym" in dir(event):
             if "Escape" == event.keysym:
                 FIXTURES.clear()
@@ -3994,13 +4024,15 @@ class Window():
                 master.preset_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
                 print("numbersign !!")
-                e = master.commands.elem["SAVE\nSHOW"]
-                print(e)
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
 
                 save_window_position()
 
+                for e in master.setup_cmd:
+                    print(e)
+                e =  master.setup_elem["SAVE\nSHOW"]
+                print(e)
                 b = BLINKI(e)
                 b.blink()
                 #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
@@ -4090,8 +4122,8 @@ class WindowManager():
             if "resize" in c.args:
                 if not c.args["resize"]:
                     resize = 0
-            if resize:
-                get_window_position(_filter=name,win=w) 
+            #if resize:
+            get_window_position(_filter=name,win=w) 
 
             if name in ["DIMMER","FIXTURES"]:
                 refresher_fix.reset() # = Refresher()

@@ -579,7 +579,9 @@ def draw_setup(gui,xframe,data):
     #b.grid(row=r, column=c, sticky=tk.W+tk.E)
     #r+=1
     c+=1
-    for comm in ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]:
+    gui.setup_elem  = {}
+    comms = gui.setup_cmd # = Elem_Container()
+    for comm in comms: #["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]:
         if comm == "\n":
             c=0
             r+=1
@@ -600,8 +602,8 @@ def draw_setup(gui,xframe,data):
             b = tk.Button(frame,bg="grey", text=str(comm),width=5,height=2)
 
         if comm not in gui.commands.elem:
-            gui.commands.elem[comm] = b
-            gui.commands.val[comm] = 0
+            gui.setup_elem[comm] = b
+            #gui.setup_elem.val[comm] = 0
 
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
 
@@ -633,7 +635,7 @@ def draw_live(gui,xframe,data):
     r=0
     
     frame = tk.Frame(frame_cmd,bg="black")
-    frame.pack(fill=tk.X, side=tk.TOP)
+    frame.pack(fill="both",expand=1, side="left")#tk.TOP)
    
     c+=1
     for comm in ["FADE","DELAY","PAN/TILT\nFADE","PAN/TILT\nDELAY"]:

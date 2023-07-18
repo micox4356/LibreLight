@@ -28,7 +28,7 @@ rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
 rnd_id2 = ""
 rnd_id3 = ""
-
+_ENCODER_WINDOW = None
 try:
     _gcmd=['git','log','-1', '--format=%ci']
     r = subprocess.check_output(_gcmd)
@@ -1418,10 +1418,8 @@ def get_window_position(_filter="",win=None):
             win.tk.geometry(geo)
     return show,k,geo
 
-def load_window_position(_filter=""):
-    global window_list_buffer
-    print()
-    cprint("load_window_position",[_filter])
+
+def read_window_position():
     try:
         base = Base()
         fname = HOME+"/LibreLight"
@@ -1431,35 +1429,72 @@ def load_window_position(_filter=""):
         f = open(fname,"r")
         lines = f.readlines()
         f.close()
-
-        data = {}
+        out = []
         for line in lines:
             line = line.strip()
             #print(line)
             if " " in line:
                 if line.count(" ") >= 2:
-                    show,k,geo = line.split(" ",2)
+                    show,name,geo = line.split(" ",2)
                 elif line.count(" ") == 1:
-                    k,geo = line.split(" ",1)
+                    name,geo = line.split(" ",1)
                     show = 1
+            out.append([show,name,geo])
 
-                data[k] = [show,k,geo]
-                window_list_buffer[k] = [show,k,geo]
+        return out
+    except Exception as e:
+        cprint("- load_window_position 345 Exception:",e,color="red")
+        return 
+    return []
 
-        for k,win in window_manager.windows.items():
+def split_window_position(lines,_filter=""):
+    try:
+        for show,name,geo in lines:
+            #print( "wwWww "*10,[show,name,geo] )
+            if _filter in name:
+                geo = geo.replace("+"," ")
+                geo = geo.replace("x"," ")
+                geo = geo.split()
+                #print( "wwWww "*10,[show,name,geo] )
+                if len(geo) == 4:
+                    #print( [show,name,geo] )
+                    args = {}
+                    args["width"]  = int(geo[0])
+                    args["height"] = int(geo[1])
+                    args["left"]   = int(geo[2])
+                    args["top"]    = int(geo[3])
+                    return args
+    except Exception as e:
+        cprint("- split_window_position 345 Exception:",e,color="red")
+
+
+
+def load_window_position(_filter=""):
+    global window_list_buffer
+    print()
+    cprint("load_window_position",[_filter])
+    try:
+        lines = read_window_position()
+
+        data = {}
+        for show,name,geo in lines:
+            data[name] = [show,name,geo]
+            window_list_buffer[name] = [show,name,geo]
+
+        for name,win in window_manager.windows.items():
             if not win:
                 continue
 
-            if k not in data:
+            if name not in data:
                 continue
 
             if _filter:
-                if _filter != k:
+                if _filter != name:
                     continue
 
-            w = data[k][2] 
+            w = data[name][2] 
 
-            cprint("- set_win_pos","filter:",[_filter],"Name: {:<20}".format(k),w,win)
+            cprint("- set_win_pos","filter:",[_filter],"Name: {:<20}".format(name),w,win)
             try:
                 win.tk.geometry(w)
             except Exception as e:
@@ -3985,10 +4020,13 @@ class Window():
                 #cprint("SHIFT_KEY",_shift_key,"??????????")
                 #cprint("SHIFT_KEY",_shift_key,"??????????")
                 global _ENCODER_WINDOW
-                if _shift_key:
-                    _ENCODER_WINDOW.title("SHIFT/FINE ")
-                else:
-                    _ENCODER_WINDOW.title("ENCODER") 
+                try:
+                    if _shift_key:
+                        _ENCODER_WINDOW.title("SHIFT/FINE ")
+                    else:
+                        _ENCODER_WINDOW.title("ENCODER") 
+                except Exception as e:
+                    print("exc9800",e)
 
             elif event.keysym in "ebfclrms" and value: 
                 if "e" == event.keysym:
@@ -4125,6 +4163,9 @@ class WindowManager():
             #if resize:
             get_window_position(_filter=name,win=w) 
 
+            if name in ["ENCODER"]:
+                global _ENCODER_WINDOW 
+                _ENCODER_WINDOW = w
             if name in ["DIMMER","FIXTURES"]:
                 refresher_fix.reset() # = Refresher()
 
@@ -4326,6 +4367,7 @@ if __run_main:
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
+    pos_list = read_window_position()
     
 
     data = []
@@ -4351,6 +4393,11 @@ if __run_main:
 
     name="MAIN"
     args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
+
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
     cls = GUI_menu 
     cb_ok = None
 
@@ -4366,6 +4413,9 @@ if __run_main:
     # --------------------------------
     name="EXEC"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     data  = PRESETS
     cls   = draw_exec #GUI_ExecWingLayout
@@ -4379,6 +4429,9 @@ if __run_main:
 
     name="CONFIG"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     data = []
     cls = GUI_CONF
@@ -4391,6 +4444,9 @@ if __run_main:
 
     name="DIMMER"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     cls = GUI_DIM
     data = FIXTURES
@@ -4403,6 +4459,9 @@ if __run_main:
 
     name="FIXTURES"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     cls = GUI_FIX
     ok_cb=None
@@ -4416,6 +4475,9 @@ if __run_main:
     # -------------------------------
     name="FIXTURE-EDITOR"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     data=[]
     for i in range(12*6):
@@ -4432,6 +4494,9 @@ if __run_main:
     # -------------------------------
     name="MASTER-WING"
     args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220,"resize":0}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     data=[]
     for i in range(2):
@@ -4448,6 +4513,9 @@ if __run_main:
     # -------------------------------
     name="EXEC-WING"
     args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     data=[]
     for i in range(10*3):
         data.append({"EXEC"+str(i):"EXEC"})
@@ -4462,6 +4530,9 @@ if __run_main:
 
     name="ENCODER"
     args = {"title":name,"master":0,"width":620,"height":113,"left":L0+710,"top":TOP+H1+15+HTB*2}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     cls = draw_enc #(master,w.tk)#Xroot)
     cb_ok = None
     data = FIXTURES #master
@@ -4516,6 +4587,9 @@ if __run_main:
 
     name="FX"
     args = {"title":name,"master":0,"width":415,"height":297,"left":L1+10+W1,"top":TOP+302,"resize":0}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     cls = draw_fx #(master,w.tk)
     data = []
     cb_ok = None
@@ -4527,6 +4601,9 @@ if __run_main:
 
     name="PATCH"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     cls = GUI_PATCH
     data = FIXTURES
 
@@ -4536,6 +4613,9 @@ if __run_main:
 
     name="COLORPICKER"
     args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     #w = Window(args)
     #draw_colorpicker(master,w.tk,FIXTURES,master)
     cls = draw_colorpicker #(master,w.tk,FIXTURES,master)

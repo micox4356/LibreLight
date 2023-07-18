@@ -417,10 +417,10 @@ def draw_enc(gui,xframe,data=[]):
     c=0
     r=0
     
+
     frame = tk.Frame(xframe,bg="black")
     frame.pack( side=tk.LEFT,expand=0,fill="both")
 
-    
     b = tk.Button(frame,bg="lightblue", text="ENCODER",width=6)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
 

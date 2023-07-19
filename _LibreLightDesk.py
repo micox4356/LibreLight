@@ -2482,10 +2482,11 @@ class MASTER():
                     _buff["abg"] = "yellow"
 
                     menu_buff[KEY] += 1
-                    if KEY == "DIM-SUB":
-                        DIM =1
-                    else:
-                        FIX =1
+                    if b_attr == "S":
+                        if KEY == "DIM-SUB":
+                            DIM =1
+                        else:
+                            FIX =1
                 else:
                     _buff["bg"] = "grey"
                     _buff["abg"] = "grey"
@@ -2522,12 +2523,15 @@ class MASTER():
                         elem.config(activebackground=v)
                     else:
                         elem[e] = v
-
+            w = window_manager.get_win("FIXTURES")
+            #print(dir(w))
+            w.update_idle_task()
+            #tkinter.Tk.update_idletasks(w)
         except Exception as e:
-            print("exc434",e)
+            cprint("exc434",e)
 
         cprint("fix:",_XXX,round(time.time()-s,2),color="red");_XXX += 1
-        print(gui_menu)
+        cprint(gui_menu)
 
         menu_buff["FIX-SUB"] -= menu_buff["FIX"]
         if menu_buff["FIX-SUB"]:
@@ -3266,42 +3270,37 @@ class Fixtures():
             return x
 
         if attr == "INV-ATTR":
-            print("-x-x-x-x-x-x-x-X-")
+            cprint("-x-x-x-x-x-x-x-X-")
             x=self.select(fix,attr,mode="swap")
             #x=self.select(fix,"ALL",mode="swap")
             master.refresh_fix()
             return x
         if attr == "INV-FIX":
-            print("-x-x-x-x-x-x-x-x-")
+            cprint("-x-x-x-x-x-x-x-x-")
             x=self.select(fix,attr,mode="swap")
             #x=self.select(fix,"ALL",mode="swap")
             return x
-
         out = []
         if fix not in self.fixtures: 
-            print(" activate Fixture in fixture list on encoder click ")
+            cprint(" activate Fixture in fixture list on encoder click ")
 
-            #jdata=[{"MODE":"---"}]
             ii =0
-            #jclient_send(jdata)
             delay=0
-            print("-->A HIER <--")
+            sstart = time.time()
+            cprint("-->A HIER <--")
             sub_data = []
-            for fix in self.fixtures:
+            for _fix in self.fixtures:
                 ii+=1
-                #cprint(fix,attr,xval)
-                data = self.fixtures[fix]
+                data = self.fixtures[_fix]
                 if "-FINE" in attr.upper():
                     continue
 
                 elif (attr in data["ATTRIBUT"] ) and "-FINE" not in attr.upper()   :
                     if xval == "click":
-                        self.select(fix,attr,mode="on")
+                        self.select(_fix,attr,mode="on")
                     elif data["ATTRIBUT"][attr]["ACTIVE"]:
-                        if fix: # prevent endless recursion
-                            #print("------",end="")
-                            #self.encoder(fix,attr,xval,xfade,delay)
-                            sub_data.append([fix,attr,xval,xfade,delay])
+                        if _fix:
+                            sub_data.append([_fix,attr,xval,xfade,delay])
                 if DELAY._is():
                     delay += DELAY.val()/100
 
@@ -3330,7 +3329,7 @@ class Fixtures():
     
         v2=data["ATTRIBUT"][attr]["VALUE"]
         change=0
-        increment = 4.11
+        increment = 5 #4.11
         jdata = {"MODE":"ENC"}
         if xval == "++":
             v2+= increment
@@ -3341,12 +3340,12 @@ class Fixtures():
             v2-= increment
             change=1
         elif xval == "+":
-            increment = 0.5
+            increment = 0.25 #.5
             v2+= increment
             jdata["INC"] = increment
             change=1
         elif xval == "-":
-            increment = 0.5
+            increment = 0.25 #.5
             jdata["INC"] = increment*-1
             v2-= increment
             change=1
@@ -3389,36 +3388,40 @@ class Fixtures():
     def get_active(self):
         cprint("get_active",self)
         CFG = OrderedDict()
+
         sdata = OrderedDict()
         sdata["CFG"] = CFG # OrderedDict()
         sdata["CFG"]["FADE"] = FADE.val()
         sdata["CFG"]["DEALY"] = 0
-        #sdata["CFG"]["BUTTON"] = "GO"
+
         for fix in self.fixtures:                            
             data = self.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-                if data["ATTRIBUT"][attr]["ACTIVE"]:
-                    if fix not in sdata:
-                        sdata[fix] = {}
-                    if attr not in sdata[fix]:
-                        sdata[fix][attr] = OrderedDict()
-                        if not modes.val("REC-FX"):
-                            sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                            #sdata[fix][attr]["FADE"] = FADE.val() #fade
-                        else:
-                            sdata[fix][attr]["VALUE"] = None #data["ATTRIBUT"][attr]["VALUE"]
 
-                        if "FX" not in data["ATTRIBUT"][attr]: 
-                             data["ATTRIBUT"][attr]["FX"] =""
-                        if "FX2" not in data["ATTRIBUT"][attr]: 
-                             data["ATTRIBUT"][attr]["FX2"] ={}
-                        
-                        sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
-                        sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
+            for attr in data["ATTRIBUT"]:
+                if not data["ATTRIBUT"][attr]["ACTIVE"]:
+                    continue
+
+                if fix not in sdata:
+                    sdata[fix] = {}
+
+                if attr not in sdata[fix]:
+                    sdata[fix][attr] = OrderedDict()
+
+                    if not modes.val("REC-FX"):
+                        sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
+                    else:
+                        sdata[fix][attr]["VALUE"] = None 
+
+                    if "FX" not in data["ATTRIBUT"][attr]: 
+                         data["ATTRIBUT"][attr]["FX"] = ""
+
+                    if "FX2" not in data["ATTRIBUT"][attr]: 
+                         data["ATTRIBUT"][attr]["FX2"] = {}
+                    
+                    sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
+                    sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
     
         return sdata
-    def get_active2(self):
-        pass
 
     def _deselect_all(self,fix=None):
         cprint("FIXTURES._deselect_all()",fix,"ALL",color="yellow")
@@ -3971,6 +3974,7 @@ class Window():
 
     def callback(self,event,data={}):#value=255):
         global _global_short_key
+        sstart = time.time()
         #time.sleep(0.1)
         if not _global_short_key:
             #cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
@@ -3987,7 +3991,7 @@ class Window():
             #print([event.state,event.keysym,event.type])
             if event.state == 4  and str(2) == str(event.type): # strg + s
                 if str(event.keysym) == "s":
-                    print("tTtT ReW "*20)
+                    cprint("tTtT ReW "*20)
                     #print("numbersign !!")
                     PRESETS.backup_presets()
                     FIXTURES.backup_patch()
@@ -4004,6 +4008,7 @@ class Window():
                     save_window_position()
                     #self.elem.config(activebackground="lightgrey")
                     LOAD_SHOW_AND_RESTAT("").cb(force=1)
+                cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
                 return
 
         if "keysym" in dir(event):
@@ -4026,7 +4031,7 @@ class Window():
                     else:
                         _ENCODER_WINDOW.title("ENCODER") 
                 except Exception as e:
-                    print("exc9800",e)
+                    cprint("exc9800",e)
 
             elif event.keysym in "ebfclrms" and value: 
                 if "e" == event.keysym:
@@ -4084,6 +4089,7 @@ class Window():
                 if value:
                     modes.val("DEL",1)
 
+        cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
  
 class WindowManager():
     def __init__(self):

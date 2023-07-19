@@ -79,10 +79,10 @@ INIT_OK = 0
 _global_short_key = 1
 
 
-gcolor = 1
+icolor = 1
 def cprint(*text,color="blue",space=" ",end="\n"):
     #return 0 #disable print dbg
-    if not gcolor:
+    if not color:
         print(text)
         return 0
 
@@ -136,7 +136,7 @@ try:
         f = open(h +"/LibreLight/config.json","w")
         f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
         f.close()
-        print("Exception:",e)
+        cprint("Exception:",e)
 
     cprint("config read")
     for line in lines:
@@ -146,23 +146,23 @@ try:
         _config.append(row)
 
 except Exception as e:
-    print("Exception:",e)
+    cprint("Exception:",e)
 
 try: 
     for row in _config:
-        print("config:",row)
+        cprint("config:",row)
         if "POS_LEFT" in row:
            _POS_LEFT = int(row["POS_LEFT"]) 
         if "POS_TOP" in row:
            _POS_TOP = int(row["POS_TOP"]) 
 except Exception as e:
-    print("Exception:",e)
+    cprint("Exception:",e)
 
 
 def showwarning(msg="<ERROR>",title="<TITLE>"):
     _main = tkinter.Tk()
     defaultFont = tkinter.font.nametofont("TkDefaultFont")
-    print("showwarning",defaultFont)
+    cprint("showwarning",defaultFont)
     defaultFont.configure(family="FreeSans",
                            size=10,
                            weight="normal")
@@ -221,7 +221,7 @@ class Modes():
             return 1
         elif mode == "ESC":
             for m in self.modes:
-                print("ESC",m)
+                cprint("ESC",m)
                 if m == "COPY":
                     PRESETS.clear_copy()
                 if m == "MOVE":
@@ -280,9 +280,9 @@ modes.modes["CFG-BTN"] = 0
 modes.modes["LABEL"] = 0
 
 def xcb(mode,value=None):
-    print("xcb","MODE CALLBACK",mode,value)
+    cprint("xcb","MODE CALLBACK",mode,value)
     if mode == "REC-FX":
-        print("xcb",modes.val("REC-FX"))
+        cprint("xcb",modes.val("REC-FX"))
 #modes.set_cb(xcb)
 
 POS   = ["PAN","TILT","MOTION"]
@@ -301,7 +301,7 @@ def set_exec_fader(nr,val,color=""):
     try:
         exec_wing.set_fader(nr,val,color=color)
     except Exception as e:
-        print("- exception:",e)
+        cprint("- exception:",e)
     #print("remote in:",round(time.time(),0),"x",i,v)
 
 def set_exec_fader_all():
@@ -324,7 +324,7 @@ def JCB(x):
             set_exec_fader(1,200-v)
             set_exec_fader(2,int(v/2+10))
         except Exception as e:
-            print("exception",e)
+            cprint("exception",e)
         #print("remote in:",round(time.time(),0),"x",i,v)
 
 #chat.cmd(JCB,port=30002) # SERVER
@@ -336,7 +336,7 @@ memcache = None
 try:
     import memcache
 except Exception as e:
-    print("Exception IMPORT ERROR",e)
+    cprint("Exception IMPORT ERROR",e)
 
 class MC():
     def __init__(self,server="127.0.0.1",port=11211):
@@ -346,7 +346,7 @@ class MC():
             self.mc = memcache.Client(['{}:{}'.format(server,port)], debug=0)
             #self.init()
         except Exception as e:
-            print("-- Exception",e)
+            cprint("-- Exception",e)
 
         # def init(self):
         data = {}
@@ -355,7 +355,7 @@ class MC():
         index = self.mc.get("index")
         if index:
             for i in index:
-                print("-- key",i)
+                cprint("-- key",i)
 
         self.fader_map = []
         for i in range(30+1):
@@ -369,11 +369,11 @@ class MC():
 
             for i,line in enumerate(lines):
                 jdata = json.loads(line)
-                print("-- fader_map ->>",i,jdata)
+                cprint("-- fader_map ->>",i,jdata)
                 self.fader_map[i] = jdata
 
         except Exception as e:
-            print("-- Except Fader_map",e)
+            cprint("-- Except Fader_map",e)
         #exit()
 
     def ok(self):
@@ -396,7 +396,7 @@ class MC():
             return 
 
     def _loop(self):
-        print("++++++++++ start.memcachd read loop",self )
+        cprint("++++++++++ start.memcachd read loop",self )
         while 1:
             send = 0
             #print("+")
@@ -422,7 +422,7 @@ class MC():
 
                 time.sleep(0.01)
             except Exception as e:
-                print("exc", e)
+                cprint("exc", e)
                 time.sleep(1)
 
 _mc=MC()
@@ -489,7 +489,7 @@ def jclient_send(data):
 
 def _highlight(fix,_attr="DIM"): 
     " patch test button "
-    print("highlight",fix,"1")
+    cprint("highlight",fix,"1")
 
     if fix not in FIXTURES.fixtures:
         return None
@@ -497,7 +497,7 @@ def _highlight(fix,_attr="DIM"):
     d = FIXTURES.fixtures[fix]
 
     #for k,v in d.items():
-    #    print("-",k,v)
+    #    cprint("-",k,v)
     DMX = d["DMX"] + d["UNIVERS"]*512
     if "ATTRIBUT" in d:
         ATTR= d["ATTRIBUT"]
@@ -510,24 +510,24 @@ def _highlight(fix,_attr="DIM"):
             return #stop
         
     
-        print(attr,ATTR[attr])
+        cprint(attr,ATTR[attr])
         old_val = ATTR[attr]["VALUE"]
         data["DMX"] = DMX + ATTR[attr]["NR"]-1
-        print(attr,ATTR[attr])
-        print(data)
+        cprint(attr,ATTR[attr])
+        cprint(data)
         for i in range(3):
-            print("highlight",fix,"0")
+            cprint("highlight",fix,"0")
             data["VALUE"] = 100
             jclient_send([data])
             time.sleep(0.1)
 
-            print("highlight",fix,"1")
+            cprint("highlight",fix,"1")
             data["VALUE"] = 234
             jclient_send([data])
             time.sleep(0.3)
 
         
-        print("highlight",fix,"0")
+        cprint("highlight",fix,"0")
         data["VALUE"] = old_val 
         jclient_send([data])
 
@@ -537,7 +537,7 @@ def highlight2(fix,attr="DIM"):
     return x
 
 def highlight(fix):
-    print("highlight",fix)
+    cprint("highlight",fix)
     thread.start_new_thread(_highlight,(fix,"DIM"))
     thread.start_new_thread(_highlight,(fix,"RED"))
     thread.start_new_thread(_highlight,(fix,"GREEN"))
@@ -693,7 +693,7 @@ def process_wings(xfixtures):
             wing = xfixtures[j:j+wing_count]
             if i%2!=0:
                 wing = wing[::-1]
-            print("wing",i,"j",j,"wing_count:",wing_count,"wing",wing)
+            cprint("wing",i,"j",j,"wing_count:",wing_count,"wing",wing)
             wing_buffer.append(wing)
 
         if fix_count > j+wing_count: # append Fixtures Left over
@@ -943,7 +943,7 @@ def process_matrix(xfixtures):
     fix_count = len(xfixtures)
     fx_x = fx_prm["FX-X"]
     fx_mod = fx_x_modes[fx_prm["FX:MODE"]]
-    print("----",fx_x,fx_mod)
+    cprint("----",fx_x,fx_mod)
     if fx_x > 1 and fix_count > fx_x:
         try: 
             from lib import matrix
@@ -972,13 +972,13 @@ def process_matrix(xfixtures):
             for i,f in enumerate(xfixtures):
                 if i < w*h:
                     j = int(_map[i])
-                    print([i,f,j])
+                    cprint([i,f,j])
                     out[j] = f
 
             matrix.mprint(out,w,h)
             xfixtures = out
         except Exception as e:
-            print("matrix exception",e)
+            cprint("matrix exception",e)
 
     return xfixtures
 
@@ -1318,14 +1318,14 @@ class Xevent_fx():
 
                 #if event.num == 1:
             elif self.attr == "REC-FX":
-                print("ELSE",self.attr)
+                cprint("ELSE",self.attr)
                 modes.val(self.attr,1)
 
             return 0
             
     def cb(self,event):
         cprint("EVENT_fx cb",self.attr,self.mode,event,color='yellow')
-        print(["type",event.type,"num",event.num])
+        cprint(["type",event.type,"num",event.num])
         try:
             change = 0
 
@@ -1344,7 +1344,7 @@ window_list_buffer = {}
 
 def save_window_position(save_as=""):
     global window_list_buffer
-    print()
+    cprint()
     cprint("save_window_position",[save_as])
 
     base = Base()
@@ -1363,9 +1363,9 @@ def save_window_position(save_as=""):
             geo = win.tk.geometry()
             data = [1,k,geo]
             if k not in  window_list_buffer:
-                print("-- new:win:pos",k.ljust(15," "),data)
+                cprint("-- new:win:pos",k.ljust(15," "),data)
             elif window_list_buffer[k][2] != geo:
-                print("-- update:win:pos",k.ljust(15," "),data)
+                cprint("-- update:win:pos",k.ljust(15," "),data)
             window_list_buffer[k] = data
 
         except Exception as e:
@@ -1401,12 +1401,12 @@ def save_window_position_loop(): # like autosave
                 save_window_position()
                 time.sleep(60)
         except Exception as e:
-            print("save_loop",e)
+            cprint("save_loop",e)
     thread.start_new_thread(loop,())
 
 def get_window_position(_filter="",win=None):
     global window_list_buffer
-    print()
+    cprint()
     show = None
     k = _filter
     geo = ""
@@ -1471,7 +1471,7 @@ def split_window_position(lines,_filter=""):
 
 def load_window_position(_filter=""):
     global window_list_buffer
-    print()
+    cprint()
     cprint("load_window_position",[_filter])
     try:
         lines = read_window_position()
@@ -1563,11 +1563,11 @@ class Xevent():
                 class cb():
                     def __init__(self,name=""):
                         self.name=name
-                        print("cb",name)
+                        cprint("cb",name)
                     def cb(self,event=None,**args):
-                        print("cdb",self.name,event,args)
+                        cprint("cdb",self.name,event,args)
                         if self.name != "<exit>":
-                            print("-----------------------:")
+                            cprint("-----------------------:")
                             LOAD_SHOW_AND_RESTAT(self.name).cb()
                         #self.elem["bg"] = "lightgrey"
                         #self.elem.config(activebackground="lightgrey")
@@ -1587,10 +1587,10 @@ class Xevent():
                 #def _cb(fname):
                 def _cb(data):
                     if not data:
-                        print("err443",self,"_cb",data)
+                        cprint("err443",self,"_cb",data)
                         return None
                     fname = data["Value"]
-                    print(self,"save_show._cb()",fname)
+                    cprint(self,"save_show._cb()",fname)
                     fpath,fname = base.build_path(fname)
                     cprint("SAVE AS",fpath,fname)
                     if base._create_path(fpath):
@@ -1657,7 +1657,7 @@ class Xevent():
 
                 value = ct.val()
                 #print("EVENT CHANGE ",[self.attr])
-                print("EVENT CHANGE:",self.mode,value,self.attr)
+                cprint("EVENT CHANGE:",self.mode,value,self.attr)
                 if value < 0.01:
                     ct.val(0.01)
                 elif value > 100.0:
@@ -1727,10 +1727,10 @@ class Xevent():
                     _global_short_key = 1
                     master.commands.elem["S-KEY"]["bg"] = "green"
                     master.commands.elem["S-KEY"]["activebackground"] = "green"
-                print("s-key",_global_short_key)
+                cprint("s-key",_global_short_key)
             else:
                 if event.num == 1:
-                    print("ELSE",self.attr)
+                    cprint("ELSE",self.attr)
                     modes.val(self.attr,1)
 
             return 0
@@ -1752,7 +1752,7 @@ class Xevent():
                 refresher_fix.reset() # = Refresher()
 
         if self.mode == "INVERT":
-            print("INVERT",event)
+            cprint("INVERT",event)
             if self._encoder(event):
                 master.refresh_fix() # delayed
                 refresher_fix.reset() # = Refresher()
@@ -1783,7 +1783,7 @@ class Xevent():
             
     def cb(self,event):
         cprint("EVENT cb",self.attr,self.mode,event,color='yellow')
-        print(["type",event.type,"num",event.num])
+        cprint(["type",event.type,"num",event.num])
 
         global INIT_OK
         INIT_OK = 1
@@ -1793,7 +1793,7 @@ class Xevent():
                 if "Escape" == event.keysym:
                     ok = FIXTURES.clear()
                     master._refresh_fix()
-                    print()
+                    cprint()
                     return 0
 
             if self.mode == "SETUP":
@@ -1817,19 +1817,19 @@ class Xevent():
                     pass
 
             elif self.mode == "INPUT":
-                print("INP",self.data.entry.get())
+                cprint("INP",self.data.entry.get())
                 if event.keycode == 36:
                     x=self.data.entry.get()
                     #client.send(x)
 
             elif self.mode == "INPUT2":
-                print("INP2",self.data.entry2.get())
+                cprint("INP2",self.data.entry2.get())
                 if event.keycode == 36:
                     x=self.data.entry2.get()
                     #client.send(x)
 
             elif self.mode == "INPUT3":
-                print("INP3",self.data.entry3.get())
+                cprint("INP3",self.data.entry3.get())
                 if event.keycode == 36:
                     x=self.data.entry3.get()
                     #client.send(x)
@@ -1887,7 +1887,7 @@ class Xevent():
                             self.data.preset_go(nr,event=event,val=255)
                     else:
                         self.data.preset_go(nr,xfade=0,event=event,val=0)
-                        print(" == "*10)
+                        cprint(" == "*10)
                         master.refresh_fix()
                         refresher_fix.reset() # = Refresher()
 
@@ -1899,21 +1899,21 @@ class Xevent():
                         else:
                             self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=0)
                         
-                print()
+                cprint()
                 return 0
             elif self.mode == "INPUT":
-                print()
+                cprint()
                 return 0
 
         except Exception as e:
             cprint("== cb EXCEPT",e,color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-        print()
+        cprint()
         return 1 
         
 def wheel(event,d=None):
-    print("wheel",event,d)
+    cprint("wheel",event,d)
     
 
 
@@ -1955,7 +1955,7 @@ class Base():
         fpath = self.show_path1 +show_name 
         if not os.path.isdir(fpath):
             cprint(fpath)
-            print( os.path.isdir(fpath))
+            cprint( os.path.isdir(fpath))
 
             msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
             msg += "please check\n"
@@ -1969,13 +1969,13 @@ class Base():
     def _set(self,fname):
         ok= os.path.isdir(self.show_path1+"/"+fname)
         ini = self.show_path0+"init.txt"
-        print("SET SHOW NAME",fname,ok,ini)
+        cprint("SET SHOW NAME",fname,ok,ini)
         try:
             f = open( ini ,"r")
             lines = f.readlines()
             f.close()
             if len(lines) >= 10: # cut show history
-                print("_set",ini,len(lines))
+                cprint("_set",ini,len(lines))
                 lines = lines[-10:]
                 f = open( ini ,"w")
                 f.writelines(lines)
@@ -2024,7 +2024,7 @@ class Base():
 
     def _load(self,filename):
         xfname = self.show_path+"/"+str(filename)+".sav"
-        print("load",xfname)
+        cprint("load",xfname)
 
         try:
             f = open(xfname,"r")
@@ -2053,7 +2053,7 @@ class Base():
             if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
 
                 if nrnull:
-                    print("DMX NR IS NULL",attr,"CHANGE +1")
+                    cprint("DMX NR IS NULL",attr,"CHANGE +1")
                     for attr in jdata["ATTRIBUT"]:
                         if "NR" in jdata["ATTRIBUT"][attr]:
                             nr = jdata["ATTRIBUT"][attr]["NR"]
@@ -2098,7 +2098,7 @@ class Base():
         else:
             xfname = self.show_path+"/"+str(filename)+".sav"
 
-        print("backup",xfname)
+        cprint("backup",xfname)
         f = open(xfname,"w")
         for key in data:
             line = data[key]
@@ -2126,19 +2126,19 @@ class cb():
         clobj=event.widget
         ## undermouse=find_withtag(master.CURRENT)
         undermouse=self.win.find_closest(self.win.CURRENT)
-        print( repr(undermouse))
+        cprint( repr(undermouse))
     def callback(self,event):
-        print(__file__,self,"callback",event)
+        cprint(__file__,self,"callback",event)
         cnv = self.win
         item = cnv.find_closest(cnv.canvasx(event.x), cnv.canvasy(event.y))[0]
         tags = cnv.gettags(item)
         #cnv.itemconfigure(self.tag, text=tags[0])
-        print(tags,item)
+        cprint(tags,item)
         color = cnv.itemcget(item, "fill")
         cnv.itemconfig("all", width=1)#filla="green")
         cnv.itemconfig(item, width=3)#filla="green")
-        print(color)
-        print( hex_to_rgb(color[1:]))
+        cprint(color)
+        cprint( hex_to_rgb(color[1:]))
 
 
 class Elem_Container():
@@ -2233,9 +2233,9 @@ class MASTER():
 
         def _cb(data):
             if not data:
-                print("err443",self,"_cb",data)
+                cprint("err443",self,"_cb",data)
                 return None
-            print(self,"btn_cfg._cb()",data)
+            cprint(self,"btn_cfg._cb()",data)
             if data:
 
                 if "Button" in  data and type(data["Button"]) is str:
@@ -2261,10 +2261,10 @@ class MASTER():
         txt = PRESETS.label(nr) 
         def _cb(data):
             if not data:
-                print("err443",self,"_cb",data)
+                cprint("err443",self,"_cb",data)
                 return None
             txt = data["Value"]
-            print(self,"label._cb()",nr,txt)
+            cprint(self,"label._cb()",nr,txt)
             if txt:
                 PRESETS.label(nr,txt) 
                 self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
@@ -2301,7 +2301,7 @@ class MASTER():
     def load(self,fname=""):
         pass
     def exit(self):
-        print("__del__",self)
+        cprint("__del__",self)
         PRESETS.backup_presets()
         #print("********************************************************")
         FIXTURES.backup_patch()
@@ -2506,7 +2506,7 @@ class MASTER():
             menu_buff["FIX"] += FIX
             menu_buff["DIM"] += DIM
 
-        print(" =+= "*10,"refresh_fix")
+        cprint(" =+= "*10,"refresh_fix")
         try:
             for row in elem_buffer:
                 elem = row["elem"]
@@ -2563,7 +2563,7 @@ class MASTER():
         cprint("fix:",_XXX,round(time.time()-s),color="red"); _XXX += 1
 
     def preset_rec(self,nr):
-        print("------- STORE PRESET")
+        cprint("------- STORE PRESET")
         data = FIXTURES.get_active()
         if modes.val("REC-FX"):
             PRESETS.rec(nr,data,"REC-FX")
@@ -2579,7 +2579,7 @@ class MASTER():
 
 
     def preset_select(self,nr):
-        print("SELECT PRESET")
+        cprint("SELECT PRESET")
         sdata = PRESETS.val_presets[nr]
         cmd = ""
         for fix in sdata:
@@ -2604,14 +2604,14 @@ class MASTER():
         if ptfade is None and FADE_move._is():
             ptfade = FADE_move.val()
 
-        print("GO PRESET FADE",nr,val)
+        cprint("GO PRESET FADE",nr,val)
 
         rdata = PRESETS.get_raw_map(nr)
         if not rdata:
             return 0
-        print("???????")
+        cprint("???????")
         cfg   = PRESETS.get_cfg(nr)
-        print("''''''''")
+        cprint("''''''''")
         #virtcmd  = FIXTURES.get_virtual(rdata)
         if not cfg:
             cprint("NO CFG",cfg,nr)
@@ -2766,7 +2766,7 @@ class InputEventBlocker():
     def event(self,event,**args):
         self.init()
         #print()
-        print(self,event,args)
+        cprint(self,event,args)
         #print("###-",self.e_txt,dir(self.e_txt))
         if "S-KEY" not in master.commands.elem:
             return 
@@ -2779,7 +2779,7 @@ class InputEventBlocker():
             if event.keysym == "Return" or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
                 self.unlock() 
                 #self.e_txt.set(t)
-            print("filter: get()",_global_short_key,t)
+            cprint("filter: get()",_global_short_key,t)
             t2 = t
             if _global_short_key == 0:
                 if event.keysym == "BackSpace":
@@ -2819,7 +2819,7 @@ class LOAD_SHOW_AND_RESTAT():
         self.base = Base()
 
     def cb(self,event=None,force=0):
-        print("LOAD_SHOW_AND_RESTART.cb force={} name={}".format(force,self.fname) )
+        cprint("LOAD_SHOW_AND_RESTART.cb force={} name={}".format(force,self.fname) )
         if not self.fname and not force:
             return 0
         if self.base.show_name == self.fname and not force:
@@ -2828,9 +2828,9 @@ class LOAD_SHOW_AND_RESTAT():
         if not force:
             self.base._set(self.fname)
 
-        print("LOAD SHOW:",event,self.fname)
+        cprint("LOAD SHOW:",event,self.fname)
 
-        print(sys.executable, os.path.abspath(__file__), *sys.argv)
+        cprint(sys.executable, os.path.abspath(__file__), *sys.argv)
         os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
         sys.exit()
                 
@@ -2889,7 +2889,7 @@ class DummyCallback():
     def __init__(self,name="name"):
         self.name = name
     def cb(self,event=None):
-        print("DummyCallback.cb",[self.name,event])
+        cprint("DummyCallback.cb",[self.name,event])
 
 
 def _load_show_list(frame,cb=None):
@@ -2970,7 +2970,7 @@ def _load_fixture_list(frame,cb=None,master=None,bg="black"):
             b.insert(0,"user")
             blist.append(b)
     except Exception as e:
-        print("Exce 877 ",e)
+        cprint("Exce 877 ",e)
     try:
         p="/opt/LibreLight/Xdesk/fixtures/"
         ls = os.listdir(p )
@@ -2981,7 +2981,7 @@ def _load_fixture_list(frame,cb=None,master=None,bg="black"):
             b.insert(0,"base")
             blist.append(b)
     except Exception as e:
-        print("Exce 878 ",e)
+        cprint("Exce 878 ",e)
 
     if not blist:
         blist.append(["MAC-500","martin","Demo"])
@@ -3312,11 +3312,11 @@ class Fixtures():
                 sub_jdata.append(_x123)
 
             if sub_jdata:
-                print("--- SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
+                cprint("--- SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
                 jclient_send(sub_jdata) 
 
             jdata=[{"MODE":ii}]
-            print("-->B HIER <--")
+            cprint("-->B HIER <--")
             jclient_send(jdata)
             return 0
 
@@ -3467,7 +3467,7 @@ class Fixtures():
         if fix == "SEL":
             if attr.upper() == "INV-ATTR":
                 fixs = self.get_active()
-                print("selected:",len(fixs))
+                cprint("selected:",len(fixs))
                 for fix in fixs:
                     x=self._select_all(fix=fix,mode=mode,mute=1)
                 return None 
@@ -3638,7 +3638,7 @@ class Presets():
                 if "FX" in row and row["FX"] and not row["FX2"]: # rebuild old FX to Dict-FX2
                     #"off:0:0:0:16909:-:"
                     x = row["FX"].split(":")
-                    print("-fx",x,len(x))
+                    cprint("-fx",x,len(x))
                     #'FX2': {'TYPE': 'sinus', 'SIZE': 200, 'SPEED': 30, 'START': 0, 'OFFSET': 2805, 'BASE': '-'}}
                     if len(x) >= 6:
                         row["FX2"]["TYPE"] = x[0] 
@@ -3655,7 +3655,7 @@ class Presets():
     def get_raw_map(self,nr):
         self.clean(nr)
 
-        print("get_raw_map",nr)
+        cprint("get_raw_map",nr)
         sdata = self.val_presets[nr]
         cmd = ""
         out = []
@@ -3689,7 +3689,7 @@ class Presets():
         #txt=str(nr+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+_label
         #txt=str(nr+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+_label
         txt="{} {} {}\n{}".format(nr+1,BTN,len(sdata)-1,_label)
-        print("get_btn_txt",nr,[txt])
+        cprint("get_btn_txt",nr,[txt])
         return txt
 
     def _btn_cfg(self,nr,txt=None):
@@ -3712,7 +3712,7 @@ class Presets():
             self.val_presets[nr]["CFG"]["BUTTON"] = ""
 
         master._refresh_exec(nr=nr)
-        print("EEE", self.val_presets[nr]["CFG"]["BUTTON"] )
+        cprint("EEE", self.val_presets[nr]["CFG"]["BUTTON"] )
         return self.val_presets[nr]["CFG"]["BUTTON"] 
 
     def label(self,nr,txt=None):
@@ -3720,8 +3720,8 @@ class Presets():
             return ""
         if type(txt) is str:
             self.label_presets[nr] = txt
-            print("set label",nr,[txt])
-        print("??? ?? set label",nr,[txt])
+            cprint("set label",nr,[txt])
+        cprint("??? ?? set label",nr,[txt])
         return self.label_presets[nr] 
 
     def clear_move(self):
@@ -3820,9 +3820,9 @@ class FixtureEditor():
         pass
         self.elem=[]
         self.dmx=dmx
-        print("init FixtureEditor",dmx)
+        cprint("init FixtureEditor",dmx)
     def event(self,a1="",a2=""):
-        print([self.dmx,a1,a2])
+        cprint([self.dmx,a1,a2])
         j=[]
         jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.dmx)}
         j.append(jdata)
@@ -3834,9 +3834,9 @@ class MasterWing():
         pass
         self.elem=[]
         self.dmx=dmx
-        print("init MasterWing",dmx)
+        cprint("init MasterWing",dmx)
     def event(self,a1="",a2=""):
-        print([self.dmx,a1,a2])
+        cprint([self.dmx,a1,a2])
         jdata = {'CMD': "MASTER", 'NAME': str(a1),'VALUE':str(a2) }
 
         j=[]
@@ -3853,7 +3853,7 @@ class BufferVar():
             txt = data["Value"]
         dialog._cb = _cb
         dialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
-        print("change_dmx",[event,self])
+        cprint("change_dmx",[event,self])
 
 
             
@@ -3886,7 +3886,7 @@ class Window():
             self.tk.withdraw() # do not draw
             self.tk.resizable(self.args["resize"],self.args["resize"])
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
-            print(defaultFont)
+            cprint(defaultFont)
             defaultFont.configure(family="FreeSans",
                                    size=10,
                                    weight="bold")
@@ -3894,7 +3894,7 @@ class Window():
             try:
                 self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
             except Exception as e:
-                print("Exception GUIWindow.__init__",e)
+                cprint("Exception GUIWindow.__init__",e)
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
@@ -3915,8 +3915,8 @@ class Window():
                 else:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
             except Exception as e:
-                print("Exception on load window icon",self.args["title"])
-                print("Exception:",e)
+                cprint("Exception on load window icon",self.args["title"])
+                cprint("Exception:",e)
             #time.sleep(3)
             self.tk.deiconify()
 
@@ -4066,16 +4066,16 @@ class Window():
                 cprint("NUM-KEY",value,nr)
                 master.preset_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
-                print("numbersign !!")
+                cprint("numbersign !!")
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
 
                 save_window_position()
 
                 for e in master.setup_cmd:
-                    print(e)
+                    cprint(e)
                 e =  master.setup_elem["SAVE\nSHOW"]
-                print(e)
+                cprint(e)
                 b = BLINKI(e)
                 b.blink()
                 #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
@@ -4135,11 +4135,11 @@ class WindowManager():
         self.windows[self.first].mainloop()
 
     def get_win(self,name):
-        print(self,".get_win(name) =",name)
+        cprint(self,".get_win(name) =",name)
         name = str(name)
         if name in self.windows:
             out = self.windows[name]
-            print(out)
+            cprint(out)
             return out
 
     def get(self,name):
@@ -4186,7 +4186,7 @@ class WindowManager():
     def top(self,name):
         name = str(name)
         if name not in self.windows:
-            print(name,"not in self.windows",self.windows.keys())
+            cprint(name,"not in self.windows",self.windows.keys())
             return 
 
         if not self._check(name):
@@ -4253,7 +4253,7 @@ class Refresher():
         self.name = "name" # exec
         self.cb = None #self.dummy_cb
     def dummy_cb(self):
-        print(self,"dummy_cd()",time.time()-self.time)
+        cprint(self,"dummy_cd()",time.time()-self.time)
 
     def reset(self):
         self.time = time.time() 
@@ -4267,7 +4267,7 @@ class Refresher():
             self.time = time.time() 
 
     def _refresh(self):
-        print("_refresh()",self.name,self)
+        cprint("_refresh()",self.name,self)
         if not INIT_OK:
             return
 
@@ -4280,10 +4280,10 @@ class Refresher():
             else:
                 self.dummy_cb()
         except Exception as e:
-            print("_refresh except:",e,"cb:",self.cb)
+            cprint("_refresh except:",e,"cb:",self.cb)
             traceback.print_exc()
-            print()
-        print("t=",self.time_max- time.time())
+            cprint()
+        cprint("t=",self.time_max- time.time())
 
     def loop(self,args={}):
         while 1:
@@ -4292,7 +4292,7 @@ class Refresher():
                     self.refresh()
                     #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
             except Exception as e:
-                print("loop exc",e)
+                cprint("loop exc",e)
                 traceback.print_exc()
                 cprint("== cb EXCEPT",e,color="red")
                 cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
@@ -4314,7 +4314,7 @@ else:
 
 
 refresher_fix = Refresher()
-refresher_fix.time_delta = 1.0 
+refresher_fix.time_delta = 0.50 
 refresher_fix.name = "fix"
 refresher_fix.reset() 
 refresher_fix.cb = master._refresh_fix
@@ -4360,7 +4360,7 @@ class window_create_buffer():
 
 
 if __run_main:
-    print("main")
+    cprint("main")
     #thread.start_new_thread(refresher_fix.loop,())
     #thread.start_new_thread(refresher_exec.loop,())
     

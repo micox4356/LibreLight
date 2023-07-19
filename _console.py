@@ -947,12 +947,10 @@ if __run_main:
 
 def JCB(data): #json client input
     t_start = time.time()
-    #jdatas = data["cmd"].split("\x00")
     jdatas = [data["cmd"]]
 
     c = clock.time() 
     c = float(c)
-    #print("JCB",round(c,2))
     ftime = 0
     delay = 0
     for j in jdatas:
@@ -960,16 +958,12 @@ def JCB(data): #json client input
         if not j:
             continue
         try:
-            #cprint("JCB::")#,j)
             jdata = j #jdatas[j]
             jtxt = jdata
-            #jtxt = zlib.decompress(jtxt) #jtxt.decode())
             jtxt = str(jtxt,"UTF-8")
             cmds = json.loads(jtxt)
             out = {}
             for x in cmds:
-                #cprint(int(clock.time()*1000)/1000,end=" ",color="yellow")#time.time())
-                #cprint("json", x,type(x),color="yellow")#,cmds[x])
                 if "CMD" in x:
                     print("CMD:",x)
                     if "EXEC-SPEED-MASTER" == x["CMD"]:
@@ -981,13 +975,6 @@ def JCB(data): #json client input
 
                     if "SPEED-MASTER" == x["CMD"]:
                         speed_master.val(x["NR"],x["VALUE"])
-                        if x["NR"] == 2:
-                            pass
-                            #vdmx.data[4]["DMXCH"].fade(x["VALUE"],3)#,clock=clock.time())
-                        if x["NR"] == 3:
-                            pass
-                            #vdmx.data[4]["DMXCH"].fx(size=255,speed=x["VALUE"],base="-",offset=0)
-                            #xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
 
                     if "SIZE-MASTER" == x["CMD"]:
                         size_master.val(x["NR"],x["VALUE"])
@@ -1022,7 +1009,6 @@ def JCB(data): #json client input
                     if "DMX-FINE" in x:
                         try:
                             Bdmx[DMX]._dmx_fine = int(x["DMX-FINE"])
-                            #cprint("DMX-FINE",Bdmx[DMX],color="blue") 
                         except Exception as e:
                             cprint(x,color="red")
                             cprint("except 3455",e,color="red")
@@ -1031,24 +1017,17 @@ def JCB(data): #json client input
                         continue
 
                     if "FLASH" in x and v == "off" and Bdmx[DMX].exec_id() != exec_id:
-                        #print("STOP",[exec_id,v],Bdmx[DMX].exec_id() )
                         continue # stop
                     
                     Bdmx[DMX].exec_id(exec_id)
                     out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{}}
                     if v is not None:
                         if "FLASH" in x:
-                            #print("FLASH")
-                            #Bdmx[DMX].flash(target=v,ftime=ftime, clock=c,delay=delay)
                             out[DMX]["flash"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay}
                         else:
-                            #print("FADE")
-                            #Bdmx[DMX].fade(target=v,ftime=ftime, clock=c,delay=delay)
                             out[DMX]["fade"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay}
                     
                     if type(fx2) is dict and fx2:
-
-                        #cprint("FX2",DMX,fx2,color="green")
                         xtype="fade"
                         size  = 10
                         speed = 10
@@ -1082,10 +1061,8 @@ def JCB(data): #json client input
                                     i.fx(xtype="off",clock=c)
 
                         if "FLASH" in x:
-                            #Bdmx[DMX].flash_fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
                             out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,"invert":invert,"width":width,"start":start,"offset":offset,"base":base,"clock":c,"master":master_fx}
                         else:
-                            #Bdmx[DMX].fx(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=c,master=master_fx)
                             out[DMX]["fx"] = {"xtype":xtype,"size":size,"speed":speed,"invert":invert,"width":width,"start":start,"offset":offset,"base":base,"clock":c,"master":master_fx}
 
                     elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
@@ -1096,14 +1073,11 @@ def JCB(data): #json client input
                         else:
                             CB({"cmd":"fx"+ccm})
 
-                    #print("END",[exec_id,v],Bdmx[DMX].exec_id() )
-                    #print("END",[Bdmx[DMX] ])
 
-            cprint("-","{:0.04} sec.".format(time.time()-t_start),color="yellow")
+            #cprint("-","{:0.04} sec.".format(time.time()-t_start),color="yellow")
             # ------- ---------------------------------------------------- 
             try: # second loop to sync-start all dmxch's
                 main.lock.acquire_lock()
-                # main.lock.release_lock()
                 for DMX in out:
                     line = out[DMX]
 
@@ -1147,16 +1121,12 @@ def JCB(data): #json client input
             finally:
                 main.lock.release_lock()
 
-            #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
-            #cprint("{:0.04} t.".format(time.time()),color="yellow")
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")
             cprint("----",str(jdata)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             raise e
-    #cprint()
-    cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
-    #cprint("{:0.04} t.".format(time.time()),color="yellow")
+    #cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
             
 def CB(data): # raw/text client input 
     #print("CB",data)

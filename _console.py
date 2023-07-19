@@ -837,6 +837,8 @@ class Main():
                 artnet = self.artnet[str(univ)]
                 artnet.dmx = [0]*512
 
+        fps_start = time.time()
+        fps = 0
         while 1:
             self.lock.acquire_lock()
             t = clock.time()
@@ -929,6 +931,13 @@ class Main():
             self.lock.release_lock()
             #self.lock.acquire_lock()
             time.sleep(0.01)
+            fps += 1
+            if fps >= 100:
+                fps_t = time.time()
+                #print(int((fps_t-fps_start)*1000),"ms") 
+                print(round(100/(fps_t-fps_start),2),"core/fps") 
+                fps = 0
+                fps_start = time.time()
 
 main = Main()
 if __run_main:
@@ -1090,6 +1099,7 @@ def JCB(data): #json client input
                     #print("END",[exec_id,v],Bdmx[DMX].exec_id() )
                     #print("END",[Bdmx[DMX] ])
 
+            cprint("-","{:0.04} sec.".format(time.time()-t_start),color="yellow")
             # ------- ---------------------------------------------------- 
             try: # second loop to sync-start all dmxch's
                 main.lock.acquire_lock()
@@ -1145,7 +1155,7 @@ def JCB(data): #json client input
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             raise e
     #cprint()
-    #cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
+    cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
     #cprint("{:0.04} t.".format(time.time()),color="yellow")
             
 def CB(data): # raw/text client input 

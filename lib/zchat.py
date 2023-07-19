@@ -178,7 +178,7 @@ def cmd(cb=dummyCB,port=51000):
         x.poll()
 
 
-class Client():
+class _Client():
     def __init__(self,port=51000):
         print("-----CLIENT-----")
         self.port = port
@@ -214,6 +214,53 @@ class Client():
         self.xs.close()
     def __del__(self):
         self.close()
+
+
+import _thread as thread
+
+class XClient():
+    def __init__(self,port=51000):
+        self.port = port 
+        self.buffer=[]
+        self._buffer=[]
+        self.lock = thread.allocate_lock()
+        thread.start_new_thread(self.loop,())
+
+    def loop(self):
+        
+        self.Client = _Client(self.port)
+        while 1:
+            if not self.lock.locked():
+                self.lock.acquire_lock()
+                try:
+                    for b in self.buffer:
+                        self._buffer.append(b)
+                    self.buffer = []
+                finally:
+                    self.lock.release_lock()
+            if self._buffer:
+                t = time.time()
+                for b in self._buffer:
+                    #print("send",len(str(b)))
+                    if b[1]+2 > t:
+                        self.Client.send(b[0])
+                self._buffer = []
+            else:
+                time.sleep(0.1)
+    def connect(self,client_name="unknown"):
+        pass
+
+                
+    def send(self,nachricht):
+        #print(self,nachricht)
+        
+        self.lock.acquire_lock()
+        try:
+            self.buffer.append([nachricht,time.time()])
+        finally:
+            self.lock.release_lock()
+#Client = _Client
+Client = XClient
 
 tcp_sender = Client
 

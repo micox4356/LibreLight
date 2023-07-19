@@ -1447,6 +1447,15 @@ def read_window_position():
         return 
     return []
 
+def split_window_show(lines,_filter=""):
+    try:
+        for show,name,geo in lines:
+            #print( "wwWww "*10,[show,name,geo] )
+            if _filter in name:
+                return int(show)
+    except Exception as e:
+        cprint("- split_window_show 345 Exception:",e,color="red")
+
 def split_window_position(lines,_filter=""):
     try:
         for show,name,geo in lines:
@@ -4430,7 +4439,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     name="CONFIG"
@@ -4445,7 +4455,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    #window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     name="DIMMER"
@@ -4460,7 +4471,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    #window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     name="FIXTURES"
@@ -4475,7 +4487,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    #window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     # -------------------------------
@@ -4513,7 +4526,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     # -------------------------------
@@ -4531,7 +4545,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     name="ENCODER"
@@ -4545,7 +4560,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    #window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name = "SETUP"
     args = {"title":name +" SHOW:"+master.base.show_name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
@@ -4557,7 +4573,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     name = "COMMAND"
@@ -4568,7 +4585,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name = "LIVE"
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":0}
@@ -4578,7 +4596,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name = "CLOCK"
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
@@ -4589,7 +4608,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name="FX"
     args = {"title":name,"master":0,"width":415,"height":297,"left":L1+10+W1,"top":TOP+302,"resize":0}
@@ -4602,7 +4622,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
 
     name="PATCH"
@@ -4615,7 +4636,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c) #,obj)
-    #window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name="COLORPICKER"
     args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
@@ -4630,7 +4652,8 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    #window_manager.top(name)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name="TableA"
     #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)

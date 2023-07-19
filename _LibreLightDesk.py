@@ -1804,7 +1804,7 @@ class Xevent():
                 self.live(event)
             elif self.mode == "ENCODER":
                 self.encoder(event)
-                master._refresh_fix()
+                master.refresh_fix()
 
             elif self.mode == "ENCODER2":
                 self.encoder(event)

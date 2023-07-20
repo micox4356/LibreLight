@@ -290,7 +290,7 @@ COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
-    
+
 
 def set_exec_fader(nr,val,color=""):
     exec_wing = window_manager.get_obj(name="EXEC-WING") 
@@ -310,7 +310,7 @@ def set_exec_fader_all():
         set_exec_fader(nr,0) #,color="#fff")
 
 # remote input - start (memcached)
-def JCB(x):
+def JCB(x,sock=None):
     for i in x:
         jv = x[i]
 
@@ -325,11 +325,51 @@ def JCB(x):
             set_exec_fader(2,int(v/2+10))
         except Exception as e:
             cprint("exception",e)
+            print(sys.exc_info()[2])
         #print("remote in:",round(time.time(),0),"x",i,v)
 
-#chat.cmd(JCB,port=30002) # SERVER
-thread.start_new_thread(chat.cmd,(JCB,30002)) # SERVER
+r1_server = chat.Server(port=30002)
+def server1_loop():
+    while 1:
+        r1_server.poll(cb=JCB)
+        time.sleep(0.01)
+thread.start_new_thread(server1_loop,()) # SERVER
 # remote input - end
+
+
+def JSCB(x,sock=None):
+    i = ""
+    msg = ""
+    try:
+        for i in x:
+            #print("i",[i])
+            msg = json.loads(i)
+            print("JSCB",i,msg,sock)
+            if sock:
+                msg = json.dumps(msg)
+                msg = bytes(msg,"utf8")
+                chat._send(sock,msg)
+            
+    except Exception as e:
+        cprint("exception JSCB:",e)
+        cprint("- i:",i)
+        cprint("- msg:",msg)
+        cprint(traceback.format_exc(),color="red")
+        if sock:
+            msg = ["Notice: Exception on JSCB-SERVER: ",str(e)]
+            msg = json.dumps(msg)
+            msg = bytes(msg,"utf8")
+            chat._send(sock,msg)
+
+
+
+# external GUI
+r_server = chat.Server(port=30003,cb=JSCB)
+def server_loop():
+    while 1:
+        r_server.poll(cb=JSCB)
+        time.sleep(0.001)
+thread.start_new_thread(server_loop,()) # SERVER
 
 # read memcachd
 memcache = None
@@ -427,11 +467,9 @@ class MC():
 
 _mc=MC()
 _mc.loop()
-#time.sleep(1)
-#exit()
 
-jclient = chat.tcp_sender()#port=50001)
-import zlib
+console = chat.Client() #port=50001)
+
 def jclient_send(data):
     t_start = time.time()
     jtxt = data
@@ -480,9 +518,7 @@ def jclient_send(data):
     jtxt = jdatas
     jtxt = json.dumps(jtxt)
     jtxt = jtxt.encode()
-    #jtxt = zlib.compress(jtxt)
-    jclient.send( jtxt ) #b"\00 ")
-    #print(round((time.time()-t_start)*1000,4),"milis")
+    console.send( jtxt ) #b"\00 ")
     cprint("{:0.04} sec.".format(time.time()-t_start),color="yellow")
     cprint("{:0.04} tick".format(time.time()),color="yellow")
 
@@ -4017,7 +4053,7 @@ class Window():
                     save_window_position()
                     #self.elem.config(activebackground="lightgrey")
                     LOAD_SHOW_AND_RESTAT("").cb(force=1)
-                cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
+                #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
                 return
 
         if "keysym" in dir(event):

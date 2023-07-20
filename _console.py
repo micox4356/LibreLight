@@ -945,25 +945,33 @@ if __run_main:
     thread.start_new_thread(main.loop,())
 
 
-def JCB(data): #json client input
+def JCB(data,sock=None): #json client input
     t_start = time.time()
-    jdatas = [data["cmd"]]
+    #print("-->-",data)
+    jdatas = []
+    l2 = 0
+    for line in data:
+        data2 = json.loads(line)
+        l2 += len(data2)
+        #print("line:",line)
+        jdatas.append(data2) #["CMD"])
 
+    print("INPUT JCB =>",len(data),":",l2)
     c = clock.time() 
     c = float(c)
     ftime = 0
     delay = 0
-    for j in jdatas:
+    for cmds in jdatas:
+
+        #print("cmds:",cmds)
         master_fx = MASTER_FX()
-        if not j:
+        if not cmds:
             continue
+
         try:
-            jdata = j #jdatas[j]
-            jtxt = jdata
-            jtxt = str(jtxt,"UTF-8")
-            cmds = json.loads(jtxt)
             out = {}
             for x in cmds:
+
                 if "CMD" in x:
                     print("CMD:",x)
                     if "EXEC-SPEED-MASTER" == x["CMD"]:
@@ -1061,9 +1069,13 @@ def JCB(data): #json client input
                                     i.fx(xtype="off",clock=c)
 
                         if "FLASH" in x:
-                            out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,"invert":invert,"width":width,"start":start,"offset":offset,"base":base,"clock":c,"master":master_fx}
+                            out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,
+                                        "invert":invert,"width":width,"start":start
+                                        ,"offset":offset,"base":base,"clock":c,"master":master_fx}
                         else:
-                            out[DMX]["fx"] = {"xtype":xtype,"size":size,"speed":speed,"invert":invert,"width":width,"start":start,"offset":offset,"base":base,"clock":c,"master":master_fx}
+                            out[DMX]["fx"] = {"xtype":xtype,"size":size,"speed":speed
+                                    ,"invert":invert,"width":width,"start":start
+                                    ,"offset":offset,"base":base,"clock":c,"master":master_fx}
 
                     elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
                         ccm = str(DMX+1)+":"+fx
@@ -1228,12 +1240,11 @@ def CB(data): # raw/text client input
 
 if __run_main:
         
-    #jchat = chat.CMD(CB,port=50001) # server listener
-    #thread.start_new_thread(jchat.poll,())
-    chat.cmd(JCB) # server listener
-    #chat.cmd(JCB,port=50001) # server listener
+    s = chat.Server(cb=JCB)
+    while 1:
+        s.poll()
+        time.sleep(0.01)
 
-    #input("END")
 
 
 

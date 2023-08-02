@@ -1,7 +1,8 @@
 
 Stage Lighting Control Software, Movingheads, Movinglights, Dimmer, LED, Spotlight, Washlight 
 
-![LibreLightScreen](https://user-images.githubusercontent.com/98694752/152388271-54c6e915-0357-47d5-9d1c-f0c71ea8fa12.png)
+
+![LibreLight20230802](https://github.com/micox4356/LibreLight/assets/98694752/bd871f93-dc3a-40b7-90a5-c4b9e5d0a298)
 
 
 HomePage

@@ -19,24 +19,26 @@ class scroll():
         canvas = self.canvas
         canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
 
+class _LOAD_FIXTURE():
+    def __init__(self,parent=None,name="<name>"):
+        self.name=name
+        self.master = None
+        self.parent=parent
+
+    def cb(self,event=None,fixture={}):
+        print("LOAD_FIXTURE",self.name,event)
+        self.parent.clear()
+        if fixture:
+            self.parent.load(fixture)
 
 class LOAD_FIXTURE():
-    def __init__(self,name="",master=None):
+    def __init__(self,parent=None,name="<name>"):
         self.name=name
-        self.master=master
+        self.master = None
+        self.parent=parent
+        self.x = _LOAD_FIXTURE(parent,name)
+        self.cb = self.x.cb
 
-    def cb(self,event=None):
-        print("LOAD_FIXTURE",self.name,event)
-        if self.master is not None:
-            #for i in dir(self.master): #.load_MH2()
-            #    print(i)
-            if "SPARX" in self.name.upper():
-                self.master.load_MH2()
-            elif "MH" in self.name.upper():
-                self.master.load_MH2()
-            else:
-                self.master.load_DIM()
-            #print(dir(self.master))
 
 class TableFrame():
     def __init__(self,root, width=50,height=100,bd=1):
@@ -165,7 +167,7 @@ class _TableFrame():
 
 def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
     #print("ScrollFrame init",width,height)
-    aframe=tk.Frame(root,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
+    aframe=tk.Frame(root) #,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
     #aframe.place(x=0,y=0)
     aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
 
@@ -173,7 +175,7 @@ def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
     if bg == "":
         bg="orange"
     canvas["bg"] = bg # "black" #"green"
-    bframe=tk.Frame(canvas,width=width,height=height)
+    bframe=tk.Frame(canvas,width=width,height=height,relief=tk.GROOVE)
     bframe["bg"] = "blue"
     scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
     canvas.configure(yscrollcommand=scrollbar.set)
@@ -655,6 +657,7 @@ class GUI_PATCH():
             b = tk.Button(xframe,bg="#aaa", text=LABEL,width=8,anchor="w")
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            b["activebackground"] = "#aaa"
             c+=1
             b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
             b.bind("<Button>",Xevent(fix=fix,mode="SELECT",elem=b).cb)
@@ -698,14 +701,17 @@ class GUI_PATCH():
             # CH's
             b = tk.Button(xframe,bg="#aaa", text="{:3} ({})".format(max_dmx[1] , max_dmx[0]),width=4) #a,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            b["activebackground"] = "#aaa"
             c+=1
                 
             # from - to    
             b = tk.Button(xframe,bg="#aaa", text="{:03} - {:03}".format(data["DMX"],max_dmx[1]+(data["DMX"]-1)),width=8,anchor="w")
+            b["activebackground"] = "#aaa"
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
             c+=1
             b = tk.Button(xframe,bg="#aaa",fg="#225", text="{} : {:03}".format(z,dmx_ch_sum),width=6,anchor="w")
+            b["activebackground"] = "#aaa"
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
 
@@ -736,6 +742,7 @@ class GUI_PATCH():
                 collision = ""
             b = tk.Button(xframe,bg=bg, text="{}".format(",".join(collision)),width=14,anchor="w")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            b["activebackground"] = bg
 
             c=0
             r+=1
@@ -743,43 +750,32 @@ class GUI_PATCH():
 
 
 
-class GUI_FaderLayout():
+class GUI_FixtureEditor():
     def __init__(self,root,frame,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
-        font8 = ("FreeSans",8)
+        self.font8 = ("FreeSans",8)
         self.dmx=1
         self.univ=0
-        r=0
-        c=0
-        i=1
         self.elem=[]
         self.header=[]
         self.data = data
+        self.title = title
+        self.width = width
         #cprint("GUI:",root,title)
+        self.root = root
+        self.frame = frame
+        self.draw()
 
-        # HEAD 1
+    def draw(self):
+        root = self.frame
 
-        root = frame
-        
-        #root = tk.Frame(root,bg="black",width=width)
-        #root.pack(fill=tk.BOTH, side=tk.TOP)
-
-        self.frame = tk.Frame(root,bg="black",width=width)
-        self.frame.pack(fill="x", side=tk.TOP)
-
-        self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor") #,font=font8 )
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="#aaa",text="FILE:") #,font=font8 )
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="#fff",text="~/LibreLight/fixtures/lalla.json") #,font=font8 )
-        self.b_path = self.b
-        self.b.pack(fill=None, side=tk.LEFT)
+        title = self.title
+        width = self.width
+        data = self.data
 
         # HEAD 2
         
-        self.frame = tk.Frame(root,bg="black",width=width)
+        self.frame = tk.Frame(root,bg="grey",width=width)
         self.frame.pack(fill="both", side=tk.TOP)
 
         self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
@@ -812,58 +808,126 @@ class GUI_FaderLayout():
         self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="OPEN", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg="lightblue",text="IMPORT", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.import_fixture_list
+        self.b.pack( side=tk.LEFT)
+        self.b = tk.Button(self.frame,bg="lightblue",text="USER", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.open_fixture_list
+        self.b.pack( side=tk.LEFT)
+        self.b = tk.Button(self.frame,bg="lightblue",text="GLOBAL", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list
         self.b.pack( side=tk.LEFT)
 
-        self.b = tk.Label(self.frame,bg="#ddd",text=":")
+        self.b = tk.Label(self.frame,bg="#ddd",text="")
         self.b.pack(fill=None, side=tk.LEFT)
 
         self.b = tk.Button(self.frame,bg="lightblue",text="SAVE", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.save_fixture
         self.b.pack( side=tk.LEFT)
         
-        self.b = tk.Button(self.frame,bg="lightblue",text="SAVE AS", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.save_as_fixture
-        self.b.pack( side=tk.LEFT)
+        #self.b = tk.Button(self.frame,bg="lightblue",text="SAVE AS", width=5)#,command=self.event) #bv.change_dmx)
+        #self.b["command"] = self.save_as_fixture
+        #self.b.pack( side=tk.LEFT)
 
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
+        # HEAD 1
+        
+        #root = tk.Frame(root,bg="black",width=width)
+        #root.pack(fill=tk.BOTH, side=tk.TOP)
+
+        self.frame = tk.Frame(root,bg="grey",width=width)
+        self.frame.pack(fill="x", side=tk.TOP)
+
+        self.b = tk.Label(self.frame,bg="#fff",text="Fixture Editor") #,font=self.font8 )
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="#aaa",text="FILE:") #,font=self.font8 )
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b_path = tk.Label(self.frame,bg="#fff",text="~/LibreLight/fixtures/lalla.json") #,font=self.font8 )
+        self.b_path.pack(fill=None, side=tk.LEFT)
+
+        self.b = tk.Label(self.frame,bg="#aaa",text="----") #,font=self.font8 )
+        self.b.pack(fill=None, side=tk.LEFT)
+
+        self.b_info = tk.Label(self.frame,bg="#fff",text="") #,font=self.font8 )
+        self.b_info.pack(fill=None, side=tk.LEFT)
         # DATA
         self.frame = ScrollFrame(root,bg="#003",width=2000 ,height=1000,bd=2) # fader frame
-        r=0
-        c=0
-        pb=12
-        self.pb=pb
+
+
+        self.r=0
+        self.c=0
+        self.pb=12
+        self.j = 0
+
+        for page_nr in range(12):
+            self.draw_bank(page_nr)
+
+        self._event_redraw()
+
+    def draw_bank(self,page_nr):
+        title = self.title
+        width = self.width
+
+        idx = self.pb*page_nr
+        data = self.data[idx:idx+self.pb]
+
+        c = idx
         for j,row in enumerate(data):
-            if c % pb == 0 or c==0:
+            if c % self.pb == 0 or c==0:
                 h=hex(j*10)[2:].rjust(2,"0")
                 frameS = tk.Frame(self.frame,bg="#000",width=width,border=2)
                 frameS.pack(fill=tk.BOTH, side=tk.TOP)
-                p=j//pb+1
-                txt="BANK:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=15,font=font8 )
+                bank_nr=j//self.pb+1
+                txt="BANK:{} {}-{}".format(bank_nr,bank_nr*self.pb-self.pb+1,bank_nr*self.pb) 
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=15,font=self.font8 )
                 self.header.append(self.b)
 
                 self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=self.font8 )
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
 
                 try:
                     frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
                 except:
                     frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
-                c=0
-            #print(frameS)
-            e= ELEM_FADER(frameS,nr=j+1)
+                self.c=0
+
+            e= ELEM_FADER(frameS,nr=j+1,cb=self._cb)
             e.pack()
+            e.attr["bg"] = "red"
             self.elem.append(e)
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
-            i+=1
-        #self.frame.pack(fill="both",expand=1)
-        self._event_redraw()
+
+    def _cb(self,arg,**args):
+        print(self)
+        print(">>",args)
+        print(">>",args)
+        self.count_ch()
+
+    def count_ch(self):
+        #e._set_attr( "---")
+        ch_s = []
+        j=-1
+        self.b_info["text"] = "xx"
+
+        for i,elem in enumerate(self.elem):
+            #print(dir(elem))
+            txt = elem.attr["text"]
+            if txt:
+                print("count_ch:",i,txt)
+                elem.attr["bg"] = "#0f0"
+                elem.attr["activebackground"] = "#0fa"
+                ch_s.append([i,txt])
+                j=i
+            else:
+                elem.attr["bg"] = "lightgrey"
+                elem.attr["activebackground"] = "white"
+        self.b_info["text"] = "CH's: {} USED: {}".format(j+1,len(ch_s))
 
     def set_name(self,_event=None):
         txt = self.name["text"]
@@ -882,25 +946,56 @@ class GUI_FaderLayout():
 
     def save_as_fixture(self,event=None):
         print("save_as_fix",self,event)
+        self.count_ch()
     def save_fixture(self,event=None):
         print("save_fix",self,event)
-    def open_fixture_list(self):
-        name = "FIXTURE-LIB"
-        line1="Fixture Library"
+        self.count_ch()
+    def import_fixture_list(self):
+        name = "FIXTURE-IMPORT"
+        line1="Fixture Import from SHOW"
         line2="CHOOS to EDIT >> DEMO MODUS"
-        cb = LOAD_FIXTURE
+        line3="CHOOS to EDIT >> DEMO MODUS"
+        cb = LOAD_FIXTURE(self,"IMPORT").cb
         pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
         self.pw = pw
         #print(dir(pw.w))
         #print(dir(pw))
-        frame = pw.sframe(line1=line1,line2=line2)
+        frame = pw.sframe(line1=line1,line2=line2) #,line3=line3)
+        r=_M._import_fixture_list(frame,cb=cb,master=self,bg="#333")
+        self.count_ch()
+    def open_fixture_list(self):
+        name = "FIXTURE-LIB"
+        line1="Fixture Library"
+        line2="CHOOS to EDIT >> DEMO MODUS"
+        line3="CHOOS to EDIT >> DEMO MODUS"
+        cb = LOAD_FIXTURE(self,"USER") #a.cb
+        pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
+        self.pw = pw
+        #print(dir(pw.w))
+        #print(dir(pw))
+        frame = pw.sframe(line1=line1,line2=line2) #,line3=line3)
         r=_M._load_fixture_list(frame,cb=cb,master=self,bg="#333")
+        self.count_ch()
     def close_fixture_list(self):
         if self.pw:
             #print("*._"*30)
             #print(dir(self.pw.w.tk))
             #self.pw.w.tk.quit()
             self.pw.w.tk.destroy()
+
+    def clear(self,_event=None,attr=[]):
+        attr = [""]*100
+        mode = ["F"]*100
+        self._load_fix(None,attr,mode)
+        self.b_path["text"] = "clean..."
+        self.close_fixture_list()
+
+    def load(self,_event=None,attr=[]):
+        attr = ["LOAD"]*10
+        mode = ["X"]*10
+        self._load_fix(None,attr,mode)
+        self.b_path["text"] = "clean..."
+        self.close_fixture_list()
 
     def load_EMPTY(self,_event=None,attr=[]):
         #attr = [,"RED","GREEN","BLUE"]
@@ -937,12 +1032,13 @@ class GUI_FaderLayout():
         for i,e in enumerate(self.elem):
             #print(self,"event",_event,e)
             print("event",_event,e)
-            e._set_attr( "---")
+            e._set_attr( "")
             if len(attr) > i:
                 e._set_attr( attr[i])
             e._set_mode( "---")
             if len(mode) > i:
                 e._set_mode( mode[i])
+        self.count_ch() 
 
     def event_univ(self,_event=None):
         nr=self.univ
@@ -1003,7 +1099,7 @@ class GUI_FaderLayout():
             #print("btn",btn)
             dmx=nr+i
             nr2 = dmx%512 
-            btn.set_label("{} D:{}\n{}.{}".format(i+1,dmx,self.univ,nr2))
+            btn.set_label("{} {}.{}\n D:{}".format(i+1,self.univ,nr2,dmx))
             btn.nr = nr+i
 
         pb=self.pb
@@ -1013,7 +1109,7 @@ class GUI_FaderLayout():
             txt="BANK:{} {}-{}".format(p,p*pb-pb+nr,(p*pb+nr)-1) 
             print("---",j,txt,e)
             e["text"] = txt
-            
+        self.count_ch() 
 
 class GUI_grid():
     def __init__(self,root,data,title="tilte",width=800):
@@ -1043,26 +1139,29 @@ class GUI_grid():
 
 
 class ELEM_FADER():
-    def __init__(self,frame,nr,cb=None,**args):
+    def __init__(self,frame,nr,cb=None,fader_cb=None,**args):
         self.frame = frame
         self.nr= nr
         self.id=nr
         self.elem = []
         self._cb = cb
+        self._fader_cb = fader_cb
         width=11
         frameS = tk.Frame(self.frame,bg="#005",width=width)
         frameS.pack(fill=tk.Y, side=tk.LEFT)
         self.frame=frameS
 
     def event(self,a1="",a2=""):
-        if self._cb is not None:
-            self._cb(a1,a2,nr=self.nr)
+        if self._fader_cb is not None:
+            self._fader_cb(a1,a2,nr=self.nr)
         else:
             print(self,"event",[self.nr,a1,a2])
             j=[]
             jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
             j.append(jdata)
             jclient_send(j)
+        if self._cb:
+            self._cb([self,"event",a1,a2])
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
@@ -1073,6 +1172,8 @@ class ELEM_FADER():
             txt = data["Value"]
             print(self,"set_attr._cb()",txt)
             self._set_attr(txt)
+            if self._cb:
+                self._cb([self,"set_attr",txt])
         dialog._cb = _cb
         dialog.askstring("ATTR","set attr:",initialvalue=txt)
         
@@ -1080,9 +1181,15 @@ class ELEM_FADER():
         if type(txt) is str:
             self.attr["text"] = "{}".format(txt)
             print("_set_attr",[self])
+        if self._cb:
+            self._cb([self,"_set_attr",txt])
+
     def set_label(self,name=""):
         #print("set_label",self.b,name)
         self.label["text"] = name
+        if self._cb:
+            self._cb([self,"set_label",name])
+
     def set_mode(self,_event=None):
         txt= self.mode["text"]
         def _cb(data):
@@ -1095,13 +1202,19 @@ class ELEM_FADER():
             #w.pack()
             self._set_mode(txt)
             w.show()
+            if self._cb:
+                self._cb([self,"set_mode",txt])
         dialog._cb = _cb
         dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
 
     def _set_mode(self,txt=""):
         if type(txt) is str:
-            self.mode["text"] = "{}".format(txt[0].upper())
+            txt = txt[0].upper()
+            self.mode["text"] = "{}".format(txt)
             print("_set_attr",[self])
+        if self._cb:
+            self._cb([self,"_set_mode",txt])
+
     def _refresh(self):
         pass
     def pack(self,init=None,from_=255,to=0,**args):
@@ -1109,7 +1222,7 @@ class ELEM_FADER():
         r=0
         c=0
         j=0
-        font8 = ("FreeSans",8)
+        self.font8 = ("FreeSans",8)
         frameS=self.frame
         self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
@@ -1117,33 +1230,33 @@ class ELEM_FADER():
             self.b.set(init)
         self.elem.append(self.b)
 
-        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=font8 )
+        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=self.font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.label = self.b
         self.elem.append(self.b)
-        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
+        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=self.font8 )
         self.attr=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
         f = tk.Frame(frameS)
         #f.pack()
-        self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=font8 )
+        self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=self.font8 )
         self.mode=self.b
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        self.elem.append(self.b)
+        #self.elem.append(self.b)
 
-        self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=font8 )
+        self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=self.font8 )
         self.mode=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         self.elem.append(self.b)
 
-        self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=font8 )
+        self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=self.font8 )
         self.mode=self.b
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        self.elem.append(self.b)
+        #self.elem.append(self.b)
 
-        self.b = tk.Label(frameS,bg="black",text="", width=4,font=font8 )
+        self.b = tk.Label(frameS,bg="black",text="", width=4,font=self.font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
 
@@ -1168,10 +1281,11 @@ class EXEC_FADER():
         self.frame=frameS
 
     def event(self,a1="",a2=""):
+        print(self)
+        print("event",[self.nr,a1,a2],self.label["text"],self.attr["text"])
         if self._cb is not None:
             self._cb(a1,a2,nr=self.nr)
         else:
-            print(self,"event",[self.nr,a1,a2])
             j=[]
             jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
             j.append(jdata)
@@ -1223,7 +1337,7 @@ class EXEC_FADER():
         r=0
         c=0
         j=0
-        font8 = ("FreeSans",8)
+        self.font8 = ("FreeSans",8)
         frameS=self.frame
         self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
@@ -1231,35 +1345,35 @@ class EXEC_FADER():
             self.b.set(init)
         self.elem.append(self.b)
 
-        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=5,command=test,font=font8 )
+        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=5,command=test,font=self.font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.label = self.b
         if 1: #self.nr <= 10:
 
             self.elem.append(self.b)
-            self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=font8 )
+            self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=self.font8 )
             self.attr=self.b
             self.b.pack(fill=tk.BOTH, side=tk.TOP)
             self.elem.append(self.b)
             f = tk.Frame(frameS)
         ##f.pack()
-        #self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=font8 )
+        #self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=self.font8 )
         #self.mode=self.b
         ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         #self.elem.append(self.b)
 
-        #self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=font8 )
+        #self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=self.font8 )
         #self.mode=self.b
         #self.b.pack(fill=tk.BOTH, side=tk.TOP)
         ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         #self.elem.append(self.b)
 
-        #self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=font8 )
+        #self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=self.font8 )
         #self.mode=self.b
         ##self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         #self.elem.append(self.b)
 
-        self.b = tk.Label(frameS,bg="black",text="", width=4,font=font8 )
+        self.b = tk.Label(frameS,bg="black",text="", width=4,font=self.font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
 
@@ -1269,7 +1383,7 @@ def test(a1="",a2=""):
 
 class GUI_ExecWingLayout():
     def __init__(self,root,frame,data,title="tilte",width=800,start=81):
-        font8 = ("FreeSans",8)
+        self.font8 = ("FreeSans",8)
         self.dmx=1
         self.univ=0
         self.start=start-1
@@ -1296,11 +1410,11 @@ class GUI_ExecWingLayout():
                     txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
                 else:
                     txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=self.font8 )
                 self.header.append(self.b)
 
                 self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=self.font8 )
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
                 try:
                     frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
@@ -1403,7 +1517,7 @@ class GUI_ExecWingLayout():
 class GUI_MasterWingLayout():
     def __init__(self,root,frame,data,title="tilte",width=800):
         #xfont = tk.font.Font(family="FreeSans", size=5, weight="bold")
-        font8 = ("FreeSans",8)
+        self.font8 = ("FreeSans",8)
         self.dmx=1
         self.univ=0
         r=0
@@ -1440,11 +1554,11 @@ class GUI_MasterWingLayout():
                     txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
                 else:
                     txt="x-MASTER:{} {}-{}".format(p,p*pb-pb+1,p*pb) 
-                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=font8 )
+                self.b = tk.Label(frameS,bg="lightblue",text=txt,width=25,font=self.font8 )
                 self.header.append(self.b)
 
                 self.b.pack(fill=None, side=tk.LEFT)
-                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=font8 )
+                self.b = tk.Label(frameS,bg="black",text="" ,width=11,font=self.font8 )
                 self.b.pack(fill=tk.BOTH, side=tk.LEFT)
                 try:
                     frameS = tk.Frame(self.frame,bg="#a000{}".format(h),width=width,border=2)
@@ -1452,7 +1566,7 @@ class GUI_MasterWingLayout():
                     frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 c=0
             #print(frameS)
-            e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
+            e= ELEM_FADER(frameS,nr=j+1,fader_cb=self.event_cb)
             if j >= 2:
                 e.pack(from_=400,to=0,init=100)
             else:

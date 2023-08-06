@@ -27,8 +27,10 @@ class _LOAD_FIXTURE():
 
     def cb(self,event=None,fixture={}):
         print("LOAD_FIXTURE",self.name,event)
+        print(self,"cb")
         self.parent.clear()
         if fixture:
+            print(len(fixture))
             self.parent.load(fixture)
 
 class LOAD_FIXTURE():
@@ -197,13 +199,6 @@ class GUIHandler():
         for i,k in enumerate(args):
             v = args[k] 
             #print("GUI-H", i,k,v)
-
-
-
-
-
-
-
 
 
 
@@ -811,12 +806,14 @@ class GUI_FixtureEditor():
         self.b = tk.Button(self.frame,bg="lightblue",text="IMPORT", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.import_fixture_list
         self.b.pack( side=tk.LEFT)
+
         self.b = tk.Button(self.frame,bg="lightblue",text="USER", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list
         self.b.pack( side=tk.LEFT)
         self.b = tk.Button(self.frame,bg="lightblue",text="GLOBAL", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list
         self.b.pack( side=tk.LEFT)
+
 
         self.b = tk.Label(self.frame,bg="#ddd",text="")
         self.b.pack(fill=None, side=tk.LEFT)
@@ -825,12 +822,17 @@ class GUI_FixtureEditor():
         self.b["command"] = self.save_fixture
         self.b.pack( side=tk.LEFT)
         
+
         #self.b = tk.Button(self.frame,bg="lightblue",text="SAVE AS", width=5)#,command=self.event) #bv.change_dmx)
         #self.b["command"] = self.save_as_fixture
         #self.b.pack( side=tk.LEFT)
 
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="lightblue",text="HELP", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = _M.online_help("fixture-editor")
+        self.b.pack( side=tk.LEFT)
 
         # HEAD 1
         
@@ -903,10 +905,9 @@ class GUI_FixtureEditor():
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
 
-    def _cb(self,arg,**args):
-        print(self)
-        print(">>",args)
-        print(">>",args)
+    def _cb(self,arg,name="<name>",**args):
+        print(self,"_cb")
+        print(name,"_cb.args >>",arg,args)
         self.count_ch()
 
     def count_ch(self):
@@ -947,40 +948,48 @@ class GUI_FixtureEditor():
     def save_as_fixture(self,event=None):
         print("save_as_fix",self,event)
         self.count_ch()
+
     def save_fixture(self,event=None):
         print("save_fix",self,event)
         self.count_ch()
+
     def import_fixture_list(self):
         name = "FIXTURE-IMPORT"
         line1="Fixture Import from SHOW"
         line2="CHOOS to EDIT >> DEMO MODUS"
         line3="CHOOS to EDIT >> DEMO MODUS"
+
         cb = LOAD_FIXTURE(self,"IMPORT").cb
-        pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
-        self.pw = pw
-        #print(dir(pw.w))
-        #print(dir(pw))
-        frame = pw.sframe(line1=line1,line2=line2) #,line3=line3)
+        self.pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
+        frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
+        def cb(**args):
+            self._cb(args,name="import_fixture_list")
+            if self.pw:
+                self.pw.w.tk.destroy()
+            #self.load_EMPTY()
+            self.load_MH()
         r=_M._import_fixture_list(frame,cb=cb,master=self,bg="#333")
-        self.count_ch()
+
     def open_fixture_list(self):
         name = "FIXTURE-LIB"
         line1="Fixture Library"
         line2="CHOOS to EDIT >> DEMO MODUS"
         line3="CHOOS to EDIT >> DEMO MODUS"
-        cb = LOAD_FIXTURE(self,"USER") #a.cb
-        pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
-        self.pw = pw
-        #print(dir(pw.w))
-        #print(dir(pw))
-        frame = pw.sframe(line1=line1,line2=line2) #,line3=line3)
+
+        cb = LOAD_FIXTURE(self,"USER").cb 
+        self.pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
+        frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
+
+        def cb(**args):
+            self._cb(args,name="open_fixture_list") 
+            if self.pw:
+                self.pw.w.tk.destroy()
+            #self.load_EMPTY()
+            self.load_DIM()
         r=_M._load_fixture_list(frame,cb=cb,master=self,bg="#333")
-        self.count_ch()
+
     def close_fixture_list(self):
         if self.pw:
-            #print("*._"*30)
-            #print(dir(self.pw.w.tk))
-            #self.pw.w.tk.quit()
             self.pw.w.tk.destroy()
 
     def clear(self,_event=None,attr=[]):
@@ -1031,7 +1040,7 @@ class GUI_FixtureEditor():
         #for i,e in enumerate(self.elem):
         for i,e in enumerate(self.elem):
             #print(self,"event",_event,e)
-            print("event",_event,e)
+            #print("event",_event,e)
             e._set_attr( "")
             if len(attr) > i:
                 e._set_attr( attr[i])
@@ -1155,7 +1164,7 @@ class ELEM_FADER():
         if self._fader_cb is not None:
             self._fader_cb(a1,a2,nr=self.nr)
         else:
-            print(self,"event",[self.nr,a1,a2])
+            #print(self,"event",[self.nr,a1,a2])
             j=[]
             jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
             j.append(jdata)
@@ -1170,7 +1179,7 @@ class ELEM_FADER():
                 print("err443",self,"_cb",data)
                 return None
             txt = data["Value"]
-            print(self,"set_attr._cb()",txt)
+            #print(self,"set_attr._cb()",txt)
             self._set_attr(txt)
             if self._cb:
                 self._cb([self,"set_attr",txt])
@@ -1180,7 +1189,7 @@ class ELEM_FADER():
     def _set_attr(self,txt=""):
         if type(txt) is str:
             self.attr["text"] = "{}".format(txt)
-            print("_set_attr",[self])
+            #print("_set_attr",[self])
         if self._cb:
             self._cb([self,"_set_attr",txt])
 
@@ -1211,7 +1220,7 @@ class ELEM_FADER():
         if type(txt) is str:
             txt = txt[0].upper()
             self.mode["text"] = "{}".format(txt)
-            print("_set_attr",[self])
+            #print("_set_mode",[self])
         if self._cb:
             self._cb([self,"_set_mode",txt])
 
@@ -1307,7 +1316,7 @@ class EXEC_FADER():
     def _set_attr(self,txt=""):
         if type(txt) is str:
             self.attr["text"] = "{}".format(txt)
-            print("_set_attr",[self])
+            #print("_set_attr",[self])
     def set_label(self,name=""):
         #print("set_label",self.b,name)
         self.label["text"] = name
@@ -1329,7 +1338,7 @@ class EXEC_FADER():
     def _set_mode(self,txt=""):
         if type(txt) is str:
             self.mode["text"] = "{}".format(txt[0].upper())
-            print("_set_attr",[self])
+            #print("_set_mode",[self])
     def _refresh(self):
         pass
     def pack(self,init=None,from_=255,to=0,**args):

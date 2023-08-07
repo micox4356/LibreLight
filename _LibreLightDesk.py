@@ -2945,10 +2945,8 @@ class BaseCallback():
         self.args = args
 
     def cb(self,**args):
-        print("++",self,"cb()",self.args,self._cb)
+        print("BaseCallback.cb()",self.args,self._cb)
         if self._cb:
-            print()
-            print("cb",self._cb)
             try:
                 self._cb(self.args) 
             except TypeError as e:
@@ -3130,194 +3128,115 @@ def _import_fixture_list(frame,cb=None,master=None,bg="black"):
         r+=1
 
 
-def _load_fixture_list(frame,cb=None,master=None,bg="black"):
-    frame.configure(bg=bg)
-    c=0
-    r=0
-    base = Base()
-    for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
-        b = tk.Label(frame,bg="grey",text=i)
-        b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
-        c+=1
-    r+=1
-    blist = [] #base._list()
-    try:
-        p = HOME+"/LibreLight/fixtures/"
-        ls = os.listdir(p)
-        ls.sort()
-        for l in ls:
-            b = _parse_fixture_name(l)
-            b.append(p)
-            b.insert(0,"user")
-            blist.append(b)
-    except Exception as e:
-        cprint("Exce 877 ",e)
-    try:
-        p="/opt/LibreLight/Xdesk/fixtures/"
-        ls = os.listdir(p )
-        ls.sort()
-        for l in ls:
-            b = _parse_fixture_name(l)
-            b.append(p)
-            b.insert(0,"base")
-            blist.append(b)
-    except Exception as e:
-        cprint("Exce 878 ",e)
 
-    if not blist:
-        blist.append(["MAC-500","martin","Demo"])
-        blist.append(["MAC-2000","martin","Demo"])
-        blist.append(["MAC-VIPER","martin","Demo"])
-        blist.append(["SPARX-7","JB","Demo"])
-        blist.append(["SPARX-11","JB","Demo"])
-        blist.append(["JB-P6","JB","Demo"])
-        blist.append(["JB-P7","JB","Demo"])
-        blist.append(["JB-A7","JB","Demo"])
-        blist.append(["TMH-12","Eurolight","Demo"])
+class _LOAD_FIXTURE_LIST():
+    def __init__(self,mode="<name>"):
+        self.mode = mode
 
-    if len(blist) < 30:
-        for i in range(30-len(blist)):
-            blist.append(["{:0>4}".format(len(blist)+i+1),"",""])
-
-
-    if cb is None: 
-        cb = DummyCallback #("load_show_list.cb")
-    
-    _tmp_name = ""
-    _tmp_flag = 0
-    for i in blist:
-        #print(i)
-        if i[0] != _tmp_name:
-            _tmp_flag = "#aaf"
-            if i[0] == "user":
-                _tmp_flag = "#aaf"
-            if i[0] == "base":
-                _tmp_flag = "#0f0"
-
+    def get(self,frame,cb=None,master=None,bg="black"):
+        frame.configure(bg=bg)
         c=0
-        for j in i:
-            bg="lightgrey"
-            dbg="lightgrey"
-            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-                dbg = "lightgreen"
-            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-                dbg = "green"
-
-            if _tmp_flag:
-                bg = "{}".format(_tmp_flag)
-
-            if c == 1:
-                if base.show_name == i[0]:
-                    bg="green"
-
-                _cb2 = BaseCallback(cb=cb,args={"file":j}).cb
-
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb2)
-
-                if base.show_name == i[0]:
-                    b.config(activebackground=bg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            else:#ief c > 0:
-                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
-                b.config(activebackground=dbg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        r=0
+        base = Base()
+        for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
+            b = tk.Label(frame,bg="grey",text=i)
+            b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
             c+=1
         r+=1
+        blist = [] #base._list()
+
+        if self.mode == "USER":
+            try:
+                p = HOME+"/LibreLight/fixtures/"
+                ls = os.listdir(p)
+                ls.sort()
+                for l in ls:
+                    b = _parse_fixture_name(l)
+                    b.append(p)
+                    b.insert(0,"user")
+                    blist.append(b)
+            except Exception as e:
+                cprint("Exce 877 ",e)
+
+        elif self.mode == "GLOBAL":
+            try:
+                p="/opt/LibreLight/Xdesk/fixtures/"
+                ls = os.listdir(p )
+                ls.sort()
+                for l in ls:
+                    b = _parse_fixture_name(l)
+                    b.append(p)
+                    b.insert(0,"base")
+                    blist.append(b)
+            except Exception as e:
+                cprint("Exce 878 ",e)
+
+        elif self.mode == "IMPORT":
+            path = "/home/user/LibreLight/show"
+            for sname in os.listdir(path):
+                try:
+                    fname = path+"/"+sname+"/patch.sav"
+                    if os.path.isfile(fname):
+                        f = open(fname)
+                        lines = f.readlines()
+                        f.close()
+
+                        for line in lines:
+                            line = line.split("\t")
+                            line = json.loads(line[2])
+                            print(line)
+                            name = line["NAME"]
+                            blist.append([name,fname,path])
+                            print(":",i,name,fname)
+                except Exception as e:
+                    print("exception",e)
 
 
-def _load_fixture_list(frame,cb=None,master=None,bg="black"):
-    frame.configure(bg=bg)
-    c=0
-    r=0
-    base = Base()
-    for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
-        b = tk.Label(frame,bg="grey",text=i)
-        b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
-        c+=1
-    r+=1
-    blist = [] #base._list()
-    try:
-        p = HOME+"/LibreLight/fixtures/"
-        ls = os.listdir(p)
-        ls.sort()
-        for l in ls:
-            b = _parse_fixture_name(l)
-            b.append(p)
-            b.insert(0,"user")
-            blist.append(b)
-    except Exception as e:
-        cprint("Exce 877 ",e)
-    try:
-        p="/opt/LibreLight/Xdesk/fixtures/"
-        ls = os.listdir(p )
-        ls.sort()
-        for l in ls:
-            b = _parse_fixture_name(l)
-            b.append(p)
-            b.insert(0,"base")
-            blist.append(b)
-    except Exception as e:
-        cprint("Exce 878 ",e)
+        if cb is None: 
+            cb = DummyCallback #("load_show_list.cb")
+        
+        _tmp_name = ""
+        _tmp_flag = 0
 
-    if not blist:
-        blist.append(["MAC-500","martin","Demo"])
-        blist.append(["MAC-2000","martin","Demo"])
-        blist.append(["MAC-VIPER","martin","Demo"])
-        blist.append(["SPARX-7","JB","Demo"])
-        blist.append(["SPARX-11","JB","Demo"])
-        blist.append(["JB-P6","JB","Demo"])
-        blist.append(["JB-P7","JB","Demo"])
-        blist.append(["JB-A7","JB","Demo"])
-        blist.append(["TMH-12","Eurolight","Demo"])
-
-    if len(blist) < 30:
-        for i in range(30-len(blist)):
-            blist.append(["{:0>4}".format(len(blist)+i+1),"",""])
-
-
-    if cb is None: 
-        cb = DummyCallback #("load_show_list.cb")
-    
-    _tmp_name = ""
-    _tmp_flag = 0
-    for i in blist:
-        #print(i)
-        if i[0] != _tmp_name:
-            _tmp_flag = "#aaf"
-            if i[0] == "user":
+        blist = blist[:50]
+        for i in blist:
+            #print(i)
+            if i[0] != _tmp_name:
                 _tmp_flag = "#aaf"
-            if i[0] == "base":
-                _tmp_flag = "#0f0"
+                if i[0] == "user":
+                    _tmp_flag = "#aaf"
+                if i[0] == "base":
+                    _tmp_flag = "#0f0"
 
-        c=0
-        for j in i:
-            bg="lightgrey"
-            dbg="lightgrey"
-            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-                dbg = "lightgreen"
-            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-                dbg = "green"
+            c=0
+            for j in i:
+                bg="lightgrey"
+                dbg="lightgrey"
+                if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+                    dbg = "lightgreen"
+                elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+                    dbg = "green"
 
-            if _tmp_flag:
-                bg = "{}".format(_tmp_flag)
+                if _tmp_flag:
+                    bg = "{}".format(_tmp_flag)
 
-            if c == 1:
-                if base.show_name == i[0]:
-                    bg="green"
+                if c == 1:
+                    if base.show_name == i[0]:
+                        bg="green"
 
-                _cb2 = BaseCallback(cb=cb,args={"file":j}).cb
+                    _cb2 = BaseCallback(cb=cb,args={"file":j}).cb
 
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb2)
+                    b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb2)
 
-                if base.show_name == i[0]:
-                    b.config(activebackground=bg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            else:#ief c > 0:
-                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
-                b.config(activebackground=dbg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-        r+=1
+                    if base.show_name == i[0]:
+                        b.config(activebackground=bg)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                else:#ief c > 0:
+                    b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
+                    b.config(activebackground=dbg)
+                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+                c+=1
+            r+=1
 
 
 
@@ -4624,14 +4543,32 @@ class window_create_buffer():
 
         obj = None
         w = Window(self.args)
+        out = []
+        f = None
+        h = None
 
         if self.scroll:
-            w1 = ScrollFrame(w.tk,width=self.args["width"],height=self.args["height"])
+            head = None
+            foot = None
+            if "head" in self.args:
+                head = self.args["head"]
+            if "foot" in self.args:
+                foot = self.args["foot"]
+            w1 = ScrollFrame(w.tk,width=self.args["width"],height=self.args["height"],foot=foot,head=head)
+            if type(w1) is list:
+                try:
+                    h = w1[0]
+                    f = w1[2]
+                except:pass
+
+                w1 = w1[1]
         else:
             w1 = tk.Frame(w.tk,width=self.args["width"],height=self.args["height"])
             w1.pack()
-
-        obj=self.cls(self.gui,w1,self.data) 
+        try:
+            obj=self.cls(self.gui,w1,self.data,foot=f,head=h) 
+        except:
+            obj=self.cls(self.gui,w1,self.data) 
         return w,obj,self.cb_ok
 
 
@@ -4895,7 +4832,7 @@ if __run_main:
 
 
     name="PATCH"
-    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP,"foot":1,"head":1}
     geo = split_window_position(pos_list,name)
     if geo:
         args.update(geo)

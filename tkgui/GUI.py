@@ -167,11 +167,29 @@ class _TableFrame():
         return self.bframe
 
 
-def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
-    #print("ScrollFrame init",width,height)
-    aframe=tk.Frame(root) #,relief=tk.GROOVE)#,width=width,height=height,bd=bd)
-    #aframe.place(x=0,y=0)
-    aframe.pack(side="left",fill="both",expand=1) #x=0,y=0)
+def ScrollFrame(root,width=50,height=100,bd=1,bg="black",head=None,foot=None):
+    rframe=tk.Frame(root) 
+    rframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+
+    # frame grid start =========
+    if head:
+        height -= 25
+        hframe=tk.Frame(rframe) 
+        #l = tk.Label(hframe,text="frame")
+        #l.pack()
+        hframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
+
+    aframe=tk.Frame(rframe) 
+    aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+
+    if foot:
+        height -= 25
+        fframe=tk.Frame(rframe) 
+        #l = tk.Label(fframe,text="frame")
+        #l.pack()
+        fframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
+        # frame grid end ==========
+
 
     canvas=tk.Canvas(aframe,width=width-24,height=height)
     if bg == "":
@@ -186,9 +204,13 @@ def ScrollFrame(root,width=50,height=100,bd=1,bg="black"):
     canvas.pack(side="left",expand=1,fill="both")
     canvas.create_window((0,0),window=bframe,anchor='nw')
     bframe.bind("<Configure>",scroll(canvas).config)
+
     canvas.bind("<Button>",Event("XXX").event)
     canvas.bind("<Key>",Event("XXX").event)
     canvas.bind("<KeyRelease>",Event("XXX").event)
+    if head or foot:
+        return [hframe,bframe,fframe]
+
     return bframe
 
 class GUIHandler():
@@ -532,11 +554,16 @@ class _SET_PATCH():
 
 class GUI_PATCH():
     #def __init__(self,gui,yframe):
-    def __init__(self,gui,yframe,data):
+    def __init__(self,gui,yframe,data,head=None,foot=None):
         self.gui = gui
         self.yframe = yframe
         self.data = data
+
+        self._head = head
+        self._foot = foot
+
         self.draw()
+
     def draw(self): #,gui,yframe):
         FIXTURES = self.data
         gui = self.gui
@@ -557,7 +584,7 @@ class GUI_PATCH():
         i=0
         c=0
         r=0
-        def head(i,c,r):
+        def head(i,c,r,xframe=None):
             b = tk.Button(xframe,bg="grey", text="Z:{} ID".format(z+1),width=6,anchor="e")
             #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -567,25 +594,25 @@ class GUI_PATCH():
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             rgb  = "#aaa"
-            b = tk.Button(xframe,bg=rgb, text="TYPE",width=3)
+            b = tk.Button(xframe,bg=rgb, text="TYPE",width=8)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="Uni",width=1)
+            b = tk.Button(xframe,bg=rgb, text="Uni",width=3)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX",width=1)
+            b = tk.Button(xframe,bg=rgb, text="DMX",width=2)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="CH's",width=1)
+            b = tk.Button(xframe,bg=rgb, text="CH's",width=4)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="from - to",width=1)
+            b = tk.Button(xframe,bg=rgb, text="from - to",width=8)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX-SUM",width=10)
+            b = tk.Button(xframe,bg=rgb, text="DMX-SUM",width=6)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="TEST",width=1)
+            b = tk.Button(xframe,bg=rgb, text="TEST",width=4)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(xframe,bg=rgb, text="DMX Collision!",width=12)
@@ -611,9 +638,15 @@ class GUI_PATCH():
                 else:
                     dmx_collision[k] = 0
         z=0
+        print("F:H:",self._head,self._foot)
+        if self._head:
+            #l = tk.Label(self._head,text="llklk")
+            #l.pack()
+            head(0,0,0,xframe=self._head)
+
         for fix in FIXTURES.fixtures:
-            if z % 20 == 0:
-                i,c,r = head(i,c,r)
+            #if z % 20 == 0:
+            #    i,c,r = head(i,c,r,xframe=xframe)
             z+=1
             collision = []
             i+=1
@@ -752,6 +785,7 @@ class GUI_FixtureEditor():
         self.dmx=1
         self.univ=0
         self.elem=[]
+        self.pw = None
         self.header=[]
         self.data = data
         self.title = title
@@ -804,14 +838,14 @@ class GUI_FixtureEditor():
         self.b.pack(fill=None, side=tk.LEFT)
 
         self.b = tk.Button(self.frame,bg="lightblue",text="IMPORT", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.import_fixture_list
+        self.b["command"] = self.open_fixture_list_import
         self.b.pack( side=tk.LEFT)
 
         self.b = tk.Button(self.frame,bg="lightblue",text="USER", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.open_fixture_list
+        self.b["command"] = self.open_fixture_list_user
         self.b.pack( side=tk.LEFT)
         self.b = tk.Button(self.frame,bg="lightblue",text="GLOBAL", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = self.open_fixture_list
+        self.b["command"] = self.open_fixture_list_global
         self.b.pack( side=tk.LEFT)
 
 
@@ -953,25 +987,19 @@ class GUI_FixtureEditor():
         print("save_fix",self,event)
         self.count_ch()
 
-    def import_fixture_list(self):
-        name = "FIXTURE-IMPORT"
-        line1="Fixture Import from SHOW"
-        line2="CHOOS to EDIT >> DEMO MODUS"
-        line3="CHOOS to EDIT >> DEMO MODUS"
 
-        cb = LOAD_FIXTURE(self,"IMPORT").cb
-        self.pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
-        frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
-        def cb(**args):
-            self._cb(args,name="import_fixture_list")
-            if self.pw:
-                self.pw.w.tk.destroy()
-            #self.load_EMPTY()
-            self.load_MH()
-        r=_M._import_fixture_list(frame,cb=cb,master=self,bg="#333")
-
-    def open_fixture_list(self):
-        name = "FIXTURE-LIB"
+    def open_fixture_list_global(self):
+        self.close_fixture_list()
+        self._open_fixture_list(mode="GLOBAL")
+    def open_fixture_list_import(self):
+        self.close_fixture_list()
+        self._open_fixture_list(mode="IMPORT")
+    def open_fixture_list_user(self):
+        self.close_fixture_list()
+        self._open_fixture_list(mode="USER")
+        
+    def _open_fixture_list(self,mode=""):
+        name = "FIXTURE-{}".format(mode)
         line1="Fixture Library"
         line2="CHOOS to EDIT >> DEMO MODUS"
         line3="CHOOS to EDIT >> DEMO MODUS"
@@ -981,12 +1009,18 @@ class GUI_FixtureEditor():
         frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
 
         def cb(**args):
+            print("open_fixture_list")
             self._cb(args,name="open_fixture_list") 
             if self.pw:
                 self.pw.w.tk.destroy()
             #self.load_EMPTY()
-            self.load_DIM()
-        r=_M._load_fixture_list(frame,cb=cb,master=self,bg="#333")
+            if mode == "IMPORT":
+                self.load_MH()
+            else:
+                self.load_DIM()
+
+        tmp = _M._LOAD_FIXTURE_LIST(mode=mode)
+        r=tmp.get(frame,cb=cb,master=self,bg="#333")
 
     def close_fixture_list(self):
         if self.pw:

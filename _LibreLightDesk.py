@@ -292,7 +292,7 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
 
 
-def set_exec_fader(nr,val,color=""):
+def set_exec_fader(nr,val,label="",color=""):
     exec_wing = window_manager.get_obj(name="EXEC-WING") 
     if not exec_wing: 
         return
@@ -300,6 +300,18 @@ def set_exec_fader(nr,val,color=""):
     #print(exec_wing)
     try:
         exec_wing.set_fader(nr,val,color=color)
+        print(dir(exec_wing.fader_elem[0]))
+        print((exec_wing))
+        if len(exec_wing.fader_elem) > nr:
+            exec_wing.fader_elem[nr].attr["text"] =  label
+            cfg = get_exec_btn_cfg(nr+80)
+            if cfg:
+                exec_wing.fader_elem[nr].attr["bg"] = cfg["bg"]
+                exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
+
+
+
+
     except Exception as e:
         cprint("- exception:",e)
     #print("remote in:",round(time.time(),0),"x",i,v)
@@ -307,7 +319,11 @@ def set_exec_fader(nr,val,color=""):
 def set_exec_fader_all():
     cprint( "set_exec_fader_all()",color="green")
     for nr in range(10):
-        set_exec_fader(nr,0) #,color="#fff")
+        _label = PRESETS.label_presets[nr+80] # = label
+        print("_label",_label)
+        set_exec_fader(nr,0,label=_label) #,color="#fff")
+        #sys.exit()
+
 
 # remote input - start (memcached)
 def JCB(x,sock=None):
@@ -2093,6 +2109,7 @@ class Base():
                 cprint("file:{}".format(xfname),color="red")
                 continue
             key,label,rdata = line.split("\t",2)
+            print(line)
             key = int(key)
 
             jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
@@ -2188,6 +2205,123 @@ class cb():
         cprint(color)
         cprint( hex_to_rgb(color[1:]))
 
+def get_exec_btn_cfg(nr):
+    #b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
+    #for k in PRESETS.val_presets: 
+    k = nr
+    if 1:
+        _bg = "grey"
+        _ba = "grey"
+        _fg = "lightgrey"
+        _text = "N/V"
+
+        if nr >= 0:
+            #if self._nr_ok:
+            #    return #pass#abreak
+            if nr != k:
+                return #continue
+            #else:
+            #    self._nr_ok = 1
+
+
+        label = ""
+
+        #if k not in self.elem_presets:
+        #    cprint("ERROR",k ,"not in elem_presets continue")
+        #    return #continue
+        if k in PRESETS.label_presets:
+            label = PRESETS.label_presets[k]
+            #print([label])
+        #b = self.elem_presets[k]
+        
+        ifval = 0
+        fx_only = 0
+        if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
+            sdata = PRESETS.val_presets[k]
+
+            #print("sdata7654",sdata)
+            BTN="go"
+            if "CFG" in sdata:#["BUTTON"] = "GO"
+                if "BUTTON" in sdata["CFG"]:
+                    BTN = sdata["CFG"]["BUTTON"]
+            #txt=str(k+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+label
+            txt="{} {} {}\n{}".format(k+1,BTN,len(sdata)-1,label)
+            _text = txt
+            #if b.text != txt: # TODO
+            #    #txt+=str(self._XX)
+            #    #b.configure(text= txt)
+            #    _text = txt
+            #    _bg="yellow"
+            #    _ba="yellow"
+
+            if len(sdata) > 1:
+                ifval = 1
+                fx_color = 0
+                val_color = 0
+                for fix in sdata:
+                    if fix == "CFG":
+                        continue
+                    #print( "$$$$",fix,sdata[fix])
+                    for attr in sdata[fix]:
+                        if "FX2" in sdata[fix][attr]:
+                            if sdata[fix][attr]["FX2"]:
+                                fx_color = 1
+                        if "FX" in sdata[fix][attr]:
+                            if sdata[fix][attr]["FX"]:
+                                fx_color = 1
+                        if "VALUE" in sdata[fix][attr]:
+                            if sdata[fix][attr]["VALUE"] is not None:
+                                val_color = 1
+
+                #try:b.configure(fg= "black")
+                #except:pass
+                if val_color:
+                    _bg = "gold"
+                    _ba = "#ffaa55"
+                    if fx_color:
+                        _fg = "blue"
+                else:   
+                    if fx_color:
+                        fx_only = 1
+            else:
+                _bg = "grey"
+                _ba = "#aaa"
+
+
+        if "\n" in txt:
+            txt1 = txt.split("\n")[0]
+
+        _fg = "black"
+        if ifval:
+            if fx_only:
+                _bg = "cyan"
+                _ba = "#55d4ff"
+
+            if "SEL" in txt1:
+                #b.configure(bg="#77f")
+                _bg = "#77f"
+        else: 
+            _bg = "grey"
+            _fg = "darkgrey"
+
+            if "SEL" in txt1:
+                _fg = "blue"
+            elif "ON" in txt1:
+                _fg = "#040"
+            elif "GO" in txt1:
+                _fg = "#555"
+
+        if "FL" in txt1:
+            _fg = "#00e"
+        
+        out = {}
+        out["bg"] = _bg
+        out["ba"] = _ba
+        out["fg"] = _fg
+        out["text"] = _text
+        
+        return out
+        #b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
 
 class Elem_Container():
     def __init__(self):
@@ -2364,112 +2498,21 @@ class MASTER():
         
         self._XX +=1
         self._nr_ok = 0
-        for k in PRESETS.val_presets: 
-            _bg = "grey"
-            _ba = "grey"
-            _fg = "lightgrey"
-            _text = "N/V"
 
-            if nr >= 0:
-                if self._nr_ok:
-                    break
-                if nr != k:
-                    continue
-                else:
-                    self._nr_ok = 1
+        for nr in PRESETS.val_presets: 
+            cfg = get_exec_btn_cfg(nr)
+            if not cfg:
+                out = {}
+                out["bg"] = "lightgrey"
+                out["ba"] = "grey"
+                out["fg"] = "grey"
+                out["text"] = "?"
+                cfg = out
 
-
-            label = ""
-
-            if k not in self.elem_presets:
-                cprint("ERROR",k ,"not in elem_presets continue")
-                continue
-            if k in PRESETS.label_presets:
-                label = PRESETS.label_presets[k]
-                #print([label])
-            b = self.elem_presets[k]
-            
-            ifval = 0
-            fx_only = 0
-            if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
-                sdata = PRESETS.val_presets[k]
-
-                #print("sdata7654",sdata)
-                BTN="go"
-                if "CFG" in sdata:#["BUTTON"] = "GO"
-                    if "BUTTON" in sdata["CFG"]:
-                        BTN = sdata["CFG"]["BUTTON"]
-                #txt=str(k+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+label
-                txt="{} {} {}\n{}".format(k+1,BTN,len(sdata)-1,label)
-                _text = txt
-                if b.text != txt: # TODO
-                    #txt+=str(self._XX)
-                    #b.configure(text= txt)
-                    _text = txt
-                    _bg="yellow"
-                    _ba="yellow"
-
-                if len(sdata) > 1:
-                    ifval = 1
-                    fx_color = 0
-                    val_color = 0
-                    for fix in sdata:
-                        if fix == "CFG":
-                            continue
-                        #print( "$$$$",fix,sdata[fix])
-                        for attr in sdata[fix]:
-                            if "FX2" in sdata[fix][attr]:
-                                if sdata[fix][attr]["FX2"]:
-                                    fx_color = 1
-                            if "FX" in sdata[fix][attr]:
-                                if sdata[fix][attr]["FX"]:
-                                    fx_color = 1
-                            if "VALUE" in sdata[fix][attr]:
-                                if sdata[fix][attr]["VALUE"] is not None:
-                                    val_color = 1
-
-                    try:b.configure(fg= "black")
-                    except:pass
-                    if val_color:
-                        _bg = "gold"
-                        _ba = "#ffaa55"
-                        if fx_color:
-                            _fg = "blue"
-                    else:   
-                        if fx_color:
-                            fx_only = 1
-                else:
-                    _bg = "grey"
-                    _ba = "#aaa"
+            b = self.elem_presets[nr]
+            b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"])
 
 
-            if "\n" in txt:
-                txt1 = txt.split("\n")[0]
-
-            _fg = "black"
-            if ifval:
-                if fx_only:
-                    _bg = "cyan"
-                    _ba = "#55d4ff"
-
-                if "SEL" in txt1:
-                    b.configure(bg="#77f")
-                    _bg = "#77f"
-            else: 
-                _bg = "grey"
-                _fg = "darkgrey"
-
-                if "SEL" in txt1:
-                    _fg = "blue"
-                elif "ON" in txt1:
-                    _fg = "#040"
-                elif "GO" in txt1:
-                    _fg = "#555"
-
-            if "FL" in txt1:
-                _fg = "#00e"
-
-            b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
         time.sleep(0.01)
     def refresh_fix(self):
         refresher_fix.reset() # = Refresher()

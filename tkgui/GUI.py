@@ -562,6 +562,8 @@ class GUI_PATCH():
         self._head = head
         self._foot = foot
 
+        self.fader_elem = []
+
         self.draw()
 
     def draw(self): #,gui,yframe):
@@ -785,6 +787,7 @@ class GUI_FixtureEditor():
         self.dmx=1
         self.univ=0
         self.elem=[]
+        self.fader_elem = []
         self.pw = None
         self.header=[]
         self.data = data
@@ -802,6 +805,7 @@ class GUI_FixtureEditor():
         width = self.width
         data = self.data
 
+        self.fader_elem = []
         # HEAD 2
         
         self.frame = tk.Frame(root,bg="grey",width=width)
@@ -934,7 +938,8 @@ class GUI_FixtureEditor():
 
             e= ELEM_FADER(frameS,nr=j+1,cb=self._cb)
             e.pack()
-            e.attr["bg"] = "red"
+            #e.attr["bg"] = "red"
+            self.fader_elem.append(e)
             self.elem.append(e)
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
@@ -1028,7 +1033,7 @@ class GUI_FixtureEditor():
 
     def clear(self,_event=None,attr=[]):
         attr = [""]*100
-        mode = ["F"]*100
+        mode = [""]*100
         self._load_fix(None,attr,mode)
         self.b_path["text"] = "clean..."
         self.close_fixture_list()
@@ -1057,8 +1062,17 @@ class GUI_FixtureEditor():
         self.b_path["text"] = "load_LED"
         self.close_fixture_list()
     def load_MH(self,_event=None,attr=[]):
-        attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
-        mode = ["F","F","F","F","S","F","F","F","F","S"]
+        if not attr:
+            attr = ["PAN","PAN-FINE","TILT","TILT-FINE","SHUTTER","DIM","RED","GREEN","BLUE","GOBO"]
+        mode = []
+        for a in attr:
+            if a.endswith("-FINE"):
+                mode.append("-")
+            elif a in ["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+                mode.append("F")
+            else:
+                mode.append("S")
+
         self._load_fix(None,attr,mode)
         self.b_path["text"] = "load_MH"
         self.close_fixture_list()
@@ -1241,10 +1255,10 @@ class ELEM_FADER():
                 return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
-            w = Window("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w = _M.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
             #w.pack()
             self._set_mode(txt)
-            w.show()
+            #w.show()
             if self._cb:
                 self._cb([self,"set_mode",txt])
         dialog._cb = _cb
@@ -1284,18 +1298,18 @@ class ELEM_FADER():
         f = tk.Frame(frameS)
         #f.pack()
         self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=self.font8 )
-        self.mode=self.b
+        #self.mode=self.b
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         #self.elem.append(self.b)
 
-        self.b = tk.Button(frameS,bg="lightblue",text="F", width=4,command=self.set_mode,font=self.font8 )
+        self.b = tk.Button(frameS,bg="lightblue",text="", width=4,command=self.set_mode,font=self.font8 )
         self.mode=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         self.elem.append(self.b)
 
         self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=self.font8 )
-        self.mode=self.b
+        #self.mode=self.b
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         #self.elem.append(self.b)
 
@@ -1312,27 +1326,27 @@ class ELEM_FADER():
 
 
 class EXEC_FADER():
-    def __init__(self,frame,nr,cb=None,**args):
+    def __init__(self,frame,nr,cb=None,fader_cb=None,**args):
         self.frame = frame
         self.nr= nr
         self.id=nr
         self.elem = []
         self._cb = cb
+        self._fader_cb = fader_cb
         width=11
         frameS = tk.Frame(self.frame,bg="#005",width=width)
         frameS.pack(fill=tk.Y, side=tk.LEFT)
         self.frame=frameS
 
     def event(self,a1="",a2=""):
-        print(self)
-        print("event",[self.nr,a1,a2],self.label["text"],self.attr["text"])
-        if self._cb is not None:
-            self._cb(a1,a2,nr=self.nr)
-        else:
-            j=[]
-            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
-            j.append(jdata)
-            jclient_send(j)
+        print(self,"event",[self.nr,a1,a2],self.label["text"],self.attr["text"],self._fader_cb)
+        if self._fader_cb is not None:
+            self._fader_cb(a1,a2,nr=self.nr)
+        #else:
+        #    j=[]
+        #    jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
+        #    j.append(jdata)
+        #    jclient_send(j)
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
@@ -1362,19 +1376,35 @@ class EXEC_FADER():
                 return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
-            w = Window("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w = _M.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
             #w.pack()
             self._set_mode(txt)
-            w.show()
+            #w.show()
         dialog._cb = _cb
         dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
 
     def _set_mode(self,txt=""):
+        print("_set_mode",txt)
         if type(txt) is str:
             self.mode["text"] = "{}".format(txt[0].upper())
             #print("_set_mode",[self])
     def _refresh(self):
         pass
+
+    def go(self,event=None,X=None,Y=None):
+        print(self,"go()",event,self.attr["text"])
+        print(dir(event))
+        print(event.num,event.state,event.type)
+        nr = self.id+80
+        if event.state > 0:
+            value = 0
+            #PRESETS.go(self.id+80)
+            _M.master.preset_go(nr-1,xfade=None,val=value)
+        else:
+            value = 1
+            #PRESETS.go(self.id+80)
+            _M.master.preset_go(nr-1,xfade=None,val=value)
+
     def pack(self,init=None,from_=255,to=0,**args):
         width=11
         r=0
@@ -1394,7 +1424,14 @@ class EXEC_FADER():
         if 1: #self.nr <= 10:
 
             self.elem.append(self.b)
-            self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=self.font8 )
+            self.b = tk.Button(frameS,bg="lightblue",text="", width=5,font=self.font8 )
+            self.b.bind("<Button>",self.go) #BEvent({"NR":self.id+80,"text":""},self.go).cb)
+            self.b.bind("<ButtonRelease>",self.go) #BEvent({"NR":self.id+80,"text":""},self.go).cb)
+            #b = self.b
+            #k = ""
+            #gui = _M.master
+            #self.b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+            #self.b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
             self.attr=self.b
             self.b.pack(fill=tk.BOTH, side=tk.TOP)
             self.elem.append(self.b)
@@ -1434,6 +1471,7 @@ class GUI_ExecWingLayout():
         c=0
         i=1
         self.elem=[]
+        self.fader_elem = []
         self.header=[]
         self.data = data
 
@@ -1466,12 +1504,13 @@ class GUI_ExecWingLayout():
                 c=0
             #print(frameS)
             #e= ELEM_FADER(frameS,nr=j+1,cb=self.event_cb)
-            e= EXEC_FADER(frameS,nr=j+1,cb=self.event_cb)
+            e= EXEC_FADER(frameS,nr=j+1,fader_cb=self.event_cb)
             if j >= 10:
                 e.pack(from_=400,to=0,init=100)
             else:
                 e.pack(from_=200,to=0,init=100)
             self.elem.append(e)
+            self.fader_elem.append(e)
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
             i+=1
@@ -1498,6 +1537,7 @@ class GUI_ExecWingLayout():
 
     def event_cb(self,a1="",a2="",nr=None,**args):
         print("event_cb:",nr,a1,a2,args)
+        
         nr += 1
         jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
 

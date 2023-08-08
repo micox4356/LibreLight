@@ -590,6 +590,7 @@ def draw_setup(gui,xframe,data):
         
         if comm == "SAVE\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
+            myTip = Hovertip(b,'Strg + S ')
         elif comm == "LOAD\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
         elif comm == "SAVE\nSHOW AS":

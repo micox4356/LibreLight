@@ -292,38 +292,44 @@ INT   = ["DIM","SHUTTER","STROBE","FUNC"]
 #client = chat.tcp_sender(port=50001)
 
 
-def set_exec_fader(nr,val,label="",color=""):
+def set_exec_fader_cfg(nr,val,label="",color=""):
     exec_wing = window_manager.get_obj(name="EXEC-WING") 
     if not exec_wing: 
         return
-
-    #print(exec_wing)
     try:
-        exec_wing.set_fader(nr,val,color=color)
-        print(dir(exec_wing.fader_elem[0]))
-        print((exec_wing))
         if len(exec_wing.fader_elem) > nr:
             exec_wing.fader_elem[nr].attr["text"] =  label
             cfg = get_exec_btn_cfg(nr+80)
             if cfg:
                 exec_wing.fader_elem[nr].attr["bg"] = cfg["bg"]
                 exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
-
-
-
-
     except Exception as e:
         cprint("- exception:",e)
-    #print("remote in:",round(time.time(),0),"x",i,v)
+
+def set_exec_fader(nr,val,label="",color=""):
+    exec_wing = window_manager.get_obj(name="EXEC-WING") 
+    if not exec_wing: 
+        return
+    try:
+        exec_wing.set_fader(nr,val,color=color)
+    except Exception as e:
+        cprint("- exception:",e)
+   
 
 def set_exec_fader_all():
     cprint( "set_exec_fader_all()",color="green")
     for nr in range(10):
         _label = PRESETS.label_presets[nr+80] # = label
         print("_label",_label)
-        set_exec_fader(nr,0,label=_label) #,color="#fff")
-        #sys.exit()
+        set_exec_fader(nr,0,label=_label) 
+        set_exec_fader_cfg(nr,0,label=_label)
 
+def refresh_exec_fader_cfg():
+    cprint( "set_exec_fader_all()",color="green")
+    for nr in range(10):
+        _label = PRESETS.label_presets[nr+80] # = label
+        #print("_label",_label)
+        set_exec_fader_cfg(nr,0,label=_label)
 
 # remote input - start (memcached)
 def JCB(x,sock=None):
@@ -4562,6 +4568,12 @@ refresher_exec.time_delta = 10 #0
 refresher_exec.name = "exec"
 refresher_exec.reset() 
 refresher_exec.cb = master._refresh_exec
+
+refresher_exec = Refresher()
+refresher_exec.time_delta = 10 #0
+refresher_exec.name = "exec-fader"
+refresher_exec.reset() 
+refresher_exec.cb = refresh_exec_fader_cfg
 
 def loops(**args):
     time.sleep(5) # wait until draw all window's 

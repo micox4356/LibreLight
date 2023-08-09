@@ -936,7 +936,7 @@ class GUI_FixtureEditor():
                     frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 self.c=0
 
-            e= ELEM_FADER(frameS,nr=j+1,cb=self._cb)
+            e= ELEM_FADER(frameS,nr=j+1,cb=self._cb,fader_cb=self._fader_cb)
             e.pack()
             #e.attr["bg"] = "red"
             self.fader_elem.append(e)
@@ -944,10 +944,28 @@ class GUI_FixtureEditor():
             frameS.pack(fill=tk.X, side=tk.TOP)
             c+=1
 
-    def _cb(self,arg,name="<name>",**args):
-        print(self,"_cb")
-        print(name,"_cb.args >>",arg,args)
+    def _fader_cb(self,arg,name="<name>",**args):
+        print("   FixtureEditor._cb",args,arg)
+        #print("    ",name,"_cb.args >>",args,arg[1:])
         self.count_ch()
+    
+        try:
+            a1 = arg #arg[2]
+            nr = args["nr"] #.nr
+            j=[]
+            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(nr)}
+            print("   ",jdata)
+            j.append(jdata)
+            jclient_send(j)
+        except Exception as e:
+            print(arg,args)
+            print(e)
+
+    def _cb(self,arg,name="<name>",**args):
+        print(" FixtureEditor._cb")
+        print(" ",name,"_cb.args >>",args,arg[1:])
+        self.count_ch()
+    
 
     def count_ch(self):
         #e._set_attr( "---")
@@ -1013,6 +1031,8 @@ class GUI_FixtureEditor():
         self.pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
         frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
 
+        tmp = _M._LOAD_FIXTURE_LIST(mode=mode)
+
         def cb(**args):
             print("open_fixture_list")
             self._cb(args,name="open_fixture_list") 
@@ -1021,10 +1041,11 @@ class GUI_FixtureEditor():
             #self.load_EMPTY()
             if mode == "IMPORT":
                 self.load_MH()
+                #print(tmp)
+                print(len(tmp.data))
             else:
                 self.load_DIM()
 
-        tmp = _M._LOAD_FIXTURE_LIST(mode=mode)
         r=tmp.get(frame,cb=cb,master=self,bg="#333")
 
     def close_fixture_list(self):
@@ -1208,15 +1229,11 @@ class ELEM_FADER():
         frameS.pack(fill=tk.Y, side=tk.LEFT)
         self.frame=frameS
 
-    def event(self,a1="",a2=""):
-        if self._fader_cb is not None:
+    def fader_event(self,a1="",a2=""):
+        if self._fader_cb:
             self._fader_cb(a1,a2,nr=self.nr)
-        else:
-            #print(self,"event",[self.nr,a1,a2])
-            j=[]
-            jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
-            j.append(jdata)
-            jclient_send(j)
+
+    def event(self,a1="",a2=""):
         if self._cb:
             self._cb([self,"event",a1,a2])
 
@@ -1281,7 +1298,7 @@ class ELEM_FADER():
         j=0
         self.font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
+        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.fader_event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)
@@ -1338,15 +1355,15 @@ class EXEC_FADER():
         frameS.pack(fill=tk.Y, side=tk.LEFT)
         self.frame=frameS
 
-    def event(self,a1="",a2=""):
-        print(self,"event",[self.nr,a1,a2],self.label["text"],self.attr["text"],self._fader_cb)
-        if self._fader_cb is not None:
+    def fader_event(self,a1="",a2=""):
+        print("   EXEC_FADER.fader_event",[self.nr,a1,a2],self.label["text"],self.attr["text"])
+        if self._fader_cb:
             self._fader_cb(a1,a2,nr=self.nr)
-        #else:
-        #    j=[]
-        #    jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.nr)}
-        #    j.append(jdata)
-        #    jclient_send(j)
+
+    def event(self,a1="",a2=""):
+        print("   EXEC_FADER.event",[self.nr,a1,a2],self.label["text"],self.attr["text"])
+        if self._cb:
+            self._cb(a1,a2,nr=self.nr)
 
     def set_attr(self,_event=None):
         txt= self.attr["text"]
@@ -1393,7 +1410,7 @@ class EXEC_FADER():
 
     def go(self,event=None,X=None,Y=None):
         print(self,"go()",event,self.attr["text"])
-        print(dir(event))
+        #print(dir(event))
         print(event.num,event.state,event.type)
         nr = self.id+80
         if event.state > 0:
@@ -1412,7 +1429,7 @@ class EXEC_FADER():
         j=0
         self.font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.event)
+        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.fader_event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)
@@ -1536,7 +1553,7 @@ class GUI_ExecWingLayout():
         #    print("ee",ee)
 
     def event_cb(self,a1="",a2="",nr=None,**args):
-        print("event_cb:",nr,a1,a2,args)
+        #print(" ExecWing.event_cb:",nr,a1,a2,args)
         
         nr += 1
         jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
@@ -1553,7 +1570,7 @@ class GUI_ExecWingLayout():
             jdata["CMD"] = "EXEC-OFFSET-MASTER"
             jdata["NR"] = nr-20 +self.start
 
-        print("event_cb",jdata)
+        print("   ExecWing.event_cb",jdata)
         j = [jdata]
         jclient_send(j)
 
@@ -1662,7 +1679,7 @@ class GUI_MasterWingLayout():
         self._event_redraw()
 
     def event_cb(self,a1="",a2="",nr=None,**args):
-        print("event_cb:",nr,a1,a2,args)
+        print(" MasterWing.event_cb:",nr,a1,a2,args)
         nr += 1
         jdata= {"CMD":"X-MASTER","NR":nr,"VALUE":int(a1)}
         if nr == 1:
@@ -1673,7 +1690,7 @@ class GUI_MasterWingLayout():
             jdata["NR"] = 1 #nr 
 
 
-        print("event_cb",jdata)
+        print(" MasterWing.event_cb",jdata)
         j = [jdata]
         jclient_send(j)
 
@@ -1736,7 +1753,7 @@ class GUI_menu():
         self.draw()
 
     def draw(self):
-        cprint("********************",self,"draw")
+        cprint("***",self,"draw")
         r=0
         c=0
         i=1
@@ -1746,7 +1763,7 @@ class GUI_menu():
         r+=1
         h = 2
         for row in self.data:
-            print("draw",row)
+            print("  draw",row)
             #row = data[i]
             if row["text"] == "---":
                 h=1

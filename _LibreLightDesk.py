@@ -141,7 +141,7 @@ try:
     cprint("config read")
     for line in lines:
         line=line.strip()
-        cprint("- config:",line)
+        print("   config:",line)
         row = json.loads(line) 
         _config.append(row)
 
@@ -150,7 +150,7 @@ except Exception as e:
 
 try: 
     for row in _config:
-        cprint("config:",row)
+        #print("   config:",row)
         if "POS_LEFT" in row:
            _POS_LEFT = int(row["POS_LEFT"]) 
         if "POS_TOP" in row:
@@ -317,10 +317,11 @@ def set_exec_fader(nr,val,label="",color=""):
    
 
 def set_exec_fader_all():
+    print()
     cprint( "set_exec_fader_all()",color="green")
     for nr in range(10):
         _label = PRESETS.label_presets[nr+80] # = label
-        print("_label",_label)
+        print("  _label",_label)
         set_exec_fader(nr,0,label=_label) 
         set_exec_fader_cfg(nr,0,label=_label)
 
@@ -417,7 +418,7 @@ class MC():
         index = self.mc.get("index")
         if index:
             for i in index:
-                cprint("-- key",i)
+                print("  key",i)
 
         self.fader_map = []
         for i in range(30+1):
@@ -431,7 +432,7 @@ class MC():
 
             for i,line in enumerate(lines):
                 jdata = json.loads(line)
-                cprint("-- fader_map ->>",i,jdata)
+                print("  fader_map ->>",i,jdata)
                 self.fader_map[i] = jdata
 
         except Exception as e:
@@ -1540,6 +1541,7 @@ def split_window_position(lines,_filter=""):
 
 
 def load_window_position(_filter=""):
+    print()
     global window_list_buffer
     cprint()
     cprint("load_window_position",[_filter])
@@ -1564,7 +1566,7 @@ def load_window_position(_filter=""):
 
             w = data[name][2] 
 
-            cprint("- set_win_pos","filter:",[_filter],"Name: {:<20}".format(name),w,win)
+            print("  set_win_pos","filter:",[_filter],"Name: {:<20}".format(name),w,win)
             try:
                 win.tk.geometry(w)
             except Exception as e:
@@ -1633,9 +1635,9 @@ class Xevent():
                 class cb():
                     def __init__(self,name=""):
                         self.name=name
-                        cprint("cb",name)
+                        cprint("   LOAD-SHOW.init",name)
                     def cb(self,event=None,**args):
-                        cprint("cdb",self.name,event,args)
+                        cprint("   LOAD-SHOW.cdb",self.name,event,args)
                         if self.name != "<exit>":
                             cprint("-----------------------:")
                             LOAD_SHOW_AND_RESTAT(self.name).cb()
@@ -1644,7 +1646,8 @@ class Xevent():
 
                 pw = PopupList(name,cb=cb)
                 frame = pw.sframe(line1=line1,line2=line2)
-                r = _load_show_list(frame,cb=cb)
+                #r = _load_show_list(frame,cb=cb)
+                r = frame_of_show_list(frame,cb=cb)
 
     
                 #self.elem["bg"] = "red"# "lightgrey"
@@ -1994,7 +1997,104 @@ class Element():
     def set(self,key,val):
         self.__data[key] = val
 
+def _fixture_decode_sav_line(line):
+    out = None
+
+    if line.count("\t") < 2:
+        cprint("Error line.count('\\t') < 2  (is:{})".format(line.count("\t")),color="red",end=" ")
+        cprint("file:{}".format(xfname),color="red")
+    else:
+        key,label,rdata = line.split("\t",2)
+        jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
+        #out = [key,label,rdata]
+        key = int(key)
+
+        out = [key,label,jdata]
+        #print(line)
+
+    #if not out:
+    #print(line)
+    #sys.exit()
+    return out
+
+def _fixture_repair_nr0(jdata):
+    nrnull = 0
+    if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
+        if nrnull:
+            cprint("DMX NR IS NULL",attr,"CHANGE +1")
+            for attr in jdata["ATTRIBUT"]:
+                if "NR" in jdata["ATTRIBUT"][attr]:
+                    nr = jdata["ATTRIBUT"][attr]["NR"]
+                    if nr >= 0:
+                        jdata["ATTRIBUT"][attr]["NR"] +=1
+    #return jdata
         
+def _clean_path(fpath):
+    _path=[]
+    for i in fpath:
+        fpath = fpath.replace(" ","_")
+        if i in string.ascii_letters+string.digits+"äöüßÖÄÜ_-":
+            _path.append(i)
+    path = "".join(_path)
+    return path
+
+def _read_init_txt(show_path):
+    fname = show_path+"init.txt"
+    show_name = None
+    msg = ""
+
+    if not os.path.isfile( fname ):
+        msg = "_read_init_txt Errror: " +fname +"\n NOT FOUND !"
+        return [None,msg]
+
+    try:
+        f = open(fname,"r")
+        for line in f.readlines():
+            line = line.strip()
+            print("  init.txt:",[line])
+            if line.startswith("#"):
+                continue
+            if not line:
+                continue
+
+            show_name = line
+            show_name = show_name.replace(".","")
+            show_name = show_name.replace("\\","")
+            show_name = show_name.replace("/","")
+    except Exception as e:
+        cprint("show name exception",color="red")
+        msg="read_init_txt Error:{}".format(e)
+    finally:
+        f.close()
+
+    return [show_name,msg]
+
+
+def _listdir(show_path):
+    #self._check()
+    show_list =  list(os.listdir( show_path ))
+    out = []
+    for fname in show_list:
+        #print(fname)
+        ctime = os.path.getmtime(show_path+fname)
+        ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
+        try:
+            mtime = os.path.getmtime(show_path+fname+"/patch.sav")
+            mtime = time.strftime("%Y-%m-%d %X",  time.localtime(mtime)) #1650748726.6604707))
+        except:
+            mtime = 0
+
+        if mtime:
+            out.append([fname,mtime])#,ctime])
+
+    from operator import itemgetter
+    out=sorted(out, key=itemgetter(1))
+    out.reverse()
+    return out
+
+
+
+
 class Base():
     def __init__(self):
         cprint("Base.init()",color="red")
@@ -2005,22 +2105,12 @@ class Base():
         self.show_path0 = HOME +"/LibreLight/"
         self.show_path  = self.show_path0 
         self.show_path1 = self.show_path0 + "show/"
-        try:
-            f = open(self.show_path+"init.txt","r")
-            for line in f.readlines():
-                #cprint(line)
-                if not line.startswith("#"):
-                    show_name = line.strip()
-                    show_name = show_name.replace(".","")
-                    show_name = show_name.replace("\\","")
-                    show_name = show_name.replace("/","")
-            self.show_name = show_name
-        except Exception as e:
-            cprint("show name exception",color="red")
-            msg="Error Exception:{}".format(e)
+        
+        msg = " X "
+        self.show_name,msg = _read_init_txt(self.show_path)
+        if not self.show_name:
             r=tkinter.messagebox.showwarning(message=msg,parent=None)
-        finally:
-            f.close()
+            sys.exit()
         
         fpath = self.show_path1 +show_name 
         if not os.path.isdir(fpath):
@@ -2071,31 +2161,14 @@ class Base():
             os.mkdir(self.show_path)
         pass
     def _list(self):
-        #self._check()
-        show_list =  list(os.listdir( self.show_path1 ))
-        out = []
-        for fname in show_list:
-            #print(fname)
-            ctime = os.path.getmtime(self.show_path1+fname)
-            ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
-            try:
-                mtime = os.path.getmtime(self.show_path1+fname+"/patch.sav")
-                mtime = time.strftime("%Y-%m-%d %X",  time.localtime(mtime)) #1650748726.6604707))
-            except:
-                mtime = 0
-
-            if mtime:
-                out.append([fname,mtime])#,ctime])
-
-        from operator import itemgetter
-        out=sorted(out, key=itemgetter(1))
-        out.reverse()
+        cprint("BASE._list()")
+        out = _listdir(self.show_path1)
         return out
 
     def _load(self,filename):
         xfname = self.show_path+"/"+str(filename)+".sav"
         cprint("load",xfname)
-
+        lines = []
         try:
             f = open(xfname,"r")
             lines = f.readlines()
@@ -2110,43 +2183,23 @@ class Base():
         labels = OrderedDict()
         i=0
         for line in lines:
-            if line.count("\t") < 2:
-                cprint("Error line.count('\\t') < 2  (is:{})".format(line.count("\t")),color="red",end=" ")
-                cprint("file:{}".format(xfname),color="red")
+            r = _fixture_decode_sav_line(line)
+
+            if not r:
                 continue
-            key,label,rdata = line.split("\t",2)
-            print(line)
-            key = int(key)
 
-            jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
-            nrnull = 0
+            key,label,jdata = r
 
-            if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
+            _fixture_repair_nr0(jdata)
 
-                if nrnull:
-                    cprint("DMX NR IS NULL",attr,"CHANGE +1")
-                    for attr in jdata["ATTRIBUT"]:
-                        if "NR" in jdata["ATTRIBUT"][attr]:
-                            nr = jdata["ATTRIBUT"][attr]["NR"]
-                            if nr >= 0:
-                                jdata["ATTRIBUT"][attr]["NR"] +=1
-
-            data[key] = jdata
+            data[key]   = jdata
             labels[key] = label
             
         return data,labels
 
-    def _clean_path(self,fpath):
-        _path=[]
-        for i in fpath:
-            fpath = fpath.replace(" ","_")
-            if i in string.ascii_letters+string.digits+"äöüßÖÄÜ_-":
-                _path.append(i)
-        path = "".join(_path)
-        return path
 
     def build_path(self,save_as):
-        save_as = self._clean_path(save_as)
+        save_as = _clean_path(save_as)
         path = self.show_path.split("/")
         path = "/".join(path[:-2])
         fpath = path+"/"+save_as
@@ -3002,7 +3055,7 @@ class BaseCallback():
                 print("  TypeError",e)
                 self._cb() 
 
-def _load_show_list(frame,cb=None):
+def frame_of_show_list(frame,cb=None):
     c=0
     r=0
     base = Base()
@@ -3080,20 +3133,55 @@ def online_help(page):
     return _cb 
 
 
-def _import_fixture_list(frame,cb=None,master=None,bg="black"):
-    frame.configure(bg=bg)
-    c=0
-    r=0
-    base = Base()
-    for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
-        b = tk.Label(frame,bg="grey",text=i)
-        b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
-        c+=1
-    r+=1
-    blist = [] #base._list()
 
+def index_fixtures():
+
+    p="/opt/LibreLight/Xdesk/fixtures/"
+    ls = os.listdir(p )
+    ls.sort()
+    for l in ls:
+        b = _parse_fixture_name(l)
+        b.append(p)
+        b.insert(0,"base")
+        blist.append(b)
+
+def _fixture_load_user_list():
+    blist = []
+    try:
+        p = HOME+"/LibreLight/fixtures/"
+        ls = os.listdir(p)
+        ls.sort()
+        for l in ls:
+            b = _parse_fixture_name(l)
+            b.append(p)
+            b.insert(0,"user")
+            blist.append(b)
+    except Exception as e:
+        cprint("Exce 877 ",e)
+    return blist
+
+
+
+def _fixture_load_global_list():
+    blist = []
+    try:
+        p="/opt/LibreLight/Xdesk/fixtures/"
+        ls = os.listdir(p )
+        ls.sort()
+        for l in ls:
+            b = _parse_fixture_name(l)
+            b.append(p)
+            b.insert(0,"base")
+            blist.append(b)
+    except Exception as e:
+        cprint("Exce 878 ",e)
+    return blist
+
+def _fixture_create_import_list():
     path = "/home/user/LibreLight/show"
+    blist = []
     for sname in os.listdir(path):
+        print("   ",sname)
         try:
             fname = path+"/"+sname+"/patch.sav"
             if os.path.isfile(fname):
@@ -3106,82 +3194,46 @@ def _import_fixture_list(frame,cb=None,master=None,bg="black"):
                     line = json.loads(line[2])
                     print(line)
                     name = line["NAME"]
-                    blist.append([name,fname,path])
+                    blist.append([name,fname+":"+name,path])
                     print(":",i,name,fname)
         except Exception as e:
             print("exception",e)
+    return blist
 
-    if not blist:
-        #blist.append(["MAC-500","martin","Demo"])
-        #blist.append(["MAC-2000","martin","Demo"])
-        #blist.append(["MAC-VIPER","martin","Demo"])
-        #blist.append(["SPARX-7","JB","Demo"])
-        #blist.append(["SPARX-11","JB","Demo"])
-        #blist.append(["JB-P6","JB","Demo"])
-        #blist.append(["JB-P7","JB","Demo"])
-        #blist.append(["JB-A7","JB","Demo"])
-        #blist.append(["TMH-12","Eurolight","Demo"])
-        pass
-    for i in range(19):
-        blist.append(["IMPORT-{:02}".format(i),"Eurolight","Import"])
+def _fixture_load_import_list():
+    return _fixture_create_import_list()
+    pass
+    path = HOME+"/LibreLight/fixture.index.json"
+    if not os.path.isfile(path):
+        blist = _fixture_create_import_list()
+        f = open(path,"w")
+        for line in blist:
+            line = json.dumps(line)
+            f.writelines(line)
+        f.close()
+
+    blist = []
+    if os.path.isfile(path):
+        f = open(path,"r")
+        lines = f.readlines()
+        f.close()
+        for line in lines:
+            line = line.strip()
+            blist.append(json.loads(line))
+
+    return blist
 
 
-    if len(blist) < 30:
-        for i in range(30-len(blist)):
-            blist.append(["{:0>4}".format(len(blist)+i+1),"",""])
-
-
-    if cb is None: 
-        cb = DummyCallback #("load_show_list.cb")
-    
-    _tmp_name = ""
-    _tmp_flag = 0
-    blist=blist[:10]
-    for i in blist:
-        #print(i)
-        if i[0] != _tmp_name:
-            _tmp_flag = "#aaf"
-            if i[0] == "user":
-                _tmp_flag = "#aaf"
-            if i[0] == "base":
-                _tmp_flag = "#0f0"
-
-        c=0
-        for j in i:
-            bg="lightgrey"
-            dbg="lightgrey"
-            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-                dbg = "lightgreen"
-            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-                dbg = "green"
-
-            if _tmp_flag:
-                bg = "{}".format(_tmp_flag)
-
-            if c == 1:
-                if base.show_name == i[0]:
-                    bg="green"
-
-                _cb2 = BaseCallback(cb=cb,args={"file":j}).cb
-
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb2)
-
-                if base.show_name == i[0]:
-                    b.config(activebackground=bg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            else:#ief c > 0:
-                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
-                b.config(activebackground=dbg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-        r+=1
-
+def _fixture_load_data(path,number):
+    data = """1	1	{"DMX": 1, "UNIVERS": 2, "NAME": "VPU_001", "TYPE": "MOVER", "VENDOR": "AYERTON", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "0", "MODE": "F", "VALUE": 256, "ACTIVE": 0, "FX": "", "FX2": {}}, "RED": {"NR": 2, "MASTER": "0", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": "", "FX2": {}}, "GREEN": {"NR": 3, "MASTER": "0", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": "", "FX2": {}}, "BLUE": {"NR": 4, "MASTER": "0", "MODE": "F", "VALUE": 255, "ACTIVE": 0, "FX": "", "FX2": {}}, "_ACTIVE": {"NR": 0, "ACTIVE": 0, "VALUE": 0, "FX": "", "FX2": {}}}, "ACTIVE": 0}
+"""
+    return data
 
 
 class _LOAD_FIXTURE_LIST():
     def __init__(self,mode="<name>"):
         self.mode = mode
-
+        self.data = []
     def get(self,frame,cb=None,master=None,bg="black"):
         frame.configure(bg=bg)
         c=0
@@ -3192,54 +3244,22 @@ class _LOAD_FIXTURE_LIST():
             b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
             c+=1
         r+=1
-        blist = [] #base._list()
+
+        blist = self.data
 
         if self.mode == "USER":
-            try:
-                p = HOME+"/LibreLight/fixtures/"
-                ls = os.listdir(p)
-                ls.sort()
-                for l in ls:
-                    b = _parse_fixture_name(l)
-                    b.append(p)
-                    b.insert(0,"user")
-                    blist.append(b)
-            except Exception as e:
-                cprint("Exce 877 ",e)
+            r=_fixture_load_user_list() 
+            blist.extend( r )
 
         elif self.mode == "GLOBAL":
-            try:
-                p="/opt/LibreLight/Xdesk/fixtures/"
-                ls = os.listdir(p )
-                ls.sort()
-                for l in ls:
-                    b = _parse_fixture_name(l)
-                    b.append(p)
-                    b.insert(0,"base")
-                    blist.append(b)
-            except Exception as e:
-                cprint("Exce 878 ",e)
+            r=_fixture_load_global_list() 
+            blist.extend( r )
 
         elif self.mode == "IMPORT":
-            path = "/home/user/LibreLight/show"
-            for sname in os.listdir(path):
-                try:
-                    fname = path+"/"+sname+"/patch.sav"
-                    if os.path.isfile(fname):
-                        f = open(fname)
-                        lines = f.readlines()
-                        f.close()
+            r=_fixture_load_import_list() 
+            blist.extend( r )
 
-                        for line in lines:
-                            line = line.split("\t")
-                            line = json.loads(line[2])
-                            print(line)
-                            name = line["NAME"]
-                            blist.append([name,fname,path])
-                            print(":",i,name,fname)
-                except Exception as e:
-                    print("exception",e)
-
+        print("BLIST",blist)
 
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")

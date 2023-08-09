@@ -206,7 +206,7 @@ class Action():
             # pointer jump's around on X11 
 
             create = []
-            for i in range(1,5+1):
+            for i in [1]: #range(1,5+1):
                 ok = 0
                 n = "{}{}".format(prefix,i)
                 for j in self.pointer_config:
@@ -226,6 +226,7 @@ class Action():
                 print("CMD:",cmd)
                 os.system(cmd)
 
+
             if len(create) and self.pointer_create_count < 10: # recursion !!
                 print("self.refresh_multipointer_config() # recursion !!!")
                 self.pointer_create_count += 1
@@ -233,6 +234,10 @@ class Action():
 
                 self.refresh_multipointer_config()
 
+            #for p in range(12):
+            #for p in self.pointer_config:
+            #     cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(p,10,20)
+            #     os.system(cmd)
 
 
     def refresh_screen_config(self):

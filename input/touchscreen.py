@@ -201,7 +201,7 @@ class Action():
             self.pointer_config.append( cfg )
 
 
-        if 0: 
+        if 1: 
             # creat 5 pointer on screen for Mutlitouch input
             # pointer jump's around on X11 
 
@@ -352,7 +352,7 @@ class Action():
 
     def cur_pointer_id(self):
         i =  self.MT_SLOT
-        return "xxx"
+        #return "xxx"
         return self.pointer_config[i]["id"]
 
 

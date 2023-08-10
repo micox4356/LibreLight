@@ -3181,7 +3181,7 @@ def _fixture_create_import_list():
     path = "/home/user/LibreLight/show"
     blist = []
     for sname in os.listdir(path):
-        print("   ",sname)
+        #print("   ",sname)
         try:
             fname = path+"/"+sname+"/patch.sav"
             if os.path.isfile(fname):
@@ -3192,16 +3192,18 @@ def _fixture_create_import_list():
                 for line in lines:
                     line = line.split("\t")
                     line = json.loads(line[2])
-                    print(line)
+                    #print(line)
                     name = line["NAME"]
                     blist.append([name,fname+":"+name,path])
-                    print(":",i,name,fname)
+                    #blist.append([name,fname,path])
+                    #print(":",i,name,fname)
         except Exception as e:
             print("exception",e)
     return blist
 
 def _fixture_load_import_list():
     return _fixture_create_import_list()
+
     pass
     path = HOME+"/LibreLight/fixture.index.json"
     if not os.path.isfile(path):
@@ -3218,6 +3220,7 @@ def _fixture_load_import_list():
         lines = f.readlines()
         f.close()
         for line in lines:
+            print("_fixture_load__import",line)
             line = line.strip()
             blist.append(json.loads(line))
 
@@ -3231,7 +3234,7 @@ def _fixture_load_data(path,number):
 
 
 class _LOAD_FIXTURE_LIST():
-    def __init__(self,mode="<name>"):
+    def __init__(self,mode="<mode>"):
         self.mode = mode
         self.data = []
     def get(self,frame,cb=None,master=None,bg="black"):
@@ -3248,18 +3251,19 @@ class _LOAD_FIXTURE_LIST():
         blist = self.data
 
         if self.mode == "USER":
-            r=_fixture_load_user_list() 
-            blist.extend( r )
+            _r=_fixture_load_user_list() 
+            blist.extend( _r )
 
         elif self.mode == "GLOBAL":
-            r=_fixture_load_global_list() 
-            blist.extend( r )
+            _r=_fixture_load_global_list() 
+            blist.extend( _r )
 
         elif self.mode == "IMPORT":
-            r=_fixture_load_import_list() 
-            blist.extend( r )
+            _r=_fixture_load_import_list() 
+            #_r=[["1","2","3"],["A","B","C"]]
+            blist.extend( _r )
 
-        print("BLIST",blist)
+        #print("BLIST",blist[:3^])
 
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")
@@ -3267,9 +3271,9 @@ class _LOAD_FIXTURE_LIST():
         _tmp_name = ""
         _tmp_flag = 0
 
-        blist = blist[:50]
+        blist = blist[:10]
         for i in blist:
-            #print(i)
+            #print("i",i)
             if i[0] != _tmp_name:
                 _tmp_flag = "#aaf"
                 if i[0] == "user":
@@ -3279,6 +3283,7 @@ class _LOAD_FIXTURE_LIST():
 
             c=0
             for j in i:
+                #print("j",j)#,i[j])
                 bg="lightgrey"
                 dbg="lightgrey"
                 if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
@@ -3300,7 +3305,9 @@ class _LOAD_FIXTURE_LIST():
                     if base.show_name == i[0]:
                         b.config(activebackground=bg)
                     b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                else:#ief c > 0:
+                else: #ief c > 0:
+                    #print("OWKFDLKFDLFKDLFK ")
+                    #print([j,c,r])
                     b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
                     b.config(activebackground=dbg)
                     b.grid(row=r, column=c, sticky=tk.W+tk.E)

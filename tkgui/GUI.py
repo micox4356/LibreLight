@@ -848,6 +848,7 @@ class GUI_FixtureEditor():
         self.b = tk.Button(self.frame,bg="lightblue",text="USER", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list_user
         self.b.pack( side=tk.LEFT)
+
         self.b = tk.Button(self.frame,bg="lightblue",text="GLOBAL", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list_global
         self.b.pack( side=tk.LEFT)
@@ -954,7 +955,7 @@ class GUI_FixtureEditor():
             nr = args["nr"] #.nr
             j=[]
             jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(nr)}
-            print("   ",jdata)
+            ##print("   ",jdata)
             j.append(jdata)
             jclient_send(j)
         except Exception as e:
@@ -962,12 +963,13 @@ class GUI_FixtureEditor():
             print(e)
 
     def _cb(self,arg,name="<name>",**args):
-        print(" FixtureEditor._cb")
-        print(" ",name,"_cb.args >>",args,arg[1:])
+        #print(" FixtureEditor._cb")
+        #print(" ",name,"_cb.args >>",args,arg[1:])
         self.count_ch()
     
 
     def count_ch(self):
+        #print("FixtureEditor.count_ch:")
         #e._set_attr( "---")
         ch_s = []
         j=-1
@@ -977,7 +979,7 @@ class GUI_FixtureEditor():
             #print(dir(elem))
             txt = elem.attr["text"]
             if txt:
-                print("count_ch:",i,txt)
+                #print("count_ch:",i,txt)
                 elem.attr["bg"] = "#0f0"
                 elem.attr["activebackground"] = "#0fa"
                 ch_s.append([i,txt])
@@ -1035,7 +1037,7 @@ class GUI_FixtureEditor():
 
         def cb(**args):
             print("open_fixture_list")
-            self._cb(args,name="open_fixture_list") 
+            #self._cb(args,name="open_fixture_list") 
             if self.pw:
                 self.pw.w.tk.destroy()
             #self.load_EMPTY()

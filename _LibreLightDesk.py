@@ -2894,12 +2894,19 @@ class InputEventBlocker():
         _global_short_key = 0
         try:master.commands.elem["S-KEY"]["bg"] = "red"
         except Exception as e:cprint("exc",self,e)
+        cmd="xset -display :0.0 r rate 240 20"
+        print(cmd)
+        os.system(cmd)
 
     def _unlock(self):
         global _global_short_key
         _global_short_key = 1
         try:master.commands.elem["S-KEY"]["bg"] = "green"
         except Exception as e:cprint("exc",self,e)
+        cmd = "xset -display :0.0 r off"
+        print(cmd)
+        os.system(cmd)
+
 
     def lock(self):
         self._lock()
@@ -2916,10 +2923,13 @@ class InputEventBlocker():
     def event(self,event,**args):
         self.init()
         #print()
+
         cprint(self,event,args)
         #print("###-",self.e_txt,dir(self.e_txt))
         if "S-KEY" not in master.commands.elem:
+            #cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
             return 
+
         if "num" in dir(event):
             self.lock()
         if "keysym" in dir(event):
@@ -4139,6 +4149,21 @@ from tkinter import PhotoImage
 
 _shift_key = 0
 
+class on_focus():
+    def __init__(self,name,mode):
+        self.name = name
+        self.mode = mode
+    def cb(self,event=None):
+        print("on_focus",event,self.name,self.mode)
+        if self.mode == "Out":
+            cmd="xset -display :0.0 r rate 240 20"
+            print(cmd)
+            os.system(cmd)
+        if self.mode == "In":
+            cmd = "xset -display :0.0 r off"
+            print(cmd)
+            os.system(cmd)
+
 class Window():
     def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
         global lf_nr
@@ -4197,6 +4222,9 @@ class Window():
         self.tk.bind("<Button>",self.callback)
         self.tk.bind("<Key>",self.callback)
         self.tk.bind("<KeyRelease>",self.callback)
+        self.tk.bind("<FocusIn>", on_focus("master","In").cb)
+        self.tk.bind("<FocusOut>", on_focus("master","Out").cb)
+
         self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
         lf_nr+=1
         #self.tk.geometry("270x600+0+65")
@@ -4248,7 +4276,6 @@ class Window():
         sstart = time.time()
         #time.sleep(0.1)
         if not _global_short_key:
-            #cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
             return 1
 
         global _shift_key

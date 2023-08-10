@@ -204,7 +204,7 @@ class Action():
         if 1: 
             # creat 5 pointer on screen for Mutlitouch input
             # pointer jump's around on X11 
-
+            print()
             create = []
             for i in [1]: #range(1,5+1):
                 ok = 0
@@ -214,6 +214,15 @@ class Action():
                     print("pt",n, j["name"]) 
                     if n == j["name"]: 
                         ok = 1
+                        cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(j["id"],4000,4000)
+                        print(cmd)
+                        os.system(cmd)
+                        #cmd = "xinput list-props {} ".format(j["id"])
+                        #print(cmd)
+                        #os.system(cmd)
+                        #cmd = "xinput set-prop {} \"Device Enabled\" 1".format(j["id"])
+                        #print(cmd)
+                        #os.system(cmd)
                         break
 
 
@@ -611,6 +620,9 @@ def main(cmd="",output="",name=""):
     
 if __name__ == "__main__":
     
+    cmd="xset -display :0.0 r rate 240 20"
+    os.system(cmd)
+
     touch_list =  get_touch_list()
 
     touchscreen_count = 0

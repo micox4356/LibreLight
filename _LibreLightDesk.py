@@ -4331,7 +4331,7 @@ class Window():
                 except Exception as e:
                     cprint("exc9800",e)
 
-            elif event.keysym in "ebfclrms" and value: 
+            elif event.keysym in "ebfclrmsRx" and value: 
                 if "e" == event.keysym:
                     modes.val("EDIT",1)
                 elif "b" == event.keysym:
@@ -4344,6 +4344,10 @@ class Window():
                     modes.val("LABEL",1)
                 elif "r" == event.keysym:
                     modes.val("REC",1)
+                elif "R" == event.keysym:
+                    modes.val("REC-FX",1)
+                elif "x" == event.keysym:
+                    modes.val("REC-FX",1)
                 elif "m" == event.keysym:
                     x=modes.val("MOVE",1)
                     if not x:

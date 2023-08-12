@@ -5,20 +5,38 @@ import time
 #import _thread as thread
 
 
-def tk_btn_bg_loop(btn,c1="#00fafa",c2="#0ff"):
+def tk_btn_bg_loop(btn,c1="#00ff00",c2="#00f",stime=time.time()):
+    while time.time() < stime+10:
+        time.sleep(0.1)
+    #time.sleep(10)
     print("tk_btn_loop",btn,c1,c2,"sleep 20")
-    time.sleep(20)
+    flip = 0
+    change = 0
+    t_last = time.time()
     try:
         while 1:
-            #print(self,"----- xxxx")
+            #t = int(time.time()*1000)
+            #if t % 500 == 0: 
+            #    change = 1
+            #    time.sleep(.001)
+            #else: 
+            #    time.sleep(.001)
+            #    continue
+            change = 1
             time.sleep(0.5)
-            btn["bg"] = c1 # "#0ee"
-            time.sleep(0.5)
-            btn["bg"] = c2 #"#0ff"
-            #print(self,"----- xxxx")
+            if change:
+                #print(btn,"change",str(t)[:-3],btn["text"])
 
+                if flip:flip = 0
+                else:flip = 1
+
+                if flip:c = c1
+                else:c = c2
+
+                btn["bg"] = c 
     except Exception as e:
-        print(__file__,"loop() exception",e)
+        print(__file__,"loop() exception")
+        print(e)
         time.sleep(3)
 
 #usage

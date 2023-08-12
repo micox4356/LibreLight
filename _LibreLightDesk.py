@@ -2419,7 +2419,7 @@ class MASTER():
         self.commands = Elem_Container()
         self.commands.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","-","\n"
                 ,"SELECT","FLASH","GO","-","MOVE","S-KEY","\n"
-                ,"BLIND","CLEAR","REC","EDIT","COPY","-","\n" 
+                ,"BLIND","CLEAR","REC","EDIT","COPY",".","\n" 
                 ]
         self.elem_presets = {}
         
@@ -4155,14 +4155,19 @@ class on_focus():
         self.mode = mode
     def cb(self,event=None):
         print("on_focus",event,self.name,self.mode)
+        e = master.commands.elem["."]
         if self.mode == "Out":
             cmd="xset -display :0.0 r rate 240 20"
             print(cmd)
             os.system(cmd)
+            e["bg"] = "#aaa"
+            e["activebackground"] = "#aaa"
         if self.mode == "In":
             cmd = "xset -display :0.0 r off"
             print(cmd)
             os.system(cmd)
+            e["bg"] = "#fff"
+            e["activebackground"] = "#fff"
 
 class Window():
     def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
@@ -4222,8 +4227,8 @@ class Window():
         self.tk.bind("<Button>",self.callback)
         self.tk.bind("<Key>",self.callback)
         self.tk.bind("<KeyRelease>",self.callback)
-        self.tk.bind("<FocusIn>", on_focus("master","In").cb)
-        self.tk.bind("<FocusOut>", on_focus("master","Out").cb)
+        self.tk.bind("<FocusIn>", on_focus(self.args["title"],"In").cb)
+        self.tk.bind("<FocusOut>", on_focus(self.args["title"],"Out").cb)
 
         self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
         lf_nr+=1

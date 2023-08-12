@@ -620,7 +620,7 @@ def main(cmd="",output="",name=""):
     
 if __name__ == "__main__":
     
-    cmd="xset -display :0.0 r rate 240 20"
+    cmd="xset -display :0.0 r rate 240 15"
     os.system(cmd)
 
     touch_list =  get_touch_list()

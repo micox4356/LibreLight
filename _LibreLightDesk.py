@@ -3242,6 +3242,26 @@ def _fixture_load_data(path,number):
 """
     return data
 
+def _load_fixture_list(mode="None"):
+    blist = []
+
+    if mode == "USER":
+        head = ["source","name","manufacturer","channel's","file","path"]
+        _r=_fixture_load_user_list() 
+        blist.extend( _r )
+
+    elif mode == "GLOBAL":
+        head = ["source","name","manufacturer","channel's","file","path"]
+        _r=_fixture_load_global_list() 
+        blist.extend( _r )
+
+    elif mode == "IMPORT":
+        head = ["source","name","manufacturer","channel's","file","path"]
+        _r=_fixture_load_import_list()
+        blist.extend( _r )
+    for i in blist:
+        print(i)
+    return blist
 
 class _LOAD_FIXTURE_LIST():
     def __init__(self,mode="<mode>"):
@@ -3249,9 +3269,9 @@ class _LOAD_FIXTURE_LIST():
         self.data = []
     def get(self,frame,cb=None,master=None,bg="black"):
         frame.configure(bg=bg)
+        base = Base()
         c=0
         r=0
-        base = Base()
         for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
             b = tk.Label(frame,bg="grey",text=i)
             b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
@@ -3259,21 +3279,7 @@ class _LOAD_FIXTURE_LIST():
         r+=1
 
         blist = self.data
-
-        if self.mode == "USER":
-            _r=_fixture_load_user_list() 
-            blist.extend( _r )
-
-        elif self.mode == "GLOBAL":
-            _r=_fixture_load_global_list() 
-            blist.extend( _r )
-
-        elif self.mode == "IMPORT":
-            _r=_fixture_load_import_list() 
-            #_r=[["1","2","3"],["A","B","C"]]
-            blist.extend( _r )
-
-        #print("BLIST",blist[:3^])
+        blist = _load_fixture_list(mode=self.mode)
 
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")
@@ -3282,17 +3288,17 @@ class _LOAD_FIXTURE_LIST():
         _tmp_flag = 0
 
         blist = blist[:10]
-        for i in blist:
+        for row in blist:
             #print("i",i)
-            if i[0] != _tmp_name:
+            if row[0] != _tmp_name:
                 _tmp_flag = "#aaf"
-                if i[0] == "user":
+                if row[0] == "user":
                     _tmp_flag = "#aaf"
-                if i[0] == "base":
+                if row[0] == "base":
                     _tmp_flag = "#0f0"
 
             c=0
-            for j in i:
+            for j in row:
                 #print("j",j)#,i[j])
                 bg="lightgrey"
                 dbg="lightgrey"

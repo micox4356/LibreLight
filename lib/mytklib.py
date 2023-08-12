@@ -3,12 +3,15 @@
 import tkinter as tk
 import time
 #import _thread as thread
+import os
 
 
-def tk_btn_bg_loop(btn,c1="#00ff00",c2="#00f",stime=time.time()):
+def tk_btn_bg_loop(btn,c1="#00ffdd",c2="#00ffff",stime=time.time()):
     while time.time() < stime+10:
         time.sleep(0.1)
     #time.sleep(10)
+    c1b = c1
+    c2b = c2
     print("tk_btn_loop",btn,c1,c2,"sleep 20")
     flip = 0
     change = 0
@@ -25,6 +28,12 @@ def tk_btn_bg_loop(btn,c1="#00ff00",c2="#00f",stime=time.time()):
             change = 1
             time.sleep(0.5)
             if change:
+                if os.path.isfile("/home/user/LibreLight/blink"):
+                    c1 = "#0f0"
+                    c2 = "#00f"
+                else:
+                    c1 = c1b #"#0f0"
+                    c2 = c2b #"#00f"
                 #print(btn,"change",str(t)[:-3],btn["text"])
 
                 if flip:flip = 0

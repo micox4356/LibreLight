@@ -2894,7 +2894,7 @@ class InputEventBlocker():
         _global_short_key = 0
         try:master.commands.elem["S-KEY"]["bg"] = "red"
         except Exception as e:cprint("exc",self,e)
-        cmd="xset -display :0.0 r rate 240 20"
+        cmd="xset -display :0.0 r rate 240 15"
         print(cmd)
         os.system(cmd)
 

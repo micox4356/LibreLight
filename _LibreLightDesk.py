@@ -2094,6 +2094,34 @@ def _listdir(show_path):
 
 
 
+def _read_sav_file(xfname):
+    cprint("load",xfname)
+    lines = []
+    if not os.path.isfile(xfname):
+        return []
+
+    f = open(xfname,"r")
+    lines = f.readlines()
+    f.close()    
+
+    data   = OrderedDict()
+    labels = OrderedDict()
+    i=0
+    for line in lines:
+        r = _fixture_decode_sav_line(line)
+        #print("  r",r)
+        if not r:
+            continue
+
+        key,label,jdata = r
+
+        _fixture_repair_nr0(jdata)
+
+        data[key]   = jdata
+        labels[key] = label
+        
+    return data,labels
+
 
 class Base():
     def __init__(self):
@@ -2166,36 +2194,14 @@ class Base():
         return out
 
     def _load(self,filename):
-        xfname = self.show_path+"/"+str(filename)+".sav"
-        cprint("load",xfname)
-        lines = []
-        try:
-            f = open(xfname,"r")
-            lines = f.readlines()
-            f.close()    
-        except Exception as e:
+        xpath = self.show_path+"/"+str(filename)+".sav"
+        if not os.path.isfile(xpath):
             msg = "Exception: {}".format(e)
             msg += "\n\ncheck\n-init.txt"
             cprint(msg,color="red")
             showwarning(msg=msg,title="load Error")
+        return _read_sav_file(xpath)
 
-        data   = OrderedDict()
-        labels = OrderedDict()
-        i=0
-        for line in lines:
-            r = _fixture_decode_sav_line(line)
-
-            if not r:
-                continue
-
-            key,label,jdata = r
-
-            _fixture_repair_nr0(jdata)
-
-            data[key]   = jdata
-            labels[key] = label
-            
-        return data,labels
 
 
     def build_path(self,save_as):
@@ -3052,17 +3058,18 @@ class DummyCallback():
         cprint("DummyCallback.cb",[self.name,event])
 
 class BaseCallback():
-    def __init__(self,cb=None,**args):
+    def __init__(self,cb=None,args={}):
         self._cb=cb
         self.args = args
 
     def cb(self,**args):
-        print("BaseCallback.cb()",self.args,self._cb)
+        print("BaseCallback.cb()")
+        print("  ",self.args)
+        print("  ",self._cb)
         if self._cb:
-            try:
-                self._cb(self.args) 
-            except TypeError as e:
-                print("  TypeError",e)
+            if self.args:
+                self._cb(args=self.args) 
+            else:
                 self._cb() 
 
 def frame_of_show_list(frame,cb=None):
@@ -3110,16 +3117,19 @@ def frame_of_show_list(frame,cb=None):
         r+=1
 
 def _parse_fixture_name(name):
-    out = ["FIX","MAN","CH","PATH"]
+    out = []
+    #{"FIX","MAN","CH","PATH":""}
     if name.count(".") == 2:
         m,n,e = name.split(".")
-        out = [n,m,"0",name]
+        #out = [n,m,"0",name]
+        out = {"name":n,"manufactor":m,"fname":name}
     elif name.count("_") == 2:
         name,e = name.split(".")
         m,n,c = name.split("_")
-        out = [n,m,c,name]
+        out = {"name":n,"ch":c,"manufactor":m,"name":name}
+        #out = [n,m,c,name]
     else:
-        out = [name]
+        out = {"name":name}
     return out
 
 def online_help(page):
@@ -3145,7 +3155,6 @@ def online_help(page):
 
 
 def index_fixtures():
-
     p="/opt/LibreLight/Xdesk/fixtures/"
     ls = os.listdir(p )
     ls.sort()
@@ -3155,16 +3164,18 @@ def index_fixtures():
         b.insert(0,"base")
         blist.append(b)
 
-def _fixture_load_user_list():
+
+def _fixture_load_list(path):
     blist = []
     try:
-        p = HOME+"/LibreLight/fixtures/"
-        ls = os.listdir(p)
+        ls = os.listdir(path)
         ls.sort()
-        for l in ls:
-            b = _parse_fixture_name(l)
-            b.append(p)
-            b.insert(0,"user")
+        print(path)
+        for fn in ls:
+            b = _parse_fixture_name(fn)
+            b["xpath"] = path 
+            b["xfname"] = fn.replace(path,"")
+            print("  ",b)
             blist.append(b)
     except Exception as e:
         cprint("Exce 877 ",e)
@@ -3172,20 +3183,6 @@ def _fixture_load_user_list():
 
 
 
-def _fixture_load_global_list():
-    blist = []
-    try:
-        p="/opt/LibreLight/Xdesk/fixtures/"
-        ls = os.listdir(p )
-        ls.sort()
-        for l in ls:
-            b = _parse_fixture_name(l)
-            b.append(p)
-            b.insert(0,"base")
-            blist.append(b)
-    except Exception as e:
-        cprint("Exce 878 ",e)
-    return blist
 
 def _fixture_create_import_list():
     path = "/home/user/LibreLight/show"
@@ -3202,11 +3199,11 @@ def _fixture_create_import_list():
                 for line in lines:
                     line = line.split("\t")
                     line = json.loads(line[2])
-                    #print(line)
                     name = line["NAME"]
-                    blist.append([name,fname+":"+name,path])
-                    #blist.append([name,fname,path])
-                    #print(":",i,name,fname)
+                    #row = [name,fname+":"+name,path])
+                    xfname = fname.replace(path,"")
+                    row = {"name":name,"xfname":xfname , "xpath":path}
+                    blist.append(row)
         except Exception as e:
             print("exception",e)
     return blist
@@ -3246,89 +3243,21 @@ def _load_fixture_list(mode="None"):
     blist = []
 
     if mode == "USER":
-        head = ["source","name","manufacturer","channel's","file","path"]
-        _r=_fixture_load_user_list() 
+        path = HOME+"/LibreLight/fixtures/"
+        _r = _fixture_load_list(path=path)
         blist.extend( _r )
 
     elif mode == "GLOBAL":
-        head = ["source","name","manufacturer","channel's","file","path"]
-        _r=_fixture_load_global_list() 
+        path="/opt/LibreLight/Xdesk/fixtures/"
+        _r = _fixture_load_list(path=path)
         blist.extend( _r )
 
     elif mode == "IMPORT":
-        head = ["source","name","manufacturer","channel's","file","path"]
         _r=_fixture_load_import_list()
         blist.extend( _r )
     for i in blist:
-        print(i)
+        print(" -",i)
     return blist
-
-class _LOAD_FIXTURE_LIST():
-    def __init__(self,mode="<mode>"):
-        self.mode = mode
-        self.data = []
-    def get(self,frame,cb=None,master=None,bg="black"):
-        frame.configure(bg=bg)
-        base = Base()
-        c=0
-        r=0
-        for i in ["source","name","manufacturer","channel's","file","path"]: #,"create"]:
-            b = tk.Label(frame,bg="grey",text=i)
-            b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
-            c+=1
-        r+=1
-
-        blist = self.data
-        blist = _load_fixture_list(mode=self.mode)
-
-        if cb is None: 
-            cb = DummyCallback #("load_show_list.cb")
-        
-        _tmp_name = ""
-        _tmp_flag = 0
-
-        blist = blist[:10]
-        for row in blist:
-            #print("i",i)
-            if row[0] != _tmp_name:
-                _tmp_flag = "#aaf"
-                if row[0] == "user":
-                    _tmp_flag = "#aaf"
-                if row[0] == "base":
-                    _tmp_flag = "#0f0"
-
-            c=0
-            for j in row:
-                #print("j",j)#,i[j])
-                bg="lightgrey"
-                dbg="lightgrey"
-                if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-                    dbg = "lightgreen"
-                elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-                    dbg = "green"
-
-                if _tmp_flag:
-                    bg = "{}".format(_tmp_flag)
-
-                if c == 1:
-                    if base.show_name == i[0]:
-                        bg="green"
-
-                    _cb2 = BaseCallback(cb=cb,args={"file":j}).cb
-
-                    b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb2)
-
-                    if base.show_name == i[0]:
-                        b.config(activebackground=bg)
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                else: #ief c > 0:
-                    #print("OWKFDLKFDLFKDLFK ")
-                    #print([j,c,r])
-                    b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
-                    b.config(activebackground=dbg)
-                    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-                c+=1
-            r+=1
 
 
 

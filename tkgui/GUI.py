@@ -19,12 +19,14 @@ class scroll():
         canvas = self.canvas
         canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
 
-class _LOAD_FIXTURE():
+
+class LOAD_FIXTURE():
     def __init__(self,parent=None,name="<name>"):
         self.name=name
         self.master = None
         self.parent=parent
-
+        #self.x = _LOAD_FIXTURE(parent,name)
+        #self.cb = self.x.cb
     def cb(self,event=None,fixture={}):
         print("LOAD_FIXTURE",self.name,event)
         print(self,"cb")
@@ -32,14 +34,6 @@ class _LOAD_FIXTURE():
         if fixture:
             print(len(fixture))
             self.parent.load(fixture)
-
-class LOAD_FIXTURE():
-    def __init__(self,parent=None,name="<name>"):
-        self.name=name
-        self.master = None
-        self.parent=parent
-        self.x = _LOAD_FIXTURE(parent,name)
-        self.cb = self.x.cb
 
 
 class TableFrame():
@@ -779,6 +773,57 @@ class GUI_PATCH():
 
 
 
+def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
+    blist = data
+    blist = blist[:10]
+
+    frame.configure(bg=bg)
+
+    # table header
+    for r,row in enumerate(blist):
+        bg="lightgrey"
+        dbg="grey"
+        c=1
+        #b = tk.Label(frame,bg="grey",text=str(r+1))
+        #b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,relief="sunken")
+        #b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
+        c+=1
+        for k,v in row.items():
+            b = tk.Label(frame,bg="grey",text=k)
+            b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
+            c+=1
+        break
+    
+    if not cb:
+        cb = DummyCallback()
+
+    # table data
+    for r,row in enumerate(blist):
+        c=1
+
+        bg="lightgrey"
+        dbg="grey"
+        b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,width=6,relief="sunken")
+        b.grid(row=r+1, column=c, sticky=tk.W ) #+tk.E)
+        c+=1
+        for k,v in row.items():
+            bg="lightgrey"
+            dbg="lightgrey"
+            if v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+                dbg = "lightgreen"
+            elif v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+                dbg = "green"
+
+
+            if c == 2:
+                _cb2 = _M.BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
+                b = tk.Button(frame,text=v,anchor="w",height=1,bg=bg,command=_cb2)
+            else: 
+                b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="sunken")
+                b.config(activebackground=dbg)
+            b.grid(row=r+1, column=c, sticky=tk.W+tk.E)
+            c+=1
+
 
 class GUI_FixtureEditor():
     def __init__(self,root,frame,data,title="tilte",width=800):
@@ -1029,26 +1074,51 @@ class GUI_FixtureEditor():
         line2="CHOOS to EDIT >> DEMO MODUS"
         line3="CHOOS to EDIT >> DEMO MODUS"
 
-        cb = LOAD_FIXTURE(self,"USER").cb 
+        cb = None #LOAD_FIXTURE(self,"USER").cb 
         self.pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
         frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
 
-        tmp = _M._LOAD_FIXTURE_LIST(mode=mode)
 
-        def cb(**args):
+        def cb(event=None,args={}):
             print("open_fixture_list")
-            #self._cb(args,name="open_fixture_list") 
+            #print("   ",args)
             if self.pw:
                 self.pw.w.tk.destroy()
-            #self.load_EMPTY()
-            if mode == "IMPORT":
-                self.load_MH()
-                #print(tmp)
-                print(len(tmp.data))
-            else:
-                self.load_DIM()
+            data = args["data"]
+            self.b_path["text"] = data["name"] #"load_MH2"
+            self.name["text"] = data["name"] #"load_MH2"
+            self.name["text"] = data["name"] #"load_MH2"
+            xpath = data["xpath"] + "/" + data["xfname"]
+            fdata = _M._read_sav_file(xpath)
+            a = []
+            m = []
+            for row in fdata:
+                print(row.keys())
+                print()
+                for k in row.keys():
+                    v = row[k]
+                    print("  :",k,v)
+                if not row:
+                    continue
+                try:
+                    print("1-", row[1])
+                    for xf in row[1]["ATTRIBUT"]:
+                        print("  ",xf)
+                        if xf.startswith("_"):
+                            continue
+                        a.append(xf)
+                        m.append("F")
+                        #break
+                    break
+                except Exception as e:
+                    print(e)
 
-        r=tmp.get(frame,cb=cb,master=self,bg="#333")
+            self._load_fix(None,a,m)
+            self.close_fixture_list()
+
+        blist = _M._load_fixture_list(mode=mode)
+        
+        r=GUI_LOAD_FIXTURE_LIST(frame,data=blist,cb=cb,bg="#333")
 
     def close_fixture_list(self):
         if self.pw:

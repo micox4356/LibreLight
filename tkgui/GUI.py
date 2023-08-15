@@ -774,16 +774,19 @@ class GUI_PATCH():
 
 
 def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
+    #print("__func__",__func__)
+    print("#",sys._getframe().f_code.co_name)
     blist = data
     blist = blist[:10]
 
     frame.configure(bg=bg)
 
     # table header
+    c=0
     for r,row in enumerate(blist):
         bg="lightgrey"
         dbg="grey"
-        c=1
+        #c+=1
         #b = tk.Label(frame,bg="grey",text=str(r+1))
         #b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,relief="sunken")
         #b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
@@ -819,7 +822,7 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
                 _cb2 = _M.BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
                 b = tk.Button(frame,text=v,anchor="w",height=1,bg=bg,command=_cb2)
             else: 
-                b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="sunken")
+                b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="flat")
                 b.config(activebackground=dbg)
             b.grid(row=r+1, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -1093,22 +1096,25 @@ class GUI_FixtureEditor():
             a = []
             m = []
             for row in fdata:
-                print(row.keys())
-                print()
-                for k in row.keys():
-                    v = row[k]
-                    print("  :",k,v)
+                print("row:  ",row.keys())
+                print("a-")
+                for k,v in row.items():#keys():
+                    #v = row[k]
+                    print("a  :",k,str(v)[:120],"...")
+                    print("a  ::",type(k),":",type(v))
+                    break
+
                 if not row:
                     continue
                 try:
-                    print("1-", row[1])
+                    print("a  -", row[1])
                     for xf in row[1]["ATTRIBUT"]:
-                        print("  ",xf)
+                        print("a  ",xf)
                         if xf.startswith("_"):
                             continue
                         a.append(xf)
                         m.append("F")
-                        #break
+                        break
                     break
                 except Exception as e:
                     print(e)

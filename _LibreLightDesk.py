@@ -1999,18 +1999,18 @@ class Element():
 
 def _fixture_decode_sav_line(line):
     out = None
+    out = [0,"none",{}]
 
     if line.count("\t") < 2:
         cprint("Error line.count('\\t') < 2  (is:{})".format(line.count("\t")),color="red",end=" ")
-        cprint("file:{}".format(xfname),color="red")
+        cprint("file:{}".format(line),color="red")
     else:
         key,label,rdata = line.split("\t",2)
         jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
-        #out = [key,label,rdata]
         key = int(key)
-
+        #label += " dsav"
+        #label = label.replace(" dsav","")
         out = [key,label,jdata]
-        #print(line)
 
     #if not out:
     #print(line)
@@ -2109,16 +2109,11 @@ def _read_sav_file(xfname):
     i=0
     for line in lines:
         r = _fixture_decode_sav_line(line)
-        #print("  r",r)
-        if not r:
-            continue
-
-        key,label,jdata = r
-
-        _fixture_repair_nr0(jdata)
-
-        data[key]   = jdata
-        labels[key] = label
+        if r:
+            key,label,jdata = r
+            _fixture_repair_nr0(jdata)
+            data[key]   = jdata
+            labels[key] = label
         
     return data,labels
 
@@ -3158,24 +3153,26 @@ def index_fixtures():
     p="/opt/LibreLight/Xdesk/fixtures/"
     ls = os.listdir(p )
     ls.sort()
+    blist = []
+    
     for l in ls:
         b = _parse_fixture_name(l)
         b.append(p)
         b.insert(0,"base")
         blist.append(b)
-
+    return blist
 
 def _fixture_load_list(path):
     blist = []
     try:
         ls = os.listdir(path)
         ls.sort()
-        print(path)
+        print("fll",path)
         for fn in ls:
             b = _parse_fixture_name(fn)
             b["xpath"] = path 
             b["xfname"] = fn.replace(path,"")
-            print("  ",b)
+            print("fll ",b)
             blist.append(b)
     except Exception as e:
         cprint("Exce 877 ",e)
@@ -3255,8 +3252,8 @@ def _load_fixture_list(mode="None"):
     elif mode == "IMPORT":
         _r=_fixture_load_import_list()
         blist.extend( _r )
-    for i in blist:
-        print(" -",i)
+    #for i in blist:
+    #    print(" -",i)
     return blist
 
 

@@ -1084,7 +1084,7 @@ class GUI_FixtureEditor():
 
         def cb(event=None,args={}):
             print("open_fixture_list")
-            #print("   ",args)
+            print("   ",args)
             if self.pw:
                 self.pw.w.tk.destroy()
             data = args["data"]
@@ -1100,24 +1100,20 @@ class GUI_FixtureEditor():
                 print("a-")
                 for k,v in row.items():#keys():
                     #v = row[k]
-                    print("a  :",k,str(v)[:120],"...")
-                    print("a  ::",type(k),":",type(v))
-                    break
-
-                if not row:
-                    continue
-                try:
-                    print("a  -", row[1])
-                    for xf in row[1]["ATTRIBUT"]:
-                        print("a  ",xf)
-                        if xf.startswith("_"):
-                            continue
-                        a.append(xf)
-                        m.append("F")
-                        break
-                    break
-                except Exception as e:
-                    print(e)
+                    print("a    :",k,str(v)[:120],"...")
+                    print("a    ::",type(k),":",type(v))
+                    if "ATTRIBUT" in v:
+                        for at in v["ATTRIBUT"]:
+                            if at.startswith("_"):
+                                 continue
+                            a.append(at)
+                            if at.endswith("-FINE"):
+                                m.append("-")
+                            elif at in ["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+                                m.append("F")
+                            else:
+                                m.append("S")
+                            #m.append("F")
 
             self._load_fix(None,a,m)
             self.close_fixture_list()

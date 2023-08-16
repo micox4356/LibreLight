@@ -994,7 +994,7 @@ class GUI_FixtureEditor():
             c+=1
 
     def _fader_cb(self,arg,name="<name>",**args):
-        print("   FixtureEditor._cb",args,arg)
+        print("   FixtureEditor._cb",args,arg,name)
         #print("    ",name,"_cb.args >>",args,arg[1:])
         self.count_ch()
     
@@ -1007,7 +1007,7 @@ class GUI_FixtureEditor():
             j.append(jdata)
             jclient_send(j)
         except Exception as e:
-            print(arg,args)
+            print("exec",arg,args)
             print(e)
 
     def _cb(self,arg,name="<name>",**args):
@@ -1608,23 +1608,28 @@ class GUI_ExecWingLayout():
         self.frame.pack()
         self._event_redraw()
 
-    def set_fader(self,nr,val,color=""):
-        #print("set_fader",nr,val)
+    def set_fader(self,nr,val,color="",info="info",change=0):
+        mute = 1
+        if nr == 2:
+            mute = 1
+        if info != "dmx_in":
+            mute=1
+        if not mute:print("set_fader",nr,val,info)
         if nr < len(self.elem):
-            ee = self.elem[nr].elem[0]
-            ee.set(val) 
-            if color:
-                ee["bg"] = color
-        return # STOP
+            try:
+                ee = self.elem[nr].elem[0]
+                ee.set(val) 
+                if color:
+                    ee["bg"] = color
+            except Exception as e:
+                if change:
+                    self.event_cb(a1=val,nr=nr)
+                #cprint("set_fader",e,color="red")
+                #raise e
+        #self.frame.update_idle_task()
+        if not mute:print("set_fader",nr,val,info)
 
-        for i in self.elem:
-            e = i #self.elem[i] #.append(e)
-            #print("e",e)
-            ee = e.elem[0]
-            #print(dir(ee))
-            ee.set(val)# = val
-        #for ee in e.elem: #.append(self.b)
-        #    print("ee",ee)
+        return # STOP
 
     def event_cb(self,a1="",a2="",nr=None,**args):
         #print(" ExecWing.event_cb:",nr,a1,a2,args)
@@ -1644,7 +1649,7 @@ class GUI_ExecWingLayout():
             jdata["CMD"] = "EXEC-OFFSET-MASTER"
             jdata["NR"] = nr-20 +self.start
 
-        print("   ExecWing.event_cb",jdata)
+        #print("   ExecWing.event_cb",jdata)
         j = [jdata]
         jclient_send(j)
 

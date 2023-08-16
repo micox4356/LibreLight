@@ -305,15 +305,19 @@ def set_exec_fader_cfg(nr,val,label="",color=""):
                 exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
     except Exception as e:
         cprint("- exception:",e)
+        print(nr,val,label)
 
-def set_exec_fader(nr,val,label="",color=""):
+def set_exec_fader(nr,val,label="",color="",info="info",change=0):
     exec_wing = window_manager.get_obj(name="EXEC-WING") 
     if not exec_wing: 
         return
     try:
-        exec_wing.set_fader(nr,val,color=color)
+        exec_wing.set_fader(nr,val,color=color,info=info,change=change)
     except Exception as e:
+        pass
         cprint("- exception:",e)
+        print(nr,val,label)
+        raise e
    
 
 def set_exec_fader_all():
@@ -419,7 +423,7 @@ class MC():
         if index:
             for i in index:
                 print("  key",i)
-
+        self.last_fader_val = [-1]*512
         self.fader_map = []
         for i in range(30+1):
             self.fader_map.append({"UNIV":0,"DMX":0})
@@ -480,8 +484,18 @@ class MC():
                             if dmx > 0:
                                 val = x[dmx-1]
                                 #print("mc val",val)
-                                set_exec_fader(i,val,color="#aaa")
-                        except:pass
+                                #print("dmx_in change:",[i,val])
+                                change = 0
+                                if i < len(self.last_fader_val):
+                                    if self.last_fader_val[i] != val:
+                                        self.last_fader_val[i] = val
+                                        print("dmx_in change:",[i,val])
+                                        change = 1
+                                set_exec_fader(nr=i,val=val,color="#aaa",info="dmx_in",change=change)
+                        except Exception as e:
+                            cprint("MC exc:",e,color="red")
+                            traceback.print_exc()
+                            pass
 
                 time.sleep(0.01)
             except Exception as e:

@@ -201,7 +201,14 @@ class Action():
             self.pointer_config.append( cfg )
 
 
-        if 1: 
+
+
+        if 0: #1: #multi pinter on/off  ,,, 
+            # window manager confusion 
+            # - window-ontop 
+            # - window-focus 
+            # error !!! ??? 
+
             # creat 5 pointer on screen for Mutlitouch input
             # pointer jump's around on X11 
             print()

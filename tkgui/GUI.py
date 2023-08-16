@@ -777,7 +777,7 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
     #print("__func__",__func__)
     print("#",sys._getframe().f_code.co_name)
     blist = data
-    blist = blist[:10]
+    blist = blist[:100]
 
     frame.configure(bg=bg)
 
@@ -786,10 +786,10 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
     for r,row in enumerate(blist):
         bg="lightgrey"
         dbg="grey"
-        #c+=1
-        #b = tk.Label(frame,bg="grey",text=str(r+1))
-        #b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,relief="sunken")
-        #b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
+        dbg="lightgrey"
+        c+=1
+        b = tk.Label(frame,bg="grey",text=str("Nr."))
+        b.grid(row=r, column=c, sticky=tk.W) #+tk.E)
         c+=1
         for k,v in row.items():
             b = tk.Label(frame,bg="grey",text=k)
@@ -805,17 +805,17 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
         c=1
 
         bg="lightgrey"
-        dbg="grey"
+        #dbg="grey"
         b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,width=6,relief="sunken")
         b.grid(row=r+1, column=c, sticky=tk.W ) #+tk.E)
         c+=1
+        bg="grey"
+        dbg="grey"
         for k,v in row.items():
-            bg="lightgrey"
-            dbg="lightgrey"
-            if v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-                dbg = "lightgreen"
-            elif v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-                dbg = "green"
+            #if v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+            #    dbg = "lightgreen"
+            #elif v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+            #    dbg = "green"
 
 
             if c == 2:
@@ -826,6 +826,8 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
                 b.config(activebackground=dbg)
             b.grid(row=r+1, column=c, sticky=tk.W+tk.E)
             c+=1
+            bg="lightgrey"
+            dbg="lightgrey"
 
 
 class GUI_FixtureEditor():
@@ -1083,7 +1085,7 @@ class GUI_FixtureEditor():
 
 
         def cb(event=None,args={}):
-            print("open_fixture_list")
+            print("open_fixture_list.cb(")
             print("   ",args)
             if self.pw:
                 self.pw.w.tk.destroy()
@@ -1096,14 +1098,19 @@ class GUI_FixtureEditor():
             a = []
             m = []
             for row in fdata:
-                print("row:  ",row.keys())
-                print("a-")
-                for k,v in row.items():#keys():
+                #print("row:  ",row.keys())
+                #print("a-")
+                for k,fixture in row.items():#keys():
                     #v = row[k]
-                    print("a    :",k,str(v)[:120],"...")
-                    print("a    ::",type(k),":",type(v))
-                    if "ATTRIBUT" in v:
-                        for at in v["ATTRIBUT"]:
+                    if "NAME" not in fixture:
+                        continue
+                    if fixture["NAME"] != args["val"]:
+                        continue
+
+                    print("a    :",k,str(fixture)[:120],"...")
+                    #print("a    ::",type(k),":",type(fixture))
+                    if "ATTRIBUT" in fixture:
+                        for at in fixture["ATTRIBUT"]:
                             if at.startswith("_"):
                                  continue
                             a.append(at)

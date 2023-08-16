@@ -2209,6 +2209,7 @@ class Base():
             msg += "\n\ncheck\n-init.txt"
             cprint(msg,color="red")
             showwarning(msg=msg,title="load Error")
+            return
         return _read_sav_file(xpath)
 
 
@@ -3046,6 +3047,7 @@ class PopupList():
 
         b = tk.Entry(xframe,width=10,text="")#,anchor="w")
         b.pack(side="top",expand=0,fill="x") 
+        b["state"] = "readonly"
         b.focus()
 
 
@@ -3176,98 +3178,73 @@ def index_fixtures():
         blist.append(b)
     return blist
 
-def _fixture_load_list(path):
+
+
+#def _fixture_create_import_list(path=None):
+def _fixture_load_import_list(path=None):
+    if not path:
+        path = "/home/user/LibreLight/show"
+
     blist = []
-    try:
-        ls = os.listdir(path)
-        ls.sort()
-        print("fll",path)
-        for fn in ls:
-            b = _parse_fixture_name(fn)
-            b["xpath"] = path 
-            b["xfname"] = fn.replace(path,"")
-            print("fll ",b)
-            blist.append(b)
-    except Exception as e:
-        cprint("Exce 877 ",e)
-    return blist
-
-
-
-
-def _fixture_create_import_list():
-    path = "/home/user/LibreLight/show"
-    blist = []
-    for sname in os.listdir(path):
+    lsd = os.listdir(path)
+    lsd.sort()
+    fname_buffer = []
+    for sname in lsd:
         #print("   ",sname)
+        ok = 0
         try:
             fname = path+"/"+sname+"/patch.sav"
             if os.path.isfile(fname):
+                ok = 1
+            else:
+                fname = path+"/"+sname
+                if os.path.isfile(fname):
+                    ok = 1
+            #fname_buffer = []
+            if ok:
                 f = open(fname)
                 lines = f.readlines()
                 f.close()
 
                 for line in lines:
+                    ok2 = 0
+                    _key = ""
                     line = line.split("\t")
-                    line = json.loads(line[2])
-                    name = line["NAME"]
-                    #row = [name,fname+":"+name,path])
-                    xfname = fname.replace(path,"")
-                    row = {"name":name,"xfname":xfname , "xpath":path}
-                    blist.append(row)
+                    jdata = json.loads(line[2])
+                    if "ATTRIBUT" in jdata:
+                        _len = len(jdata["ATTRIBUT"])
+                        _key = list(jdata["ATTRIBUT"].keys()) 
+                        _key.sort()
+                        _key = str(_key)
+                        if _key not in fname_buffer:
+                            fname_buffer.append(_key) # group same fixtures by ATTR
+                            ok2 = 1
+                    if ok2:
+                        name = jdata["NAME"]
+                        #row = [name,fname+":"+name,path])
+                        xfname = fname.replace(path,"")
+                        row = {"name":name,"xfname":xfname ,"ch":_len, "xpath":path,"d":_key} #,"b":jdata}
+                        blist.append(row)
         except Exception as e:
             print("exception",e)
     return blist
 
-def _fixture_load_import_list():
-    return _fixture_create_import_list()
 
-    pass
-    path = HOME+"/LibreLight/fixture.index.json"
-    if not os.path.isfile(path):
-        blist = _fixture_create_import_list()
-        f = open(path,"w")
-        for line in blist:
-            line = json.dumps(line)
-            f.writelines(line)
-        f.close()
-
-    blist = []
-    if os.path.isfile(path):
-        f = open(path,"r")
-        lines = f.readlines()
-        f.close()
-        for line in lines:
-            print("_fixture_load__import",line)
-            line = line.strip()
-            blist.append(json.loads(line))
-
-    return blist
-
-
-def _fixture_load_data(path,number):
-    data = """1	1	{"DMX": 1, "UNIVERS": 2, "NAME": "VPU_001", "TYPE": "MOVER", "VENDOR": "AYERTON", "ATTRIBUT": {"DIM": {"NR": 1, "MASTER": "0", "MODE": "F", "VALUE": 256, "ACTIVE": 0, "FX": "", "FX2": {}}, "RED": {"NR": 2, "MASTER": "0", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": "", "FX2": {}}, "GREEN": {"NR": 3, "MASTER": "0", "MODE": "F", "VALUE": 0, "ACTIVE": 0, "FX": "", "FX2": {}}, "BLUE": {"NR": 4, "MASTER": "0", "MODE": "F", "VALUE": 255, "ACTIVE": 0, "FX": "", "FX2": {}}, "_ACTIVE": {"NR": 0, "ACTIVE": 0, "VALUE": 0, "FX": "", "FX2": {}}}, "ACTIVE": 0}
-"""
-    return data
 
 def _load_fixture_list(mode="None"):
     blist = []
 
     if mode == "USER":
         path = HOME+"/LibreLight/fixtures/"
-        _r = _fixture_load_list(path=path)
-        blist.extend( _r )
 
     elif mode == "GLOBAL":
         path="/opt/LibreLight/Xdesk/fixtures/"
-        _r = _fixture_load_list(path=path)
-        blist.extend( _r )
 
     elif mode == "IMPORT":
-        _r=_fixture_load_import_list()
-        blist.extend( _r )
-    #for i in blist:
-    #    print(" -",i)
+        path=None 
+
+    _r =  _fixture_load_import_list(path=path)
+    blist.extend( _r )
     return blist
 
 

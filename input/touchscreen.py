@@ -134,7 +134,7 @@ def cleanup_multipointer(prefix="multipointer_"):
             cmd= "xinput remove-master '{}'".format(_id)
             print(cmd)
             print(" kill X11 ")
-            #os.system(cmd)
+            os.system(cmd)
         """traps: xfce4-terminal[283904] trap int3 ip:7f784386cabb sp:7ffebb961c10 error:0 in libglib-2.0.so.0.6600.8[7f784382e000+88000]
          [24187.974998] xfce4-terminal[306138]: segfault at 90 ip 00007f1b725ac838 sp 00007ffd8e83b940 error 4 in libgdk-3.so.0.2404.20[7f1b72573000+7f000]
         [24187.975015] Code: 41 0f 10 4f 60 48 89 5d 38 f2 0f 5e c8 f2 0f 11 4d 48 e8 8b 72 fd ff 48 89 df e8 93 fb fc ff 48 89 ef 48 89 c6 e8 38 7f fd ff <49> 8b b5 90 00 00 00 48 89 ef e8 89 7f fd ff 49 8d 97 b8 00 00 00
@@ -201,59 +201,61 @@ class Action():
             self.pointer_config.append( cfg )
 
 
+        multipointer_off = 1
+        # error with window manager  
+        # - window-ontop not working properly
+        # - window-focus not working properly
+        # error !!! ??? 
 
 
-        if 0: #1: #multi pinter on/off  ,,, 
-            # window manager confusion 
-            # - window-ontop 
-            # - window-focus 
-            # error !!! ??? 
-
-            # creat 5 pointer on screen for Mutlitouch input
-            # pointer jump's around on X11 
-            print()
-            create = []
-            for i in [1]: #range(1,5+1):
-                ok = 0
-                n = "{}{}".format(prefix,i)
-                for j in self.pointer_config:
-                    print("pt",i,j)
-                    print("pt",n, j["name"]) 
-                    if n == j["name"]: 
-                        ok = 1
-                        cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(j["id"],4000,4000)
-                        print(cmd)
-                        os.system(cmd)
-                        #cmd = "xinput list-props {} ".format(j["id"])
-                        #print(cmd)
-                        #os.system(cmd)
-                        #cmd = "xinput set-prop {} \"Device Enabled\" 1".format(j["id"])
-                        #print(cmd)
-                        #os.system(cmd)
-                        break
+        # creat 5 pointer on screen for Mutlitouch input
+        # pointer jump's around on X11 
+        print()
+        create = []
+        for i in [1]: #range(1,5+1):
+            ok = 0
+            n = "{}{}".format(prefix,i)
+            for j in self.pointer_config:
+                print("pt",i,j)
+                print("pt",n, j["name"]) 
+                if n == j["name"]: 
+                    ok = 1
+                    if multipointer_off:
+                        j["id"] = "xx"
+                    cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(j["id"],4000,4000)
+                    print(cmd)
+                    os.system(cmd)
+                    #cmd = "xinput list-props {} ".format(j["id"])
+                    #print(cmd)
+                    #os.system(cmd)
+                    #cmd = "xinput set-prop {} \"Device Enabled\" 1".format(j["id"])
+                    #print(cmd)
+                    #os.system(cmd)
+                    break
 
 
-                if not ok:
-                     create.append(n)
+            if not ok:
+                 create.append(n)
 
-            
-            for i in create:
+        
+        for i in create:
+            if not multipointer_off:
                 cmd = "xinput create-master '{}'".format(i)
                 print("CMD:",cmd)
                 os.system(cmd)
 
 
-            if len(create) and self.pointer_create_count < 10: # recursion !!
-                print("self.refresh_multipointer_config() # recursion !!!")
-                self.pointer_create_count += 1
-                #print(self.pointer_create_count)
+        if len(create) and self.pointer_create_count < 10: # recursion !!
+            print("self.refresh_multipointer_config() # recursion !!!")
+            self.pointer_create_count += 1
+            #print(self.pointer_create_count)
 
-                self.refresh_multipointer_config()
+            self.refresh_multipointer_config()
 
-            #for p in range(12):
-            #for p in self.pointer_config:
-            #     cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(p,10,20)
-            #     os.system(cmd)
+        #for p in range(12):
+        #for p in self.pointer_config:
+        #     cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(p,10,20)
+        #     os.system(cmd)
 
 
     def refresh_screen_config(self):
@@ -291,7 +293,7 @@ class Action():
                     cfg[k] = int(v)
                 except ValueError:
                     pass
-            print(cfg)
+            print("cfg:",cfg)
 
             self.screen_config[ output] = cfg 
             print()
@@ -374,7 +376,10 @@ class Action():
     def cur_pointer_id(self):
         i =  self.MT_SLOT
         #return "xxx"
-        return self.pointer_config[i]["id"]
+        #print("cur_pointer_id:", self.pointer_config,i)
+        if i < len(self.pointer_config):
+            return self.pointer_config[i]["id"]
+        return "xxx"
 
 
     def _check_ABS(self,line):

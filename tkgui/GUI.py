@@ -1379,26 +1379,30 @@ class ELEM_FADER():
         j=0
         self.font8 = ("FreeSans",8)
         frameS=self.frame
-        self.b = tk.Scale(frameS,bg="lightblue", width=28,from_=from_,to=to,command=self.fader_event)
+
+        self.b = tk.Button(frameS,bg="#ffa",text="{}".format(self.nr), width=4,command=test,font=self.font8 )
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.label = self.b
+        self.elem.append(self.b)
+        
+        self.b = tk.Scale(frameS,bg="#", width=28,from_=from_,to=to,command=self.fader_event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)
         self.elem.append(self.b)
-
-        self.b = tk.Button(frameS,bg="lightblue",text="{}".format(self.nr), width=4,command=test,font=self.font8 )
+        
+        self.b = tk.Button(frameS,bg="lightblue",text="0", width=4,command=self.set_mode,font=self.font8 )
+        self.elem_fix_id=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
-        self.label = self.b
         self.elem.append(self.b)
+
         self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=self.font8 )
         self.attr=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
         f = tk.Frame(frameS)
         #f.pack()
-        self.b = tk.Button(f,bg="lightblue",text="<+", width=1,command=self.set_mode,font=self.font8 )
-        #self.mode=self.b
-        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
-        #self.elem.append(self.b)
+
 
         self.b = tk.Button(frameS,bg="lightblue",text="", width=4,command=self.set_mode,font=self.font8 )
         self.mode=self.b
@@ -1406,9 +1410,9 @@ class ELEM_FADER():
         #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
         self.elem.append(self.b)
 
-        self.b = tk.Button(f,bg="lightblue",text="+>", width=1,command=self.set_mode,font=self.font8 )
-        #self.mode=self.b
-        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        #self.b = tk.Button(frameS,bg="lightblue",text="+>", width=4,command=self.set_mode,font=self.font8 )
+        #self.xmode=self.b
+        #self.b.pack(fill=tk.BOTH, side=tk.TOP)
         #self.elem.append(self.b)
 
         self.b = tk.Label(frameS,bg="black",text="", width=4,font=self.font8 )

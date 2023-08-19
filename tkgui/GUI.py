@@ -1385,7 +1385,7 @@ class ELEM_FADER():
         self.label = self.b
         self.elem.append(self.b)
         
-        self.b = tk.Scale(frameS,bg="#", width=28,from_=from_,to=to,command=self.fader_event)
+        self.b = tk.Scale(frameS,bg="#ffa", width=28,from_=from_,to=to,command=self.fader_event)
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)

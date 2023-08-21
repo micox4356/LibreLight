@@ -856,72 +856,112 @@ class GUI_FixtureEditor():
         data = self.data
 
         self.fader_elem = []
-        # HEAD 2
-        
+
+        #Head 1
         self.frame = tk.Frame(root,bg="grey",width=width)
         self.frame.pack(fill="both", side=tk.TOP)
+        self.frame = tk.Frame(self.frame,bg="grey",width=width)
+        self.frame.pack(fill="both", side=tk.RIGHT)#EFT)
 
-        self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
-        self.b.pack(fill=None, side=tk.LEFT)
-        self.b = tk.Button(self.frame,bg="lightblue",text="MAC-500", width=11)
-        self.name=self.b
-        self.b["command"] = self.set_name
-        self.b.pack( side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="lightblue",text="UNIV:")
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b_univ = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
-        
-        self.entry_univ=self.b_univ
-        self.b_univ["command"] = self.event_univ
-        self.b_univ.pack( side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="lightblue",text="DMX:")
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
-        self.entry_dmx=self.b
-        self.b["command"] = self.event_dmx
-        self.b.pack( side=tk.LEFT)
-
-        self.b_xdmx = tk.Label(self.frame,bg="lightgreen",text="5")
-        self.b_xdmx.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Label(self.frame,bg="#ddd",text="TYPE:")
-        self.b.pack(fill=None, side=tk.LEFT)
-
-        self.b = tk.Button(self.frame,bg="lightblue",text="IMPORT", width=5)#,command=self.event) #bv.change_dmx)
+        bg = "lightblue"
+        self.b = tk.Button(self.frame,bg=bg,text="IMPORT", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list_import
         self.b.pack( side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="USER", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg=bg,text="USER", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list_user
         self.b.pack( side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="GLOBAL", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg=bg,text="GLOBAL", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list_global
         self.b.pack( side=tk.LEFT)
 
 
-        self.b = tk.Label(self.frame,bg="#ddd",text="")
+        self.b = tk.Label(self.frame,bg=bg ,text="")
         self.b.pack(fill=None, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="SAVE", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg=bg,text="SAVE", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.save_fixture
         self.b.pack( side=tk.LEFT)
         
 
-        #self.b = tk.Button(self.frame,bg="lightblue",text="SAVE AS", width=5)#,command=self.event) #bv.change_dmx)
+        #self.b = tk.Button(self.frame,bg=bg,text="SAVE AS", width=5)#,command=self.event) #bv.change_dmx)
         #self.b["command"] = self.save_as_fixture
         #self.b.pack( side=tk.LEFT)
 
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg="lightblue",text="HELP", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg=bg,text="HELP", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = _M.online_help("fixture-editor")
         self.b.pack( side=tk.LEFT)
+        # HEAD 2
+        
+
+
+
+        r=0
+        c=0
+        self.frame = tk.Frame(root,bg="grey",width=width)
+        self.frame.pack(fill="both", side=tk.TOP)
+
+        #c+=1 ;r=0
+        self.b = tk.Label(self.frame,bg="#ddd",text="FIX-ID:")
+        self.b.grid(row=r,column=c) #,expand=1)
+
+        r+=1
+        self.b = tk.Button(self.frame,bg="lightblue",text="3001", width=4)
+        self.fixid=self.b
+        self.b["command"] = self.set_fixid
+        self.b.grid(row=r,column=c)
+
+        c+=1 ;r=0
+        self.b = tk.Label(self.frame,bg="#ddd",text="NAME:")
+        self.b.grid(row=r,column=c) #,expand=1)
+
+        r+=1
+        self.b = tk.Button(self.frame,bg="lightblue",text="MAC-500", width=13)
+        self.name=self.b
+        self.b["command"] = self.set_name
+        self.b.grid(row=r,column=c)
+
+        c+=1 ;r=0
+        self.b = tk.Label(self.frame,bg="lightblue",text="UNIV:")
+        self.b.grid(row=r,column=c)
+        r+=1
+        self.b_univ = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
+        self.entry_univ=self.b_univ
+        self.b_univ["command"] = self.event_univ
+        self.b_univ.grid(row=r,column=c)
+
+        c+=1 ;r=0
+        self.b = tk.Label(self.frame,bg="lightblue",text="DMX:")
+        self.b.grid(row=r,column=c)
+
+        r+=1
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
+        self.entry_dmx=self.b
+        self.b["command"] = self.event_dmx
+        self.b.grid(row=r,column=c)
+
+        c+=1 ;r=0
+        self.b = tk.Label(self.frame,bg="lightblue",text="QTY:")
+        self.b.grid(row=r,column=c)
+
+        r+=1
+        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
+        #self.entry_qty=self.b
+        self.qty=self.b
+        self.b["command"] = self.set_qty
+        #self.b["command"] = self.event_dmx
+        self.b.grid(row=r,column=c)
+
+        c+=1 ;r=0
+        r+=1
+        self.b = tk.Button(self.frame,bg="lightblue",text="PATCH", width=6)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = self.do_patch
+        self.b.grid(row=r,column=c)
+
 
         # HEAD 1
         
@@ -1039,6 +1079,32 @@ class GUI_FixtureEditor():
                 elem.attr["activebackground"] = "white"
         self.b_info["text"] = "CH's: {} USED: {}".format(j+1,len(ch_s))
 
+    def set_qty(self,_event=None):
+        txt = self.qty["text"]
+        def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
+            txt = data["Value"]
+            print(self,"._cb()",txt)
+            self.qty["text"] = "{}".format(txt)
+            print("set_qty",[_event,self])
+        dialog._cb = _cb
+        dialog.askstring("QTY:","QTY:",initialvalue=txt)
+    def do_patch(self,_event=None):
+        r=tkinter.messagebox.showwarning(message="PACH FIXTURE \nnot implemented",parent=None)
+    def set_fixid(self,_event=None):
+        txt = self.fixid["text"]
+        def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
+            txt = data["Value"]
+            print(self,"._cb()",txt)
+            self.fixid["text"] = "{}".format(txt)
+            print("set_fixid",[_event,self])
+        dialog._cb = _cb
+        dialog.askstring("FIXTURE ID:","ID:",initialvalue=txt)
     def set_name(self,_event=None):
         txt = self.name["text"]
         def _cb(data):
@@ -1121,6 +1187,8 @@ class GUI_FixtureEditor():
                             else:
                                 m.append("S")
                             #m.append("F")
+
+                    break # only a single fixture #no sub fixture
 
             self._load_fix(None,a,m)
             self.close_fixture_list()

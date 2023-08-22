@@ -122,6 +122,9 @@ import lib.motion as motion
 
 from collections import OrderedDict
 
+_FIX_FADE_ATTR = ["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]
+
+
 _POS_LEFT = 0
 _POS_TOP  = 15
 _config = []

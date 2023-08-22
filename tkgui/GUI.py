@@ -1173,16 +1173,19 @@ class GUI_FixtureEditor():
                     if fixture["NAME"] != args["val"]:
                         continue
 
-                    print("a    :",k,str(fixture)[:120],"...")
+                    print("a    :",k,str(fixture)[:220],"...")
                     #print("a    ::",type(k),":",type(fixture))
                     if "ATTRIBUT" in fixture:
                         for at in fixture["ATTRIBUT"]:
                             if at.startswith("_"):
                                  continue
-                            a.append(at)
+                            try:
+                                a.append(at +":"+ str(fixture["ATTRIBUT"][at]["NR"]))
+                            except:
+                                a.append(at ) 
                             if at.endswith("-FINE"):
                                 m.append("-")
-                            elif at in ["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+                            elif at in _M._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
                                 m.append("F")
                             else:
                                 m.append("S")
@@ -1238,7 +1241,7 @@ class GUI_FixtureEditor():
         for a in attr:
             if a.endswith("-FINE"):
                 mode.append("-")
-            elif a in ["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+            elif a in _M._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
                 mode.append("F")
             else:
                 mode.append("S")
@@ -1264,7 +1267,7 @@ class GUI_FixtureEditor():
                 e._set_attr( attr[i])
             e._set_mode( "---")
             if len(mode) > i:
-                e._set_mode( mode[i])
+                e._set_mode( mode[i]+"'")
         self.count_ch() 
 
     def event_univ(self,_event=None):

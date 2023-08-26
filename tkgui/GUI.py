@@ -1213,18 +1213,18 @@ class GUI_FixtureEditor():
         print("OK:",ok)
         print()
         if err:
-            #r=tkinter.messagebox.showwarning(message="PACH FIXTURE \nnot implemented",parent=None)
-            r=tkinter.messagebox.askyesno(message="PACH ERROR '"+name+"'\n\n"+"\n".join(err)+"\n\n ",title="cancel/Abbruch",parent=None)
+            #r=tkinter.messagebox.showwarning(message="PATCH FIXTURE \nnot implemented",parent=None)
+            r=tkinter.messagebox.askyesno(message="PATCH ERROR '"+name+"'\n\n"+"\n".join(err)+"\n\n ",title="cancel/Abbruch",parent=None)
             print("err",r)
             if r: # exit if yes
                 return
 
         if err2:
-            r=tkinter.messagebox.showwarning(message="PACH ERROR '"+name+"'\n\n"+"\n".join(err2)+"\n\n ",title="Error",parent=None)
+            r=tkinter.messagebox.showwarning(message="PATCH ERROR '"+name+"'\n\n"+"\n".join(err2)+"\n\n ",title="Error",parent=None)
             return
 
         if sucess:
-            r=tkinter.messagebox.askyesno(message="PACH OK '"+name+"'\n\n"+"\n".join(sucess),title="Execute/Ausführen",parent=None)
+            r=tkinter.messagebox.askyesno(message="PATCH OK '"+name+"'\n\n"+"\n".join(sucess),title="Execute/Ausführen",parent=None)
             print("yes no" ,r )
             if r:
                 for fix in out:
@@ -1627,10 +1627,17 @@ class ELEM_FADER():
             self._cb([self,"_set_nr",txt])
 
     def _set_attr(self,txt=""):
+        self._set_mode("-")
         if type(txt) is str:
             self.attr["text"] = "{}".format(txt)
             if txt.startswith("EMPTY"):
                 self.attr["bg"] = "#fa0"
+            else:
+                if txt in _M._FIX_FADE_ATTR:
+                    self._set_mode("F")
+                else:
+                    self._set_mode("S")
+
         if self._cb:
             self._cb([self,"_set_attr",txt])
 

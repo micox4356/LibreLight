@@ -2661,8 +2661,8 @@ class MASTER():
                     _buff["abg"] = "grey"
 
                 if "FX2" not in row: # insert FX2 excetption
-                    row["FX2"] = OrderedDict()
-                print("row",fix,row)    
+                    row["FX2"] = {} #OrderedDict()
+                #print("row",fix,row)    
                 if row["FX"]:
                     _buff["fg"] = "blue"
                 elif row["FX2"]:
@@ -3400,6 +3400,20 @@ class Fixtures():
 
             self.fixtures[str(i)] = sdata
         #PRESETS.label_presets = l
+        keys = list(self.fixtures.keys())
+        keys2=[]
+        for k in keys:
+            #k = "{:0>5}".format(k)
+            k = int(k)
+            keys2.append(k)
+        keys2.sort()
+        fixtures2 = OrderedDict()
+        for k in keys2:
+            k = str(k)
+            fixtures2[k] = self.fixtures[k]
+
+
+        self.fixtures = fixtures2
         self.fx_off("all")
 
     def backup_patch(self,save_as=""):

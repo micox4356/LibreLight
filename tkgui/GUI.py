@@ -806,23 +806,27 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
 
         bg="lightgrey"
         #dbg="grey"
-        b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,width=6,relief="sunken")
+        b = tk.Button(frame,text=r+1,anchor="w",bg=dbg,width=6,height=1,relief="sunken")
         b.grid(row=r+1, column=c, sticky=tk.W ) #+tk.E)
         c+=1
-        bg="grey"
-        dbg="grey"
+        bg="lightgrey"
+        dbg="lightgrey"
         for k,v in row.items():
             #if v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
             #    dbg = "lightgreen"
             #elif v > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
             #    dbg = "green"
+            if "." in v:
+                #v = v.split(".",-1)
+                v = v[::1].split(".",1)[0]#[::-1]
 
-
-            if c == 2:
+            if c == 3:
+                bg="grey"
+                dbg="grey"
                 _cb2 = _M.BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
                 b = tk.Button(frame,text=v,anchor="w",height=1,bg=bg,command=_cb2)
             else: 
-                b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="flat")
+                b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="flat",height=1)
                 b.config(activebackground=dbg)
             b.grid(row=r+1, column=c, sticky=tk.W+tk.E)
             c+=1
@@ -864,7 +868,7 @@ class GUI_FixtureEditor():
         self.frame.pack(fill="both", side=tk.RIGHT)#EFT)
 
         bg = "lightblue"
-        self.b = tk.Button(self.frame,bg=bg,text="IMPORT", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg=bg,text="IMPORT FROM SHOW", width=20)#,command=self.event) #bv.change_dmx)
         self.b["command"] = self.open_fixture_list_import
         self.b.pack( side=tk.LEFT)
 
@@ -1027,7 +1031,7 @@ class GUI_FixtureEditor():
                     frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 self.c=0
 
-            e= ELEM_FADER(frameS,nr=j+1,cb=self._cb,fader_cb=self._fader_cb)
+            e=  ELEM_FADER(frameS,nr=j+1,cb=self._cb,fader_cb=self._fader_cb)
             e.pack()
             #e.attr["bg"] = "red"
             self.fader_elem.append(e)
@@ -1044,13 +1048,21 @@ class GUI_FixtureEditor():
             a1 = arg #arg[2]
             nr = args["nr"] #.nr
             j=[]
+            e = self.fader_elem[args["nr"]-1]
+            nr = int(e.elem_nr["text"]) 
+            if not nr:
+                nr = args["nr"]
+            nr_start = ( int(self.entry_dmx["text"])-1 + int(self.entry_univ["text"])*512 )
+            nr += nr_start
+
             jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(nr)}
-            ##print("   ",jdata)
+            print("   ",jdata)
             j.append(jdata)
             jclient_send(j)
         except Exception as e:
-            print("exec",arg,args)
+            print("exec",arg,args,nr)
             print(e)
+            raise e
 
     def _cb(self,arg,name="<name>",**args):
         #print(" FixtureEditor._cb")
@@ -1070,8 +1082,12 @@ class GUI_FixtureEditor():
             txt = elem.attr["text"]
             if txt:
                 #print("count_ch:",i,txt)
-                elem.attr["bg"] = "#0f0"
-                elem.attr["activebackground"] = "#0fa"
+                if txt.startswith("EMPTY"):
+                    elem.attr["bg"] = "#fa0"
+                    elem.attr["activebackground"] = "#fa0"
+                else:
+                    elem.attr["bg"] = "#0f0"
+                    elem.attr["activebackground"] = "#0fa"
                 ch_s.append([i,txt])
                 j=i
             else:
@@ -1161,8 +1177,10 @@ class GUI_FixtureEditor():
             self.name["text"] = data["name"] #"load_MH2"
             xpath = data["xpath"] + "/" + data["xfname"]
             fdata = _M._read_sav_file(xpath)
+            n = []
             a = []
             m = []
+            NR = 0
             for row in fdata:
                 #print("row:  ",row.keys())
                 #print("a-")
@@ -1175,14 +1193,31 @@ class GUI_FixtureEditor():
 
                     print("a    :",k,str(fixture)[:220],"...")
                     #print("a    ::",type(k),":",type(fixture))
+
+
+                    attr_by_nr = _M.fixture_order_attr_by_nr(fixture)
+
                     if "ATTRIBUT" in fixture:
-                        for at in fixture["ATTRIBUT"]:
+                        for at in attr_by_nr: #fixture["ATTRIBUT"]:
+                            print("   ",at)
+                            if at.startswith("EMPTY"):
+                                NR += 1
+                                n.append(str(NR))
+                                a.append(at)
+                                m.append("-")
+                                continue
+                            print("       ",fixture["ATTRIBUT"][at])
+
                             if at.startswith("_"):
                                  continue
                             try:
-                                a.append(at +":"+ str(fixture["ATTRIBUT"][at]["NR"]))
+                                NR = fixture["ATTRIBUT"][at]["NR"]
+                                n.append(str(NR))
                             except:
-                                a.append(at ) 
+                                n.append("-") 
+                            
+                            a.append(at ) #+":"+ str(fixture["ATTRIBUT"][at]["NR"]))
+
                             if at.endswith("-FINE"):
                                 m.append("-")
                             elif at in _M._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
@@ -1193,7 +1228,7 @@ class GUI_FixtureEditor():
 
                     break # only a single fixture #no sub fixture
 
-            self._load_fix(None,a,m)
+            self._load_fix(None,n,a,m)
             self.close_fixture_list()
 
         blist = _M._load_fixture_list(mode=mode)
@@ -1256,18 +1291,26 @@ class GUI_FixtureEditor():
         self._load_fix(None,attr,mode)
         self.close_fixture_list()
 
-    def _load_fix(self,_event=None,attr=[],mode=[]):
+    def _load_fix(self,_event=None,nrs=[],attr=[],mode=[]):
         print("load_fixture",[_event,self])
         #for i,e in enumerate(self.elem):
         for i,e in enumerate(self.elem):
             #print(self,"event",_event,e)
             #print("event",_event,e)
-            e._set_attr( "")
+            if len(attr) > i:
+                e._set_nr( nrs[i])
+            else:
+                e._set_nr( "")
+
             if len(attr) > i:
                 e._set_attr( attr[i])
-            e._set_mode( "---")
+            else:
+                e._set_attr( "")
+
             if len(mode) > i:
                 e._set_mode( mode[i]+"'")
+            else:
+                e._set_mode( "---")
         self.count_ch() 
 
     def event_univ(self,_event=None):
@@ -1320,8 +1363,8 @@ class GUI_FixtureEditor():
     def _event_redraw(self,_event=None):
         self.entry_dmx["text"] = "{}".format(self.dmx)
         self.entry_univ["text"] = "{}".format(self.univ)
-        nr = self.univ*(512)+self.dmx
-        self.b_xdmx["text"] = " {}  ".format(nr)
+        nr = 1 # self.univ*(512)+self.dmx # multiplay fader nr with dmx...
+        # self.b_xdmx["text"] = " {}  ".format(nr)
 
         print("change_dmx",[_event,self])
         for i,btn in enumerate(self.elem):
@@ -1389,6 +1432,19 @@ class ELEM_FADER():
         if self._cb:
             self._cb([self,"event",a1,a2])
 
+    def set_nr(self,_event=None):
+        txt= self.elem_nr["text"]
+        def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
+            txt = data["Value"]
+            self._set_nr(txt)
+            if self._cb:
+                self._cb([self,"set_nr",txt])
+        dialog._cb = _cb
+        dialog.askstring("ATTR","set NR:",initialvalue=txt)
+
     def set_attr(self,_event=None):
         txt= self.attr["text"]
         def _cb(data):
@@ -1403,13 +1459,6 @@ class ELEM_FADER():
         dialog._cb = _cb
         dialog.askstring("ATTR","set attr:",initialvalue=txt)
         
-    def _set_attr(self,txt=""):
-        if type(txt) is str:
-            self.attr["text"] = "{}".format(txt)
-            #print("_set_attr",[self])
-        if self._cb:
-            self._cb([self,"_set_attr",txt])
-
     def set_label(self,name=""):
         #print("set_label",self.b,name)
         self.label["text"] = name
@@ -1433,6 +1482,28 @@ class ELEM_FADER():
         dialog._cb = _cb
         dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
 
+    def _set_nr(self,txt=""):
+        if type(txt) is str:
+            try: 
+                x = int(txt)
+                if x <= 0:
+                    txt = "off"
+                    self.attr["bg"] = "#fa0"
+                    self.elem_nr["bg"] = "#fa0"
+            except:pass
+            self.elem_nr["text"] = "{}".format(txt)
+        if self._cb:
+            self._cb([self,"_set_nr",txt])
+
+    def _set_attr(self,txt=""):
+        if type(txt) is str:
+            self.attr["text"] = "{}".format(txt)
+            if txt.startswith("EMPTY"):
+                self.attr["bg"] = "#fa0"
+        if self._cb:
+            self._cb([self,"_set_attr",txt])
+
+
     def _set_mode(self,txt=""):
         if type(txt) is str:
             txt = txt[0].upper()
@@ -1443,6 +1514,7 @@ class ELEM_FADER():
 
     def _refresh(self):
         pass
+
     def pack(self,init=None,from_=255,to=0,**args):
         width=11
         r=0
@@ -1462,8 +1534,8 @@ class ELEM_FADER():
             self.b.set(init)
         self.elem.append(self.b)
         
-        self.b = tk.Button(frameS,bg="lightblue",text="0", width=4,command=self.set_mode,font=self.font8 )
-        self.elem_fix_id=self.b
+        self.b = tk.Button(frameS,bg="lightblue",text="0", width=4,command=self.set_nr,font=self.font8 )
+        self.elem_nr=self.b
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.elem.append(self.b)
 

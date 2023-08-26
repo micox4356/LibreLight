@@ -694,7 +694,9 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
         else:
             line["VALUE"] = value
 
-        if value is not None: 
+        #if "FX" not in row:
+        #    row["FX"] = ""
+        if value is not None:
             line["FX"] = row["FX"].split(":",1)[-1]
         else:
             line["FX"] = row["FX"]
@@ -1671,6 +1673,27 @@ class Xevent():
                 #self.elem.config(activebackground="red")
                 #self.elem.config(activebackground="lightgrey")
                 #w.tk.attributes('-topmost',False)
+            elif self.attr == "NEW\nSHOW":
+                base = Base()
+
+                #def _cb(fname):
+                def _cb(data):
+                    if not data:
+                        cprint("err443",self,"_cb",data)
+                        return None
+                    fname = data["Value"]
+                    cprint(self,"save_show._cb()",fname)
+                    fpath,fname = base.build_path(fname)
+                    cprint("SAVE NEW SHOW",fpath,fname)
+                    if base._create_path(fpath):
+                        a=PRESETS.backup_presets(save_as=fpath,new=1)
+                        b=FIXTURES.backup_patch(save_as=fpath,new=1)
+                        #base._set(fname)
+                        
+                        save_window_position(save_as=fpath)
+                        LOAD_SHOW_AND_RESTAT(fname).cb() 
+                dialog._cb = _cb
+                dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
             elif self.attr == "SAVE\nSHOW AS":
                 base = Base()
 
@@ -2660,6 +2683,8 @@ class MASTER():
                     _buff["bg"] = "grey"
                     _buff["abg"] = "grey"
 
+                if "FX" not in row: # insert FX2 excetption
+                    row["FX"] = "" #OrderedDict()
                 if "FX2" not in row: # insert FX2 excetption
                     row["FX2"] = {} #OrderedDict()
                 #print("row",fix,row)    
@@ -3371,6 +3396,12 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
 
     for attr in sdata["ATTRIBUT"]:
         sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
+
+        if not "FX" in sdata["ATTRIBUT"][attr]:
+            sdata["ATTRIBUT"][attr]["FX"] =""
+        if not "FX2" in sdata["ATTRIBUT"][attr]:
+            sdata["ATTRIBUT"][attr]["FX2"] = {}
+
     #print("load",filename,sdata)
     #if "CFG" not in sdata:
     #    sdata["CFG"] = OrderedDict()
@@ -3416,13 +3447,16 @@ class Fixtures():
         self.fixtures = fixtures2
         self.fx_off("all")
 
-    def backup_patch(self,save_as=""):
+    def backup_patch(self,save_as="",new=0):
         filename = "patch"
         #self.fx_off("all")
         data  = self.fixtures
         labels = {}
         for k in data:
             labels[k] = k
+        if new:
+            data = []
+            labels = {}
         #self.base._init()
         self.base._backup(filename,data,labels,save_as)
 
@@ -3898,10 +3932,13 @@ class Presets():
             cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")
         return ok
         
-    def backup_presets(self,save_as=""):
+    def backup_presets(self,save_as="",new=0):
         filename = "presets"
         data   = self.val_presets
         labels = self.label_presets
+        if new:
+            data = []*512
+            labls = [""]*512
         #self.base._init()
         self.base._backup(filename,data,labels,save_as)
         

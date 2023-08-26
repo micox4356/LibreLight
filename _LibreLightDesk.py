@@ -122,7 +122,7 @@ import lib.motion as motion
 
 from collections import OrderedDict
 
-_FIX_FADE_ATTR = ["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]
+_FIX_FADE_ATTR = ["PAN","TILT","DIM","RED","GREEN","BLUE","WHITE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]
 
 
 _POS_LEFT = 0
@@ -3204,35 +3204,112 @@ def _fixture_load_import_list(path=None):
                 if os.path.isfile(fname):
                     ok = 1
             #fname_buffer = []
-            if ok:
-                f = open(fname)
-                lines = f.readlines()
-                f.close()
+            if not ok:
+                continue
 
-                for line in lines:
-                    ok2 = 0
-                    _key = ""
-                    line = line.split("\t")
-                    jdata = json.loads(line[2])
-                    if "ATTRIBUT" in jdata:
-                        _len = len(jdata["ATTRIBUT"])
-                        _key = list(jdata["ATTRIBUT"].keys()) 
-                        _key.sort()
-                        _key = str(_key)
-                        if _key not in fname_buffer:
-                            fname_buffer.append(_key) # group same fixtures by ATTR
-                            ok2 = 1
-                    if ok2:
-                        name = jdata["NAME"]
-                        #row = [name,fname+":"+name,path])
-                        xfname = fname.replace(path,"")
-                        row = {"name":name,"xfname":xfname ,"ch":_len, "xpath":path,"d":_key} #,"b":jdata}
-                        blist.append(row)
+            f = open(fname)
+            lines = f.readlines()
+            f.close()
+
+            for line in lines:
+                ok2 = 0
+                _key = ""
+                line = line.split("\t")
+                if len(line) < 2:
+                    continue
+                jdata = json.loads(line[2])
+
+                fixture = jdata
+                _len = str(fixture_get_ch_count(fixture))
+                if "ATTRIBUT" in jdata:
+                    #_len = len(jdata["ATTRIBUT"])
+                    #if "_ACTIVE" in jdata["ATTRIBUT"]:
+                    #    _len -= 1
+                    _key = list(jdata["ATTRIBUT"].keys()) 
+                    _key.sort()
+                    _key = str(_key)
+                    if _key not in fname_buffer:
+                        fname_buffer.append(_key) # group same fixtures by ATTR
+                        ok2 = 1
+                if ok2:
+                    name = jdata["NAME"]
+                    #row = [name,fname+":"+name,path])
+                    xfname = fname.replace(path,"")
+                    row = {"xfname":xfname ,"name":name,"ch":_len, "xpath":path,"d":_key} #,"b":jdata}
+                    blist.append(row)
         except Exception as e:
             print("exception",e)
+            raise e
     return blist
 
 
+def fixture_get_ch_count(fixture):
+    _len = [0,0]
+    if "ATTRIBUT" not in fixture:
+        return [-1,-1]
+
+    for at in fixture["ATTRIBUT"]:
+        #print(at,_len)
+        #print(" ",fixture["ATTRIBUT"][at])
+        if not at.startswith("_") and not at.startswith("EMPTY"):
+            _len[1] += 1
+
+        if "NR" in fixture["ATTRIBUT"][at]:
+            NR = fixture["ATTRIBUT"][at]["NR"]
+            if NR > _len[0]:
+                _len[0] = NR
+        #print("-",at,_len)
+
+    return _len
+
+def fixture_get_attr_data(fixture,attr):
+    if "ATTRIBUT" in fixture:
+        if attr in fixture["ATTRIBUT"]:
+            return fixture["ATTRIBUT"][attr]
+
+    if "NAME" in fixture:
+        print("  NO fixture_get_attr_data A",fixture["NAME"],attr)
+    else:
+        print("  NO fixture_get_attr_data B",fixture,attr)
+
+def fixture_order_attr_by_nr(fixture):
+    out1 = []
+    max_nr = 0
+    if "ATTRIBUT" not in fixture:
+        return []
+
+    nrs = {}
+    for at in fixture["ATTRIBUT"]:
+        #print("+   ",at)
+        atd = fixture_get_attr_data(fixture,at)
+        #print("+   ",atd)
+        if not atd:
+            continue
+
+        k = atd["NR"]
+        v = at
+        nrs[k] = v
+        if k > max_nr:
+            max_nr = k
+
+    for i in range(1,max_nr+1):
+        if i not in nrs:
+            v = "EMPTY" #-{}".format(i)
+            nrs[i] = v
+            #print("-: ",v)
+
+
+    nrs_key = list(nrs.keys())
+    nrs_key.sort()
+    #print(nrs_key)
+
+    for k in nrs_key:
+        v = nrs[k]
+        #print("-: ",k,v)
+        out1.append(v)
+
+    #print()
+    return out1 
 
 def _load_fixture_list(mode="None"):
     blist = []

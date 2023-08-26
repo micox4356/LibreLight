@@ -597,6 +597,8 @@ def draw_setup(gui,xframe,data):
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "SAVE &\nRESTART":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+        elif comm == "NEW\nSHOW":
+            b = tk.Button(frame,bg="lightgreen", text=str(comm),width=6,height=2)
         elif comm == "DRAW\nGUI":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         else:

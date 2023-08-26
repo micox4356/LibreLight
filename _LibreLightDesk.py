@@ -2662,7 +2662,7 @@ class MASTER():
 
                 if "FX2" not in row: # insert FX2 excetption
                     row["FX2"] = OrderedDict()
-                    
+                print("row",fix,row)    
                 if row["FX"]:
                     _buff["fg"] = "blue"
                 elif row["FX2"]:
@@ -3330,6 +3330,53 @@ def _load_fixture_list(mode="None"):
 
 
 
+def FIXTURE_CHECK_SDATA(ID,sdata):
+    print("FIXTURE_CHECK_SDATA",ID)
+    new_f = OrderedDict()
+    #print("++++")
+    for k,j in sdata.items():
+        overide=0 # only for repair
+        if overide:
+            if k in ["TYPE","VENDOR"]: #ignor
+                continue
+        new_f[k] = j
+        if k =="NAME":
+            #print("AAAADDDDDD")
+            if "TYPE" not in sdata and not overide:
+                if len( sdata["ATTRIBUT"]) == 1:
+                    new_f["TYPE"] = "DIMMER"
+                elif "PAN" in sdata["ATTRIBUT"]:
+                    new_f["TYPE"] = "MOVER"
+                elif "RED" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 3:
+                    new_f["TYPE"] = "RGB"
+                elif "RED" in sdata["ATTRIBUT"]:
+                    new_f["TYPE"] = "LED"
+                elif "CYAN" in sdata["ATTRIBUT"]:
+                    new_f["TYPE"] = "COLOR"
+                else:
+                    new_f["TYPE"] = ""
+            if "VENDOR" not in sdata and not overide:
+                new_f["VENDOR"] = ""
+
+        #print(k,j)#,sdata)
+    sdata = new_f
+    if "ACTIVE" not in sdata:
+        sdata["ACTIVE"] = 0
+    sdata["ATTRIBUT"]["_ACTIVE"] = OrderedDict()
+    sdata["ATTRIBUT"]["_ACTIVE"]["NR"] = 0
+    sdata["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+    sdata["ATTRIBUT"]["_ACTIVE"]["VALUE"] = 0
+    sdata["ATTRIBUT"]["_ACTIVE"]["FX2"] = {}
+    sdata["ATTRIBUT"]["_ACTIVE"]["FX"] = {}
+
+    for attr in sdata["ATTRIBUT"]:
+        sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
+    #print("load",filename,sdata)
+    #if "CFG" not in sdata:
+    #    sdata["CFG"] = OrderedDict()
+    if "ID" not in sdata:
+        sdata["ID"] = str(ID)
+    return sdata
 
 
 class Fixtures():
@@ -3340,7 +3387,7 @@ class Fixtures():
         self.fixtures = OrderedDict()
         self.gui = GUIHandler()
 
-        
+
     def load_patch(self):
         filename="patch"
         #self.base._init()
@@ -3348,46 +3395,9 @@ class Fixtures():
         self.fixtures = OrderedDict()
         for i in l:
             sdata = d[i]
-            new_f = OrderedDict()
-            #print("++++")
-            for k,j in sdata.items():
-                overide=0 # only for repair
-                if overide:
-                    if k in ["TYPE","VENDOR"]: #ignor
-                        continue
-                new_f[k] = j
-                if k =="NAME":
-                    #print("AAAADDDDDD")
-                    if "TYPE" not in sdata and not overide:
-                        if len( sdata["ATTRIBUT"]) == 1:
-                            new_f["TYPE"] = "DIMMER"
-                        elif "PAN" in sdata["ATTRIBUT"]:
-                            new_f["TYPE"] = "MOVER"
-                        elif "RED" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 3:
-                            new_f["TYPE"] = "RGB"
-                        elif "RED" in sdata["ATTRIBUT"]:
-                            new_f["TYPE"] = "LED"
-                        elif "CYAN" in sdata["ATTRIBUT"]:
-                            new_f["TYPE"] = "COLOR"
-                        else:
-                            new_f["TYPE"] = ""
-                    if "VENDOR" not in sdata and not overide:
-                        new_f["VENDOR"] = ""
+            #sdata = self._repair_sdata(sdata)
+            sdata = FIXTURE_CHECK_SDATA(i,sdata)
 
-                #print(k,j)#,sdata)
-            sdata = new_f
-            if "ACTIVE" not in sdata:
-                sdata["ACTIVE"] = 0
-            sdata["ATTRIBUT"]["_ACTIVE"] = OrderedDict()
-            sdata["ATTRIBUT"]["_ACTIVE"]["NR"] = 0
-            sdata["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-            sdata["ATTRIBUT"]["_ACTIVE"]["VALUE"] = 0
-
-            for attr in sdata["ATTRIBUT"]:
-                sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
-            #print("load",filename,sdata)
-            #if "CFG" not in sdata:
-            #    sdata["CFG"] = OrderedDict()
             self.fixtures[str(i)] = sdata
         #PRESETS.label_presets = l
         self.fx_off("all")
@@ -3795,7 +3805,7 @@ class Fixtures():
 
 
 
-def CFG_CHECKER(sdata):
+def PRESET_CFG_CHECKER(sdata):
     "repair CFG  "
     ok = 0
     if "CFG" not in sdata:
@@ -3845,7 +3855,7 @@ class Presets():
         d,l = self.base._load(filename)
         for i in d:
             sdata = d[i]
-            ok = CFG_CHECKER(sdata)
+            ok = PRESET_CFG_CHECKER(sdata)
 
         self.val_presets = d
         self.label_presets = l
@@ -3868,7 +3878,7 @@ class Presets():
     def _check_cfg(self,sdata):
         cprint("PRESETS._check_cfg()")#,color="red")
 
-        ok = CFG_CHECKER(sdata)
+        ok = PRESET_CFG_CHECKER(sdata)
 
         if ok:
             cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")

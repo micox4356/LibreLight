@@ -845,13 +845,13 @@ class GUI_FixtureEditor():
         self.pw = None
         self.header=[]
         self.data = data
+        self.fixture = []
         self.title = title
         self.width = width
         #cprint("GUI:",root,title)
         self.root = root
         self.frame = frame
         self.draw()
-
     def draw(self):
         root = self.frame
 
@@ -953,7 +953,7 @@ class GUI_FixtureEditor():
         self.b.grid(row=r,column=c)
 
         r+=1
-        self.b = tk.Button(self.frame,bg="lightblue",text="1", width=4)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg="lightblue",text="4", width=4)#,command=self.event) #bv.change_dmx)
         #self.entry_qty=self.b
         self.qty=self.b
         self.b["command"] = self.set_qty
@@ -1108,7 +1108,115 @@ class GUI_FixtureEditor():
         dialog._cb = _cb
         dialog.askstring("QTY:","QTY:",initialvalue=txt)
     def do_patch(self,_event=None):
-        r=tkinter.messagebox.showwarning(message="PACH FIXTURE \nnot implemented",parent=None)
+        qty = int(self.qty["text"])
+        ID = int(self.fixid["text"])
+        univ = self.univ #int(self.univ["text"])
+        dmx = self.dmx #int(self.dmx["text"])
+        name = self.name["text"]
+        name_nr = ""
+        if "-" in name:
+            try:
+                name_nr = name.split("-")[-1]
+                name_nr = int(name_nr)
+                name = name.split("-")[:-1]
+                name = "-".join(name)
+            except:
+                name_nr = ""
+        
+        if name_nr == '':
+            if ID:
+                name_nr = ID
+            else:
+                name_nr = 9000
+        name_nr=int(name_nr)
+        print("do_patch",dmx,univ,qty)
+        DMX = dmx #univ*512 + dmx 
+        fixture = {"DMX": DMX, "UNIVERS": univ, "NAME": "D1", "TYPE": "", "VENDOR": "", "ATTRIBUT": {} , "ACTIVE": 0}
+        ATTR = []
+        max_nr = 0
+        for fader in self.fader_elem:
+            #print("patch -",fader)
+            attr = fader.attr["text"]
+            nr = fader.elem_nr["text"]
+            if nr == '':
+                continue
+            if nr == "off":
+                nr = -1
+            nr = int(nr)
+            mode = fader.mode["text"]
+            val = float(fader.elem_fader.get())
+            if not attr:
+                continue
+            if attr.startswith("EMPTY"):
+                continue
+            ATTR = OrderedDict()
+            ATTR["NR"] = nr
+            ATTR["MASTER"] = "0"
+            ATTR["MODE"] = mode
+            ATTR["VALUE"] = val
+            ATTR["ACTIVE"] = 0
+            ATTR["FX"] = ""
+            ATTR["FX2"] =  {}
+            print("patch --",nr,mode,attr)
+
+            fixture["ATTRIBUT"][attr] = ATTR
+            if nr > max_nr:
+                max_nr = nr
+
+        ok = 1
+        out=[]
+        err = []
+        err2 = []
+        sucess = []
+        for i in range(qty):
+            fixture = copy.deepcopy(fixture)
+            print("i",i)
+            fixture["NAME"] = name + "-{:0>4}".format(name_nr)
+            fixture["ID"] = ID 
+            print(fixture)
+            sdata = _M.FIXTURE_CHECK_SDATA(ID,fixture)
+            #out.append(sdata)
+            out.append(fixture)
+            if str(ID) in _M.FIXTURES.fixtures:
+                ok = 0
+                err.append(" ID '{}' is in use ! ".format(ID))
+
+            if ATTR:
+                sucess.append("ID '{}' DMX:{} UNIV:{}".format(ID,fixture["DMX"],fixture["UNIVERS"]))
+            else:
+                ok = 0
+                err2.append(" NO 'attributes'  ID:'{}' ! ".format(ID))
+
+            #print("OK:",ok)
+            #--------
+            name_nr += 1
+            ID += 1
+            fixture["DMX"] += max_nr
+        print("OK:",ok)
+        print()
+        if err:
+            #r=tkinter.messagebox.showwarning(message="PACH FIXTURE \nnot implemented",parent=None)
+            r=tkinter.messagebox.askyesno(message="PACH ERROR '"+name+"'\n\n"+"\n".join(err)+"\n\n ",title="cancel/Abbruch",parent=None)
+            print("err",r)
+            if r: # exit if yes
+                return
+
+        if err2:
+            r=tkinter.messagebox.showwarning(message="PACH ERROR '"+name+"'\n\n"+"\n".join(err2)+"\n\n ",title="Error",parent=None)
+            return
+
+        if sucess:
+            r=tkinter.messagebox.askyesno(message="PACH OK '"+name+"'\n\n"+"\n".join(sucess),title="Execute/Ausführen",parent=None)
+            print("yes no" ,r )
+            if r:
+                for fix in out:
+                    print(";;",fix)
+                    k = str(fix["ID"])
+                    v = fix
+                    _M.FIXTURES.fixtures[k] = v
+
+
+
     def set_fixid(self,_event=None):
         txt = self.fixid["text"]
         def _cb(data):
@@ -1190,6 +1298,8 @@ class GUI_FixtureEditor():
                         continue
                     if fixture["NAME"] != args["val"]:
                         continue
+                    
+                    self.fixture = fixture
 
                     print("a    :",k,str(fixture)[:220],"...")
                     #print("a    ::",type(k),":",type(fixture))
@@ -1490,6 +1600,9 @@ class ELEM_FADER():
                     txt = "off"
                     self.attr["bg"] = "#fa0"
                     self.elem_nr["bg"] = "#fa0"
+                else:
+                    self.attr["bg"] = "lightblue"
+                    self.elem_nr["bg"] = "lightblue"
             except:pass
             self.elem_nr["text"] = "{}".format(txt)
         if self._cb:
@@ -1529,6 +1642,7 @@ class ELEM_FADER():
         self.elem.append(self.b)
         
         self.b = tk.Scale(frameS,bg="#ffa", width=28,from_=from_,to=to,command=self.fader_event)
+        self.elem_fader = self.b
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:
             self.b.set(init)

@@ -3397,10 +3397,12 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
     for attr in sdata["ATTRIBUT"]:
         sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
 
-        if not "FX" in sdata["ATTRIBUT"][attr]:
+        if "FX" not in sdata["ATTRIBUT"][attr]:
             sdata["ATTRIBUT"][attr]["FX"] =""
-        if not "FX2" in sdata["ATTRIBUT"][attr]:
+        if "FX2" not in sdata["ATTRIBUT"][attr]:
             sdata["ATTRIBUT"][attr]["FX2"] = {}
+        if "MASTER" not in sdata["ATTRIBUT"][attr]:
+            sdata["ATTRIBUT"][attr]["MASTER"] = 0
 
     #print("load",filename,sdata)
     #if "CFG" not in sdata:
@@ -3431,6 +3433,10 @@ class Fixtures():
 
             self.fixtures[str(i)] = sdata
         #PRESETS.label_presets = l
+        self._re_sort()
+        self.fx_off("all")
+
+    def _re_sort(self):
         keys = list(self.fixtures.keys())
         keys2=[]
         for k in keys:
@@ -3445,7 +3451,6 @@ class Fixtures():
 
 
         self.fixtures = fixtures2
-        self.fx_off("all")
 
     def backup_patch(self,save_as="",new=0):
         filename = "patch"
@@ -3571,6 +3576,8 @@ class Fixtures():
                 if attr == "DIM" and ATTR[attr]["NR"] < 0:
                     xcmd["VIRTUAL"] = {}
                     for a in ATTR:
+                        #if "MASTER" not in ATTR[a]: #["MASTER"]:
+                        #     ATTR[a]["MASTER"] = 0
                         if ATTR[a]["MASTER"]:
                             xcmd["VIRTUAL"][a] = sDMX+ATTR[a]["NR"]-1
                     #print( "VIRTUAL",xcmd)
@@ -3937,7 +3944,13 @@ class Presets():
         data   = self.val_presets
         labels = self.label_presets
         if new:
-            data = []*512
+            #a = []
+            #for i in range(512):
+            #    e = PRESET_CFG_CHECKER({})
+            #    e["NAME"] = str(i)
+            #    a.append(e)
+            #data = a 
+            data = []#*512
             labls = [""]*512
         #self.base._init()
         self.base._backup(filename,data,labels,save_as)

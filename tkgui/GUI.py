@@ -1233,6 +1233,7 @@ class GUI_FixtureEditor():
                     v = fix
                     _M.FIXTURES.fixtures[k] = v
 
+                _M.FIXTURES._re_sort()
 
 
     def set_fixid(self,_event=None):

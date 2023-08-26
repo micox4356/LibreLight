@@ -611,7 +611,10 @@ class GUI_PATCH():
             b = tk.Button(xframe,bg=rgb, text="TEST",width=4)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
-            b = tk.Button(xframe,bg=rgb, text="DMX Collision!",width=12)
+            b = tk.Button(xframe,bg=rgb, text="DMX Collision!",width=15)
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(xframe,bg="orange", text="DELETE",width=15)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
 
@@ -768,8 +771,23 @@ class GUI_PATCH():
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             b["activebackground"] = bg
 
+            c+=1
+            def x_del(fix):
+                def xx():
+                    print( "DELETE FIXTURE !!!",fix)
+                    if str(fix) in FIXTURES.fixtures:
+                        del FIXTURES.fixtures[fix]
+                return xx
+
+
+            b = tk.Button(xframe,bg="orange",fg="#000", text="DELETE",width=12,anchor="w")
+            b["command"] = x_del(fix)
+            myTip = Hovertip(b,'DELETE FIXTURE')
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+
             c=0
             r+=1
+
 
 
 
@@ -924,7 +942,7 @@ class GUI_FixtureEditor():
         self.b.grid(row=r,column=c) #,expand=1)
 
         r+=1
-        self.b = tk.Button(self.frame,bg="lightblue",text="MAC-500", width=13)
+        self.b = tk.Button(self.frame,bg="lightblue",text="FixName", width=13)
         self.name=self.b
         self.b["command"] = self.set_name
         self.b.grid(row=r,column=c)

@@ -695,11 +695,11 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
             line["VALUE"] = value
 
         if "FX" not in row:
-            cprint("698 FX not in row...",row)
+            cprint("698 FX not in row...",row,color="red")
             row["FX"] = ""
         else:
             if type(row["FX"]) is not str:
-                cprint("702 FX is not str...",row)
+                cprint("702 FX is not str...",row,color="red")
                 row["FX"] = ""
 
         if value is not None:
@@ -3393,26 +3393,26 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
     sdata = new_f
     if "ACTIVE" not in sdata:
         sdata["ACTIVE"] = 0
+
     sdata["ATTRIBUT"]["_ACTIVE"] = OrderedDict()
     sdata["ATTRIBUT"]["_ACTIVE"]["NR"] = 0
     sdata["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
     sdata["ATTRIBUT"]["_ACTIVE"]["VALUE"] = 0
     sdata["ATTRIBUT"]["_ACTIVE"]["FX2"] = {}
-    sdata["ATTRIBUT"]["_ACTIVE"]["FX"] = {}
+    sdata["ATTRIBUT"]["_ACTIVE"]["FX"] = ""
 
     for attr in sdata["ATTRIBUT"]:
-        sdata["ATTRIBUT"][attr]["ACTIVE"] = 0
+        row = sdata["ATTRIBUT"][attr]
+        row["ACTIVE"] = 0
 
-        if "FX" not in sdata["ATTRIBUT"][attr]:
-            sdata["ATTRIBUT"][attr]["FX"] =""
-        if "FX2" not in sdata["ATTRIBUT"][attr]:
-            sdata["ATTRIBUT"][attr]["FX2"] = {}
-        if "MASTER" not in sdata["ATTRIBUT"][attr]:
-            sdata["ATTRIBUT"][attr]["MASTER"] = 0
+        if "FX" not in row:
+            row["FX"] =""
+        if "FX2" not in row:
+            row["FX2"] = {}
+        if "MASTER" not in row:
+            row["MASTER"] = 0
 
-    #print("load",filename,sdata)
-    #if "CFG" not in sdata:
-    #    sdata["CFG"] = OrderedDict()
+
     if "ID" not in sdata:
         sdata["ID"] = str(ID)
     return sdata

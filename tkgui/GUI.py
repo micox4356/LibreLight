@@ -1192,7 +1192,7 @@ class GUI_FixtureEditor():
             fixture["NAME"] = name + "-{:0>4}".format(name_nr)
             fixture["ID"] = ID 
             print(fixture)
-            sdata = _M.FIXTURE_CHECK_SDATA(ID,fixture)
+            fixture = _M.FIXTURE_CHECK_SDATA(ID,fixture)
             #out.append(sdata)
             out.append(fixture)
             if str(ID) in _M.FIXTURES.fixtures:

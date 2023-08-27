@@ -694,8 +694,14 @@ def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
         else:
             line["VALUE"] = value
 
-        #if "FX" not in row:
-        #    row["FX"] = ""
+        if "FX" not in row:
+            cprint("698 FX not in row...",row)
+            row["FX"] = ""
+        else:
+            if type(row["FX"]) is not str:
+                cprint("702 FX is not str...",row)
+                row["FX"] = ""
+
         if value is not None:
             line["FX"] = row["FX"].split(":",1)[-1]
         else:

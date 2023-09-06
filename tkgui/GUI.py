@@ -1125,6 +1125,7 @@ class GUI_FixtureEditor():
             print("set_qty",[_event,self])
         dialog._cb = _cb
         dialog.askstring("QTY:","QTY:",initialvalue=txt)
+
     def do_patch(self,_event=None):
         qty = int(self.qty["text"])
         ID = int(self.fixid["text"])
@@ -1186,8 +1187,11 @@ class GUI_FixtureEditor():
         err = []
         err2 = []
         sucess = []
+        _fixture = fixture 
+        _dmx = _fixture["DMX"] 
         for i in range(qty):
-            fixture = copy.deepcopy(fixture)
+            fixture = copy.deepcopy(_fixture)
+            fixture["DMX"] = _dmx 
             print("i",i)
             fixture["NAME"] = name + "-{:0>4}".format(name_nr)
             fixture["ID"] = ID 
@@ -1195,6 +1199,7 @@ class GUI_FixtureEditor():
             fixture = _M.FIXTURE_CHECK_SDATA(ID,fixture)
             #out.append(sdata)
             out.append(fixture)
+            #fixture = copy.deepcopy(fixture)
             if str(ID) in _M.FIXTURES.fixtures:
                 ok = 0
                 err.append(" ID '{}' is in use ! ".format(ID))
@@ -1205,11 +1210,9 @@ class GUI_FixtureEditor():
                 ok = 0
                 err2.append(" NO 'attributes'  ID:'{}' ! ".format(ID))
 
-            #print("OK:",ok)
-            #--------
             name_nr += 1
             ID += 1
-            fixture["DMX"] += max_nr
+            _dmx += max_nr # bug offset of one fixture
         print("OK:",ok)
         print()
         if err:

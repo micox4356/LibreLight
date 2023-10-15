@@ -22,7 +22,9 @@ apt install -y $pkg
 
 echo ""
 echo "-- media pkg's"
-pkg="python3-opencv ffmpeg"
+pkg="python3-opencv ffmpeg "
+# v4l-utils"
+# guvcview 
 apt install -y $pkg 
 
 echo ""

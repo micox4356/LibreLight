@@ -157,12 +157,14 @@ class Vopen():
             self.fname = PLAYLIST[0]
         except Exception as e:
             print("Exception set video from PLAYLIST 5543:",e)
-
+        
         self.restart_t = time.time()
         self.fps = 0
         self.scale = 50 #%
         self.angle = 0 #%
         self.dmx=dmx
+        if self._id >= 250:
+            self.fname = "cam_"
         self.dim = 0
         self.x = 0
         self.y = 0
@@ -217,7 +219,10 @@ class Vopen():
             if self._video_nr != dmx_value:
                 self._video_nr = dmx_value
 
-                if self._video_nr < len(PLAYLIST):
+                if self._video_nr >= 25:
+                    self.fname = "cam_"
+                    self.init()
+                elif self._video_nr < len(PLAYLIST):
                     self.fname = str(PLAYLIST[self._video_nr])
                     self.init()
 
@@ -226,6 +231,91 @@ class Vopen():
 
     def close_cap():
         print(dir(self.Rcap)) # = self.cv2.VideoCapture(self.fpath+self.fname)
+
+    def _cam_cfg_new(self,fn):
+        #fn = HOME+'/LibreLight/video_in.txt'
+        txt = [
+            "# Example",
+            "d0 w640 h480 # PAL",
+            "d0 w800 h600 # SVGA",
+            "d0 w960 h540 # 540p",
+            "d0 w1024 h768 # XGA <---",
+            "d0 w1280 h720 # 720p",
+            "d0 w1440 h900  # WSXGA+",
+            "d0 w1600 h900  # WSXGA - Laptop 16:9",
+            "d0 w1920 h1080 # HD 1080p",
+            "",
+            "# config",
+            "d0 w1024 h768 # XGA",
+        ]
+        f = open(fn ,"w")
+        f.write("\n".join(txt))
+        f.close()
+
+    def _cam_cfg(self):
+        fn = HOME+'/LibreLight/video_in.txt'
+        if not os.path.isfile(fn):
+            self._cam_cfg_new(fn)
+        f = open(fn ,"r")
+        lines = f.readlines()
+        f.close()
+        cfg = ""
+        for i in lines:
+            if i.startswith("d"):
+                cfg = i
+        cfg = cfg.split()
+        print("_cam_cfg:",len(cfg),[cfg])
+        
+        return cfg
+
+    def _open_cam(self):
+        # LIVE VIDEO INPUT UVC DEVICE
+        cfg = self._cam_cfg()
+
+
+        res = "HD"
+        #res = "4K"
+        #res = ""
+
+        if res == "HD":
+            # HD
+            w = 1920
+            h = 1080
+        elif res == "4K":
+            # 4K
+            w = 3840
+            h = 2160
+        else:
+
+            # LOW
+            w = 1280
+            h = 720
+        d = 0 # VIDEO INPUT DEV 
+
+        for c in cfg:
+            try:
+                if c.startswith("d"):
+                    d = int(c[1:])
+                if c.startswith("h"):
+                    h = int(c[1:])
+                if c.startswith("w"):
+                    w = int(c[1:])
+            except Exception as e:
+                print("Exception", "cam_cfg 878",e)
+
+        df = "video{}".format(d)
+        if os.path.exists("/dev/{}".format(df)):
+            self.Rcap = self.cv2.VideoCapture(d)
+            self.Rcap.set(self.cv2.CAP_PROP_FRAME_WIDTH, w)
+            self.Rcap.set(self.cv2.CAP_PROP_FRAME_HEIGHT, h)
+        else:
+            #self.Rcap = None
+            #self.end = 1
+            df += "_error"
+
+        if self.fname.startswith("cam_"): 
+            self.fname = "cam_{}".format(df)
+
 
     def _init(self):
         print(self)
@@ -243,10 +333,17 @@ class Vopen():
 
             #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_GSTREAMER) 
             #GSTREAMER Assertion fctx->async_lock failed at libavcodec/pthread_frame.c:175
-            
-            self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_FFMPEG) 
-            #FFMPEG malloc(): unsorted double linked list corrupted ... Abgebrochen
 
+            if self.fname.startswith("cam_"): 
+                self._open_cam()
+            else:
+                self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_FFMPEG) 
+                #FFMPEG malloc(): unsorted double linked list corrupted ... Abgebrochen
+
+            print("_init ?",self.Rcap)
+            #print(dir(self.Rcap))
+            #print(self.Rcap.getExceptionMode())
+            print("open ?" ,self.Rcap.isOpened())
             self.Rcap.read()
 
             #self.Rfvs = FileVideoStream(self.fpath+self.fname).start()
@@ -286,7 +383,7 @@ class Vopen():
 
             try:
                 success, img = cap.read()
-                #self.img = fvs.read()
+
                 if not success:
                     self.Rcap.release()
                     self.Rcap.retrieve()
@@ -301,7 +398,10 @@ class Vopen():
                     self.fps = cap.get(cv2.CAP_PROP_FPS)
                 
                 img = self.cv2.cvtColor(img, self.cv2.COLOR_BGR2RGB)
-                img = self.rescale_frame2(img, 200)
+                if self.fname.startswith("cam_"): 
+                    pass
+                else:
+                    img = self.rescale_frame2(img, 200)
 
                 #ret, img = self.cv2.threshold(img, 100, 130, self.cv2.THRESH_BINARY) # treshold
                 #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
@@ -312,7 +412,11 @@ class Vopen():
                 #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
                 
                 # store frame into buffer list
-                self.buffer.append(img)
+                if self.fname.startswith("cam_"): 
+                    self.buffer = [ img ]
+                else:
+                    self.buffer.append(img)
+
                 ok = 1
                 if len(self.buffer) % 100 == 0:
                     _id = str(self.__repr__)[-5:-1]
@@ -339,6 +443,7 @@ class Vopen():
             pass#return image
         try:
             #print("EE",image.shape)
+            #print("EE",dir(image))
             shape = list(image.shape[1::-1])
             bg_shape = shape[:]
 
@@ -448,13 +553,15 @@ class Vopen():
          
         try:
             self.next_frame()
+            if self.img is None:
+                return
 
             #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
             
             # rotate frame BUG: x,y offset ??? !!!
             self.img = self.rotateImage(self.img, self.angle)
-
+            #print(sys.getsizeof(self.img))
             self.shape = self.img.shape[1::-1]
 
             if len(self.buffer) % 100 == 0:
@@ -515,7 +622,13 @@ class Vopen():
         yellow[1] = int(yellow[1]*self.dim/255)  
         yellow[2] = int(yellow[2]*self.dim/255)  
         #print(yellow)
-        if 1: #corner left up
+        if self.fname.startswith("cam_"):
+            #if 10: #corner left up
+            pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
+            pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
+            pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
+            pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+        elif 1: #corner left up
             p1 = [self.x+2,self.y+2]  
             p2 = [self.x+__xw-4,self.y+__yw-4]
             p3 = [self.x+__xw-4,self.y+2]
@@ -543,11 +656,6 @@ class Vopen():
             pygame.draw.rect(wn,[25,20,20],[p1[0]+1,p1[1]+1,__xw-2,__yw-2])
             pygame.draw.line(wn,yellow    ,p1      ,p2)
             pygame.draw.line(wn,yellow    ,p3      ,p4)
-        if 0: #corner left up
-            pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
-            pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
-            pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
-            pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
         if 0: #corner right down
             pygame.draw.rect(wn,yellow,[self.x-__xw,self.y-__yw,__xw,__yw])
             pygame.draw.rect(wn,[25,20,20],[self.x+1-__xw,self.y+1-__yw,__xw-2,__yw-2])
@@ -572,7 +680,10 @@ class Vopen():
             xx ,yy = self.im.get_size()[:2]
             #print(xx,yy)
             #wn.blit(self.im, (int(self.x+xx/2), int(self.y+yy/2)))
-            wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy/2)))
+            if self.fname.startswith("cam_"):
+                wn.blit(self.im, (int(self.x), int(self.y)))
+            else:
+                wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy/2)))
 
     def overlay(self,wn=None,mode="x"):
         # overlay 
@@ -1794,10 +1905,13 @@ def draw_video(VIDEO):
         k = "PAN"
         cpan_max = block[0] *(_x) #+block[0]
         if k in count:
-            cpan = int(count[k]) / 255*cpan_max
+            if 0:#video1.fname.startswith("cam_"):
+                cpan = int(count[k]) #/ 255*cpan_max
+            else:
+                cpan = int(count[k]) / 255*cpan_max
             cpan = int(cpan)
-        k = "TILT"
 
+        k = "TILT"
         ctilt_max = block[1] *(_y) #+block[1]
         if k in count:
             ctilt = int(count[k]) / 255*ctilt_max

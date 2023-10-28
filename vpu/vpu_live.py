@@ -215,6 +215,7 @@ class Vopen():
         self.end = 0
         self._video_nr = 0
 
+        self._stop = 0 # fix buffer-overflow ... ?? opencv
 
         self.shape_x = 370
         self.shape_y = 235
@@ -352,7 +353,9 @@ class Vopen():
                 print("Exception", "cam_cfg 878",e)
 
         df = "video{}".format(d)
-        if os.path.exists("/dev/{}".format(df)):
+        if self._stop:
+            df += "_stop"
+        elif os.path.exists("/dev/{}".format(df)):
             self.Rcap = self.cv2.VideoCapture(d)
             self.Rcap.set(self.cv2.CAP_PROP_FRAME_WIDTH, w)
             self.Rcap.set(self.cv2.CAP_PROP_FRAME_HEIGHT, h)
@@ -377,6 +380,8 @@ class Vopen():
     
         self.Rsuccess = 0
         if self.cv2:
+            if self._stop:
+                return
             #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
 
             #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_GSTREAMER) 
@@ -398,6 +403,7 @@ class Vopen():
             self.Rsuccess = 1
             self._read()
     def _del(self):
+        self._stop = 1
         #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
         #for i in dir(self.Rcap):
         #    print(i)
@@ -448,6 +454,7 @@ class Vopen():
                 img = self.cv2.cvtColor(img, self.cv2.COLOR_BGR2RGB)
                 if self.fname.startswith("cam_"): 
                     pass
+                    #img = self.rescale_frame2(img, 1200)
                 else:
                     img = self.rescale_frame2(img, 200)
 
@@ -672,10 +679,11 @@ class Vopen():
         #print(yellow)
         if self.fname.startswith("cam_"):
             #if 10: #corner left up
-            pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
-            pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
-            pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
-            pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+            #pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
+            #pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
+            #pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
+            #pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
+            pass
         elif 1: #corner left up
             p1 = [self.x+2,self.y+2]  
             p2 = [self.x+__xw-4,self.y+__yw-4]
@@ -729,7 +737,7 @@ class Vopen():
             #print(xx,yy)
             #wn.blit(self.im, (int(self.x+xx/2), int(self.y+yy/2)))
             if self.fname.startswith("cam_"):
-                wn.blit(self.im, (int(self.x), int(self.y)))
+                wn.blit(self.im, (int(self.x-xx/2), int(self.y)))
             else:
                 wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy/2)))
 
@@ -1486,8 +1494,8 @@ def generate_grid(mapping=0):
         _dmx = dmx - (_univ)*512 
 
         pos=[x,y]
-        line="{},{},{},{},{},{}\n".format(i+1,_univ,_dmx+1,pos[0],pos[1],ch)
-        line="{},{},{},{},{}\n".format(_univ,_dmx+1,x,y,ch)
+        #line="{},{},{},{},{},{}\n".format(i+1,_univ,_dmx+1,pos[0],pos[1],ch)
+        #line="{},{},{},{},{}\n".format(_univ,_dmx+1,x,y,ch)
         line="{},{},x\n".format(i+1,i+1)
         #print("wcsv:",[line])
         #if PIXEL_MAPPING:

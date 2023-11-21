@@ -2,20 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of LibreLight.
-
-LibreLight is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 2 of the License.
-
-LibreLight is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
-
+SPDX-License-Identifier: GPL-2.0-only
 (c) 2012 micha@librelight.de
 """
 
@@ -26,6 +13,31 @@ import os
 import _thread as thread
 import time
 import copy
+
+
+
+def list_device(filter="APC_MINI"):
+    dpath = "/dev/snd/"
+    filter = "APC_MINI"
+    out = []
+    for i in os.listdir(dpath):
+        if i.startswith("controlC"):
+            #print(i)
+            cmd = "udevadm info {}/{}".format(dpath,i)
+            #print("midi device_info",cmd)
+            r=os.popen(cmd)
+            lines = r.readlines()
+            ok = 0
+            for j in lines:
+                if filter in j:
+                    ok = 1
+
+            if ok:
+                out.append(i)
+                for j in lines:
+                    j=j.strip()
+                    print("-",j)
+    return out
 
 class simplemidi(object):
     def __init__(self,device="/dev/midi1"):
@@ -66,6 +78,7 @@ class simplemidi(object):
         if nr == 1:
             return "simplemidi", self.__device
         else:
+
             return None
     def write_delayed(self,data):
         #import thread        

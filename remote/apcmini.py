@@ -2,72 +2,45 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of librelight.
-
-librelight is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 2 of the License.
-
-librelight is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with librelight.  If not, see <http://www.gnu.org/licenses/>.
-
+SPDX-License-Identifier: GPL-2.0-only
 (c) micha@librelight.de
 """
-
-
-#import init
-#init.init()
-import socket,time
 
 import sys
 sys.stdout.write("\x1b]2;APCmini\x07")
 
-
-import sys
 import os
+import time
+import socket, struct
+import random
 
 import lib.chat as chat
 
-import random
-
-
-if 0:#0: # if pygame midi ?
-    # Midi modul von Python game zur Platformunabhängigkeit
+if 0:
     # z.b. Windows
-
     # 10 MB RAM
     from interfaces.midi.lib.pygamemidi_wraper import pygamemidi
     midi = pygamemidi(out=2,inp=3)
-else: # if linux
-    #  4 MB RAM
-    #from simplemidi_wraper import simplemidi
-    from lib.simplemidi_wraper import simplemidi
-    #midi = simplemidi("/dev/snd/midiC1D0") #,inp="/dev/midi1")
-    midi = simplemidi("/dev/snd/midiC2D0") #,inp="/dev/midi1")
-
-
-nr = 0
-while 1:
-    device = midi.get_device_info(nr)
-    if device == None:
-        break
-    else:
-        print(nr , device)
-    nr += 1
+else: 
+    # 4 MB RAM , only tested on linux
+    import lib.simplemidi_wraper as smidi
+    device = smidi.list_device(filter="APC_MINI")
+    _id = device[-1][-1]
+    midi = smidi.simplemidi("/dev/snd/midiC{}D0".format(_id) ) #,inp="/dev/midi1")
 
 
 
 cli = None
 
-import socket, struct
 
+class dummyChat():
+    def __init__(self):
+        pass
+    def send(self,*arg,**args):
+        print("dummyChat",self,arg,args)
 
-c = chat.tcp_sender()
+#c = chat.tcp_sender()
+c = dummyChat() 
 def send(msg):
     print("send",msg)
     c.send(msg)
@@ -107,11 +80,57 @@ def main():
                 midi.write([144,8+i,1])
                 midi.write([144,12+i,1])
 
-
+        rows = [56,48,40,32,24,16,8,0,64,48]
+        midi_function = {
+                "Off": (128,144),
+                "On ":(144,160),
+                "PLY":(160,176),
+                "CC ":(176,192),
+                "PC ":(192,208),
+                "CA ":(208,223),
+                "QtrFrame":(241,242),
+                "tclock":(248,249),
+        }
+        # cut byte
+        # x=174;((x)^(x>>4<<4))
+        # int(bin(151)[-4:],2)+1
+        #nibl =  x=174;((x)^(x>>4<<4))
+        #nibl = int(bin(151)[-4:],2)+1
+        ch = -123
         if midi.poll():
             midi_date = midi.read(1)
+            #print("MIDI",midi_date)
+            if 1:# midi_date[0] >= 128 midi_date[0] <= 143:
+                ch = int(bin(midi_date[0])[-4:],2)+1
 
-            print("in:",midi_date)
+            for fn,v in midi_function.items():
+                if midi_date[0] >= v[0] and midi_date[0] < v[1]:
+                    FN = fn
+                    break
+
+            r_old = 0
+            row = 0
+            for r in rows: 
+                #print(r_old,r)
+                if r_old and midi_date[1] >= r_old and midi_date[1] < r:
+                    row = midi_data[1] - r+1
+                    print("jo")
+                r_old=r   
+
+            nibl = int(bin(midi_date[1])[2:][-4:],2)+1
+            _bin2 = bin(midi_date[1])
+            _bin2 = _bin2[2:]
+            _bin2 = _bin2.rjust(8,"0")
+            _bin2 = int(_bin2[1:5],2)
+
+            _bin = bin(midi_date[1])
+            _bin = _bin[2:]
+            _bin = _bin.rjust(8,"0")
+            _bin = _bin[-3:] # 3 bit
+
+            print(row,"in:",FN,"ch",ch,"raw",midi_date,_bin,int(_bin,2),_bin2)
+
+            continue
             if midi_date[0] == 176:
                 if midi_date[1] == 55:
                     fader = midi_date[2]/127.*8
@@ -325,7 +344,6 @@ def main():
                 midi.write([144,82,3])
                 #print("oo")
 
-import _thread as thread
 main()
 
 node = 244

@@ -29,21 +29,10 @@ rnd_id += " beta"
 rnd_id2 = ""
 rnd_id3 = ""
 _ENCODER_WINDOW = None
-try:
-    _gcmd=['git','log','-1', '--format=%ci']
-    r = subprocess.check_output(_gcmd)
-    rnd_id3 += " " + r.decode('ascii').strip().split()[0]
-except:pass
-rnd_id += rnd_id3
 
-_gcmd=['git', 'rev-parse', '--short', 'HEAD']
-try:
-    r = subprocess.check_output(_gcmd)
-    rnd_id2 += " "+r.decode('ascii').strip()
-except Exception as e:
-    rnd_id2 += " no git" 
-    #rnd_id += " ".join(_gcmd) +str(e)
-rnd_id += rnd_id2
+
+import tool.git as git
+rnd_id += git.get_all()
 
 
 try:
@@ -81,6 +70,16 @@ _global_short_key = 1
 
 path = "/home/user/LibreLight/"
 #os.chdir(path)
+f = open(path+"init.txt","r")
+lines=f.readlines()
+f.close()
+out = []
+for line in lines:
+    if line != "EASY\n":
+        out.append(line)
+f = open(path+"init.txt","w")
+f.writelines(out)
+f.close()
 if "--easy" in sys.argv:
     f = open(path+"init.txt","a")
     f.write("EASY\n")
@@ -91,17 +90,6 @@ if "--easy" in sys.argv:
         #input()
         os.system(cmd)
     # check if EASY show exist !
-else:
-    f = open(path+"init.txt","r")
-    lines=f.readlines()
-    f.close()
-    out = []
-    for line in lines:
-        if line != "EASY\n":
-            out.append(line)
-    f = open(path+"init.txt","w")
-    f.writelines(out)
-    f.close()
 
 
 icolor = 1
@@ -4259,19 +4247,26 @@ class on_focus():
         self.mode = mode
     def cb(self,event=None):
         print("on_focus",event,self.name,self.mode)
-        e = master.commands.elem["."]
+        try:
+            e = master.commands.elem["."]
+        except:pass
+
         if self.mode == "Out":
             cmd="xset -display :0.0 r rate 240 20"
             print(cmd)
             os.system(cmd)
-            e["bg"] = "#aaa"
-            e["activebackground"] = "#aaa"
+            try:
+                e["bg"] = "#aaa"
+                e["activebackground"] = "#aaa"
+            except:pass
         if self.mode == "In":
             cmd = "xset -display :0.0 r off"
             print(cmd)
             os.system(cmd)
-            e["bg"] = "#fff"
-            e["activebackground"] = "#fff"
+            try:
+                e["bg"] = "#fff"
+                e["activebackground"] = "#fff"
+            except:pass
 
 class Window():
     def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
@@ -4567,6 +4562,8 @@ class WindowManager():
 
         if name in self.window_init_buffer:
             c = self.window_init_buffer[name] 
+            print(c)
+            print(dir(c))
             w,obj,cb_ok = c.create()
             window_manager.update(w,name,obj)
 
@@ -4602,10 +4599,17 @@ class WindowManager():
 
         if not self._check(name):
             self.create(name)
+        
+        w = self.windows[name]
+        print(" 2.1-",w,str(type(w)))
+        if type(w) is type(window_create_buffer):
+            w.tk.attributes('-topmost',True)
+            w.tk.attributes('-topmost',False)
+            w.tk.update_idletasks()
 
-        self.windows[name].tk.attributes('-topmost',True)
-        self.windows[name].tk.attributes('-topmost',False)
-        self.windows[name].tk.update_idletasks()
+        if str(type(w)).startswith("<class 'function'>"): # is type(window_create_sdl_buffer):
+            print(" 2.2-",w)
+            w()
 
 
 class Console():
@@ -4748,6 +4752,18 @@ def loops(**args):
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
 
+class window_create_sdl_buffer():
+    def __init__(self,args,cls,data,cb_ok=None,scroll=0,gui=None):
+        self.args   = args.copy()
+        self.cls    = cls
+        self.cb_ok  = cb_ok
+        self.data   = data
+        self.scroll = scroll
+        self.gui    = gui
+
+    def create(self,hidde=0):
+        cprint()
+        return [self.cls,self.cls,None] #w,obj,cb_ok
 
 class window_create_buffer():
     def __init__(self,args,cls,data,cb_ok=None,scroll=0,gui=None):
@@ -4829,6 +4845,7 @@ if __run_main:
     data.append({"text":"---"})
     data.append({"text":"FIXTURE-EDITOR","name":"FIX-EDIT"})
     data.append({"text":"CONFIG"})
+    data.append({"text":"SDL-CONFIG"})
     data.append({"text":"CLOCK"})
     data.append({"text":"---"})
 
@@ -4864,6 +4881,36 @@ if __run_main:
     
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+    def sdl_config():
+        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py " #&"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+
+    #print(dir(cls))
+    #print(cls)
+    #sys.exit()
+    name="SDL-CONFIG"
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
     if split_window_show(pos_list,_filter=name):
         window_manager.top(name)

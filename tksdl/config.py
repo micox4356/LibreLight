@@ -6,17 +6,34 @@ boot = time.time()
 import random
 import os
 import sys
-#sys.path.insert(0,os.path.realpath(os.getcwd() + '/..'))
+
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
-print(sys.path)
-print()
+#print(sys.path)
+#print()
 
+import pathlib
 
+_file_path=pathlib.Path(__file__)
+print("file:",_file_path)
+
+import tool.movewin as movewin
+count = movewin.search_process(_file_path)
+
+CAPTION = 'LibreLight Start '
+
+if count >= 2:
+    search = CAPTION[:]
+    _ids = movewin.winfo(search)
+    for _id in _ids:
+        c3  = movewin.activate(_id)
+        os.system(c3)
+    sys.exit()
 
 # ===== GUI =========
 import pygame
 import pygame.gfxdraw
 import pygame.font
+
 pg = pygame
 main_size=(600,500)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
@@ -29,8 +46,6 @@ clock = pygame.time.Clock()
 import tool.movewin as movewin
 import tool.sdl_elm as sdl_elm
 
-
-CAPTION = 'LibreLight Start '
 CAPTION += ':{}'.format(random.randint(100,999))
 
 import tool.git as git

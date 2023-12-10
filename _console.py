@@ -26,7 +26,10 @@ import zlib
 rnd_id = ""
 rnd_id += " Beta 22.02 "
 import subprocess
-rnd_id += subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+
+import tool.git as git
+rnd_id += git.get_all()
+
 
 if "__file__" in dir():
     sys.stdout.write("\x1b]2;"+str(__file__)+" "+rnd_id+"\x07") # terminal title

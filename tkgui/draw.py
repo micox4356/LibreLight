@@ -587,20 +587,27 @@ def draw_setup(gui,xframe,data):
             r+=1
             continue
         v=0
+        ok = 0
         
         if comm == "SAVE\nSHOW":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=4,height=2)
             myTip = Hovertip(b,'Strg + S ')
+            ok = 1
         elif comm == "LOAD\nSHOW" and pro_mode:
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=4,height=2)
+            ok = 1
         elif comm == "SAVE\nSHOW AS" and pro_mode:
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            ok = 1
         elif comm == "SAVE &\nRESTART":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
+            ok = 1
         elif comm == "NEW\nSHOW" and pro_mode:
             b = tk.Button(frame,bg="lightgreen", text=str(comm),width=5,height=2)
+            ok = 1
         elif comm == "DRAW\nGUI" and pro_mode:
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
+            ok = 1
         elif comm == "PRO\nMODE":
             bg="lightgrey"
             bg="yellow"
@@ -608,9 +615,11 @@ def draw_setup(gui,xframe,data):
                 bg="green"
                 comm = "EASY\nMODE"
             b = tk.Button(frame,bg=bg, text=str(comm),width=5,height=2)
+            ok = 1
 
         elif pro_mode:
             b = tk.Button(frame,bg="grey", text=str(comm),width=4,height=2)
+            ok = 1
         else: #empty
             b = tk.Button(frame,bg="grey", text="",width=4,height=2)
 
@@ -618,7 +627,8 @@ def draw_setup(gui,xframe,data):
             gui.setup_elem[comm] = b
             #gui.setup_elem.val[comm] = 0
 
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
+        if ok:
+            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
 
         if comm == "BASE:":
             b["text"] = "BASE:{}".format(prm["BASE"])

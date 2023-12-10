@@ -3,6 +3,7 @@
 import time
 import random
 import os
+import sys
 import tool.movewin as movewin
 
 # ===== GUI =========
@@ -54,57 +55,56 @@ font22 = pygame.font.SysFont("FreeSans",22)
 fr = font.render("hallo" ,1, (200,0,255))
 
 start = time.time()
-
-# init
 table = []
+
+r = 80
 i = 1
-r = 150
+
 bx = sdl_elm.Button(window,pos=[20,r,60,20])
-bx.text = "FIX:{}".format(i+1)
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
 bx.bg_on = [255,0,255]
-bx.btn1.color_on = [255,0,55]
+bx.btn1.color_on = [255,0,155]
 bx.btn1.type = "flash"
-#self.btn1.type = "flush"
 table.append(bx)
+r+=bx.get_rect()[3]
+
 i += 1
-#r+=20
+bx = sdl_elm.Button(window,pos=[20,r,80,40])
+bx.text = "FIX:{}\n<val>\nx".format(i+1)
+table.append(bx)
+r+=bx.get_rect()[3]
+
+i += 1
 r+=bx.get_rect()[3]
 bx = sdl_elm.Button(window,pos=[20,r,80,40])
-bx.text = "FIX:{}".format(i+1)
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
-#bx.bg_on = [255,0,255]
-table.append(bx)
-i += 1
-#r+=60
-r+=bx.get_rect()[3]
-bx = sdl_elm.Button(window,pos=[20,r,80,40])
-bx.text = "FIX:{}".format(i+1)
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
-#bx.bg_on = [255,0,255]
 bx.font0 = pygame.font.SysFont("freesans",20)
+bx.val.set( 100)
+bx.fader = 0
 table.append(bx)
-i += 1
-#r+=60
 r+=bx.get_rect()[3]
+
+i += 1
 bx = sdl_elm.Button(window,pos=[30,r,190,60])
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
-#bx.bg_on = [255,0,255]
 bx.font0 = pygame.font.SysFont("freesans",20)
 bx.btn1.type = "flash"
 table.append(bx)
-i += 1
 r+=bx.get_rect()[3]
+
+i += 1
 bx = sdl_elm.Button(window,pos=[20,r,60,20])
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
-#bx.bg_on = [255,0,255]
 bx.font0 = pygame.font.SysFont("freesans",12)
 table.append(bx)
 
-while 1:
+mouse_down = 0
+mouse_pos1 = [0,0]
+mouse_pos2 = [0,0]
+mouse_grab = []
 
+while 1:
     pygame.display.flip()
-    #event()
     pos = [160,10,70,60]
     rgb = (0xdd,0xdd,0xdd,0)
     rgb = (0xaa,0xaa,0xaa,0)
@@ -128,8 +128,11 @@ while 1:
     rgb = (0x00,0x00,0x00,0)
     fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
     window.blit(fr,pos[:2])
-
-
+    
+    pos = [160,200,80,20]
+    #fd = sdl_elm.Fader(window,pos)
+    #fd.draw()
+    
     pos = [160,90,70+80,20]
     pygame.draw.rect(window,rgb,pos)
     b= int(t*10)
@@ -151,6 +154,12 @@ while 1:
 
     resize_changed = 0
     for event in pygame.event.get(): 
+         
+        if "scancode" in event.dict:
+            if event.scancode == 9:
+                for t in table:
+                    t.btn2.clean()
+
         print("event",event)
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -164,5 +173,41 @@ while 1:
         for t in table:
             t.event(event)
 
+        if "pos" in event.dict:
+            if "button" in event.dict:
+                if event.type == 5:#press
+                    mouse_down = 1
+                    mouse_pos1 = [event.pos[0],event.pos[1]]
+                if event.type == 6:#release
+                    mouse_down = 0
+
+                for btn in mouse_grab:
+                    btn.btn2.val = 1
+                mouse_grab = []
+            mouse_pos2 = [event.pos[0],event.pos[1]]
+
+    
+    if mouse_down:
+        d1 = mouse_pos1[0]-mouse_pos2[0]
+        d2 = mouse_pos1[1]-mouse_pos2[1] 
+        pix = 23
+        #print(d1,d2)
+        if ( d1 > pix or d1 < -pix)  or  ( d2 >pix or d2 < -pix):
+
+            sdl_elm.draw_mouse_box(window,mouse_pos1,mouse_pos2)
+            for t in table:
+                pos = t.get_rect()
+
+                mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
+
+                if sdl_elm.check_area2(pos,mpos):
+                    t._set_mouse_focus(1)
+                    mouse_grab.append(t)
+                else:
+                    t._set_mouse_focus(0)
+
     if resize_changed:# = True
         screen = pygame.display.set_mode(scrsize,pg.RESIZABLE)
+
+
+

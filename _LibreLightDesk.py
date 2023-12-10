@@ -23,6 +23,7 @@ import subprocess
 import string
 import copy
 import traceback
+import tool.movewin as movewin
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
@@ -3049,7 +3050,8 @@ class LOAD_SHOW_AND_RESTAT():
         print("fork",[BASE_PATH,cmd,arg])
         if "--easy" in sys.argv:
             arg = "--easy"
-        #time.sleep(1)
+        
+        movewin.process_kill(BASE_PATH+"tksdl/")
         os.execl("/usr/bin/python3", BASE_PATH, cmd,arg)
         sys.exit()
                 
@@ -4601,7 +4603,8 @@ class WindowManager():
             self.create(name)
         
         w = self.windows[name]
-        print(" 2.1-",w,str(type(w)))
+        #def get_lineno():
+        print(" 2.1- ln",movewin.get_lineno(),w,str(type(w)))
         if type(w) is type(window_create_buffer):
             w.tk.attributes('-topmost',True)
             w.tk.attributes('-topmost',False)
@@ -5175,5 +5178,7 @@ if __run_main:
     try:
         window_manager.mainloop()
     finally:
+        BASE_PATH = "/opt/LibreLight/Xdesk/"
+        movewin.process_kill(BASE_PATH+"tksdl/")
         master.exit()
 

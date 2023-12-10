@@ -18,10 +18,10 @@ _file_path=pathlib.Path(__file__)
 print("file:",_file_path)
 
 import tool.movewin as movewin
-count = movewin.search_process(_file_path)
+pids = movewin.search_process(_file_path)
 
 CAPTION = 'LibreLight Start XX'
-if count >= 2:
+if len(pids) >= 2:
     search = CAPTION[:]
     _ids = movewin.winfo(search)
     for _id in _ids:

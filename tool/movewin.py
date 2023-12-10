@@ -40,10 +40,11 @@ def system(cmd):
     print(cmd)
     os.system(cmd)
 
-def search_process(_file_path):
+def search_process(_file_path,exact=1):
     print("search_process",_file_path)
     pids = psutil.pids()
     count = 0
+    out = []
     for pid in pids:
         p = psutil.Process(pid)
         ps = p.cmdline()
@@ -54,12 +55,42 @@ def search_process(_file_path):
         if "python" not in ps[0]:
             continue
 
-        #print(" ",[ps[1]])
-        if str(_file_path) == str(ps[1]):
-            print(ps)
-            count += 1
+        print(" ",[ps[1]])
+        print("exact_search",exact)
+        if exact:
+            if str(_file_path) == str(ps[1]):
+                print(ps)
+                count += 1
+                out.append(pid)
+        else:
+            if str(_file_path) in str(ps[1]):
+                print(ps)
+                count += 1
+                out.append(pid)
+
     print("search_process",count)
-    return count
+    return out
+
+def process_kill(path):
+    pids = search_process(path,exact=0)
+    for pid in pids:
+        print("process_kill:",pid)
+        p = psutil.Process(pid)   
+        #p.name()
+        #p.cmdline()
+        p.terminate()
+        p.wait()
+
+import inspect
+def get_lineno():
+  callerframerecord = inspect.stack()[1]    # 0 represents this line
+                                            # 1 represents line at caller
+  frame = callerframerecord[0]
+  info = inspect.getframeinfo(frame)
+  #print(info.filename)                      # __FILE__     -> Test.py
+  #print(info.function)                      # __FUNCTION__ -> Main
+  #print(info.lineno)                        # __LINE__     -> 13
+  return info.lineno
 
 if __name__ == "__main__":
     print("# python3 movewin.py window-title x y")

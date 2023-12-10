@@ -54,13 +54,33 @@ class ELEM_KILLGROUP():
             i.clear()
         #elm.set(v)
         return v
-        
+
+class CALLBACK():
+    def __init__(self):
+        self._cb  = self.dummy
+        self.ok = 0
+    def cb(self,*args):
+        if self.ok:
+            print("CALLBACK.cb",args)
+            #try:
+            self._cb(args)
+            #except Exception as e:
+            #    print(" Exception CALLBACK.cb",args)
+    def dummy(self,arg):
+        print("CALLBACK.dummy",arg)
+    def set(self,cb):
+        self._cb = cb
+        self.ok = 1
+        print("CALLBACK",cb)
+
 
 class ELEM_BUF():
     def __init__(self,kill=None,name="ELEM_BUF"):
         self.val = VALUE() #0
         self.increment = 10 
         self.name = name
+        self.cb_on  = CALLBACK()
+        self.cb_off = CALLBACK()
         self.nr_on  = [0]
         self.nr_off = [0]
         self.color = [0,255,0]
@@ -83,7 +103,7 @@ class ELEM_BUF():
         print([self.name,self.type,self.val.get()])
         if self.type == "fader":
             self.inc(self.increment)
-            return
+
         if self.type == "toggle":
             if self.val.get():
                 self.val.set(0)
@@ -92,6 +112,8 @@ class ELEM_BUF():
 
         if self.type == "flash":
             self.val.set(1)
+
+        self.cb_on.cb("ho")
 
     def release(self):
         if self.type == "fader":
@@ -237,7 +259,7 @@ class Button():
         self.text2 = []
 
     def check(self):
-        if 10:#dbg:
+        if 0:#dbg:
             self.text2 = []
             #self.text2.append(self.val)
             b = []

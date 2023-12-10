@@ -359,11 +359,12 @@ import sys
 sys.path.insert(0,"tool")
 #import tool.movewin
 import movewin
-_id = movewin.winfo(CAPTION)
-c1 = movewin.movewin(_id,200,50)
-os.system(c1)
-c1 = movewin.activate(_id)
-os.system(c1)
+_ids = movewin.winfo(CAPTION)
+for _id in _ids:
+    c1 = movewin.movewin(_id,200,50)
+    os.system(c1)
+    c1 = movewin.activate(_id)
+    os.system(c1)
 #exit()
 
 def main():

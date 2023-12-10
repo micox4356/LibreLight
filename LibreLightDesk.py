@@ -11,6 +11,24 @@ sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 print(sys.path)
 print()
 
+
+import pathlib
+
+_file_path=pathlib.Path(__file__)
+print("file:",_file_path)
+
+import tool.movewin as movewin
+count = movewin.search_process(_file_path)
+
+CAPTION = 'LibreLight Start XX'
+if count >= 2:
+    search = CAPTION[:]
+    _ids = movewin.winfo(search)
+    for _id in _ids:
+        c3  = movewin.activate(_id)
+        os.system(c3)
+    sys.exit()
+
 from lib.xcolor import *
 
 
@@ -33,32 +51,16 @@ import tool.sdl_elm as sdl_elm
 
 CAPTION = 'LibreLight Start '
 CAPTION += ':{}'.format(random.randint(100,999))
-#try:
-try:
-    _gcmd=r'git log -1 --format=%ci'
-    r = os.popen(_gcmd)
-    txt=r.read()
-    print(txt)
-    CAPTION += " " + txt.strip().split()[0]
-except Exception as e:
-    print(e)
-    CAPTION += " no-date" 
 
-try:
-    _gcmd='git rev-parse --short HEAD'
-    r=os.popen(_gcmd)
-    txt=r.read()
-    CAPTION += " v:"+txt.strip()
-except Exception as e:
-    print(e)
-    CAPTION += " no git" 
+import tool.git as git
+CAPTION += git.get_all()
 
-
-_id = movewin.winfo(CAPTION)
-c1 = movewin.movewin(_id,200,50)
-os.system(c1)
-c1 = movewin.activate(_id)
-os.system(c1)
+if 0:
+    _id = movewin.winfo(CAPTION)
+    c1 = movewin.movewin(_id,200,50)
+    os.system(c1)
+    c1 = movewin.activate(_id)
+    os.system(c1)
 
 pg.display.set_caption(CAPTION)
 

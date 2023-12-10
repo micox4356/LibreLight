@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import psutil
 
 # python3 movewin.py window-title x y
 # python3 movewin.py COMMA 723 943
@@ -14,9 +15,9 @@ def winfo(name="WinfoWinName"):
 
     r = os.popen(cmd)
     lines = r.readlines()
-    _id = "xxxx"
+    _id = [] #"xxxx"
     if lines and lines[0]:
-        _id = lines[0].split()[0]
+        _id.append( lines[0].split()[0] )
     print("ID:",_id)
     for line in lines:
         line = line.strip()
@@ -39,6 +40,26 @@ def system(cmd):
     print(cmd)
     os.system(cmd)
 
+def search_process(_file_path):
+    print("search_process",_file_path)
+    pids = psutil.pids()
+    count = 0
+    for pid in pids:
+        p = psutil.Process(pid)
+        ps = p.cmdline()
+
+        if len(ps) < 2:
+            continue
+
+        if "python" not in ps[0]:
+            continue
+
+        #print(" ",[ps[1]])
+        if str(_file_path) == str(ps[1]):
+            print(ps)
+            count += 1
+    print("search_process",count)
+    return count
 
 if __name__ == "__main__":
     print("# python3 movewin.py window-title x y")
@@ -61,13 +82,15 @@ if __name__ == "__main__":
     try:
         b = sys.argv[3]
     except:pass
-    _id = winfo(search)
-    c1 = sizewin(_id,a,b)
-    c2 = movewin(_id,a,b)
-    c3 = activate(_id)
-    system(c1)
-    time.sleep(0.1)
-    system(c2)
-    time.sleep(0.1)
-    system(c3)
+
+    _ids = winfo(search)
+    for _id in _ids:
+        c1 = sizewin(_id,a,b)
+        c2 = movewin(_id,a,b)
+        c3 = activate(_id)
+        system(c1)
+        time.sleep(0.1)
+        system(c2)
+        time.sleep(0.1)
+        system(c3)
 

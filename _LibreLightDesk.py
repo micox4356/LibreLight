@@ -79,6 +79,31 @@ INIT_OK = 0
 _global_short_key = 1
 
 
+path = "/home/user/LibreLight/"
+#os.chdir(path)
+if "--easy" in sys.argv:
+    f = open(path+"init.txt","a")
+    f.write("EASY\n")
+    f.close()
+    if not os.path.isdir(path+"show/EASY"):
+        cmd = "cp -vrf '/opt/LibreLight/Xdesk/home/LibreLight/show/EASY' '{}/show/EASY' ".format(path)
+        print(cmd)
+        #input()
+        os.system(cmd)
+    # check if EASY show exist !
+else:
+    f = open(path+"init.txt","r")
+    lines=f.readlines()
+    f.close()
+    out = []
+    for line in lines:
+        if line != "EASY\n":
+            out.append(line)
+    f = open(path+"init.txt","w")
+    f.writelines(out)
+    f.close()
+
+
 icolor = 1
 def cprint(*text,color="blue",space=" ",end="\n"):
     #return 0 #disable print dbg
@@ -1526,6 +1551,10 @@ def read_window_position():
                 elif line.count(" ") == 1:
                     name,geo = line.split(" ",1)
                     show = 1
+
+                if "--easy" in sys.argv:
+                    if name not in ["MAIN","EXEC","SETUP"]:
+                        show=0
             out.append([show,name,geo])
 
         return out
@@ -1631,27 +1660,26 @@ class Xevent():
         self.elem = elem
         self.mode = mode
 
+    def _save_show(self):
+        self.elem["bg"] = "orange"
+        self.elem["text"] = "SAVING..."
+        self.elem["bg"] = "red"
+        self.elem.config(activebackground="orange")
+        modes.val(self.attr,1)
+        PRESETS.backup_presets()
+        FIXTURES.backup_patch()
+        save_window_position()
+        self.elem["bg"] = "lightgrey"
+        self.elem.config(activebackground="lightgrey")
+        b = BLINKI(self.elem)
+        b.blink()
+        self.elem["text"] = "SAVE\nSHOW"
 
     def setup(self,event):       
         cprint("xevent.SETUP",[self.mode,self.attr],color="red")
         if self.mode == "SETUP":
             if self.attr == "SAVE\nSHOW":
-                self.elem["bg"] = "orange"
-                self.elem["text"] = "SAVING..."
-                self.elem["bg"] = "red"
-                self.elem.config(activebackground="orange")
-                modes.val(self.attr,1)
-                PRESETS.backup_presets()
-                FIXTURES.backup_patch()
-                save_window_position()
-                #time.sleep(1)
-                #modes.val(self.attr,0)
-                self.elem["bg"] = "lightgrey"
-                #self.elem["fg"] = "lightgrey"
-                self.elem.config(activebackground="lightgrey")
-                b = BLINKI(self.elem)
-                b.blink()
-                self.elem["text"] = "SAVE\nSHOW"
+                self._save_show()
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
                 base = Base()
@@ -1666,19 +1694,11 @@ class Xevent():
                         if self.name != "<exit>":
                             cprint("-----------------------:")
                             LOAD_SHOW_AND_RESTAT(self.name).cb()
-                        #self.elem["bg"] = "lightgrey"
-                        #self.elem.config(activebackground="lightgrey")
 
                 pw = PopupList(name,cb=cb)
+                print(line1,line2)
                 frame = pw.sframe(line1=line1,line2=line2)
-                #r = _load_show_list(frame,cb=cb)
                 r = frame_of_show_list(frame,cb=cb)
-
-    
-                #self.elem["bg"] = "red"# "lightgrey"
-                #self.elem.config(activebackground="red")
-                #self.elem.config(activebackground="lightgrey")
-                #w.tk.attributes('-topmost',False)
             elif self.attr == "NEW\nSHOW":
                 base = Base()
 
@@ -1732,32 +1752,25 @@ class Xevent():
 
                 save_window_position()
                 self.elem["text"] = "RESTARTING..."
-                #time.sleep(1)
-                #modes.val(self.attr,0)
                 self.elem["bg"] = "lightgrey"
-                #self.elem["fg"] = "lightgrey"
                 self.elem.config(activebackground="lightgrey")
                 LOAD_SHOW_AND_RESTAT("").cb(force=1)
             elif self.attr == "DRAW\nGUI":
-                #self.elem["bg"] = "orange"
                 old_text = self.elem["text"]
-                #self.elem["text"] = "DRAWING..."
-                #self.elem["bg"] = "red"
-                #time.sleep(0.05)
-                #print("redraw",name)
-                #if name == "PATCH":
-                #    gui_patch.draw()
-                #if name == "DIMMER":
-                #    gui_fix.draw()
-                #self.elem["text"] = "PATCH..."
-                #self.elem["text"] = "PATCH..."
                 window_manager.top("PATCH")
                 gui_patch.draw(FIXTURES)
-                #self.elem["text"] = "FIX..."
                 gui_fix.draw(FIXTURES)
                 window_manager.top("FIXTURES")
                 master._refresh_exec()
                 self.elem["text"] = old_text  
+            elif self.attr == "PRO\nMODE":
+                self._save_show()
+                import lib.restart as restart
+                restart.pro()
+            elif self.attr == "EASY\nMODE":
+                self._save_show()
+                import lib.restart as restart
+                restart.easy()
             else:
                 r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
@@ -2121,6 +2134,8 @@ def _listdir(show_path):
     show_list =  list(os.listdir( show_path ))
     out = []
     for fname in show_list:
+        if fname == "EASY": #hidde EASY show in list !
+            continue
         #print(fname)
         ctime = os.path.getmtime(show_path+fname)
         ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
@@ -2237,7 +2252,7 @@ class Base():
     def _load(self,filename):
         xpath = self.show_path+"/"+str(filename)+".sav"
         if not os.path.isfile(xpath):
-            msg = "Exception: {}".format(e)
+            msg = ""#"Exception: {}".format(e)
             msg += "\n\ncheck\n-init.txt"
             cprint(msg,color="red")
             showwarning(msg=msg,title="load Error")
@@ -2447,7 +2462,7 @@ class MASTER():
         self.elem_attr = {}
         
         self.setup_elem = {} # Elem_Container()
-        self.setup_cmd  = ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]
+        self.setup_cmd  = ["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI","PRO\nMODE"]
 
         self.fx_moves = Elem_Container()
         self.fx_moves.commands =["REC-FX","FX OFF","\n"
@@ -3040,8 +3055,14 @@ class LOAD_SHOW_AND_RESTAT():
 
         cprint("LOAD SHOW:",event,self.fname)
 
-        cprint(sys.executable, os.path.abspath(__file__), *sys.argv)
-        os.execl("/usr/bin/python3", "/opt/LibreLight/Xdesk/_LibreLightDesk.py", "_LibreLightDesk.py")
+        BASE_PATH = "/opt/LibreLight/Xdesk/"
+        cmd="_LibreLightDesk.py"
+        arg = ""
+        print("fork",[BASE_PATH,cmd,arg])
+        if "--easy" in sys.argv:
+            arg = "--easy"
+        #time.sleep(1)
+        os.execl("/usr/bin/python3", BASE_PATH, cmd,arg)
         sys.exit()
                 
 class PopupList():
@@ -4970,8 +4991,12 @@ if __run_main:
         window_manager.top(name)
 
     name = "SETUP"
-    args = {"title":name +" SHOW:"+master.base.show_name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
+    args = {"title":name +" SHOW:"+master.base.show_name,
+                "master":0,"width":435,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
     args["title"]  = "SETUP SHOW:"+master.base.show_name
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
     cls = draw_setup #(master,w.tk)
     data = []
@@ -4985,6 +5010,9 @@ if __run_main:
 
     name = "COMMAND"
     args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":0}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     cls = draw_command #(master,w.tk)
     data = []
     cb_ok = None
@@ -4996,6 +5024,9 @@ if __run_main:
 
     name = "LIVE"
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":0}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     cls = draw_live #(master,w.tk)
     data = []
     cb_ok = None
@@ -5007,6 +5038,9 @@ if __run_main:
 
     name = "CLOCK"
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
     cclock = X_CLOCK()
     cls = cclock.draw_clock 
     data = []
@@ -5084,7 +5118,8 @@ if __run_main:
 
 
 
-    load_window_position()
+    #if "--easy" in sys.argv:
+    #load_window_position()
 
 
 

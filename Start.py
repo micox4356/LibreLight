@@ -11,6 +11,7 @@ sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 print(sys.path)
 print()
 
+from lib.xcolor import *
 
 
 # ===== GUI =========
@@ -18,7 +19,7 @@ import pygame
 import pygame.gfxdraw
 import pygame.font
 pg = pygame
-main_size=(600,500)
+main_size=(550,400)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
 
 pg = pygame
@@ -67,7 +68,7 @@ font   = pygame.font.SysFont("freemonobold",22)
 font10 = pygame.font.SysFont("freemonobold",10)
 font12 = pygame.font.SysFont("freemonobold",12)
 font15 = pygame.font.SysFont("freemonobold",15)
-font22 = pygame.font.SysFont("FreeSans",22)
+font22 = pygame.font.SysFont("FreeSans-bold",42)
 #font  = pygame.font.SysFont(None,30)
 
 fr = font.render("hallo" ,1, (200,0,255))
@@ -75,46 +76,40 @@ fr = font.render("hallo" ,1, (200,0,255))
 start = time.time()
 table = []
 
-r = 80
-i = 1
+x = 80
+y = 120
+import os
+import lib.fork as fork
+BASE_PATH = "/opt/LibreLight/Xdesk/"
 
-bx = sdl_elm.Button(window,pos=[20,r,80,40])
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.bg_on = [255,0,255]
-bx.btn1.color_on = [255,0,155]
-bx.btn1.type = "flash"
-table.append(bx)
-r+=bx.get_rect()[3]
+                
+import lib.restart as restart
 
-i += 1
-bx = sdl_elm.Button(window,pos=[20,r,80,40])
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
+def exit(args):
+    pygame.quit()
+    sys.exit()
+bx = sdl_elm.Button(window,pos=[x,y,400,60])
+bx.text = "       EASY" 
+bx.font0 = pygame.font.SysFont("freesans-bold",85)
+bx.btn1.color = GREEN
+bx.btn1.cb_on.set(restart.easy)
 table.append(bx)
-r+=bx.get_rect()[3]
+y+=bx.get_rect()[3]+20
 
-i += 1
-r+=bx.get_rect()[3]
-bx = sdl_elm.Button(window,pos=[20,r,80,40])
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans",20)
-bx.btn4.val.set( 100)
-bx.fader = 0
+bx = sdl_elm.Button(window,pos=[x,y,400,60])
+bx.text = "        PRO" 
+bx.btn1.color = GOLD
+bx.btn1.cb_on.set(restart.pro)
+bx.font0 = pygame.font.SysFont("freesans-bold",85)
 table.append(bx)
-r+=bx.get_rect()[3]
+y+=bx.get_rect()[3]+30
 
-i += 1
-bx = sdl_elm.Button(window,pos=[30,r,190,60])
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans-bold",20)
-bx.btn1.type = "flash"
+bx = sdl_elm.Button(window,pos=[x,y,400,60])
+bx.text = "        Exit"
+bx.btn1.cb_on.set(exit)
+bx.font0 = pygame.font.SysFont("freesans-bold",80)
 table.append(bx)
-r+=bx.get_rect()[3]
 
-i += 1
-bx = sdl_elm.Button(window,pos=[20,r,60,20])
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans",12)
-table.append(bx)
 
 mouse_down = 0
 mouse_pos1 = [0,0]
@@ -142,43 +137,13 @@ while 1:
     pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
     fr = font22.render("FPS:"+str(fps_old)  ,1, (200,200,200))
-    window.blit(fr,(10,10 ))
-
-    fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
-    window.blit(fr,(10,30 ))
-
-    pos = [160,110,70+80,20]
-    pygame.draw.rect(window,rgb,pos)
-
-    t=(time.time()-start)
-    if t > 15:
-        start = time.time()
-    b= 80-int(t*10)
-    pos = [160,110,70+(b),20]
-    rgb = (0x00,0xff,0xff,0)
-    pygame.draw.rect(window,rgb,pos)
-    rgb = (0x00,0x00,0x00,0)
-    fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-    window.blit(fr,pos[:2])
-    
-    pos = [160,200,80,20]
-    #fd = sdl_elm.Fader(window,pos)
-    #fd.draw()
-    
-    pos = [160,90,70+80,20]
-    pygame.draw.rect(window,rgb,pos)
-    b= int(t*10)
-    pos = [160,90,0+(b),20]
-    rgb = (0x00,0xff,0xff,0)
-    pygame.draw.rect(window,rgb,pos)
-    rgb = (0x00,0x00,0x00,0)
-    fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-    window.blit(fr,pos[:2])
+    #window.blit(fr,(10,10 ))
+    fr = font22.render("           Lichtsteuerung"  ,1, (255,255,0))
+    window.blit(fr,(80,20 ))
 
 
-    rgb = (0xaa,0xaa,0xaa,0)
-    fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-    window.blit(fr,(500,500))
+    fr = font22.render("           Modus wählen ! "  ,1, (255,255,0))
+    window.blit(fr,(80,60 ))
 
     for t in table:
         t.draw()

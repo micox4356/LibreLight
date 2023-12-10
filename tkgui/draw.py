@@ -573,15 +573,15 @@ def draw_setup(gui,xframe,data):
     frame = tk.Frame(frame_cmd,bg="black")
     frame.pack(fill=tk.X, side=tk.LEFT)
    
-    #b = tk.Button(frame,bg="lightblue", text="SETUP",width=6)
-    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-    
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #r+=1
     c+=1
+
+    pro_mode=1
+    if "--easy" in sys.argv:
+        pro_mode=0
+
     gui.setup_elem  = {}
     comms = gui.setup_cmd # = Elem_Container()
-    for comm in comms: #["SAVE\nSHOW","LOAD\nSHOW","NEW\nSHOW","SAVE\nSHOW AS","SAVE &\nRESTART","DRAW\nGUI"]:
+    for comm in comms: 
         if comm == "\n":
             c=0
             r+=1
@@ -589,20 +589,30 @@ def draw_setup(gui,xframe,data):
         v=0
         
         if comm == "SAVE\nSHOW":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=4,height=2)
             myTip = Hovertip(b,'Strg + S ')
-        elif comm == "LOAD\nSHOW":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
-        elif comm == "SAVE\nSHOW AS":
+        elif comm == "LOAD\nSHOW" and pro_mode:
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=4,height=2)
+        elif comm == "SAVE\nSHOW AS" and pro_mode:
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
         elif comm == "SAVE &\nRESTART":
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        elif comm == "NEW\nSHOW":
-            b = tk.Button(frame,bg="lightgreen", text=str(comm),width=6,height=2)
+        elif comm == "NEW\nSHOW" and pro_mode:
+            b = tk.Button(frame,bg="lightgreen", text=str(comm),width=5,height=2)
         elif comm == "DRAW\nGUI":
-            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        else:
-            b = tk.Button(frame,bg="grey", text=str(comm),width=5,height=2)
+            b = tk.Button(frame,bg="lightgrey", text=str(comm),width=5,height=2)
+        elif comm == "PRO\nMODE":
+            bg="lightgrey"
+            bg="yellow"
+            if pro_mode:
+                bg="green"
+                comm = "EASY\nMODE"
+            b = tk.Button(frame,bg=bg, text=str(comm),width=5,height=2)
+
+        elif pro_mode:
+            b = tk.Button(frame,bg="grey", text=str(comm),width=4,height=2)
+        else: #empty
+            b = tk.Button(frame,bg="grey", text="",width=4,height=2)
 
         if comm not in gui.commands.elem:
             gui.setup_elem[comm] = b
@@ -615,11 +625,12 @@ def draw_setup(gui,xframe,data):
         if comm:
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        if c >=7:
+        if c >=17:
             c=0
             r+=1
 
-
+    c+=1
+    r=0
 
 
 

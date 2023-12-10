@@ -2,6 +2,7 @@
 import pygame
 import pygame.gfxdraw
 import pygame.font
+from lib.xcolor import *
 
 font0 = pygame.font.SysFont("freesans",10)
 
@@ -15,26 +16,29 @@ font22 = pygame.font.SysFont("FreeSans",22)
 
 
 class VALUE():
-    def __init__(self,v,_min=0,_max=255):
+    def __init__(self,v=0,_min=0,_max=255):
         self._val = v
         self._max = _max
         self._min = _min
-    def set(self,val):
-        if val <= self._max and val >= self._min:
-            self._val = val
+
     def _check(self):
         if self._val > self._max:
             self._val = self._max
         if self._val < self._min:
             self._val = self._min
 
+    def get(self):
+        self._check()
+        return self._val
+
+    def set(self,val):
+        if val <= self._max and val >= self._min:
+            self._val = val
+
     def inc(self,v):
         self._val += v
         self._check()
 
-    def get(self):
-        self._check()
-        return self._val
 
 class ELEM_KILLGROUP():
     def __init__(self):
@@ -53,37 +57,51 @@ class ELEM_KILLGROUP():
         
 
 class ELEM_BUF():
-    def __init__(self,kill=None):
-        self.val = 0
+    def __init__(self,kill=None,name="ELEM_BUF"):
+        self.val = VALUE() #0
+        self.increment = 10 
+        self.name = name
+        self.nr_on  = [0]
+        self.nr_off = [0]
         self.color = [0,255,0]
         self.color_on = [255,255,0]
-        self.type="flash" #"toggle" #"flash"
+        self.type="flash" #"toggle" #"flash",fade
         self.killgroup = kill 
 
     def get(self):
-        return self.val
+        return self.val.get()
 
     def get_color(self):
-        if self.val:
+        if self.val.get():
             return self.color_on
         return self.color
 
     def clean(self):
-        self.val = 0
+        self.val.set(0)
 
     def press(self):
+        print([self.name,self.type,self.val.get()])
+        if self.type == "fader":
+            self.inc(self.increment)
+            return
         if self.type == "toggle":
-            if self.val:
-                self.val = 0
+            if self.val.get():
+                self.val.set(0)
             else:
-                self.val = 1
+                self.val.set(1)
 
         if self.type == "flash":
-            self.val = 1
+            self.val.set(1)
 
     def release(self):
+        if self.type == "fader":
+            self.inc(-self.increment)
+            return
         if self.type == "flash":
-            self.val = 0
+            self.val.set(0)
+
+    def inc(self,v):
+        self.val.inc(v)
 
 class Layout():
     def __init__(self,master):
@@ -163,30 +181,51 @@ def check_area2(R1,R2): #pos,mouse_box
         print("area2",x,y)
         return 1 
 
+
 class Button():
     def __init__(self,window,pos):
         self.window = window
         self.event_pos = [0,0]
-        self.font0 = pygame.font.SysFont("freesans",10)
+        self.font0 = pygame.font.SysFont("freesans-bold",16)
         self.w = 20
         self.h = 10
         self.pos = pos
         self.fader = 1
 
-        self.btn1 = ELEM_BUF() # btn (background)
-        self.btn1.color = [140,140,140]
-        self.btn1.color_on = [255,0,0]
+        self.btn1 = ELEM_BUF() 
+        self.btn1.name = "BUTTON BUF"
+        self.btn1.nr_on  = [1,3]
+        self.btn1.nr_off = [1,3]
+        self.btn1.color = LIGHTGRAY 
+        self.btn1.color_on = RED 
 
-        self.btn2 = ELEM_BUF() # sel
-        self.btn2.color = [120,120,120]
-        self.btn2.type ="toggle"
+        self.btn2 = ELEM_BUF() # sel elem
+        self.btn2.name = "SELECT BUF"
+        self.btn2.nr_on  = [2]
+        self.btn2.nr_off = [0]
+        self.btn2.color = GRAY 
+        self.btn2.color_on = YELLOW
+        self.btn2.type = "toggle"
 
-        self.btn3 = ELEM_BUF() # mouse focus
-        self.btn3.color = [100,100,100]
-        self.btn3.color_on = [200,200,200]
+        self.btn3 = ELEM_BUF() 
+        self.btn3.name = "MOUSE FOCUS"
+        self.btn3.color = GRAY 
+        self.btn3.color_on = WHITHE
 
-        self.val = VALUE(0,0,256)
-        self.val_inc = 4.4 #10
+        self.btn4 = ELEM_BUF() 
+        self.btn4.name = "MOUSE ECODER"
+        self.btn4.increment = 4.4
+        self.btn4.type = "fader"
+        self.btn4.nr_on  = [4]
+        self.btn4.nr_off = [5]
+        self.btn4.color = GRAY 
+        self.btn4.color_on = WHITHE
+
+        self.btns = []
+        self.btns.append(self.btn1)
+        self.btns.append(self.btn2)
+        self.btns.append(self.btn3)
+        self.btns.append(self.btn4)
 
         self.__layout = Layout(self)
         self.pack = self.__layout.pack
@@ -198,10 +237,13 @@ class Button():
         self.text2 = []
 
     def check(self):
-        if 0:#dbg:
+        if 10:#dbg:
             self.text2 = []
             #self.text2.append(self.val)
-            self.text2.append([self.btn1.get(),self.btn2.get(),self.btn3.get()])
+            b = []
+            for btn in self.btns:
+                b.append(btn.get())
+            self.text2.append(b)
             self.text2.append(self.btn1.type)
 
         self._check_event()
@@ -247,7 +289,7 @@ class Button():
     def _draw_fader(self):
         rgb = [0,200,0]
         pos2 = self.pos[:]
-        v = self.val.get()
+        v = self.btn4.val.get() #self.val.get()
         fh = get_font_hight(self.font0)
         if self.fader:
             pos2[1] += 2 #fh+2
@@ -263,7 +305,7 @@ class Button():
 
         a = pos[0]+4
         r = pos[1]+4
-        v = "{:4.02f}".format(self.val.get()) 
+        v = "{:4.02f}".format(self.btn4.val.get()) 
 
         lines = self.text.split("\n")
         lines.extend(self.text2)
@@ -290,7 +332,7 @@ class Button():
 
     def _check_event(self):
         pass
-    def _draw_bd(self,delta=0,color=[0,0,0]):
+    def _draw_bd(self,delta=0,color=BLACK):
         l_pos = draw_bd(pos=self.pos,delta=delta)
         for i in l_pos:
             pygame.draw.aaline(self.window,color,i[0],i[1],1)
@@ -315,23 +357,12 @@ class Button():
 
                 e = [event.button,mode]
                 print("e",e)
-
-                if e[0] in [1,3] and e[1] == "press":
-                    self.btn1.press()
-                if e[0] in [1,3] and e[1] == "release":
-                    self.btn1.release()
-
-                if e[0] in [2] and e[1] == "press":
-                        self.btn2.press()
-                if e[0] in [2] and e[1] == "release":
-                        self.btn2.release()
-
-                if e[0] in [4]: #mouse encoder 
-                    self.val.inc(self.val_inc)
-                if e[0] in [5]: #mouse encoder 
-                    self.val.inc(-self.val_inc)
-
-
+                
+                for btn in self.btns: 
+                    if e[0] in btn.nr_on  and e[1] == "press":
+                        btn.press()
+                    if e[0] in btn.nr_off and e[1] == "release":
+                        btn.release()
 
 
 def draw_mouse_box(window,pos1,pos2,color=[128,128,128],text=1):

@@ -19,7 +19,7 @@ print("file:",_file_path)
 import tool.movewin as movewin
 pids = movewin.search_process(_file_path)
 
-CAPTION = 'LibreLight Start '
+CAPTION = 'LibreLight SDL-CONFIG '
 
 if len(pids) >= 2:
     search = CAPTION[:]
@@ -97,26 +97,26 @@ i += 1
 r+=bx.get_rect()[3]
 bx = sdl_elm.Button(window,pos=[20,r,80,40])
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans",20)
+#bx.font0 = pygame.font.SysFont("freesans",20)
 bx.btn4.val.set( 100)
 bx.fader = 0
 table.append(bx)
 r+=bx.get_rect()[3]
 
 i += 1
-bx = sdl_elm.Button(window,pos=[30,r,190,60])
+bx = sdl_elm.Button(window,pos=[20,r,80,60])
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans-bold",20)
+#bx.font0 = pygame.font.SysFont("freesans-bold",20)
 bx.btn1.type = "flash"
 table.append(bx)
 r+=bx.get_rect()[3]
 
 i += 1
-bx = sdl_elm.Button(window,pos=[20,r,60,20])
+bx = sdl_elm.Button(window,pos=[20,r,80,20])
 bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans",12)
+#bx.font0 = pygame.font.SysFont("freesans",12)
 table.append(bx)
-
+table = []
 mouse_down = 0
 mouse_pos1 = [0,0]
 mouse_pos2 = [0,0]
@@ -125,6 +125,28 @@ print(int((time.time()-boot)*10),"loop...")
 fps_t = time.time()
 fps = 0
 fps_old = 0
+
+
+
+
+import _thread as thread
+try:
+    import remote.apcmini as apcmini
+    apc_main = apcmini.MAIN()
+    thread.start_new_thread(apc_main.loop,())
+    time.sleep(1)
+except Exception as e:
+    print("MIDI INI",e)
+
+
+#while 1:
+#    if apc_main.buf:
+#        buf = apc_main.buf[:]
+#        apc_main.buf = []
+#        for m in buf:
+#            print("-> midi:",m)
+
+buf = []
 while 1:
     fps +=1
     t = time.time()
@@ -145,41 +167,60 @@ while 1:
     fr = font22.render("FPS:"+str(fps_old)  ,1, (200,200,200))
     window.blit(fr,(10,10 ))
 
-    fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
-    window.blit(fr,(10,30 ))
-
-    pos = [160,110,70+80,20]
-    pygame.draw.rect(window,rgb,pos)
-
-    t=(time.time()-start)
-    if t > 15:
-        start = time.time()
-    b= 80-int(t*10)
-    pos = [160,110,70+(b),20]
-    rgb = (0x00,0xff,0xff,0)
-    pygame.draw.rect(window,rgb,pos)
-    rgb = (0x00,0x00,0x00,0)
-    fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-    window.blit(fr,pos[:2])
-    
-    pos = [160,200,80,20]
-    #fd = sdl_elm.Fader(window,pos)
-    #fd.draw()
-    
-    pos = [160,90,70+80,20]
-    pygame.draw.rect(window,rgb,pos)
-    b= int(t*10)
-    pos = [160,90,0+(b),20]
-    rgb = (0x00,0xff,0xff,0)
-    pygame.draw.rect(window,rgb,pos)
-    rgb = (0x00,0x00,0x00,0)
-    fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-    window.blit(fr,pos[:2])
+    fr = font22.render("SDL-CONFIG "  ,1, (200,200,200))
+    window.blit(fr,(100,10 ))
 
 
-    rgb = (0xaa,0xaa,0xaa,0)
-    fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-    window.blit(fr,(500,500))
+
+    try:
+        if apc_main.buf:
+            buf = apc_main.buf[:]
+            apc_main.buf = []
+    except Exception as e:
+        print("midi",e)
+
+    r = 10
+    fr = font22.render("MIDI: APCMINI"  ,1, (200,100,200))
+    window.blit(fr,(330,30+r ))
+    r+=30
+    for m in buf:
+        #print("-> midi:",m)
+        fr = font22.render("MIDI:"+str(m)  ,1, (200,200,0))
+        window.blit(fr,(330,30+r ))
+        r+=30
+
+    if 0: #timer balken
+        pos = [160,110,70+80,20]
+        pygame.draw.rect(window,rgb,pos)
+        t=(time.time()-start)
+        if t > 15:
+            start = time.time()
+        b= 80-int(t*10)
+        pos = [160,110,70+(b),20]
+        rgb = (0x00,0xff,0xff,0)
+        pygame.draw.rect(window,rgb,pos)
+        rgb = (0x00,0x00,0x00,0)
+        fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
+        window.blit(fr,pos[:2])
+        
+        pos = [160,200,80,20]
+        #fd = sdl_elm.Fader(window,pos)
+        #fd.draw()
+        
+        pos = [160,90,70+80,20]
+        pygame.draw.rect(window,rgb,pos)
+        b= int(t*10)
+        pos = [160,90,0+(b),20]
+        rgb = (0x00,0xff,0xff,0)
+        pygame.draw.rect(window,rgb,pos)
+        rgb = (0x00,0x00,0x00,0)
+        fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
+        window.blit(fr,pos[:2])
+
+
+        rgb = (0xaa,0xaa,0xaa,0)
+        fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
+        window.blit(fr,(500,500))
 
     for t in table:
         t.draw()

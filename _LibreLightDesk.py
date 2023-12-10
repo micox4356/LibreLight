@@ -4605,12 +4605,12 @@ class WindowManager():
         w = self.windows[name]
         #def get_lineno():
         print(" 2.1- ln",movewin.get_lineno(),w,str(type(w)))
-        if type(w) is type(window_create_buffer):
+        #if type(w) is type(window_create_buffer):
+        if not str(type(w)).startswith("<class 'function'>"): 
             w.tk.attributes('-topmost',True)
             w.tk.attributes('-topmost',False)
             w.tk.update_idletasks()
-
-        if str(type(w)).startswith("<class 'function'>"): # is type(window_create_sdl_buffer):
+        else:
             print(" 2.2-",w)
             w()
 

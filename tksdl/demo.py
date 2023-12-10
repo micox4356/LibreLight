@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import time
+boot = time.time()
+
 import random
 import os
 import sys
@@ -11,15 +13,13 @@ import pygame
 import pygame.gfxdraw
 import pygame.font
 pg = pygame
-
-#os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,55)
-#os.environ['SDL_VIDEO_CENTERED'] = '0'
 main_size=(600,500)
-window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
 
 pg = pygame
 pygame.init()
 pygame.mixer.quit()
+clock = pygame.time.Clock()
 
 import tool.sdl_elm as sdl_elm
 
@@ -102,8 +102,19 @@ mouse_down = 0
 mouse_pos1 = [0,0]
 mouse_pos2 = [0,0]
 mouse_grab = []
-
+print(int((time.time()-boot)*10),"loop...")
+fps_t = time.time()
+fps = 0
+fps_old = 0
 while 1:
+    fps +=1
+    t = time.time()
+    if t-fps_t >= 1:
+        print("FPS:",fps)
+        fps_old = fps
+        fps=0
+        fps_t =t
+
     pygame.display.flip()
     pos = [160,10,70,60]
     rgb = (0xdd,0xdd,0xdd,0)
@@ -112,7 +123,10 @@ while 1:
     window.fill((5,5,5))
     pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-    fr = font22.render("DEMO / TEST - MODE !"  ,1, (200,200,200))
+    fr = font22.render("FPS:"+str(fps_old)  ,1, (200,200,200))
+    window.blit(fr,(10,10 ))
+
+    fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
     window.blit(fr,(10,30 ))
 
     pos = [160,110,70+80,20]
@@ -209,5 +223,5 @@ while 1:
     if resize_changed:# = True
         screen = pygame.display.set_mode(scrsize,pg.RESIZABLE)
 
-
+    clock.tick(30)
 

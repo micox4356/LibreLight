@@ -25,6 +25,8 @@ pg = pygame
 pygame.init()
 pygame.mixer.quit()
 clock = pygame.time.Clock()
+icon = pygame.image.load('icon/scribble.png')
+pygame.display.set_icon(icon)
 
 import tool.movewin as movewin
 import tool.sdl_elm as sdl_elm

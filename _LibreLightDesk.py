@@ -3429,9 +3429,10 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
         _tmp = None
         #print(sdata)
         vdim_count = 0
-        for a in ["RED","GREEN","BLUE"]:
+        for a in ["RED","GREEN","BLUE"]:#,"WHITE","AMBER"]:
             if a in sdata["ATTRIBUT"]:
                 vdim_count +=1
+
         if vdim_count == 3:
             _tmp =  {"NR": 0, "MASTER": "0", "MODE": "F", "VALUE": 255, "ACTIVE": 0, "FX": "", "FX2": {}}
             _tmp = OrderedDict(_tmp)

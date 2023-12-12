@@ -627,6 +627,8 @@ class DMXCH(object):
         return self._exec_id
 
     def __repr__(self):
+        print(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
+        return "<BUFFER {} {} v:{} EXEC:{}> fx:[{}] fd:{}".format(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
         return "<BUFFER {} {} v:{:0.2f} EXEC:{}> fx:[{}] fd:{}".format(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
     
     def fade_ctl(self,cmd=""): #start,stop,backw,fwd,bounce
@@ -960,10 +962,11 @@ if __run_main:
     thread.start_new_thread(main.loop,())
 
 
-def _init_action(Bdmx,out,DMX):
-    if out[DMX]["fx"]:
-        x = out[DMX]["fx"]
-        Bdmx[DMX].fx(xtype=x["xtype"]
+def _init_action(row):#Bdmx,out,DMX):
+    Admx = row["DMXCH"]
+    if row["fx"]:
+        x = row["fx"]
+        Admx.fx(xtype=x["xtype"]
                 ,size=x["size"]
                 ,speed=x["speed"]
                 ,invert=x["invert"]
@@ -973,9 +976,10 @@ def _init_action(Bdmx,out,DMX):
                 ,base=x["base"]
                 ,clock=x["clock"]
                 ,master=x["master"])
-    if out[DMX]["flash_fx"]:
-        x = out[DMX]["flash_fx"]
-        Bdmx[DMX].flash_fx(xtype=x["xtype"]
+
+    if row["flash_fx"]:
+        x = row["flash_fx"]
+        Admx.flash_fx(xtype=x["xtype"]
                 ,size=x["size"]
                 ,speed=x["speed"]
                 ,invert=x["invert"]
@@ -985,18 +989,28 @@ def _init_action(Bdmx,out,DMX):
                 ,base=x["base"]
                 ,clock=x["clock"]
                 ,master=x["master"])
-    if out[DMX]["flash"]:
-        x = out[DMX]["flash"]
-        Bdmx[DMX].flash(target=x["target"]
+
+    if row["flash"]:
+        x = row["flash"]
+        Admx.flash(target=x["target"]
                 ,ftime=x["ftime"]
                 ,clock=x["clock"]
                 ,delay=x["delay"])
-    if out[DMX]["fade"]:
-        x = out[DMX]["fade"]
-        Bdmx[DMX].fade(target=x["target"]
+    if row["fade"]:
+        x = row["fade"]
+        Admx.fade(target=x["target"]
                 ,ftime=x["ftime"]
                 ,clock=x["clock"]
                 ,delay=x["delay"])
+
+def set_dmx_fine_ch(Admx,dmx_fine_nr):
+    try:
+        if int(dmx_fine_nr) > 0:
+            Admx._dmx_fine = int(dmx_fine_nr)
+    except Exception as e:
+        cprint(x,color="red")
+        cprint("except 3455",e,color="red")
+
 def JCB(data,sock=None): #json client input
     t_start = time.time()
     #print("-->-",data)
@@ -1013,9 +1027,9 @@ def JCB(data,sock=None): #json client input
     c = float(c)
     ftime = 0
     delay = 0
+
     for cmds in jdatas:
 
-        #print("cmds:",cmds)
         master_fx = MASTER_FX()
         if not cmds:
             continue
@@ -1023,24 +1037,25 @@ def JCB(data,sock=None): #json client input
         try:
             out = {}
             for x in cmds:
+                Admx = DMXCH() #dummy
+
                 _fix_id=0
                 _attr = ""
                 if "CMD" in x:
                     print("CMD:",x)
+
                     if "EXEC-SPEED-MASTER" == x["CMD"]:
                         exec_speed_master.val(x["NR"],x["VALUE"])
                     if "EXEC-SIZE-MASTER" == x["CMD"]:
                         exec_size_master.val(x["NR"],x["VALUE"])
                     if "EXEC-OFFSET-MASTER" == x["CMD"]:
                         exec_offset_master.val(x["NR"],x["VALUE"])
-                    if "VDIM" == x["CMD"]:
-                        pass
 
                     if "SPEED-MASTER" == x["CMD"]:
                         speed_master.val(x["NR"],x["VALUE"])
-
                     if "SIZE-MASTER" == x["CMD"]:
                         size_master.val(x["NR"],x["VALUE"])
+
                 else:
                     print(x)
                     
@@ -1049,34 +1064,59 @@ def JCB(data,sock=None): #json client input
                     else:
                         continue
 
-                    if DMX > 0:
-                        DMX -=1
+                    if "VALUE" in x:
+                        v = x["VALUE"]
                     else:
-                        _inc = 0
-                        _fix_id = 0
-                        _val = 0
-                        _clock = 0
-                        if "VALUE" in x:
-                            _val = x["VALUE"]
-                        if "INC" in x:
-                            _inc = x["INC"]
-                        if "FIX" in x:
-                            _fix_id = x["FIX"]
-                        if "clock" in x:
-                            _clock=x["clock"]
+                        continue
+
+                    _inc = 0
+                    _fix_id = 0
+                    _val = 0
+                    _clock = 0
+                    exec_id = None
+
+                    if "VALUE" in x:
+                        _val = x["VALUE"]
+                    if "INC" in x:
+                        _inc = x["INC"]
+                    if "FIX" in x:
+                        _fix_id = x["FIX"]
+                    if "clock" in x:
+                        _clock=x["clock"]
+                    if "ATTR" in x:
+                        _attr = x["ATTR"]
+
+                    if DMX <= 0: # VIRTUAL
+                        DMX = "FIX"+str(_fix_id)
+                        ok = 0
                         if "ATTR" in x:
                             _attr = x["ATTR"]
                             if "DIM" == x["ATTR"]:
                                 if _fix_id not in V_MASTER:
                                     V_MASTER[_fix_id] = DMXCH()
-                                V_MASTER[_fix_id].fade(_val,ftime=0,clock=0,delay=0)
-                                #V_MASTER[_fix_id].next(clock) #fade(_val,ftime=0,clock=0,delay=0)
-                                #V_MASTER[_fix_id].next(clock) #fade(_val,ftime=0,clock=0,delay=0)
-                                #_init_action(Admx,out,DMX)
-                                print("  V-MASTER",_fix_id,_val,_inc)
-                        continue
-                    print("-")
-                    exec_id = None
+                                #print("_val",_val)
+                                #V_MASTER[_fix_id].fade(_val,ftime=0,clock=0,delay=0)
+                                #print("  V-MASTER",_fix_id,_val,_inc)
+                                ok = 1
+                        
+
+                        if _fix_id in V_MASTER:
+                            Admx = V_MASTER[_fix_id]
+
+                        if not ok:
+                            continue
+                    else:
+                        if DMX < len(Bdmx):
+                            Admx = Bdmx[DMX-1]
+                        else:
+                            print("DMX ADDRESS too BIG",DMX)
+                            continue 
+
+                    
+                    if "DMX-FINE" in x and DMX > 0:
+                        set_dmx_fine_ch(Admx, x["DMX-FINE"])
+
+                    #print("-")
                     if "EXEC" in x:
                         exec_id = x["EXEC"]
 
@@ -1084,42 +1124,34 @@ def JCB(data,sock=None): #json client input
                         _attr = x["ATTR"]
                     if "FIX" in x:
                         _fix_id = x["FIX"]
-                    if "VALUE" in x:# and x["VALUE"] is not None:
-                        v = x["VALUE"]
-                    else:continue
-                    if "FX" in x:# and x["VALUE"] is not None:
+
+
+                    fx=""
+                    fx2={}
+                    ftime=0
+                    delay=0
+                    if "FX" in x:
                         fx = x["FX"]
-                    else:fx=""
-                    if "FX2" in x:# and x["VALUE"] is not None:
+                    if "FX2" in x:
                         fx2 = x["FX2"]
-                    else:fx2={}
                     if "FADE" in x:
                         ftime = x["FADE"]
-                    else:ftime=0
                     if "DELAY" in x:
                         delay = x["DELAY"]
-                    else:delay=0
 
-                    if "DMX-FINE" in x:
-                        try:
-                            Bdmx[DMX]._dmx_fine = int(x["DMX-FINE"])
-                        except Exception as e:
-                            cprint(x,color="red")
-                            cprint("except 3455",e,color="red")
-
-                    if len(Bdmx) < DMX:
-                        continue
-
-                    if "FLASH" in x and v == "off" and Bdmx[DMX].exec_id() != exec_id:
-                        continue # stop
+                    #print("---------",[x])
+                    if "FLASH" in x:
+                        if v == "off" and Admx.exec_id() != exec_id:
+                            continue # stop
                     
-                    Bdmx[DMX].exec_id(exec_id)
-                    out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{},"fix_id":_fix_id,"attr":_attr}
+                    #Bdmx[DMX].exec_id(exec_id)
+                    Admx.exec_id(exec_id)
+                    out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{},"fix_id":_fix_id,"attr":_attr,"DMXCH":Admx}
                     if v is not None:
                         if "FLASH" in x:
-                            out[DMX]["flash"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay}
+                            out[DMX]["flash"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay,"DMXCH":Admx}
                         else:
-                            out[DMX]["fade"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay}
+                            out[DMX]["fade"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay,"DMXCH":Admx}
                     
                     if type(fx2) is dict and fx2:
                         xtype="fade"
@@ -1149,10 +1181,15 @@ def JCB(data,sock=None): #json client input
                             xtype= "off"
 
                         if "alloff" == xtype.lower():
-                            for i in Bdmx:
-                                if i is not None:
-                                    i.flash_fx(xtype="off",clock=c)
-                                    i.fx(xtype="off",clock=c)
+                            for dmxch in Bdmx:
+                                if dmxch is not None:
+                                    dmxch.flash_fx(xtype="off",clock=c)
+                                    dmxch.fx(xtype="off",clock=c)
+                            for j in V_MASTER:
+                                dmxch = V_MASTER[j]
+                                if j is not None:
+                                    dmxch.flash_fx(xtype="off",clock=c)
+                                    dmxch.fx(xtype="off",clock=c)
 
                         if "FLASH" in x:
                             out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,
@@ -1163,7 +1200,8 @@ def JCB(data,sock=None): #json client input
                                     ,"invert":invert,"width":width,"start":start
                                     ,"offset":offset,"base":base,"clock":c,"master":master_fx}
 
-                    elif type(fx) is str and fx:  # old fx like sinus:200:12:244 
+                    elif type(fx) is str and fx:  
+                        # old fx like sinus:200:12:244 
                         ccm = str(DMX+1)+":"+fx
                         print("fx",ccm)
                         if "FLASH" in x:
@@ -1176,25 +1214,27 @@ def JCB(data,sock=None): #json client input
             # ------- ---------------------------------------------------- 
             try: # second loop to sync-start all dmxch's
                 main.lock.acquire_lock()
-                for DMX in out:
-                    line = out[DMX]
-                    print("DMX",DMX)
-                    if out[DMX]["fix_id"]:
-                        _fix_id = out[DMX]["fix_id"]
-                        Bdmx[DMX]._fix_id = _fix_id
-                        if "attr" in out[DMX]:
-                            if out[DMX]["attr"] in ["RED","GREEN","BLUE","WHITE","AMBER"]: #CYAN,MAGENTA,YELLOW
-                                Bdmx[DMX]._v_master_id = _fix_id
-                                print("SET V_MASTER",out[DMX])
+                for _id in out:
+                    row = out[_id]
+                    #print("_id",_id)
+                    Admx = row["DMXCH"]
+                    #print("Admx",Admx)
+                    if row["fix_id"]:
+                        _fix_id = row["fix_id"]
+                        Admx._fix_id = _fix_id
+                        if "attr" in row:
+                            if row["attr"] in ["RED","GREEN","BLUE","WHITE","AMBER"]: #CYAN,MAGENTA,YELLOW
+                                Admx._v_master_id = _fix_id
+                                #print("SET V_MASTER",row)
                             
-                    _init_action(Bdmx,out,DMX)
+                    _init_action(row)
 
             finally:
                 main.lock.release_lock()
 
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")
-            cprint("----",str(jdata)[:150],"...",color="red")
+            cprint("----",str(cmds)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             raise e
     #cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
@@ -1220,6 +1260,10 @@ def CB(data): # raw/text client input
             #print("fxf:",xxcmd)
             if "alloff" == xxcmd[1].lower():
                 for i in Bdmx:
+                    if i is not None:
+                        i.flash_fx(xtype="off",clock=c)
+
+                for i in V_MASTER:
                     if i is not None:
                         i.flash_fx(xtype="off",clock=c)
             l = xxcmd

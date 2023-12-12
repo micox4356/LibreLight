@@ -357,19 +357,19 @@ class GUI_DIM():
         for fix in FIXTURES.fixtures:
             i+=1
             data = FIXTURES.fixtures[fix]
+            #print("DIMMER----",data)
             if fix not in gui.elem_attr:
                 gui.elem_attr[fix] = {}
             
             kix = []
             for ix in data["ATTRIBUT"].keys():
+                #print("DIMMER----",ix)
                 if not ix.startswith("_") and not ix.endswith("-FINE"):
                     kix.append(ix)
 
             if "DIM" in kix and len(kix) == 1:
                 c,r=draw_sub_dim(gui,fix,data,c=c,r=r,frame=dim_frame)
-                continue
 
-            break
 
 
 

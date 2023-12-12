@@ -536,34 +536,41 @@ def jclient_send(data):
                 cprint("jclient_send, Exception DMX ",color="red")
                 cprint("",jdata,color="red")
                 cprint("-----",color="red")
+
         elif "DMX" in jdata:
-            #print(jdata)
+
             try:
-                dmx = int(jdata["DMX"])
-                if 1: #:int(dmx) >= 1: # ignore DMX lower one
+                jdata["DMX"] = int(jdata["DMX"])
+                dmx = jdata["DMX"]
 
-                    if "ATTR" not in jdata:
-                        # for fx off
+                if "ATTR" not in jdata:
+                    # for fx off
+                    jdatas.append(jdata)
+
+                else: 
+                    fix = "00000"
+                    attr = "00000"
+                    if "FIX" in jdata:    
+                        fix  = jdata["FIX"]
+                    if "ATTR" in jdata:    
+                        attr = jdata["ATTR"]
+
+                    dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+                    if jdata["DMX"] != dmx_fine and dmx > 0 and dmx_fine > 0:
+                        jdata["DMX-FINE"] = dmx_fine
+                    if "DMX-FINE" in jdata:
+                        if jdata["DMX-FINE"] <= 0:
+                            del jdata["DMX-FINE"] 
+                       
+                        
+
+                    if jdata["ATTR"].startswith("_"):
+                        pass # ignore attr._ACTIVE 
+                    else:
                         jdatas.append(jdata)
+                
+                #cprint("-- ",jdata,color="red")
 
-                    else: # with "ATTR"
-                        if "FIX" in jdata:    
-                            fix = jdata["FIX"]
-                            attr = jdata["ATTR"]
-                            # find dmx-fine channel
-                            jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
-
-                        if jdata["ATTR"].startswith("_"):
-                            # ignore attr "_" 
-                            # bug with "S" attr._ACTIVE breaks preset_go
-                            pass 
-                        else:
-                            jdatas.append(jdata)
-                    
-                    cprint("-- ",jdata,color="red")
-                else:
-                    cprint("jclient_send, ignore DMX ",color="red")
-                    cprint("-- ",jdata,color="red")
             except Exception as e:
                 cprint("jclient_send, Exception DMX ",color="red")
                 cprint("",jdata,color="red")
@@ -827,16 +834,24 @@ def process_effect(wing_buffer,fx_name=""):
                 continue
             data = FIXTURES.fixtures[fix]
             for attr in data["ATTRIBUT"]:
+
                 if attr.startswith("_"):
                     continue
-                jdata = {"MODE":"FX"}
-                jdata["VALUE"] = None
-                jdata["FIX"] = fix
-                jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
-                jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
-                jdata["ATTR"] =attr
                 if attr.endswith("-FINE"):
                     continue
+
+                jdata = {"MODE":"FX"}
+                jdata["VALUE"]    = None
+                jdata["FIX"]      = fix
+                dmx               = FIXTURES.get_dmx(fix,attr)
+                jdata["DMX"]      = dmx
+
+                dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+                if dmx_fine != jdata["DMX"] and dmx > 0:
+                    jdata["DMX-FINE"] = dmx_fine
+
+                jdata["ATTR"]     = attr
+
                 if attr in ["PAN","TILT"]:
                     csize  = fx_prm_move["SIZE"]
                     cspeed = fx_prm_move["SPEED"]
@@ -2890,6 +2905,7 @@ class MASTER():
                 vcmd[i]["FLASH"] = 1
 
             DMX = fcmd[i]["DMX"]
+            
             if "VALUE" in vcmd[i] and type(vcmd[i]["VALUE"]) is type(float):
                 vcmd[i]["VALUE"] = round(vcmd[i]["VALUE"],3)
             if value is not None:
@@ -2899,17 +2915,13 @@ class MASTER():
                     vcmd[i]["FX2"]["TYPE"] = value
             if "FIX" in fcmd:
                 vcmd[i]["FIX"] = fcmd["FIX"]
+
             if DMX and vcmd[i]:
                 vcmd[i]["DMX"] = DMX
 
-            if "VIRTUAL" in fcmd[i]:
-                for a in fcmd[i]["VIRTUAL"]:
-                    DMX = fcmd[i]["VIRTUAL"][a]
-                    if DMX and vcmd[i]:
-                        vcmd[i]["DMX"] = DMX
             if type(nr) is not type(None):
                 vcmd[i]["EXEC"] = str(int(nr)+1)
-            #cprint(vcmd[i],color="red")
+
             cmd.append(vcmd[i])
 
         if cmd and not modes.val("BLIND"):
@@ -3413,6 +3425,20 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
     sdata["ATTRIBUT"]["_ACTIVE"]["FX2"] = {}
     sdata["ATTRIBUT"]["_ACTIVE"]["FX"] = ""
 
+    if "DIM" not in sdata["ATTRIBUT"]:
+        _tmp = None
+        #print(sdata)
+        vdim_count = 0
+        for a in ["RED","GREEN","BLUE"]:
+            if a in sdata["ATTRIBUT"]:
+                vdim_count +=1
+        if vdim_count == 3:
+            _tmp =  {"NR": 0, "MASTER": "0", "MODE": "F", "VALUE": 255, "ACTIVE": 0, "FX": "", "FX2": {}}
+            _tmp = OrderedDict(_tmp)
+            sdata["ATTRIBUT"]["DIM"] =_tmp 
+        print("ADD ---- VDIM",vdim_count,_tmp)
+        #input("STOP")
+
     for attr in sdata["ATTRIBUT"]:
         row = sdata["ATTRIBUT"][attr]
         row["ACTIVE"] = 0
@@ -3529,43 +3555,39 @@ class Fixtures():
         return (used_dmx,max_dmx)
 
     def get_dmx(self,fix,attr):
-        #cprint("get_dmx",[fix,attr])
+        #cprint("get_dmx",[fix,attr], fix in self.fixtures)
+        DMX = -99
+        if attr.startswith("_"):
+            return -88
+
         if fix in self.fixtures:
             data = self.fixtures[fix]
-            DMX = -99
             if "DMX" in data:
                 DMX = int(data["DMX"])
-                if DMX < 1: # ignore attribute with DMX lower 1
-                    return -22
-            else:
-                return -1
-
+            
+            if DMX <= 0:
+                return DMX # VIRTUAL FIX
 
             if "UNIVERS" in data:
-                if int(data["UNIVERS"]) >= 0:
-                    DMX += (int(data["UNIVERS"])*512)
-                else:
-                    return -33
+                DMX += int(data["UNIVERS"])*512
+
             adata = self.get_attr(fix,attr)
-            #-hier ende 8.2.22
-            #cprint("adata",adata,DMX)
 
             if adata:
                 if "NR" in adata:
                     NR = adata["NR"] 
-                    if NR >= 1:
-                        DMX+=NR-1
+                    if NR <= 0:
+                        return -12 # not a VIRTUAL ATTR
                     else:
-                        return -44
-                return DMX
-            return -4
-        return -3
+                        DMX+=NR-1
+                    return DMX
+        return -199
+
     def update_raw(self,rdata,update=1):
-        cprint("update_raw",len(rdata))
+        #cprint("update_raw",len(rdata))
         cmd = []
         for i,d in enumerate(rdata):
             xcmd = {"DMX":""}
-            #print("fix:",i,d)
             fix   = d["FIX"]
             attr  = d["ATTR"]
             v2    = d["VALUE"]
@@ -3573,33 +3595,18 @@ class Fixtures():
 
             if fix not in self.fixtures:
                 continue 
+
             sdata = self.fixtures[fix] #shortcat
+
             ATTR  = sdata["ATTRIBUT"] 
-
-            sDMX = 0
-            if  sdata["DMX"] > 0:
-                #print( sdata)
-                sDMX = (sdata["UNIVERS"]*512)+sdata["DMX"]  
-                #sDMX =sdata["DMX"]  
-            #else:
-            #    continue
-
             if attr not in ATTR:
                 continue
-            #DMX = FIXTURES.get_dmx(fix) 
-            if ATTR[attr]["NR"] >= 0:
-                DMX = sDMX+ATTR[attr]["NR"]-1
-                xcmd["DMX"] = str(DMX)
-            else:
-                if attr == "DIM" and ATTR[attr]["NR"] < 0:
-                    xcmd["VIRTUAL"] = {}
-                    for a in ATTR:
-                        #if "MASTER" not in ATTR[a]: #["MASTER"]:
-                        #     ATTR[a]["MASTER"] = 0
-                        if ATTR[a]["MASTER"]:
-                            xcmd["VIRTUAL"][a] = sDMX+ATTR[a]["NR"]-1
-                    #print( "VIRTUAL",xcmd)
 
+            #print(sdata)
+            #print("FIX",fix,attr)
+            sDMX = FIXTURES.get_dmx(fix,attr)
+            #print(sDMX)
+            xcmd["DMX"] = str(sDMX)
 
             cmd.append(xcmd)
 
@@ -3610,11 +3617,7 @@ class Fixtures():
             if d["FX2"] and update:
                 ATTR[attr]["FX2"] = d["FX2"] 
 
-            #self.data.elem_attr[fix][attr]["text"] = str(attr)+' '+str(round(v,2))
             text = str(attr)+' '+str(round(v,2))
-            #self.gui.update(fix,attr,args={"text":text})
-            #print("END 5454 _=_=_=_=_==_")
-        #cprint("update_raw",cmd,color="red")
         return cmd
 
 
@@ -3725,32 +3728,38 @@ class Fixtures():
             v2=0
         elif v2 > 256:
             v2=256
-        jdata["VALUE"] = round(v2,4)
-        jdata["FIX"] = fix
-        jdata["ATTR"] = attr
-        jdata["DMX"] = FIXTURES.get_dmx(fix,attr)
-        jdata["DMX-FINE"] = FIXTURES.get_dmx(fix,attr+"-FINE")
+
+        jdata["VALUE"]    = round(v2,4)
+        jdata["FIX"]      = fix
+        jdata["FADE"]     = 0
+        jdata["DELAY"]    = 0
+        jdata["ATTR"]     = attr
+        dmx               = FIXTURES.get_dmx(fix,attr)
+        jdata["DMX"]      = dmx
+
+        dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+        if dmx_fine != jdata["DMX"] and dmx > 0:
+            jdata["DMX-FINE"] = dmx_fine
+
         out = {} 
         if change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
             data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
             data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
 
-            jdata["FADE"] = 0
             if xfade:
                 jdata["FADE"] = xfade
+
             if xdelay:
                 #if attr not in ["PAN","TILT"] and 1:
                 jdata["DELAY"] = xdelay
 
-
             if not _blind:
                 jdata = [jdata]
-                #print("ENC",jdata)
                 jclient_send(jdata)
                 time.sleep(0.001)
+
         return jdata
-        return v2
 
     def get_active(self):
         cprint("get_active",self)

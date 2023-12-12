@@ -453,6 +453,7 @@ class GUI_FIX():
 
 
             for attr in attr_list:#data["ATTRIBUT"]:
+                virtual = 0
 
                 if attr not in gui.all_attr:
                     gui.all_attr.append(attr)
@@ -460,9 +461,15 @@ class GUI_FIX():
                     gui.elem_attr[fix][attr] = ["line1348",fix,attr]
                 v= data["ATTRIBUT"][attr]["VALUE"]
                 
+                if data["ATTRIBUT"][attr]["NR"] <= 0:
+                    virtual = 1
+                
                 if attr.startswith("_"):
                     continue
-                b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
+                if virtual:
+                    b = tk.Button(frame,bg="darkgrey", text=str(attr)+' '+str(round(v,2)),relief="solid",width=12, anchor="w")
+                else:
+                    b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
                 gui.elem_attr[fix][attr] = b
                 b.bind("<Button>",Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E,ipadx=0,ipady=0,padx=0,pady=0)

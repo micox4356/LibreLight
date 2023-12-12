@@ -379,11 +379,11 @@ class GUI_FIX():
         self.data = data
         self.xframe = xframe
         self.draw()
+
     def draw(self):
         FIXTURES = self.data
         gui=self.gui
         xframe=self.xframe
-       
 
         r=0
         c=0
@@ -391,7 +391,6 @@ class GUI_FIX():
         frame_fix=xframe
         for widget in xframe.winfo_children():
             widget.destroy()
-
 
         root = frame_dim
         root = frame_fix
@@ -1070,6 +1069,7 @@ class GUI_FixtureEditor():
             nr = int(e.elem_nr["text"]) 
             if not nr:
                 nr = args["nr"]
+                return
             nr_start = ( int(self.entry_dmx["text"])-1 + int(self.entry_univ["text"])*512 )
             nr += nr_start
 

@@ -540,7 +540,7 @@ def jclient_send(data):
             #print(jdata)
             try:
                 dmx = int(jdata["DMX"])
-                if int(dmx) >= 1: # ignore DMX lower one
+                if 1: #:int(dmx) >= 1: # ignore DMX lower one
 
                     if "ATTR" not in jdata:
                         # for fx off
@@ -559,7 +559,8 @@ def jclient_send(data):
                             pass 
                         else:
                             jdatas.append(jdata)
-
+                    
+                    cprint("-- ",jdata,color="red")
                 else:
                     cprint("jclient_send, ignore DMX ",color="red")
                     cprint("-- ",jdata,color="red")

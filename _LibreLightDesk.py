@@ -4861,7 +4861,7 @@ if __run_main:
     data.append({"text":"CONFIG"})
     data.append({"text":"SDL-CONFIG"})
     data.append({"text":"CLOCK"})
-    data.append({"text":"---"})
+    data.append({"text":"SDL-DMX"})
 
     name="MAIN"
     args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
@@ -4899,6 +4899,11 @@ if __run_main:
     if split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+
+    #print(dir(cls))
+    #print(cls)
+    #sys.exit()
+    name="SDL-CONFIG"
     def sdl_config():
         cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py " #&"
@@ -4909,11 +4914,32 @@ if __run_main:
             os.system(cmd)
         thread.start_new_thread(xyz123,(cmd,))
         return [None,None,None]
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
 
-    #print(dir(cls))
-    #print(cls)
-    #sys.exit()
-    name="SDL-CONFIG"
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+    name="SDL-DMX"
+    def sdl_config():
+        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/dmx.py " #&"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
     #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = split_window_position(pos_list,name)

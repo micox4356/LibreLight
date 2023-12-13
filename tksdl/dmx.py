@@ -156,16 +156,16 @@ delta = start
 #    print("keys",i)
 
 
-fps_btn = []
-fps_btn_press = [] 
+#fps_btn = []
+#fps_btn_press = [] 
 
-i += 1
-bx = sdl_elm.Button(window,pos=[30,r,190,60])
-bx.text = "FIX:{}\n<val>\nx".format(i+1)
-bx.font0 = pygame.font.SysFont("freesans-bold",20)
-bx.btn1.type = "flash"
-fps_btn.append(bx)
-r+=bx.get_rect()[3]
+#i += 1
+#bx = sdl_elm.Button(window,pos=[30,r,190,60])
+#bx.text = "FIX:{}\n<val>\nx".format(i+1)
+#bx.font0 = pygame.font.SysFont("freesans-bold",20)
+#bx.btn1.type = "flash"
+#fps_btn.append(bx)
+#r+=bx.get_rect()[3]
 
 
 
@@ -190,8 +190,8 @@ while 1:
     window.fill((5,5,5))
     pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-    fr = font22.render("FPS:"+str(fps_old) +" RAW DMX DATA" ,1, (200,200,200))
-    window.blit(fr,(3,10 ))
+    fr = font22.render("RAW DMX DATA" ,1, (200,200,200))
+    window.blit(fr,(20,10 ))
 
     fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
     #window.blit(fr,(10,30 ))
@@ -266,10 +266,10 @@ while 1:
             fr = font22.render("SRC:"+str(k2) ,1, rgb) #(200,200,200))
             window.blit(fr,(300,1))
 
-            #fr = font22.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
-            #window.blit(fr,(600,1))
-            for k in key:#y.items():
+            fr = font22.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
+            window.blit(fr,(600,1))
 
+            for k in key:#y.items():
                 v = y[k]
                 #print(k,v)
                 x=mc.get(k)

@@ -255,11 +255,11 @@ class Button():
         self.bind = self.__layout.bind
         self.text = "line1\nline2"
         self.type = "toggle" # flash, kill
-
+        self.dbg = 0
         self.text2 = []
 
     def check(self):
-        if 0:#dbg:
+        if self.dbg:
             self.text2 = []
             #self.text2.append(self.val)
             b = []

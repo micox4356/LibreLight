@@ -261,7 +261,7 @@ while 1:
                 bx.btn1.bg_on = [0,255,255]
                 #bx.dbg = 1
                 bx.btn1.type = "toggle"
-                bx.pos  = [20,r,70,20]
+                bx.pos  = [10,r,70,20]
 
                 if "ATTRIBUT" in v:
                     bcv_r = 0
@@ -283,7 +283,8 @@ while 1:
                     #bxc.btn1.color  = [255,0,0] #[bcv_r,bcv_g,bcv_b]
                     bxc.btn1.color  = [bcv_r,bcv_g,bcv_b]
                     bxc.btn1.color_on  = [bcv_r,bcv_g,bcv_b]
-                bxc.pos  = [92,r,5,20]
+                    #bxc.btn4.color_on =  [bcv_r,bcv_g,bcv_b]#[0,0,255]
+                bxc.pos  = [85,r,20,20]
                 bxc.text = ""
 
                 bx.draw()

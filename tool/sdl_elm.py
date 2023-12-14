@@ -218,7 +218,8 @@ class Button():
         self.btn1.name = "BUTTON BUF"
         self.btn1.nr_on  = [1,3]
         self.btn1.nr_off = [1,3]
-        self.btn1.color = LIGHTGRAY 
+        #self.btn1.color = LIGHTGRAY 
+        self.btn1.color = GRAY 
         self.btn1.color_on = RED 
 
         self.btn2 = ELEM_BUF() # sel elem
@@ -310,6 +311,7 @@ class Button():
 
     def _draw_fader(self):
         rgb = [0,200,0]
+        rgb = self.btn4.color_on
         pos2 = self.pos[:]
         v = self.btn4.val.get() #self.val.get()
         fh = get_font_hight(self.font0)
@@ -354,7 +356,7 @@ class Button():
 
     def _check_event(self):
         pass
-    def _draw_bd(self,delta=0,color=BLACK):
+    def _draw_bd(self,delta=0,color=GRAY):#BLACK):
         l_pos = draw_bd(pos=self.pos,delta=delta)
         for i in l_pos:
             pygame.draw.aaline(self.window,color,i[0],i[1],1)

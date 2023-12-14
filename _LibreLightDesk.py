@@ -421,6 +421,35 @@ try:
     import memcache
 except Exception as e:
     cprint("Exception IMPORT ERROR",e)
+        
+class MC_FIX():
+    def __init__(self,server="127.0.0.1",port=11211):
+        cprint("MC.init() ----------" ,server,port,color="red")
+        try:
+            #self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+            self.mc = memcache.Client(['{}:{}'.format(server,port)], debug=0)
+            #self.init()
+        except Exception as e:
+            cprint("-- Exception",e)
+
+    def set(self,index="fix",data=[]):
+        #time.sleep(5)
+
+        if 1: #while 1:
+            #print("MC.send",index) #,data) 
+            index = self.mc.get("index")
+            #if index:
+            #    for i in index:
+            #        print("  key",i)
+
+            self.mc.set("fix", data)
+
+        #examles
+        #self.mc.set("some_key", "Some value")
+        #self.value = mc.get("some_key")
+        #self.mc.set("another_key", 3)
+        #self.mc.delete("another_key")
+
 
 class MC():
     def __init__(self,server="127.0.0.1",port=11211):
@@ -4862,6 +4891,7 @@ if __run_main:
     data.append({"text":"SDL-CONFIG"})
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
+    data.append({"text":"SDL-FIX"})
 
     name="MAIN"
     args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
@@ -4933,6 +4963,32 @@ if __run_main:
     def sdl_config():
         cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/dmx.py " #&"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+
+    name="SDL-FIX"
+    def sdl_config():
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/fix.py " #&"
         print(cmd)
         #os.popen(cmd)
 
@@ -5211,6 +5267,19 @@ if __run_main:
 
 
     thread.start_new_thread(loops,())
+    mc_fix = MC_FIX()
+    def mc_fix_loop():
+        time.sleep(5)
+        while 1:
+            try:
+                #print(1)
+                data = FIXTURES.fixtures 
+                mc_fix.set(index="fix",data=data)
+            except Exception as e:
+                print("MC_FIX EXCEPTION",e)
+            time.sleep(1/10)
+
+    thread.start_new_thread(mc_fix_loop,())
     
     try:
         window_manager.mainloop()

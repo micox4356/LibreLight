@@ -219,7 +219,7 @@ while 1:
                 txt = str([k,v,ch,"=",cccount]) #x[ch-1]])
 
                 rgb = (0xaa,0xaa,0xaa,0)
-                fr = font22.render(str(txt) ,1, rgb) #(200,200,200))
+                #fr = font22.render(str(txt) ,1, rgb) #(200,200,200))
                 #window.blit(fr,(30,40+iii))
 
                 
@@ -301,6 +301,8 @@ while 1:
                         k2_ATTR = ATTR[k2]
                         #if k2.endswith("_color"):
                         #    continue
+                        if k2.endswith("-FINE"):
+                            continue
                         if k2.startswith("_"):
                             continue
                         k3 = k+"-"+k2
@@ -315,11 +317,15 @@ while 1:
                         if "VALUE" in k2_ATTR:
                             val2 = k2_ATTR["VALUE"]
 
-                        dmx_val=0
+                        dmx_val=-1#0
+                        dmx_x=-1
                         if dmx_nr > 0 and dmx_start > 0:
-                            dmx_x = dmx_start+dmx_nr
-                            dmx_val = dmx[str(univ_start)][dmx_x]
-                            #val2 += " :"+str(dmx_val)
+                            try:
+                                dmx_x = dmx_start-1+dmx_nr-1
+                                dmx_val = dmx[str(univ_start)][dmx_x-1]
+                                #dmx_val = dmx_x
+                                #val2 += " :"+str(dmx_val)
+                            except:pass
                         #bx.data["rDMX"] = dmx_val
                         virt = 1
                         if "NR" in k2_ATTR:
@@ -376,8 +382,8 @@ while 1:
                             break
 
                 r += r_buf
-                #if r > 800:
-                #    break
+                if r > 800:
+                    break
 
             #print(k,v)
 

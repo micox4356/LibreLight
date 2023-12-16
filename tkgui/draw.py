@@ -621,7 +621,7 @@ def draw_setup(gui,xframe,data):
             b = tk.Button(frame,bg="grey", text=str(comm),width=4,height=2)
             ok = 1
         else: #empty
-            b = tk.Button(frame,bg="grey", text="",width=4,height=2)
+            b = tk.Button(frame,bg="grey", text="",width=5,height=2)
 
         if comm not in gui.commands.elem:
             gui.setup_elem[comm] = b

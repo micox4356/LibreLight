@@ -187,8 +187,10 @@ def read_fix(dmx):
                         dmx_x = dmx_start-1+dmx_nr-1
                         dmx_val = dmx[str(univ_start)][dmx_x-1]
                     except:pass
-
-                k2_ATTR["VALUE2"] = dmx_val
+                if type(dmx_val) in [int,float]:
+                    k2_ATTR["VALUE2"] = dmx_val
+                else:
+                    k2_ATTR["VALUE2"] = 0
     return y
 
 def add_dmx(data,dmx):
@@ -256,7 +258,14 @@ while 1:
             iii = 0
             key=y.keys()
             key = list(key)
-            key.sort()
+            key2 = []
+            for k in key:
+                try:
+                    key2.append(int(k))
+                except:
+                    pass
+            key2.sort()
+            key = key2 #.sort()
             if len(btn1_press) == 0:
                 btn1_press = [key[0]]
             rgb = (0x00,0,0xff,0)
@@ -269,7 +278,21 @@ while 1:
 
 
             for k in key:#y.items():
+                k = str(k)
                 v = y[k]
+                attr_count = 0
+                if "ATTRIBUT" in v:
+                    for ATTR in v["ATTRIBUT"]:
+                        if ATTR.startswith("_"):
+                            continue
+                        if ATTR.endswith("-FINE"):
+                            continue
+                        if ATTR == "DIM":
+                            continue
+                        attr_count += 1
+                if attr_count <= 0:
+                    continue
+
                 #print(k,v)
                 x=mc.get(k)
                 cccount = 0
@@ -310,22 +333,24 @@ while 1:
                     bcv_g = 0
                     bcv_b = 0
                     if "RED" in v["ATTRIBUT"]:
-                        bcv_r = v["ATTRIBUT"]["RED"]["VALUE"]
+                        bcv_r = v["ATTRIBUT"]["RED"]["VALUE2"]
                     if "GREEN" in v["ATTRIBUT"]:
-                        bcv_g = v["ATTRIBUT"]["GREEN"]["VALUE"]
+                        bcv_g = v["ATTRIBUT"]["GREEN"]["VALUE2"]
                     if "BLUE" in v["ATTRIBUT"]:
-                        bcv_b = v["ATTRIBUT"]["BLUE"]["VALUE"]
-                        if bcv_r > 255:
-                            bcv_r=255
-                        if bcv_g > 255:
-                            bcv_g=255
-                        if bcv_b > 255:
-                            bcv_b=255
-                    #print([bcv_r,bcv_g,bcv_b])
-                    #bxc.btn1.color  = [255,0,0] #[bcv_r,bcv_g,bcv_b]
+                        bcv_b = v["ATTRIBUT"]["BLUE"]["VALUE2"]
+
+
+                    print( [bcv_r,bcv_g,bcv_b])
+                    if bcv_r > 255:
+                        bcv_r=255
+                    if bcv_g > 255:
+                        bcv_g=255
+                    if bcv_b > 255:
+                        bcv_b=255
+
                     bxc.btn1.color  = [bcv_r,bcv_g,bcv_b]
                     bxc.btn1.color_on  = [bcv_r,bcv_g,bcv_b]
-                    #bxc.btn4.color_on =  [bcv_r,bcv_g,bcv_b]#[0,0,255]
+
                 bxc.pos  = [85,r,20,20]
                 bxc.text = ""
 
@@ -341,10 +366,8 @@ while 1:
                     ATTR = v["ATTRIBUT"]
                     for k2 in ATTR:
                         k2_ATTR = ATTR[k2]
-                        #if k2.endswith("_color"):
-                        #    continue
-                        #if k2.endswith("-FINE"):
-                        #    continue
+                        if k2.endswith("-FINE"):
+                            continue
                         if k2.startswith("_"):
                             continue
                         k3 = k+"-"+k2

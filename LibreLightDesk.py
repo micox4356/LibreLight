@@ -109,7 +109,7 @@ table.append(bx)
 y+=bx.get_rect()[3]+30
 
 bx = sdl_elm.Button(window,pos=[x,y,400,60])
-bx.text = "        Exit"
+bx.text = "         Exit"
 bx.btn1.cb_on.set(exit)
 bx.font0 = pygame.font.SysFont("freesans-bold",80)
 table.append(bx)

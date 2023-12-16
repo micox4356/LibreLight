@@ -5135,9 +5135,14 @@ if __run_main:
 
     name = "SETUP"
     args = {"title":name +" SHOW:"+master.base.show_name,
-                "master":0,"width":435,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
+                "master":0,"width":445,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
     args["title"]  = "SETUP SHOW:"+master.base.show_name
     geo = split_window_position(pos_list,name)
+    try:
+        geo["width"] = args["width"]
+        geo["height"] = args["height"]
+    except:pass
+
     if geo:
         args.update(geo)
 

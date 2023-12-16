@@ -29,7 +29,7 @@ apt install -y $pkg
 
 echo ""
 echo "-- python pkg's"
-pkg="python3-tk python3-pygame memcached python3-memcache python3-pip python3-pyglet idle"
+pkg="python3-tk python3-pygame memcached python3-memcache python3-pip python3-pyglet idle python3-psutil"
 apt install -y $pkg 
 
 echo ""

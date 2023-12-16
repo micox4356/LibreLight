@@ -140,6 +140,59 @@ def read_dmx():
             dmx[u] = x
     return dmx
             
+def read_fix(dmx):
+    y=mc.get("fix")#cmd)
+    key=y.keys()
+    key = list(key)
+    key.sort()
+    for k in key:#y.items():
+        v = y[k]
+        #print(k,v)
+        x=mc.get(k)
+        dmx_start = 0
+        if "DMX" in v:
+            dmx_start = v["DMX"]
+
+        univ_start = 0
+        if "UNIVERS" in v:
+            univ_start = v["UNIVERS"]
+
+        if "ATTRIBUT" in v: # and 10: 
+            ATTR = v["ATTRIBUT"]
+            for k2 in ATTR:
+                k2_ATTR = ATTR[k2]
+
+                #print(ATTR) #[k2_ATTR]) #["VALUE2"] = -2
+                k2_ATTR["VALUE2"] = -2
+
+                #if k2.endswith("-FINE"):
+                #    continue
+                if k2.startswith("_"):
+                    continue
+                k3 = k+"-"+k2
+                
+                dmx_nr = 0
+                if "NR" in k2_ATTR:
+                    if k2_ATTR["NR"] >= 1:
+                        dmx_nr = k2_ATTR["NR"]+1
+                
+                val2 = ""
+                if "VALUE" in k2_ATTR:
+                    val2 = k2_ATTR["VALUE"]
+
+                dmx_val=-1
+                dmx_x=-1
+                if dmx_nr > 0 and dmx_start > 0:
+                    try:
+                        dmx_x = dmx_start-1+dmx_nr-1
+                        dmx_val = dmx[str(univ_start)][dmx_x-1]
+                    except:pass
+
+                k2_ATTR["VALUE2"] = dmx_val
+    return y
+
+def add_dmx(data,dmx):
+    pass
 
 table={}
 table_grid={}
@@ -187,6 +240,10 @@ while 1:
 
     rgb = (0xff,0,0xaa,0)
 
+    data = read_fix(dmx)
+    #data = add_dmx(data,dmx)
+
+
     i = 0
     r=40
     if 1:
@@ -194,7 +251,7 @@ while 1:
         send = 0
         #cmd="stats items" 
         #if not y:
-        y=mc.get("fix")#cmd)
+        y=data #mc.get("fix")#cmd)
         if y:
             iii = 0
             key=y.keys()
@@ -219,9 +276,6 @@ while 1:
                 txt = str([k,v,ch,"=",cccount]) #x[ch-1]])
 
                 rgb = (0xaa,0xaa,0xaa,0)
-                #fr = font22.render(str(txt) ,1, rgb) #(200,200,200))
-                #window.blit(fr,(30,40+iii))
-
                 
                 i += 1
                 if k not in table:
@@ -237,16 +291,6 @@ while 1:
                 bx.data = v
                 bxc.data = {}
 
-                dmx_start = 0
-                if "DMX" in v:
-                    dmx_start = v["DMX"]
-
-                univ_start = 0
-                if "UNIVERS" in v:
-                    univ_start = v["UNIVERS"]
-                
-                #dmx_start += univ_start*512 
-
                 active = 0
                 if "ATTRIBUT" in v:
                     if "_ACTIVE" in v["ATTRIBUT"]:
@@ -256,10 +300,8 @@ while 1:
 
                 bx.btn1.val.set(active)
                 bx.text = "ID:"+ k #str(txt) #+"\n<val>\n" #.format(i+1)
-                #bx.font0 = pygame.font.SysFont("freesans-bold",20)
                 bx.font0 = bx_font0 #pygame.font.SysFont("freesans-bold",20)
                 bx.btn1.bg_on = [0,255,255]
-                #bx.dbg = 1
                 bx.btn1.type = "toggle"
                 bx.pos  = [10,r,70,20]
 
@@ -301,37 +343,25 @@ while 1:
                         k2_ATTR = ATTR[k2]
                         #if k2.endswith("_color"):
                         #    continue
-                        if k2.endswith("-FINE"):
-                            continue
+                        #if k2.endswith("-FINE"):
+                        #    continue
                         if k2.startswith("_"):
                             continue
                         k3 = k+"-"+k2
-                        
-                        dmx_nr = 0
-                        if "NR" in k2_ATTR:
-                            if k2_ATTR["NR"] >= 1:
-                                dmx_nr = k2_ATTR["NR"]+1
                         
 
                         val2 = ""
                         if "VALUE" in k2_ATTR:
                             val2 = k2_ATTR["VALUE"]
 
-                        dmx_val=-1#0
-                        dmx_x=-1
-                        if dmx_nr > 0 and dmx_start > 0:
-                            try:
-                                dmx_x = dmx_start-1+dmx_nr-1
-                                dmx_val = dmx[str(univ_start)][dmx_x-1]
-                                #dmx_val = dmx_x
-                                #val2 += " :"+str(dmx_val)
-                            except:pass
-                        #bx.data["rDMX"] = dmx_val
                         virt = 1
                         if "NR" in k2_ATTR:
                             if k2_ATTR["NR"] > 0:
                                 virt = 0
 
+                        dmx_val = -3
+                        if "VALUE2"in k2_ATTR:
+                            dmx_val = k2_ATTR["VALUE2"]
 
                         if k3 not in table_grid:
                             bx = sdl_elm.Button(window,pos=[300,rr,60,20])
@@ -349,35 +379,26 @@ while 1:
 
                         try:val = v
                         except:pass
-                        #print(k,k2,val2)
-                        #bx.text = k3 +" "+str(val2) #str(txt) #+"\n<val>\n" #.format(i+1)
-                        bx.text = k2 +" "+str(val2)+" "+str(dmx_val) #str(txt) #+"\n<val>\n" #.format(i+1)
-                        bx.font0 = bx_font0 #pygame.font.SysFont("freesans-bold",20)
+
+                        bx.text = k2 +" "+str(val2)+" "+str(dmx_val) 
+                        bx.font0 = bx_font0 
                         if k2 == "RED":
                             bx.btn4.color_on = [255,0,0]
                         elif k2 == "GREEN":
                             bx.btn4.color_on = [0,255,0]
                         elif k2 == "BLUE":
                             bx.btn4.color_on = [0,0,255]
-                        #else:
-                        #    bx.btn4.color_on = [0,255,255]
 
 
                         if virt == 1:
-                            #bx.btn2.color= [125,120,122]
-                            #bx.btn3.color= [125,120,122]
                             bx.btn3.color= [0,0,0]
-                            #bx.btn3.color_on= [0,120,122]
 
-                        #bx.dbg = 1
                         bx.btn1.type = "toggle"
-                        #bx.btn4.val.set(val2) # "toggle"
                         if type(dmx_val) == int:
                             bx.btn4.val.set(dmx_val) # "toggle"
                         bx.pos  = [100+rr,r,120,20]
                         bx.draw()
                         rr+=bx.get_rect()[2]+2
-                        #rr += 25
                         if rr > 1000:
                             break
 
@@ -385,7 +406,6 @@ while 1:
                 if r > 800:
                     break
 
-            #print(k,v)
 
 
     if 0:#kill:

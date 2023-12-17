@@ -379,25 +379,60 @@ def server1_loop():
         time.sleep(0.01)
 thread.start_new_thread(server1_loop,()) # SERVER
 # remote input - end
+chat.dbg=1
 
+class DEVENT():
+    def __init__(self):
+        #if "keysym" in dir(event):
+        #if "Escape" == 
+        #event.keysym:
+        #event.num == 1:
+        self.keysym = ""
+        self.num = 1
+        self.type = ""
 
 def JSCB(x,sock=None):
     i = ""
     msg = ""
+    msgs = []
     try:
+        #print("JSCB",sock)
         for i in x:
             #print("i",[i])
-            msg = json.loads(i)
-            print("JSCB",i,msg,sock)
-            if sock:
-                msg = json.dumps(msg)
-                msg = bytes(msg,"utf8")
-                chat._send(sock,msg)
+            msgs = json.loads(i)
+            print(" JSCB",msgs) #,sock)
+            if type(msgs) is list:
+                for msg in msgs:
+                    print("  ",msg)
+                    # FIXTURES.encoder
+                    if "event" in msg:
+                        if "FIXTURES" == msg["event"]:
+                            FIX=0
+                            enum=-1
+                            ATTR=""
+                            if "FIX" in msg:
+                                FIX=msg["FIX"]
+                            if "E-NUM" in msg:
+                                enum=msg["E-NUM"]
+                            if "ATTR" in msg:
+                                ATTR=msg["ATTR"]
+                            print("  Xevent",FIX,enum,ATTR)
+                            #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
+                            FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
+                            #print(dir(cb))
+                            event =  DEVENT()
+                            event.num = enum
+                            #cb.cb(event)
+            #bounce msg
+            #if sock:
+            #    msg = json.dumps(msg)
+            #    msg = bytes(msg,"utf8")
+            #    chat._send(sock,msg)
             
     except Exception as e:
         cprint("exception JSCB:",e)
         cprint("- i:",i)
-        cprint("- msg:",msg)
+        cprint("- msg:",msgs)
         cprint(traceback.format_exc(),color="red")
         if sock:
             msg = ["Notice: Exception on JSCB-SERVER: ",str(e)]

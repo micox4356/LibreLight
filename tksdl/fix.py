@@ -204,6 +204,9 @@ y=[]
                         
 bx_font0 = pygame.font.SysFont("freesans-bold",20)
 
+import lib.zchat as chat
+cmd_client = chat.Client(port=30003)
+
 
 while 1:
     fps +=1
@@ -340,7 +343,7 @@ while 1:
                         bcv_b = v["ATTRIBUT"]["BLUE"]["VALUE2"]
 
 
-                    print( [bcv_r,bcv_g,bcv_b])
+                    #print("bvc_rgb" [bcv_r,bcv_g,bcv_b])
                     if bcv_r > 255:
                         bcv_r=255
                     if bcv_g > 255:
@@ -389,6 +392,10 @@ while 1:
                         if k3 not in table_grid:
                             bx = sdl_elm.Button(window,pos=[300,rr,60,20])
                             bx.btn1.color_on = [255,255,0]
+                            bx.ID = 0
+                            if "ID" in v:
+                                bx.ID = v["ID"]
+                            bx.ATTR = k2
                             table_grid[k3] = bx
 
                         if "ACTIVE" in k2_ATTR:
@@ -468,7 +475,7 @@ while 1:
                     #t.btn2.clean()
                     t.btn1.clean()
 
-        print("event",event)
+        #print("event",event)
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit(0)
@@ -487,10 +494,19 @@ while 1:
 
         for t in table_grid:
             #print(t)
-            table_grid[t].event(event)
+            change = table_grid[t].event(event)
             if table_grid[t].btn3.get():
                 data = table_grid[t].data
-                print(" ATTR:",data)
+                FIX = table_grid[t].ID
+                ATTR = table_grid[t].ATTR
+
+                if "BUTTON" in change:
+                    if "press" in change["BUTTON"]:
+                        print(" ATTR:",FIX,ATTR,data)
+                        print("  CHANGE",change)
+                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"E-NUM":1,"ATTR":ATTR}]).encode("utf-8")
+                        print("   ",msg)
+                        cmd_client.send(msg)
                 
             
 

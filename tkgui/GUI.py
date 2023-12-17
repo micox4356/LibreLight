@@ -372,7 +372,6 @@ class GUI_DIM():
 
 
 
-
 class GUI_FIX():
     def __init__(self,gui,xframe,data):
         self.gui = gui

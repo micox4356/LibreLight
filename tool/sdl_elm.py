@@ -87,6 +87,12 @@ class ELEM_BUF():
         self.color_on = [255,255,0]
         self.type="flash" #"toggle" #"flash",fade
         self.killgroup = kill 
+        self.events = []
+
+    def get_event(self):
+        out = self.events[:]
+        self.events = []
+        return out
 
     def get(self):
         return self.val.get()
@@ -100,7 +106,7 @@ class ELEM_BUF():
         self.val.set(0)
 
     def press(self):
-        print([self.name,self.type,self.val.get()])
+        #print("ELEM_BUF.press",[self.name,self.type,self.val.get()])
         if self.type == "fader":
             self.inc(self.increment)
 
@@ -112,7 +118,8 @@ class ELEM_BUF():
 
         if self.type == "flash":
             self.val.set(1)
-
+        
+        self.events.append("press")
         self.cb_on.cb("ho")
 
     def release(self):
@@ -121,6 +128,7 @@ class ELEM_BUF():
             return
         if self.type == "flash":
             self.val.set(0)
+        self.events.append("release")
 
     def inc(self,v):
         self.val.inc(v)
@@ -215,7 +223,7 @@ class Button():
         self.fader = 1
 
         self.btn1 = ELEM_BUF() 
-        self.btn1.name = "BUTTON BUF"
+        self.btn1.name = "BUTTON"
         self.btn1.nr_on  = [1,3]
         self.btn1.nr_off = [1,3]
         #self.btn1.color = LIGHTGRAY 
@@ -363,6 +371,7 @@ class Button():
 
 
     def event(self,event=None):
+        r_event = {}
         if "pos" in event.dict:
             self.event_pos = event.pos
             self._check_event()
@@ -380,15 +389,17 @@ class Button():
                     mode = "release"
 
                 e = [event.button,mode]
-                print("e",e)
-                
+                #print("e",e)
                 for btn in self.btns: 
                     if e[0] in btn.nr_on  and e[1] == "press":
                         btn.press()
                     if e[0] in btn.nr_off and e[1] == "release":
                         btn.release()
-
-
+                    re = btn.get_event()
+                    if re and btn.name not in ['MOUSE FOCUS']:
+                        print("----------------",btn.name,re)
+                        r_event[btn.name] = re
+        return r_event
 def draw_mouse_box(window,pos1,pos2,color=[128,128,128],text=1):
     color = [200,0,0,127]
     

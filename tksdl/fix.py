@@ -499,12 +499,23 @@ while 1:
                 data = table_grid[t].data
                 FIX = table_grid[t].ID
                 ATTR = table_grid[t].ATTR
+                print("change",change)
 
-                if "BUTTON" in change:
-                    if "press" in change["BUTTON"]:
-                        print(" ATTR:",FIX,ATTR,data)
-                        print("  CHANGE",change)
-                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"E-NUM":1,"ATTR":ATTR}]).encode("utf-8")
+                key = "MOUSE ENCODER"
+                if key in change:
+                    if "press" in change[key]:
+                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
+                    if "release" in change[key]:
+                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
+                    print("   ",msg)
+                    cmd_client.send(msg)
+
+                key = "BUTTON"
+                if key in change:
+                    if "press" in change[key]:
+                        #print(" ATTR:",FIX,ATTR,data)
+                        #print("  CHANGE",change)
+                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
                         print("   ",msg)
                         cmd_client.send(msg)
                 

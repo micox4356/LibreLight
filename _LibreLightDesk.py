@@ -428,6 +428,8 @@ def JSCB(x,sock=None):
                             #master.refresh_fix() # delayed
                             #refresher_fix.reset() # = Refresher()
                             #cb.cb(event)
+                        if "CLEAR" == msg["event"]:
+                            FIXTURES.clear()
             #bounce msg
             #if sock:
             #    msg = json.dumps(msg)

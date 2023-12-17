@@ -125,7 +125,6 @@ class ELEM_BUF():
     def release(self):
         if self.type == "fader":
             self.inc(-self.increment)
-            return
         if self.type == "flash":
             self.val.set(0)
         self.events.append("release")
@@ -244,7 +243,7 @@ class Button():
         self.btn3.color_on = WHITHE
 
         self.btn4 = ELEM_BUF() 
-        self.btn4.name = "MOUSE ECODER"
+        self.btn4.name = "MOUSE ENCODER"
         self.btn4.increment = 4.4
         self.btn4.type = "fader"
         self.btn4.nr_on  = [4]
@@ -400,6 +399,8 @@ class Button():
                         print("----------------",btn.name,re)
                         r_event[btn.name] = re
         return r_event
+
+
 def draw_mouse_box(window,pos1,pos2,color=[128,128,128],text=1):
     color = [200,0,0,127]
     

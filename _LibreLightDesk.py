@@ -408,20 +408,25 @@ def JSCB(x,sock=None):
                     if "event" in msg:
                         if "FIXTURES" == msg["event"]:
                             FIX=0
-                            enum=-1
+                            VAL=""
                             ATTR=""
                             if "FIX" in msg:
                                 FIX=msg["FIX"]
-                            if "E-NUM" in msg:
-                                enum=msg["E-NUM"]
+                            if "VAL" in msg:
+                                VAL=msg["VAL"]
                             if "ATTR" in msg:
                                 ATTR=msg["ATTR"]
-                            print("  Xevent",FIX,enum,ATTR)
+                            print("  Xevent",FIX,VAL,ATTR)
                             #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
-                            FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
+                            #FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
+                            FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
+
                             #print(dir(cb))
-                            event =  DEVENT()
-                            event.num = enum
+                            #event =  DEVENT()
+                            #event.num = enum
+
+                            #master.refresh_fix() # delayed
+                            #refresher_fix.reset() # = Refresher()
                             #cb.cb(event)
             #bounce msg
             #if sock:

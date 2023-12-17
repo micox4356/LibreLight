@@ -475,6 +475,10 @@ while 1:
                     #t.btn2.clean()
                     t.btn1.clean()
 
+                msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
+                print("ESC",msg)
+                cmd_client.send(msg)
+
         #print("event",event)
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -518,7 +522,15 @@ while 1:
                         msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
                         print("   ",msg)
                         cmd_client.send(msg)
-                
+                    if "release" in change[key]:
+                        for mg in mouse_grab:
+                            FIX = mg.ID
+                            ATTR = mg.ATTR
+                            #ATTR = "ALL"
+                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                            print("  mouse_grab ",msg)
+                            cmd_client.send(msg)
+                        mouse_grab = []
             
 
 
@@ -568,6 +580,7 @@ while 1:
                     mouse_grab.append(t)
                 else:
                     t._set_mouse_focus(0)
+
 
     if resize_changed:# = True
         screen = pygame.display.set_mode(scrsize,pg.RESIZABLE)

@@ -1208,7 +1208,8 @@ class GUI_FixtureEditor():
             #fixture = copy.deepcopy(fixture)
             if str(ID) in _M.FIXTURES.fixtures:
                 ok = 0
-                err.append(" ID '{}' is in use ! ".format(ID))
+                #err.append(" ID '{}' is in use ! ".format(ID))
+                err.append("FIX-ID '{}' ".format(ID))
 
             if ATTR:
                 sucess.append("ID '{}' DMX:{} UNIV:{}".format(ID,fixture["DMX"],fixture["UNIVERS"]))
@@ -1222,18 +1223,33 @@ class GUI_FixtureEditor():
         print("OK:",ok)
         print()
         if err:
-            #r=tkinter.messagebox.showwarning(message="PATCH FIXTURE \nnot implemented",parent=None)
-            r=tkinter.messagebox.askyesno(message="PATCH ERROR '"+name+"'\n\n"+"\n".join(err)+"\n\n ",title="cancel/Abbruch",parent=None)
+            msg=""
+            #msg+="Name:'"+name+"'\n"
+            msg+="FIX-ID is in use !\n"
+            msg+="\n"
+            msg+="\n".join(err)
+            msg+="\n"
+            msg+="\n"
+            msg+="OVERWRITE ?\n"
+            msg+="überschreiben ?\n"
+            #msg+="\n "
+            r=tkinter.messagebox.askyesno(message=msg,title="cancel/Abbruch",parent=None)
             print("err",r)
-            if r: # exit if yes
+            if r: # if yes
+                pass
+            else:
                 return
 
         if err2:
-            r=tkinter.messagebox.showwarning(message="PATCH ERROR '"+name+"'\n\n"+"\n".join(err2)+"\n\n ",title="Error",parent=None)
+            r=tkinter.messagebox.showwarning(message="PATCH ERROR 2'"+name+"'\n\n"+"\n".join(err2)+"\n\n ",title="Error",parent=None)
             return
 
         if sucess:
-            r=tkinter.messagebox.askyesno(message="PATCH OK '"+name+"'\n\n"+"\n".join(sucess),title="Execute/Ausführen",parent=None)
+            msg+="name:'"+name+"'\n\n"
+            msg="PATCH OK ?\n"
+            msg+="\n".join(sucess)
+            msg+="\n"
+            r=tkinter.messagebox.askyesno(message=msg,title="Execute/Ausführen",parent=None)
             print("yes no" ,r )
             if r:
                 for fix in out:

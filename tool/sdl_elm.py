@@ -88,7 +88,8 @@ class ELEM_BUF():
         self.type="flash" #"toggle" #"flash",fade
         self.killgroup = kill 
         self.events = []
-
+    def _rep__(self):
+        x="<ELEM_BUF name:{} val:{} id:{}>".format(self.name,self.val.get(), id(self))
     def get_event(self):
         out = self.events[:]
         self.events = []
@@ -183,18 +184,30 @@ def check_area(pos,event_pos):
     if x and y:
         return 1
 
-def check_area2(R1,R2): #pos,mouse_box
-    btn_box = R1[:] #btn_box
-    r2 = R2[:] #mouse_box
-    w=btn_box[2]
-    h=btn_box[3]
-    p1 = [btn_box[0],btn_box[1]]
-    p4 = [btn_box[0]+w,btn_box[1]+h]
 
+def check_area2_dir(R1,R2):
+    r2 = R2[:] #mouse_box
+    xd = 1
+    yd = 1
     if r2[0] > r2[2]:
         r2[0],r2[2] = r2[2],r2[0]
+        xd=-1
     if r2[1] > r2[3]:
         r2[1],r2[3] = r2[3],r2[1]
+        yd=-1
+    #print("check_area2_dir",xd,yd)
+    return xd,yd,r2
+
+
+def check_area2(R1,R2): #pos,mouse_box
+    xd,yd,r2 = check_area2_dir(R1,R2)
+
+    btn_box = R1[:] #btn_box
+    w=btn_box[2]
+    h=btn_box[3]
+
+    p1 = [btn_box[0],btn_box[1]]
+    p4 = [btn_box[0]+w,btn_box[1]+h]
 
     x=0
     if r2[2] > p1[0] and r2[0] < p4[0]:
@@ -203,11 +216,10 @@ def check_area2(R1,R2): #pos,mouse_box
     if r2[3] > p1[1] and r2[1] < p4[1]:
         y+=1
 
-
     if x and y:#> 4:
-        print("btn",R1,"mouse",R2)
-        print("btn",btn_box,"mouse",r2)
-        print("area2",x,y)
+        #print("btn",R1,"mouse",R2)
+        #print("btn",btn_box,"mouse",r2)
+        #print("area2",x,y)
         return 1 
 
 
@@ -220,6 +232,8 @@ class Button():
         self.h = 10
         self.pos = pos
         self.fader = 1
+        self.ATTR = "XX"
+        self.ID = "0"
 
         self.btn1 = ELEM_BUF() 
         self.btn1.name = "BUTTON"
@@ -266,6 +280,9 @@ class Button():
         self.dbg = 0
         self.text2 = []
 
+    def __repr__(self):
+        x="<sdl.BUTTON name:{} ID:{}-{:8} btn1:{:03} val2:{:03} id at {}>".format(self.btn1.name,self.ID,self.ATTR,self.btn1.val.get(),self.btn4.val.get(), id(self))
+        return x
     def check(self):
         if self.dbg:
             self.text2 = []

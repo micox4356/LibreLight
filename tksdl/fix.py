@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 
 import time
+        
+import traceback
 boot = time.time()
-
+from collections import OrderedDict
 import random
 import os
 import sys
@@ -196,6 +198,50 @@ def read_fix(dmx):
 def add_dmx(data,dmx):
     pass
 
+
+def reorder_table_by_pos(table_grid):
+
+    if type(table_grid) in (dict,OrderedDict):
+        # order table of type dict by pos [x,y]
+        table_grid5 = {}
+        for t5 in table_grid:
+            t5_row = table_grid[t5]
+            print(t5,t5_row.pos)
+            k5 = "{:010}-{:010}".format(t5_row.pos[0],t5_row.pos[1])
+            table_grid5[k5] = [t5,t5_row]
+
+        ordered = list(table_grid5.keys())
+        ordered.sort()
+
+        table_grid2 = OrderedDict()
+        for k5 in ordered: #table_grid5:
+            k5_row = table_grid5[k5]
+            table_grid2[k5_row[0]] = k5_row[1]
+
+        return table_grid2
+    
+
+    if type(table_grid) is list:
+        # order table of type list by pos [x,y]
+        table_grid5 = {}
+        for t5 in table_grid:
+            t5_row = t5 #table_grid[t5]
+            print(t5)#,t5_row.pos)
+            k5 = "{:010}-{:010}".format(t5_row.pos[1],t5_row.pos[0])
+            table_grid5[k5] = [t5,t5_row]
+
+        ordered = list(table_grid5.keys())
+        ordered.sort()
+        table_grid2 = [] #OrderedDict()
+        for k5 in ordered: #table_grid5:
+            k5_row = table_grid5[k5]
+            table_grid2.append( k5_row[1] )
+
+        return table_grid2
+
+    return table_grid
+
+
 table={}
 table_grid={}
 btn1_press = [] #["10.10.10.13:0"]
@@ -206,384 +252,453 @@ bx_font0 = pygame.font.SysFont("freesans-bold",20)
 
 import lib.zchat as chat
 cmd_client = chat.Client(port=30003)
-
+err = []
+err.append([time.time(),"init"])
 
 while 1:
-    fps +=1
-    t = time.time()
-    if t-fps_t >= 1:
-        #print("FPS:",fps)
-        fps_old = fps
-        fps=0
-        fps_t =t
 
-    pygame.display.flip()
-    pos = [160,10,70,60]
-    rgb = (0xdd,0xdd,0xdd,0)
-    rgb = (0xaa,0xaa,0xaa,0)
-    
-    window.fill((5,5,5))
-    pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
+    try:
+        fps +=1
+        t = time.time()
+        if t-fps_t >= 1:
+            #print("FPS:",fps)
+            fps_old = fps
+            fps=0
+            fps_t =t
 
-    fr = font22.render("FIXTURE DATA (READONLY!)" ,1, (200,200,200))
-    window.blit(fr,(20,10 ))
+        pygame.display.flip()
+        pos = [160,10,70,60]
+        rgb = (0xdd,0xdd,0xdd,0)
+        rgb = (0xaa,0xaa,0xaa,0)
+        
+        window.fill((5,5,5))
+        pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-    fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
-    #window.blit(fr,(10,30 ))
+        fr = font22.render("FIXTURE DATA (READONLY!)" ,1, (200,200,200))
+        window.blit(fr,(20,10 ))
 
-    pos = [160,110,70+80,20]
-    #pygame.draw.rect(window,rgb,pos)
+        fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
+        #window.blit(fr,(10,30 ))
 
-    t=(time.time()-start)
-    if t > 15:
-        start = time.time()
-    b= 80-int(t*10)
-    pos = [160,110,70+(b),20]
-    rgb = (0x00,0xff,0xff,0)
+        pos = [160,110,70+80,20]
+        #pygame.draw.rect(window,rgb,pos)
 
-    dmx = read_dmx()
+        t=(time.time()-start)
+        if t > 15:
+            start = time.time()
+        b= 80-int(t*10)
+        pos = [160,110,70+(b),20]
+        rgb = (0x00,0xff,0xff,0)
 
-    rgb = (0xff,0,0xaa,0)
+        dmx = read_dmx()
 
-    data = read_fix(dmx)
-    #data = add_dmx(data,dmx)
+        rgb = (0xff,0,0xaa,0)
 
-
-    i = 0
-    r=40
-    if 1:
-        ch = 141
-        send = 0
-        #cmd="stats items" 
-        #if not y:
-        y=data #mc.get("fix")#cmd)
-        if y:
-            iii = 0
-            key=y.keys()
-            key = list(key)
-            key2 = []
-            for k in key:
-                try:
-                    key2.append(int(k))
-                except:
-                    pass
-            key2.sort()
-            key = key2 #.sort()
-            if len(btn1_press) == 0:
-                btn1_press = [key[0]]
-            rgb = (0x00,0,0xff,0)
-            k2 = btn1_press[-1]
-            fr = font22.render("SRC:"+str(k2) ,1, rgb) #(200,200,200))
-            window.blit(fr,(400,1))
-
-            fr = font22.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
-            window.blit(fr,(600,1))
+        data = read_fix(dmx)
+        #data = add_dmx(data,dmx)
 
 
-            for k in key:#y.items():
-                k = str(k)
-                v = y[k]
-                attr_count = 0
-                if "ATTRIBUT" in v:
-                    for ATTR in v["ATTRIBUT"]:
-                        if ATTR.startswith("_"):
-                            continue
-                        if ATTR.endswith("-FINE"):
-                            continue
-                        if ATTR == "DIM":
-                            continue
-                        attr_count += 1
-                if attr_count <= 0:
-                    continue
+        i = 0
+        r=40
+        if 1:
+            ch = 141
+            send = 0
+            #cmd="stats items" 
+            #if not y:
+            y=data #mc.get("fix")#cmd)
+            if y:
+                iii = 0
+                key=y.keys()
+                key = list(key)
+                key2 = []
+                for k in key:
+                    try:
+                        key2.append(int(k))
+                    except:
+                        pass
+                key2.sort()
+                key = key2 #.sort()
+                if len(btn1_press) == 0:
+                    btn1_press = [key[0]]
+                rgb = (0x00,0,0xff,0)
+                k2 = btn1_press[-1]
+                fr = font22.render("SRC:"+str(k2) ,1, rgb) #(200,200,200))
+                window.blit(fr,(400,1))
 
-                #print(k,v)
-                x=mc.get(k)
-                cccount = 0
-                txt = str([k,v,ch,"=",cccount]) #x[ch-1]])
+                fr = font22.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
+                window.blit(fr,(600,1))
 
-                rgb = (0xaa,0xaa,0xaa,0)
-                
-                i += 1
-                if k not in table:
-                    bx = sdl_elm.Button(window,pos=[20,r,50,20])
-                    bx.btn1.color_on = [255,255,0]
-                    table[k] = bx
-
-                    bxc = sdl_elm.Button(window,pos=[-11,r,5,20])
-                    bxc.btn1.color_on = [255,255,0]
-                    table[k+"_color"] = bxc
-
-                bx = table[k]
-                bx.data = v
-                bxc.data = {}
-
-                active = 0
-                if "ATTRIBUT" in v:
-                    if "_ACTIVE" in v["ATTRIBUT"]:
-                        if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
-                            if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
-                                active = 1
-
-                bx.btn1.val.set(active)
-                bx.text = "ID:"+ k #str(txt) #+"\n<val>\n" #.format(i+1)
-                bx.font0 = bx_font0 #pygame.font.SysFont("freesans-bold",20)
-                bx.btn1.bg_on = [0,255,255]
-                bx.btn1.type = "toggle"
-                bx.pos  = [10,r,70,20]
-
-                if "ATTRIBUT" in v:
-                    bcv_r = 0
-                    bcv_g = 0
-                    bcv_b = 0
-                    if "RED" in v["ATTRIBUT"]:
-                        bcv_r = v["ATTRIBUT"]["RED"]["VALUE2"]
-                    if "GREEN" in v["ATTRIBUT"]:
-                        bcv_g = v["ATTRIBUT"]["GREEN"]["VALUE2"]
-                    if "BLUE" in v["ATTRIBUT"]:
-                        bcv_b = v["ATTRIBUT"]["BLUE"]["VALUE2"]
+                err_r = 0
+                if err:
+                    for e in err:
+                        rgb = (255,0,0)
+                        fr = font22.render("err:"+str(e) ,1, rgb) #(200,200,200))
+                        window.blit(fr,(700,1+err_r))
+                        err_r += 20
 
 
-                    #print("bvc_rgb" [bcv_r,bcv_g,bcv_b])
-                    if bcv_r > 255:
-                        bcv_r=255
-                    if bcv_g > 255:
-                        bcv_g=255
-                    if bcv_b > 255:
-                        bcv_b=255
+                for k in key:#y.items():
+                    k = str(k)
+                    v = y[k]
+                    attr_count = 0
+                    if "ATTRIBUT" in v:
+                        for ATTR in v["ATTRIBUT"]:
+                            if ATTR.startswith("_"):
+                                continue
+                            if ATTR.endswith("-FINE"):
+                                continue
+                            if ATTR == "DIM":
+                                continue
+                            attr_count += 1
+                    if attr_count <= 0:
+                        continue
 
-                    bxc.btn1.color  = [bcv_r,bcv_g,bcv_b]
-                    bxc.btn1.color_on  = [bcv_r,bcv_g,bcv_b]
+                    #print(k,v)
+                    x=mc.get(k)
+                    cccount = 0
+                    txt = str([k,v,ch,"=",cccount]) #x[ch-1]])
 
-                bxc.pos  = [85,r,20,20]
-                bxc.text = ""
+                    rgb = (0xaa,0xaa,0xaa,0)
+                    
+                    i += 1
+                    if k not in table:
+                        bx = sdl_elm.Button(window,pos=[20,r,50,20])
+                        bx.btn1.color_on = [255,255,0]
+                        table[k] = bx
 
-                bx.draw()
-                bxc.draw()
-                
-                r_buf=bx.get_rect()[3]+2
+                        bxc = sdl_elm.Button(window,pos=[-11,r,5,20])
+                        bxc.btn1.color_on = [255,255,0]
+                        table[k+"_color"] = bxc
 
-                iii += 35
-                
-                rr = 0
-                if "ATTRIBUT" in v: # and 10: 
-                    ATTR = v["ATTRIBUT"]
-                    for k2 in ATTR:
-                        k2_ATTR = ATTR[k2]
-                        if k2.endswith("-FINE"):
-                            continue
-                        if k2.startswith("_"):
-                            continue
-                        k3 = k+"-"+k2
-                        
+                    bx = table[k]
+                    bx.data = v
+                    bxc.data = {}
 
-                        val2 = ""
-                        if "VALUE" in k2_ATTR:
-                            val2 = k2_ATTR["VALUE"]
+                    active = 0
+                    if "ATTRIBUT" in v:
+                        if "_ACTIVE" in v["ATTRIBUT"]:
+                            if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
+                                if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
+                                    active = 1
 
-                        virt = 1
-                        if "NR" in k2_ATTR:
-                            if k2_ATTR["NR"] > 0:
-                                virt = 0
+                    bx.btn1.val.set(active)
+                    bx.text = "ID:"+ k #str(txt) #+"\n<val>\n" #.format(i+1)
+                    bx.font0 = bx_font0 #pygame.font.SysFont("freesans-bold",20)
+                    bx.btn1.bg_on = [0,255,255]
+                    bx.btn1.type = "toggle"
+                    bx.pos  = [10,r,70,20]
 
-                        dmx_val = -3
-                        if "VALUE2"in k2_ATTR:
-                            dmx_val = k2_ATTR["VALUE2"]
-
-                        if k3 not in table_grid:
-                            bx = sdl_elm.Button(window,pos=[300,rr,60,20])
-                            bx.btn1.color_on = [255,255,0]
-                            bx.ID = 0
-                            if "ID" in v:
-                                bx.ID = v["ID"]
-                            bx.ATTR = k2
-                            table_grid[k3] = bx
-
-                        if "ACTIVE" in k2_ATTR:
-                            if k2_ATTR["ACTIVE"] >=1:
-                                table_grid[k3].btn1.val.set(1)
-                            else:
-                                table_grid[k3].btn1.val.set(0)
-
-                        bx = table_grid[k3]
-                        bx.data = k2_ATTR
-
-                        try:val = v
-                        except:pass
-
-                        bx.text = k2 +" "+str(val2)+" "+str(dmx_val) 
-                        bx.font0 = bx_font0 
-                        if k2 == "RED":
-                            bx.btn4.color_on = [255,0,0]
-                        elif k2 == "GREEN":
-                            bx.btn4.color_on = [0,255,0]
-                        elif k2 == "BLUE":
-                            bx.btn4.color_on = [0,0,255]
+                    if "ATTRIBUT" in v:
+                        bcv_r = 0
+                        bcv_g = 0
+                        bcv_b = 0
+                        if "RED" in v["ATTRIBUT"]:
+                            bcv_r = v["ATTRIBUT"]["RED"]["VALUE2"]
+                        if "GREEN" in v["ATTRIBUT"]:
+                            bcv_g = v["ATTRIBUT"]["GREEN"]["VALUE2"]
+                        if "BLUE" in v["ATTRIBUT"]:
+                            bcv_b = v["ATTRIBUT"]["BLUE"]["VALUE2"]
 
 
-                        if virt == 1:
-                            bx.btn3.color= [0,0,0]
+                        #print("bvc_rgb" [bcv_r,bcv_g,bcv_b])
+                        if bcv_r > 255:
+                            bcv_r=255
+                        if bcv_g > 255:
+                            bcv_g=255
+                        if bcv_b > 255:
+                            bcv_b=255
 
-                        bx.btn1.type = "toggle"
-                        if type(dmx_val) == int:
-                            bx.btn4.val.set(dmx_val) # "toggle"
-                        bx.pos  = [100+rr,r,120,20]
-                        bx.draw()
-                        rr+=bx.get_rect()[2]+2
-                        if rr > 1000:
-                            break
+                        bxc.btn1.color  = [bcv_r,bcv_g,bcv_b]
+                        bxc.btn1.color_on  = [bcv_r,bcv_g,bcv_b]
 
-                r += r_buf
-                if r > 800:
-                    break
+                    bxc.pos  = [85,r,20,20]
+                    bxc.text = ""
+
+                    bx.draw()
+                    bxc.draw()
+                    
+                    r_buf=bx.get_rect()[3]+2
+
+                    iii += 35
+                    
+                    rr = 0
+                    if "ATTRIBUT" in v: # and 10: 
+                        ATTR = v["ATTRIBUT"]
+                        for k2 in ATTR:
+                            k2_ATTR = ATTR[k2]
+                            if k2.endswith("-FINE"):
+                                continue
+                            if k2.startswith("_"):
+                                continue
+                            k3 = k+"-"+k2
+                            
+
+                            val2 = ""
+                            if "VALUE" in k2_ATTR:
+                                val2 = k2_ATTR["VALUE"]
+
+                            virt = 1
+                            if "NR" in k2_ATTR:
+                                if k2_ATTR["NR"] > 0:
+                                    virt = 0
+
+                            dmx_val = -3
+                            if "VALUE2"in k2_ATTR:
+                                dmx_val = k2_ATTR["VALUE2"]
+
+                            if k3 not in table_grid:
+                                bx = sdl_elm.Button(window,pos=[300,rr,60,20])
+                                bx.btn1.color_on = [255,255,0]
+                                bx.ID = 0
+                                if "ID" in v:
+                                    bx.ID = v["ID"]
+                                bx.ATTR = k2
+                                table_grid[k3] = bx
+
+                                #table_grid = reorder_table_by_pos(table_grid)
+
+
+                            if "ACTIVE" in k2_ATTR:
+                                if k2_ATTR["ACTIVE"] >=1:
+                                    table_grid[k3].btn1.val.set(1)
+                                else:
+                                    table_grid[k3].btn1.val.set(0)
+
+                            bx = table_grid[k3]
+                            bx.data = k2_ATTR
+
+                            try:val = v
+                            except:pass
+
+                            bx.text = k2 +" "+str(val2)+" "+str(dmx_val) 
+                            bx.font0 = bx_font0 
+                            if k2 == "RED":
+                                bx.btn4.color_on = [255,0,0]
+                            elif k2 == "GREEN":
+                                bx.btn4.color_on = [0,255,0]
+                            elif k2 == "BLUE":
+                                bx.btn4.color_on = [0,0,255]
+
+
+                            if virt == 1:
+                                bx.btn3.color= [0,0,0]
+
+                            bx.btn1.type = "toggle"
+                            if type(dmx_val) == int:
+                                bx.btn4.val.set(dmx_val) # "toggle"
+                            bx.pos  = [100+rr,r,120,20]
+                            bx.draw()
+                            rr+=bx.get_rect()[2]+2
+                            if rr > 1000:
+                                break
+
+                    r += r_buf
+                    if r > 800:
+                        break
 
 
 
-    if 0:#kill:
-            #time.sleep(.13)
-        last_k = ""
-        for k in table:
-            t = table[k]
-            if t.btn1.val.get():
-                if k not in btn1_press:
-                    btn1_press.append(k)
 
-        #print(btn1_press)
-        if len(btn1_press) > 1:
-            for k in table:
-                table[k].btn1.val.set(0)
-            
-            k = btn1_press[-1]
-            if k in table:
-                btn1_press = [k]
 
-        try:
-            k = btn1_press[-1]
-            table[k].btn1.val.set(1)
-        except:pass
 
-    resize_changed = 0
-    for event in pygame.event.get(): 
-         
-        if "scancode" in event.dict:
-            if event.scancode == 9:
-                for k in table:
-                    t = table[k]
-                    #t.btn2.clean()
-                    t.btn1.clean()
-                for k in table_grid:
-                    t = table_grid[k]
-                    #t.btn2.clean()
-                    t.btn1.clean()
+        resize_changed = 0
+        for event in pygame.event.get(): 
+            #print(event.dict) 
+            #print(event.type)
+            if "scancode" in event.dict:
+                if event.scancode == 9:
+                    for k in table:
+                        t = table[k]
+                        #t.btn2.clean()
+                        t.btn1.clean()
+                    for k in table_grid:
+                        t = table_grid[k]
+                        #t.btn2.clean()
+                        t.btn1.clean()
 
-                msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
-                print("ESC",msg)
-                cmd_client.send(msg)
-
-        #print("event",event)
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit(0)
-        elif event.type == pygame.VIDEORESIZE:
-            scrsize = event.size
-            width   = event.w
-            hight   = event.h
-            resize_changed = True
-
-        for t in table:
-            #print(t)
-            table[t].event(event)
-            if table[t].btn3.get():
-                data = table[t].data
-                print("FIX:",data)
-
-        for t in table_grid:
-            #print(t)
-            change = table_grid[t].event(event)
-            if table_grid[t].btn3.get():
-                data = table_grid[t].data
-                FIX = table_grid[t].ID
-                ATTR = table_grid[t].ATTR
-                print("change",change)
-
-                key = "MOUSE ENCODER"
-                if key in change:
-                    if "press" in change[key]:
-                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
-                    if "release" in change[key]:
-                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
-                    print("   ",msg)
+                    msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
+                    print("ESC",msg)
                     cmd_client.send(msg)
 
-                key = "BUTTON"
-                if key in change:
-                    if "press" in change[key]:
-                        #print(" ATTR:",FIX,ATTR,data)
-                        #print("  CHANGE",change)
-                        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+            print("event",event)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(0)
+            elif event.type == pygame.VIDEORESIZE:
+                scrsize = event.size
+                width   = event.w
+                hight   = event.h
+                resize_changed = True
+
+            for t in table:
+                #print(t)
+                table[t].event(event)
+                if table[t].btn3.get():
+                    data = table[t].data
+                    print("FIX:",data)
+
+            for t in table_grid:
+                #print(t)
+                change = table_grid[t].event(event)
+                if table_grid[t].btn3.get():
+                    data = table_grid[t].data
+                    FIX = table_grid[t].ID
+                    ATTR = table_grid[t].ATTR
+                    #print("change",change)
+
+                    key = "MOUSE ENCODER"
+                    if key in change:
+                        if "press" in change[key]:
+                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
+                        if "release" in change[key]:
+                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
                         print("   ",msg)
                         cmd_client.send(msg)
-                    if "release" in change[key]:
-                        for mg in mouse_grab:
-                            FIX = mg.ID
-                            ATTR = mg.ATTR
-                            #ATTR = "ALL"
+
+                    key = "BUTTON"
+                    if key in change:
+                        if "press" in change[key]:
+                            #print(" ATTR:",FIX,ATTR,data)
+                            #print("  CHANGE",change)
                             msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                            print("  mouse_grab ",msg)
+                            print("   ",msg)
                             cmd_client.send(msg)
-                        mouse_grab = []
-            
+                        if "release" in change[key]:
+                            pass
 
 
-        if "pos" in event.dict:
+            if "pos" in event.dict:
+                if "button" in event.dict:
+                    if event.type == 5:#press
+                        mouse_down = 1
+                        mouse_pos1 = [event.pos[0],event.pos[1]]
+                    if event.type == 6:#release
+                        mouse_down = 0
+
+                    #for btn in mouse_grab:
+                    #    btn.btn1.val.set(1)
+                mouse_pos2 = [event.pos[0],event.pos[1]]
+
+
+
             if "button" in event.dict:
-                if event.type == 5:#press
-                    mouse_down = 1
-                    mouse_pos1 = [event.pos[0],event.pos[1]]
-                if event.type == 6:#release
-                    mouse_down = 0
+                if event.type == 6:
+                    #print("grab DOOOO",event)
+                    #print("grab2", event.dict["button"],len(mouse_grab) )
+                    if event.dict["button"] == 1:
+                        mouse_grab_active = 0
+                        for mg in mouse_grab:
+                            if mg.btn1.val.get():
+                                mouse_grab_active += 1
+                        
+                        for mg in mouse_grab:
+                            FIX = str(mg.ID)
+                            ATTR = str(mg.ATTR)
 
-                for btn in mouse_grab:
-                    #btn.btn2.val.set(1)
-                    btn.btn1.val.set(1)
-                mouse_grab = []
-            mouse_pos2 = [event.pos[0],event.pos[1]]
+                            if mouse_grab_active:
+                                if not mg.btn1.val.get():
+                                    msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                    print("  mouse_grab ",msg,mg.btn1.val.get())
+                                    cmd_client.send(msg)
+                            else: #no btn is on
+                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                #amsg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                print("  mouse_grab OFF ",msg,mg.btn1.val.get())
+                                cmd_client.send(msg)
 
-    
-    if mouse_down:
-        d1 = mouse_pos1[0]-mouse_pos2[0]
-        d2 = mouse_pos1[1]-mouse_pos2[1] 
-        pix = 23
-        #print(d1,d2)
-        if ( d1 > pix or d1 < -pix)  or  ( d2 >pix or d2 < -pix):
+                        mouse_grab = []
+                    if event.dict["button"] == 3:
+                        mouse_grab_active = 0
+                        for mg in mouse_grab:
+                            if mg.btn1.val.get():
+                                mouse_grab_active += 1
+                        
+                        for mg in mouse_grab:
+                            FIX = str(mg.ID)
+                            ATTR = str(mg.ATTR)
 
-            sdl_elm.draw_mouse_box(window,mouse_pos1,mouse_pos2)
-            for k in table:
-                t = table[k]
-                pos = t.get_rect()
+                            if mouse_grab_active:
+                                if mg.btn1.val.get():
+                                    msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                    print("  mouse_grab ",msg,mg.btn1.val.get())
+                                    cmd_client.send(msg)
 
-                mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
+                        mouse_grab = []
 
-                if sdl_elm.check_area2(pos,mpos):
-                    t._set_mouse_focus(1)
-                    mouse_grab.append(t)
-                else:
-                    t._set_mouse_focus(0)
+
+
+        
+        if mouse_down:
+            d1 = mouse_pos1[0]-mouse_pos2[0]
+            d2 = mouse_pos1[1]-mouse_pos2[1] 
+            pix = 10
+            #print(d1,d2)
+            if ( d1 > pix or d1 < -pix)  or  ( d2 >pix or d2 < -pix):
+
+                sdl_elm.draw_mouse_box(window,mouse_pos1,mouse_pos2)
+                for k in table: # FIX-ID
+                    t = table[k]
+                    pos = t.get_rect()
+
+                    mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
+
+                    if sdl_elm.check_area2(pos,mpos):
+                        #t._set_mouse_focus(1)
+                        if t not in mouse_grab:
+                            mouse_grab.append(t)
+                            print("mouse_grab.append",t)
+                            #mouse_grab = reorder_table_by_pos(mouse_grab)
+                    else:
+                        #t._set_mouse_focus(0)
+                        if t in mouse_grab:
+                            mouse_grab.remove(t)
+                            print("mouse_grab.remove",t)
+
+
+                for k3 in table_grid: # FIX-ATTR
+                    t = table_grid[k3]
+                    pos = t.get_rect()
+
+                    mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
+
+                    if sdl_elm.check_area2(pos,mpos):
+                        #t._set_mouse_focus(1)
+                        if t not in mouse_grab:
+                            mouse_grab.append(t)
+                            print("mouse_grab.append",t)
+                            #mouse_grab = reorder_table_by_pos(mouse_grab)
+                    else:
+                        #t._set_mouse_focus(0)
+                        if t in mouse_grab:
+                            mouse_grab.remove(t)
+                            print("mouse_grab.remove",t)
+
 
             for k3 in table_grid:
                 t = table_grid[k3]
-                pos = t.get_rect()
+                t._set_mouse_focus(0)
 
-                mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
-
-                if sdl_elm.check_area2(pos,mpos):
+            i = 1
+            if mouse_grab:
+                mouse_grab = reorder_table_by_pos(mouse_grab)
+                for t in mouse_grab:
                     t._set_mouse_focus(1)
-                    mouse_grab.append(t)
-                else:
-                    t._set_mouse_focus(0)
+                    pos = t.pos[:2]
+                    pos[0] += 100
+                    pos[1] += 8
+                    rgb = (0,255,255)
+                    fr = font15.render(""+str(i) ,1, rgb) #(200,200,200))
+                    #print(pos)
+                    pygame.draw.rect(window,(0,0,0),[pos[0]-2,pos[1]-2,15,13])
+                    window.blit(fr,pos)
+                    i+=1
+
+                
 
 
-    if resize_changed:# = True
-        screen = pygame.display.set_mode(scrsize,pg.RESIZABLE)
+
+        if resize_changed:# = True
+            screen = pygame.display.set_mode(scrsize,pg.RESIZABLE)
 
 
 
@@ -592,7 +707,10 @@ while 1:
 
 
 
-    clock.tick(10)
+        clock.tick(10)
 
-
+    except Exception as e:
+        err.append([int((time.time()-boot)*100),e])
+        traceback.print_exc()
+        print("Exc",e)
 

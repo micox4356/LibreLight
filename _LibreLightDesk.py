@@ -2261,7 +2261,7 @@ class Base():
         self._init()
 
     def _init(self):
-        show_name = "DemoShow"
+        show_name = "ErrorRead-init.txt"
         self.show_path0 = HOME +"/LibreLight/"
         self.show_path  = self.show_path0 
         self.show_path1 = self.show_path0 + "show/"

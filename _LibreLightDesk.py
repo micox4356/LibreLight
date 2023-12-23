@@ -2261,7 +2261,7 @@ class Base():
         self._init()
 
     def _init(self):
-        show_name = "ErrorRead-init.txt"
+        show_name = "" #DemoShow #"ErrorRead-init.txt"
         self.show_path0 = HOME +"/LibreLight/"
         self.show_path  = self.show_path0 
         self.show_path1 = self.show_path0 + "show/"
@@ -5177,7 +5177,7 @@ if __run_main:
 
     name = "SETUP"
     args = {"title":name +" SHOW:"+master.base.show_name,
-                "master":0,"width":445,"height":42,"left":L1+10+W1,"top":TOP,"resize":0}
+                "master":0,"width":445,"height":42,"left":L1+10+W1,"top":TOP,"resize":10}
     args["title"]  = "SETUP SHOW:"+master.base.show_name
     geo = split_window_position(pos_list,name)
     try:
@@ -5199,7 +5199,7 @@ if __run_main:
 
 
     name = "COMMAND"
-    args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":0}
+    args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":10}
     geo = split_window_position(pos_list,name)
     if geo:
         args.update(geo)
@@ -5213,7 +5213,7 @@ if __run_main:
         window_manager.top(name)
 
     name = "LIVE"
-    args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":0}
+    args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":10}
     geo = split_window_position(pos_list,name)
     if geo:
         args.update(geo)

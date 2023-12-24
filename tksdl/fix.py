@@ -213,7 +213,7 @@ def reorder_table_by_pos(table_grid):
         table_grid5 = {}
         for t5 in table_grid:
             t5_row = table_grid[t5]
-            print(t5,t5_row.pos)
+            #print(t5,t5_row.pos)
             k5 = "{:010}-{:010}".format(t5_row.pos[0],t5_row.pos[1])
             table_grid5[k5] = [t5,t5_row]
 
@@ -233,7 +233,7 @@ def reorder_table_by_pos(table_grid):
         table_grid5 = {}
         for t5 in table_grid:
             t5_row = t5 #table_grid[t5]
-            print(t5)#,t5_row.pos)
+            #print(t5)#,t5_row.pos)
             k5 = "{:010}-{:010}".format(t5_row.pos[1],t5_row.pos[0])
             table_grid5[k5] = [t5,t5_row]
 
@@ -666,20 +666,20 @@ while 1:
             scroll_change = 0
             if scroll_bar.btn3.val.get(): #scroll_bar focus
                 spos = scroll_bar.rel_pos[1]
-                print("------------------",spos)
+                #print("------------------",spos)
                 if "button" in event.dict:
                     if event.dict["button"] == 1:
                         scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
 
                 if "buttons" in event.dict:
                     if event.dict["buttons"][0]:
-                        print(" ",(scroll_change))
-                        print(" ",spos)
+                        #print(" ",(scroll_change))
+                        #print(" ",spos)
                         scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
 
             event_lock = scroll_bar.btn3.val.get() #focus on
-            if event_lock:
-                print("event_lock",event_lock)
+            #if event_lock:
+            #    print("event_lock",event_lock)
 
             if not event_lock:
                 for t in table_draw:
@@ -687,7 +687,7 @@ while 1:
                     table[t].event(event)
                     if table[t].btn3.get():
                         data = table[t].data
-                        print("FIX:",data)
+                        #print("FIX:",data)
             
 
 
@@ -786,12 +786,12 @@ while 1:
                             if mouse_grab_active:
                                 if not mg.btn1.val.get():
                                     msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                    print("  mouse_grab ",msg,mg.btn1.val.get())
+                                    #print("  mouse_grab ",msg,mg.btn1.val.get())
                                     cmd_client.send(msg)
                             else: #no btn is on
                                 msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
                                 #amsg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                print("  mouse_grab OFF ",msg,mg.btn1.val.get())
+                                #print("  mouse_grab OFF ",msg,mg.btn1.val.get())
                                 cmd_client.send(msg)
 
                         mouse_grab = []
@@ -808,7 +808,7 @@ while 1:
                             if mouse_grab_active:
                                 if mg.btn1.val.get():
                                     msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                    print("  mouse_grab ",msg,mg.btn1.val.get())
+                                    #print("  mouse_grab ",msg,mg.btn1.val.get())
                                     cmd_client.send(msg)
 
                         mouse_grab = []
@@ -834,13 +834,13 @@ while 1:
                         #t._set_mouse_focus(1)
                         if t not in mouse_grab:
                             mouse_grab.append(t)
-                            print("mouse_grab.append",t)
+                            #print("mouse_grab.append",t)
                             #mouse_grab = reorder_table_by_pos(mouse_grab)
                     else:
                         #t._set_mouse_focus(0)
                         if t in mouse_grab:
                             mouse_grab.remove(t)
-                            print("mouse_grab.remove",t)
+                            #print("mouse_grab.remove",t)
 
 
                 for k3 in table_grid_draw: # FIX-ATTR
@@ -853,13 +853,13 @@ while 1:
                         #t._set_mouse_focus(1)
                         if t not in mouse_grab:
                             mouse_grab.append(t)
-                            print("mouse_grab.append",t)
+                            #print("mouse_grab.append",t)
                             #mouse_grab = reorder_table_by_pos(mouse_grab)
                     else:
                         #t._set_mouse_focus(0)
                         if t in mouse_grab:
                             mouse_grab.remove(t)
-                            print("mouse_grab.remove",t)
+                            #print("mouse_grab.remove",t)
 
 
             for k3 in table_grid:

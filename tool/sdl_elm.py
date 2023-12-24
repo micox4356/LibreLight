@@ -437,7 +437,7 @@ class Button():
                     if rel[1] > 1:
                         rel[1] = 1
 
-                    print("RELPOS",rel)
+                    #print("RELPOS",rel)
                     self.rel_pos = rel
             self._check_event()
 
@@ -462,7 +462,7 @@ class Button():
                         btn.release()
                     re = btn.get_event()
                     if re and btn.name not in ['MOUSE FOCUS']:
-                        print("----------------",btn.name,re)
+                        #print("----------------",btn.name,re)
                         r_event[btn.name] = re
         return r_event
 

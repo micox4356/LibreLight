@@ -255,6 +255,22 @@ cmd_client = chat.Client(port=30003)
 err = []
 err.append([time.time(),"init"])
 
+scroll_bar = sdl_elm.Button(window,pos=[640,40,40,400])
+scroll_bar.btn1.color_on = [255,255,0]
+scroll_bar.dbg = 0
+scroll_bar.btn4.color_on=[0,0,0]
+scroll_bar.btn4.color_off=[0,0,0]
+scroll_bar.fader = "v" 
+scroll_bar.text="\n"*10+"<ival%>%"
+scroll_bar.text=" "
+
+scroll_bar.btn4.nr_on  = [5]
+scroll_bar.btn4.nr_off = [4]
+scroll_bar.draw()
+
+width,hight   = main_size #[1]
+scroll_max = 100
+
 while 1:
 
     try:
@@ -271,10 +287,11 @@ while 1:
         rgb = (0xdd,0xdd,0xdd,0)
         rgb = (0xaa,0xaa,0xaa,0)
         
-        window.fill((5,5,5))
+        #window.fill((2,2,2))
+        window.fill((0,0,0))
         pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-        fr = font22.render("FIXTURE DATA (READONLY!)" ,1, (200,200,200))
+        fr = font22.render("FIXTURE DATA " ,1, (200,200,200))
         window.blit(fr,(20,10 ))
 
         fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
@@ -295,9 +312,50 @@ while 1:
         rgb = (0xff,0,0xaa,0)
 
         data = read_fix(dmx)
+
+
+        #scroll_bar.btn4.val._max = len(data)-8  #draw()
+        scroll_max = len(data)-8
+        scroll_max = len(data.keys())-8
+        scroll_max = 0 
+        block_wrap = int((width -200 ) /120)
+        if block_wrap <= 0:
+            block_wrap = 1
+
+        for k in data.keys():
+            print(k,data[k])
+            if "ATTRIBUT" in data[k]:
+                row = data[k]["ATTRIBUT"]
+                if len(row) <= 2:
+                    continue
+
+                scroll_max += 1
+    
+                #attr["acount"] = 0
+                acount=0
+                for attr in row:
+                    if attr.startswith("_"):
+                        continue
+                    if attr.endswith("-FINE"):
+                        continue
+                    acount+=1
+
+                if acount:
+                    #attr["acount"] = acount
+                    scroll_max += int(acount/block_wrap)
+
+
+        print()
+        scroll_bar.btn4.val._max = scroll_max
+        scroll_bar.increment = (len(data))/100*10  #draw()
         #data = add_dmx(data,dmx)
+        scroll_pos = scroll_bar.btn4.val.get()
+        scroll_bar.pos[0] = width-80
+        scroll_bar.pos[3] = hight-80
 
-
+        #print(scroll_pos)
+        table_grid_draw=[] #{}
+        table_draw = []
         i = 0
         r=40
         if 1:
@@ -312,6 +370,7 @@ while 1:
                 key = list(key)
                 key2 = []
                 for k in key:
+                    #print(k)
                     try:
                         key2.append(int(k))
                     except:
@@ -322,7 +381,8 @@ while 1:
                     btn1_press = [key[0]]
                 rgb = (0x00,0,0xff,0)
                 k2 = btn1_press[-1]
-                fr = font22.render("SRC:"+str(k2) ,1, rgb) #(200,200,200))
+                #fr = font22.render("SRC:"+str(k2) ,1, rgb) #(200,200,200))
+                fr = font22.render("D:"+str(scroll_max) ,1, rgb) #(200,200,200))
                 window.blit(fr,(400,1))
 
                 fr = font22.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
@@ -336,8 +396,10 @@ while 1:
                         window.blit(fr,(700,1+err_r))
                         err_r += 20
 
-
+                i4 = 0
+                #scroll_max=1
                 for k in key:#y.items():
+
                     k = str(k)
                     v = y[k]
                     attr_count = 0
@@ -351,6 +413,11 @@ while 1:
                                 continue
                             attr_count += 1
                     if attr_count <= 0:
+                        continue
+
+                    #scroll_max+=1
+                    i4 += 1
+                    if i4 < scroll_pos:
                         continue
 
                     #print(k,v)
@@ -383,10 +450,11 @@ while 1:
 
                     bx.btn1.val.set(active)
                     bx.text = "ID:"+ k #str(txt) #+"\n<val>\n" #.format(i+1)
+                    bx.text += " "+v["NAME"]
                     bx.font0 = bx_font0 #pygame.font.SysFont("freesans-bold",20)
                     bx.btn1.bg_on = [0,255,255]
                     bx.btn1.type = "toggle"
-                    bx.pos  = [10,r,70,20]
+                    bx.pos  = [10,r,120,20]
 
                     if "ATTRIBUT" in v:
                         bcv_r = 0
@@ -411,7 +479,7 @@ while 1:
                         bxc.btn1.color  = [bcv_r,bcv_g,bcv_b]
                         bxc.btn1.color_on  = [bcv_r,bcv_g,bcv_b]
 
-                    bxc.pos  = [85,r,20,20]
+                    bxc.pos  = [140,r,20,20]
                     bxc.text = ""
 
                     bx.draw()
@@ -422,6 +490,7 @@ while 1:
                     iii += 35
                     
                     rr = 0
+                    acount = 0
                     if "ATTRIBUT" in v: # and 10: 
                         ATTR = v["ATTRIBUT"]
                         for k2 in ATTR:
@@ -447,7 +516,7 @@ while 1:
                                 dmx_val = k2_ATTR["VALUE2"]
 
                             if k3 not in table_grid:
-                                bx = sdl_elm.Button(window,pos=[300,rr,60,20])
+                                bx = sdl_elm.Button(window,pos=[600,rr,60,20])
                                 bx.btn1.color_on = [255,255,0]
                                 bx.ID = 0
                                 if "ID" in v:
@@ -486,15 +555,26 @@ while 1:
                             bx.btn1.type = "toggle"
                             if type(dmx_val) == int:
                                 bx.btn4.val.set(dmx_val) # "toggle"
-                            bx.pos  = [100+rr,r,120,20]
+                            bx.pos  = [170+rr,r,120,20]
                             bx.draw()
                             rr+=bx.get_rect()[2]+2
+                            
+
+                            table_grid_draw.append(k3) #table_grid[k3]
                             if rr > 1000:
                                 break
+                            acount +=1
+                            if acount %block_wrap==0:
+                                r += r_buf
+                                rr = 0
+
+                    table_draw.append(k)
 
                     r += r_buf
-                    if r > 800:
+                    if r > hight-30:#/20:
                         break
+                    #width   = event.w
+                    #hight   = event.h
 
 
 
@@ -507,11 +587,11 @@ while 1:
             #print(event.type)
             if "scancode" in event.dict:
                 if event.scancode == 9:
-                    for k in table:
+                    for k in table_draw:
                         t = table[k]
                         #t.btn2.clean()
                         t.btn1.clean()
-                    for k in table_grid:
+                    for k in table_grid_draw:
                         t = table_grid[k]
                         #t.btn2.clean()
                         t.btn1.clean()
@@ -530,41 +610,51 @@ while 1:
                 hight   = event.h
                 resize_changed = True
 
-            for t in table:
-                #print(t)
-                table[t].event(event)
-                if table[t].btn3.get():
-                    data = table[t].data
-                    print("FIX:",data)
+            scroll_bar.event(event) #daraw()
+            event_lock = scroll_bar.btn3.val.get()
+            if event_lock:
+                print("event_lock",event_lock)
 
-            for t in table_grid:
-                #print(t)
-                change = table_grid[t].event(event)
-                if table_grid[t].btn3.get():
-                    data = table_grid[t].data
-                    FIX = table_grid[t].ID
-                    ATTR = table_grid[t].ATTR
-                    #print("change",change)
+            if not event_lock:
+                for t in table_draw:
+                    #print(t)
+                    table[t].event(event)
+                    if table[t].btn3.get():
+                        data = table[t].data
+                        print("FIX:",data)
+            
 
-                    key = "MOUSE ENCODER"
-                    if key in change:
-                        if "press" in change[key]:
-                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
-                        if "release" in change[key]:
-                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
-                        print("   ",msg)
-                        cmd_client.send(msg)
 
-                    key = "BUTTON"
-                    if key in change:
-                        if "press" in change[key]:
-                            #print(" ATTR:",FIX,ATTR,data)
-                            #print("  CHANGE",change)
-                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+            if not event_lock:
+                for k3 in table_grid_draw:
+                    #print(t)
+                    row = table_grid[k3]
+                    change = table_grid[k3].event(event)
+                    if row.btn3.get():
+                        data = row.data
+                        FIX  = row.ID
+                        ATTR = row.ATTR
+                        #print("change",change)
+
+                        key = "MOUSE ENCODER"
+                        if key in change:
+                            if "press" in change[key]:
+                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
+                            if "release" in change[key]:
+                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
                             print("   ",msg)
                             cmd_client.send(msg)
-                        if "release" in change[key]:
-                            pass
+
+                        key = "BUTTON"
+                        if key in change:
+                            if "press" in change[key]:
+                                #print(" ATTR:",FIX,ATTR,data)
+                                #print("  CHANGE",change)
+                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                print("   ",msg)
+                                cmd_client.send(msg)
+                            if "release" in change[key]:
+                                pass
 
 
             if "pos" in event.dict:
@@ -581,7 +671,9 @@ while 1:
 
 
 
-            if "button" in event.dict:
+            if event_lock:
+                pass
+            elif "button" in event.dict:
                 if event.type == 6:
                     #print("grab DOOOO",event)
                     #print("grab2", event.dict["button"],len(mouse_grab) )
@@ -636,7 +728,7 @@ while 1:
             if ( d1 > pix or d1 < -pix)  or  ( d2 >pix or d2 < -pix):
 
                 sdl_elm.draw_mouse_box(window,mouse_pos1,mouse_pos2)
-                for k in table: # FIX-ID
+                for k in table_draw: # FIX-ID
                     t = table[k]
                     pos = t.get_rect()
 
@@ -655,7 +747,7 @@ while 1:
                             print("mouse_grab.remove",t)
 
 
-                for k3 in table_grid: # FIX-ATTR
+                for k3 in table_grid_draw: # FIX-ATTR
                     t = table_grid[k3]
                     pos = t.get_rect()
 
@@ -706,6 +798,7 @@ while 1:
 
 
 
+        scroll_bar.draw()
 
         clock.tick(10)
 

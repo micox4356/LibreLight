@@ -231,7 +231,7 @@ class Button():
         self.w = 20
         self.h = 10
         self.pos = pos
-        self.fader = 1
+        self.fader = "h" #v
         self.ATTR = "XX"
         self.ID = "0"
 
@@ -337,15 +337,26 @@ class Button():
         rgb = [0,200,0]
         rgb = self.btn4.color_on
         pos2 = self.pos[:]
+        hight = pos2[3] 
         v = self.btn4.val.get() #self.val.get()
         fh = get_font_hight(self.font0)
-        if self.fader:
+        _max_val = self.btn4.val._max
+        if self.fader == "h":
             pos2[1] += 2 #fh+2
             pos2[3] = 4 #fh+2
             if v > 0: 
-                pos2[2] = int(pos2[2]* v/255)
+                pos2[2] = int(pos2[2]* v/_max_val)
             else:
                 pos2[2] = 4
+            pygame.draw.rect(self.window,rgb,pos2)
+        elif self.fader == "v":
+            if v > 0: 
+                pos2[1] += int((hight-20)* v/_max_val)
+                pos2[3] = 20
+            else:
+                pos2[3] = 20 
+            pos2[0] += 6
+            pos2[2] -= 12 
             pygame.draw.rect(self.window,rgb,pos2)
 
     def _draw_font(self,text=""):
@@ -360,6 +371,13 @@ class Button():
 
         for i in lines:
             i = str(i)
+            if "<ival%>" in i:
+                v=float(v)
+                v=v/self.btn4.val._max*100
+                v=int(v)
+                i = i.replace("<ival%>",str(v))
+            if "<ival>" in i:
+                i = i.replace("<ival>",str(int(float(v))))
             if "<val>" in i:
                 i = i.replace("<val>",v)
             fr = self.font0.render(i ,1, (0,0,0))

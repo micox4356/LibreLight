@@ -28,7 +28,7 @@ while 1:
         print("exception 34",e)
         time.sleep(1)
 
-CAPTION = 'LibreLight SDL-FIXTURE '
+CAPTION = 'LibreLight FIXTURE-LIST '
 
 if len(pids) >= 2:
     search = CAPTION[:]
@@ -465,11 +465,20 @@ while 1:
                     if k not in table:
                         bx = sdl_elm.Button(window,pos=[20,r,50,20])
                         bx.btn1.color_on = [255,255,0]
+                        bx.ID = -1
+                        if "ID" in v:
+                            bx.ID = v["ID"]
+                        if bx.ID == 0:
+                            bx.ID = -2
+                        bx.ATTR = "_ACTIVE"
                         table[k] = bx
-
+                        
+                        # color box
                         bxc = sdl_elm.Button(window,pos=[-11,r,5,20])
                         bxc.btn1.color_on = [255,255,0]
                         table[k+"_color"] = bxc
+
+
 
                     bx = table[k]
                     bx.data = v
@@ -643,7 +652,7 @@ while 1:
                     cmd_client.send(msg)
 
             #print("event",event)
-            print("event",event.dict)
+            #print("event",event.dict)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit(0)
@@ -682,6 +691,36 @@ while 1:
             
 
 
+            if not event_lock:
+                for k3 in table_draw:
+                    #print(t)
+                    row = table[k3]
+                    change = table[k3].event(event)
+                    if row.btn3.get():
+                        # FIXTURE SELECTOR
+                        data = row.data
+                        FIX  = row.ID
+                        ATTR = row.ATTR
+
+                        #key = "MOUSE ENCODER"
+                        #if key in change:
+                        #    if "press" in change[key]:
+                        #        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
+                        #    if "release" in change[key]:
+                        #        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
+                        #    print("   ",msg)
+                        #    cmd_client.send(msg)
+
+                        key = "BUTTON"
+                        if key in change:
+                            if "press" in change[key]:
+                                #print(" ATTR:",FIX,ATTR,data)
+                                #print("  CHANGE",change)
+                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                print("   ",msg)
+                                cmd_client.send(msg)
+                            if "release" in change[key]:
+                                pass
             if not event_lock:
                 for k3 in table_grid_draw:
                     #print(t)

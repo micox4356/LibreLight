@@ -4918,6 +4918,7 @@ if __run_main:
     data.append({"text":"PATCH"})
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})
+    data.append({"text":"FIX-LIST"})
     data.append({"text":"EXEC","name":"EXEC-BTN"})
     data.append({"text":"EXEC-WING"})
     data.append({"text":"---"})
@@ -4933,7 +4934,7 @@ if __run_main:
     data.append({"text":"SDL-CONFIG"})
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
-    data.append({"text":"SDL-FIX"})
+    #data.append({"text":"SDL-FIX"})
 
     name="MAIN"
     args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
@@ -5028,7 +5029,7 @@ if __run_main:
         window_manager.top(name)
 
 
-    name="SDL-FIX"
+    name="FIX-LIST"
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/fix.py " #&"
         print(cmd)

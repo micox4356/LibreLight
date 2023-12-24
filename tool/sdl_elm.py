@@ -231,6 +231,7 @@ class Button():
         self.w = 20
         self.h = 10
         self.pos = pos
+        self.rel_pos = [0,0]
         self.fader = "h" #v
         self.ATTR = "XX"
         self.ID = "0"
@@ -407,7 +408,37 @@ class Button():
     def event(self,event=None):
         r_event = {}
         if "pos" in event.dict:
-            self.event_pos = event.pos
+            self.event_pos = event.pos[:]
+
+            
+            update_rel_pos = 0
+            if "buttons" in event.dict:
+                if event.dict["buttons"][0]:
+                    update_rel_pos = 1
+
+            if "button" in event.dict:
+                if event.dict["button"] == 1:
+                    update_rel_pos = 1
+
+            if update_rel_pos:
+                    rel = [0,0]
+                    rel[0] = self.event_pos[0] -self.pos[0]-4
+                    rel[0] = rel[0]/(self.pos[2]-8)
+                    rel[1] = self.event_pos[1] -self.pos[1]-4
+                    rel[1] = rel[1]/(self.pos[3]-8)
+
+                    if rel[0] < 0:
+                        rel[0] = 0
+                    if rel[0] > 1:
+                        rel[0] = 1
+
+                    if rel[1] < 0:
+                        rel[1] = 0
+                    if rel[1] > 1:
+                        rel[1] = 1
+
+                    print("RELPOS",rel)
+                    self.rel_pos = rel
             self._check_event()
 
         self._set_mouse_focus(0)

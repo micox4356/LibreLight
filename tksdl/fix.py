@@ -20,7 +20,13 @@ _file_path=pathlib.Path(__file__)
 print("file:",_file_path)
 
 import tool.movewin as movewin
-pids = movewin.search_process(_file_path)
+while 1:
+    try:
+        pids = movewin.search_process(_file_path)
+        break
+    except Exception as e:
+        print("exception 34",e)
+        time.sleep(1)
 
 CAPTION = 'LibreLight SDL-FIXTURE '
 
@@ -75,6 +81,7 @@ font10 = pygame.font.SysFont("freemonobold",10)
 font12 = pygame.font.SysFont("freemonobold",12)
 font15 = pygame.font.SysFont("freemonobold",15)
 font16 = pygame.font.SysFont("freemonobold",16)
+font18 = pygame.font.SysFont("freemonobold",18)
 font22 = pygame.font.SysFont("FreeSans",22)
 #font  = pygame.font.SysFont(None,30)
 
@@ -253,7 +260,7 @@ bx_font0 = pygame.font.SysFont("freesans-bold",20)
 import lib.zchat as chat
 cmd_client = chat.Client(port=30003)
 err = []
-err.append([time.time(),"init"])
+#err.append([time.time(),"init"])
 
 scroll_bar = sdl_elm.Button(window,pos=[640,40,40,400])
 scroll_bar.btn1.color_on = [255,255,0]
@@ -292,7 +299,7 @@ while 1:
         pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
         fr = font22.render("FIXTURE DATA " ,1, (200,200,200))
-        window.blit(fr,(20,10 ))
+        window.blit(fr,(20,5 ))
 
         fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
         #window.blit(fr,(10,30 ))
@@ -317,13 +324,13 @@ while 1:
         #scroll_bar.btn4.val._max = len(data)-8  #draw()
         scroll_max = len(data)-8
         scroll_max = len(data.keys())-8
-        scroll_max = 0 
+        scroll_max = 1 
         block_wrap = int((width -200 ) /120)
         if block_wrap <= 0:
             block_wrap = 1
 
         for k in data.keys():
-            print(k,data[k])
+            #print(k,data[k])
             if "ATTRIBUT" in data[k]:
                 row = data[k]["ATTRIBUT"]
                 if len(row) <= 2:
@@ -345,17 +352,21 @@ while 1:
                     scroll_max += int(acount/block_wrap)
 
 
-        print()
+        #print()
         scroll_bar.btn4.val._max = scroll_max
         scroll_bar.increment = (len(data))/100*10  #draw()
         #data = add_dmx(data,dmx)
         scroll_pos = scroll_bar.btn4.val.get()
-        scroll_bar.pos[0] = width-80
+        scroll_bar.pos[0] = width-scroll_bar.pos[2]-5
         scroll_bar.pos[3] = hight-80
 
         #print(scroll_pos)
         table_grid_draw=[] #{}
         table_draw = []
+
+        active_fix = 0
+        active_attr = 0
+
         i = 0
         r=40
         if 1:
@@ -382,22 +393,45 @@ while 1:
                 rgb = (0x00,0,0xff,0)
                 k2 = btn1_press[-1]
                 #fr = font22.render("SRC:"+str(k2) ,1, rgb) #(200,200,200))
-                fr = font22.render("D:"+str(scroll_max) ,1, rgb) #(200,200,200))
-                window.blit(fr,(400,1))
 
-                fr = font22.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
-                window.blit(fr,(600,1))
+                fr = font15.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
+                window.blit(fr,(600,5))
 
                 err_r = 0
                 if err:
                     for e in err:
                         rgb = (255,0,0)
-                        fr = font22.render("err:"+str(e) ,1, rgb) #(200,200,200))
-                        window.blit(fr,(700,1+err_r))
+                        fr = font15.render("err:"+str(e) ,1, rgb) #(200,200,200))
+                        window.blit(fr,(700,5+err_r))
                         err_r += 20
 
                 i4 = 0
                 #scroll_max=1
+                for k in key:#y.items():
+                    k = str(k)
+                    v = y[k]
+                    active = 0
+                    if "ATTRIBUT" in v:
+                        if "_ACTIVE" in v["ATTRIBUT"]:
+                            if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
+                                if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
+                                    active = 1
+                                    active_fix +=1
+
+                    if "ATTRIBUT" in v: # and 10: 
+                        ATTR = v["ATTRIBUT"]
+                        for k2 in ATTR:
+                            k2_ATTR = ATTR[k2]
+                            if k2.endswith("-FINE"):
+                                continue
+                            if k2.startswith("_"):
+                                continue
+                            k3 = k+"-"+k2
+
+                            if "ACTIVE" in k2_ATTR:
+                                if k2_ATTR["ACTIVE"] >=1:
+                                    active_attr += 1
+
                 for k in key:#y.items():
 
                     k = str(k)
@@ -447,6 +481,7 @@ while 1:
                             if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
                                 if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
                                     active = 1
+                                    #aactive_fix +=1
 
                     bx.btn1.val.set(active)
                     bx.text = "ID:"+ k #str(txt) #+"\n<val>\n" #.format(i+1)
@@ -530,6 +565,7 @@ while 1:
                             if "ACTIVE" in k2_ATTR:
                                 if k2_ATTR["ACTIVE"] >=1:
                                     table_grid[k3].btn1.val.set(1)
+                                    #active_attr += 1
                                 else:
                                     table_grid[k3].btn1.val.set(0)
 
@@ -578,6 +614,12 @@ while 1:
 
 
 
+                #fr = font22.render("L:{} {}:{}".format(scroll_max,active_fix,active_attr) ,1, rgb) #(200,200,200))
+                active_ratio = 0
+                if active_fix:
+                    active_ratio = (active_attr/active_fix)
+                fr = font18.render("ACTIVE:{}:{} ({:0.01f})".format(active_fix,active_attr,active_ratio) ,1, [255,255,0]) #(200,200,200))
+                window.blit(fr,(300,5))
 
 
 
@@ -600,7 +642,8 @@ while 1:
                     print("ESC",msg)
                     cmd_client.send(msg)
 
-            print("event",event)
+            #print("event",event)
+            print("event",event.dict)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit(0)
@@ -611,7 +654,21 @@ while 1:
                 resize_changed = True
 
             scroll_bar.event(event) #daraw()
-            event_lock = scroll_bar.btn3.val.get()
+            scroll_change = 0
+            if scroll_bar.btn3.val.get(): #scroll_bar focus
+                spos = scroll_bar.rel_pos[1]
+                print("------------------",spos)
+                if "button" in event.dict:
+                    if event.dict["button"] == 1:
+                        scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
+
+                if "buttons" in event.dict:
+                    if event.dict["buttons"][0]:
+                        print(" ",(scroll_change))
+                        print(" ",spos)
+                        scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
+
+            event_lock = scroll_bar.btn3.val.get() #focus on
             if event_lock:
                 print("event_lock",event_lock)
 
@@ -800,7 +857,7 @@ while 1:
 
         scroll_bar.draw()
 
-        clock.tick(10)
+        clock.tick(6)
 
     except Exception as e:
         err.append([int((time.time()-boot)*100),e])

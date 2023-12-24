@@ -172,6 +172,7 @@ delta = start
 table={}
 btn1_press = [] #["10.10.10.13:0"]
 
+font0 = pygame.font.SysFont("freesans-bold",15)
 
 while 1:
     fps +=1
@@ -294,7 +295,7 @@ while 1:
 
                 bx = table[k]
                 bx.text = str(txt) #+"\n<val>\n" #.format(i+1)
-                bx.font0 = pygame.font.SysFont("freesans-bold",15)
+                bx.font0 = font0 #pygame.font.SysFont("freesans-bold",15)
                 bx.btn1.bg_on = [0,255,255]
                 #bx.dbg = 1
                 #bx.btn4.val.set( 100)

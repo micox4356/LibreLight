@@ -298,7 +298,7 @@ while 1:
         window.fill((0,0,0))
         pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-        fr = font22.render("FIXTURE DATA " ,1, (200,200,200))
+        fr = font22.render("FIXTURE LIST " ,1, (200,200,200))
         window.blit(fr,(20,5 ))
 
         fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))

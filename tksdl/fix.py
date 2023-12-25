@@ -248,6 +248,68 @@ def reorder_table_by_pos(table_grid):
 
     return table_grid
 
+def is_active_fix(v):
+    if "ATTRIBUT" in v:
+        if "_ACTIVE" in v["ATTRIBUT"]:
+            if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
+                if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
+                    return 1
+    return 0
+
+def is_hidden_attr(attr_name):
+    if attr_name.endswith("-FINE"):
+        return 1
+    if attr_name.startswith("_"):
+        return 1
+    return 0
+
+def count_active_attr(fix_row):
+    return len(get_active_attr(fix_row))
+
+def get_active_attr(fix_row):
+    # fix_row = {ID:"12"NAME:"xyz",ATTRIBUTE:{"RED":{"VALUE":0}}}
+    active_attr = []
+    if "ATTRIBUT" in fix_row: 
+        attr_row = fix_row["ATTRIBUT"]
+
+        for attr_name in attr_row:
+            if is_hidden_attr(attr_name):
+                continue
+
+            attr_data = attr_row[attr_name]
+            if "ACTIVE" in attr_data:
+                if attr_data["ACTIVE"] >=1:
+                    active_attr.append(attr_name)
+
+    return active_attr
+
+def get_attr_count(attr_row):
+    acount = 0
+    for attr in attr_row:
+        if is_hidden_attr(attr):
+            continue
+        acount+=1
+    return acount
+
+def get_fix_type(fix_row):
+    attr2 = []
+    if "ATTRIBUT" in fix_row:
+        attr_row = fix_row["ATTRIBUT"]
+        for attr in attr_row:
+            if attr.startswith("_"):
+                continue
+            if attr.endswith("-FINE"):
+                continue
+            attr2.append(attr)
+
+    if "PAN" in attr2 and "TILT" in attr2:
+        return "MOVER"
+    if "RED" in attr2 and "GREEN" in attr2 and "BLUE" in attr2:
+        return "RGB"
+    if len(attr2) == 1 and "DIM" in attr2:
+        return "DIM"
+
+    return "UNKNOWN"
 
 table={}
 table_grid={}
@@ -329,26 +391,18 @@ while 1:
         if block_wrap <= 0:
             block_wrap = 1
 
+
         for k in data.keys():
-            #print(k,data[k])
+            fix_type = get_fix_type(data[k])
             if "ATTRIBUT" in data[k]:
                 row = data[k]["ATTRIBUT"]
-                if len(row) <= 2:
+                acount = get_attr_count(row)
+                if fix_type == "DIM":
                     continue
 
                 scroll_max += 1
     
-                #attr["acount"] = 0
-                acount=0
-                for attr in row:
-                    if attr.startswith("_"):
-                        continue
-                    if attr.endswith("-FINE"):
-                        continue
-                    acount+=1
-
                 if acount:
-                    #attr["acount"] = acount
                     scroll_max += int(acount/block_wrap)
 
 
@@ -406,48 +460,28 @@ while 1:
                         err_r += 20
 
                 i4 = 0
-                #scroll_max=1
-                for k in key:#y.items():
+                for k in key:
                     k = str(k)
-                    v = y[k]
-                    active = 0
-                    if "ATTRIBUT" in v:
-                        if "_ACTIVE" in v["ATTRIBUT"]:
-                            if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
-                                if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
-                                    active = 1
-                                    active_fix +=1
+                    fix_row = y[k]
 
-                    if "ATTRIBUT" in v: # and 10: 
-                        ATTR = v["ATTRIBUT"]
-                        for k2 in ATTR:
-                            k2_ATTR = ATTR[k2]
-                            if k2.endswith("-FINE"):
-                                continue
-                            if k2.startswith("_"):
-                                continue
-                            k3 = k+"-"+k2
-
-                            if "ACTIVE" in k2_ATTR:
-                                if k2_ATTR["ACTIVE"] >=1:
-                                    active_attr += 1
-
-                for k in key:#y.items():
-
-                    k = str(k)
-                    v = y[k]
-                    attr_count = 0
-                    if "ATTRIBUT" in v:
-                        for ATTR in v["ATTRIBUT"]:
-                            if ATTR.startswith("_"):
-                                continue
-                            if ATTR.endswith("-FINE"):
-                                continue
-                            if ATTR == "DIM":
-                                continue
-                            attr_count += 1
-                    if attr_count <= 0:
+                    fix_type = get_fix_type(fix_row)
+                    if fix_type == "DIM":
                         continue
+
+                    active_fix  += is_active_fix(fix_row)
+                    active_attr += count_active_attr(fix_row)
+
+
+                for k in key:#y.items():
+
+                    k = str(k)
+                    v = y[k]
+                    fix_row = v
+
+                    fix_type = get_fix_type(fix_row)
+                    if fix_type == "DIM":
+                        continue
+
 
                     #scroll_max+=1
                     i4 += 1

@@ -170,14 +170,12 @@ def read_fix(dmx):
             ATTR = v["ATTRIBUT"]
             for k2 in ATTR:
                 k2_ATTR = ATTR[k2]
-
-                #print(ATTR) #[k2_ATTR]) #["VALUE2"] = -2
                 k2_ATTR["VALUE2"] = -2
 
-                #if k2.endswith("-FINE"):
-                #    continue
-                if k2.startswith("_"):
+                if is_hidden_attr(k2):
+                    #if k2.startswith("_"):
                     continue
+
                 k3 = k+"-"+k2
                 
                 dmx_nr = 0
@@ -296,9 +294,7 @@ def get_fix_type(fix_row):
     if "ATTRIBUT" in fix_row:
         attr_row = fix_row["ATTRIBUT"]
         for attr in attr_row:
-            if attr.startswith("_"):
-                continue
-            if attr.endswith("-FINE"):
+            if is_hidden_attr(attr):
                 continue
             attr2.append(attr)
 
@@ -340,6 +336,13 @@ scroll_bar.draw()
 width,hight   = main_size #[1]
 scroll_max = 100
 
+def draw_frame(window):
+    fr = font22.render("FIXTURE LIST " ,1, (200,200,200))
+    window.blit(fr,(20,5 ))
+
+    fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
+    #window.blit(fr,(10,30 ))
+
 while 1:
 
     try:
@@ -360,11 +363,8 @@ while 1:
         window.fill((0,0,0))
         pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-        fr = font22.render("FIXTURE LIST " ,1, (200,200,200))
-        window.blit(fr,(20,5 ))
 
-        fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
-        #window.blit(fr,(10,30 ))
+        draw_frame(window)
 
         pos = [160,110,70+80,20]
         #pygame.draw.rect(window,rgb,pos)
@@ -518,18 +518,12 @@ while 1:
                     bx.data = v
                     bxc.data = {}
 
-                    active = 0
-                    if "ATTRIBUT" in v:
-                        if "_ACTIVE" in v["ATTRIBUT"]:
-                            if "ACTIVE" in  v["ATTRIBUT"]["_ACTIVE"]:
-                                if v["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] >=1:
-                                    active = 1
-                                    #aactive_fix +=1
-
+                    active = is_active_fix(v)
                     bx.btn1.val.set(active)
-                    bx.text = "ID:"+ k #str(txt) #+"\n<val>\n" #.format(i+1)
+
+                    bx.text = "ID:"+ k 
                     bx.text += " "+v["NAME"]
-                    bx.font0 = bx_font0 #pygame.font.SysFont("freesans-bold",20)
+                    bx.font0 = bx_font0
                     bx.btn1.bg_on = [0,255,255]
                     bx.btn1.type = "toggle"
                     bx.pos  = [10,r,120,20]
@@ -573,10 +567,10 @@ while 1:
                         ATTR = v["ATTRIBUT"]
                         for k2 in ATTR:
                             k2_ATTR = ATTR[k2]
-                            if k2.endswith("-FINE"):
+
+                            if is_hidden_attr(k2):
                                 continue
-                            if k2.startswith("_"):
-                                continue
+
                             k3 = k+"-"+k2
                             
 
@@ -601,8 +595,6 @@ while 1:
                                     bx.ID = v["ID"]
                                 bx.ATTR = k2
                                 table_grid[k3] = bx
-
-                                #table_grid = reorder_table_by_pos(table_grid)
 
 
                             if "ACTIVE" in k2_ATTR:
@@ -652,12 +644,9 @@ while 1:
                     r += r_buf
                     if r > hight-30:#/20:
                         break
-                    #width   = event.w
-                    #hight   = event.h
 
 
 
-                #fr = font22.render("L:{} {}:{}".format(scroll_max,active_fix,active_attr) ,1, rgb) #(200,200,200))
                 active_ratio = 0
                 if active_fix:
                     active_ratio = (active_attr/active_fix)
@@ -668,8 +657,6 @@ while 1:
 
         resize_changed = 0
         for event in pygame.event.get(): 
-            #print(event.dict) 
-            #print(event.type)
             if "scancode" in event.dict:
                 if event.scancode == 9:
                     for k in table_draw:
@@ -685,8 +672,6 @@ while 1:
                     print("ESC",msg)
                     cmd_client.send(msg)
 
-            #print("event",event)
-            #print("event",event.dict)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit(0)
@@ -707,21 +692,15 @@ while 1:
 
                 if "buttons" in event.dict:
                     if event.dict["buttons"][0]:
-                        #print(" ",(scroll_change))
-                        #print(" ",spos)
                         scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
 
             event_lock = scroll_bar.btn3.val.get() #focus on
-            #if event_lock:
-            #    print("event_lock",event_lock)
 
             if not event_lock:
                 for t in table_draw:
-                    #print(t)
                     table[t].event(event)
                     if table[t].btn3.get():
                         data = table[t].data
-                        #print("FIX:",data)
             
 
 
@@ -736,20 +715,9 @@ while 1:
                         FIX  = row.ID
                         ATTR = row.ATTR
 
-                        #key = "MOUSE ENCODER"
-                        #if key in change:
-                        #    if "press" in change[key]:
-                        #        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
-                        #    if "release" in change[key]:
-                        #        msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
-                        #    print("   ",msg)
-                        #    cmd_client.send(msg)
-
                         key = "BUTTON"
                         if key in change:
                             if "press" in change[key]:
-                                #print(" ATTR:",FIX,ATTR,data)
-                                #print("  CHANGE",change)
                                 msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
                                 print("   ",msg)
                                 cmd_client.send(msg)
@@ -757,14 +725,12 @@ while 1:
                                 pass
             if not event_lock:
                 for k3 in table_grid_draw:
-                    #print(t)
                     row = table_grid[k3]
                     change = table_grid[k3].event(event)
                     if row.btn3.get():
                         data = row.data
                         FIX  = row.ID
                         ATTR = row.ATTR
-                        #print("change",change)
 
                         key = "MOUSE ENCODER"
                         if key in change:
@@ -795,14 +761,13 @@ while 1:
                     if event.type == 6:#release
                         mouse_down = 0
 
-                    #for btn in mouse_grab:
-                    #    btn.btn1.val.set(1)
                 mouse_pos2 = [event.pos[0],event.pos[1]]
 
 
 
             if event_lock:
                 pass
+
             elif "button" in event.dict:
                 if event.type == 6:
                     #print("grab DOOOO",event)
@@ -820,12 +785,9 @@ while 1:
                             if mouse_grab_active:
                                 if not mg.btn1.val.get():
                                     msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                    #print("  mouse_grab ",msg,mg.btn1.val.get())
                                     cmd_client.send(msg)
                             else: #no btn is on
                                 msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                #amsg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                #print("  mouse_grab OFF ",msg,mg.btn1.val.get())
                                 cmd_client.send(msg)
 
                         mouse_grab = []
@@ -854,7 +816,6 @@ while 1:
             d1 = mouse_pos1[0]-mouse_pos2[0]
             d2 = mouse_pos1[1]-mouse_pos2[1] 
             pix = 10
-            #print(d1,d2)
             if ( d1 > pix or d1 < -pix)  or  ( d2 >pix or d2 < -pix):
 
                 sdl_elm.draw_mouse_box(window,mouse_pos1,mouse_pos2)
@@ -865,16 +826,11 @@ while 1:
                     mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
 
                     if sdl_elm.check_area2(pos,mpos):
-                        #t._set_mouse_focus(1)
                         if t not in mouse_grab:
                             mouse_grab.append(t)
-                            #print("mouse_grab.append",t)
-                            #mouse_grab = reorder_table_by_pos(mouse_grab)
                     else:
-                        #t._set_mouse_focus(0)
                         if t in mouse_grab:
                             mouse_grab.remove(t)
-                            #print("mouse_grab.remove",t)
 
 
                 for k3 in table_grid_draw: # FIX-ATTR
@@ -884,16 +840,11 @@ while 1:
                     mpos = [mouse_pos1[0],mouse_pos1[1],mouse_pos2[0],mouse_pos2[1]]
 
                     if sdl_elm.check_area2(pos,mpos):
-                        #t._set_mouse_focus(1)
                         if t not in mouse_grab:
                             mouse_grab.append(t)
-                            #print("mouse_grab.append",t)
-                            #mouse_grab = reorder_table_by_pos(mouse_grab)
                     else:
-                        #t._set_mouse_focus(0)
                         if t in mouse_grab:
                             mouse_grab.remove(t)
-                            #print("mouse_grab.remove",t)
 
 
             for k3 in table_grid:

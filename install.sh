@@ -68,6 +68,8 @@ rsync -apv /opt/LibreLight/ASP/netns/ /opt/netns/
 chmod -R 755 /opt/netns/ 
 chown -R root:root /opt/netns/
 
+chown -R user:user /opt/LibreLight
+
 
 
 

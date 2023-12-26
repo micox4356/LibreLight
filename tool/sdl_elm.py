@@ -14,6 +14,20 @@ font15 = pygame.font.SysFont("freemonobold",15)
 font22 = pygame.font.SysFont("FreeSans",22)
 #font = pygame.font.SysFont(None,30)
 
+def check_rgb(rgb):
+    rgb_out = [127,127,127,127]
+    try:    
+        for i,v in enumerate(rgb):
+            if v > 255:
+                v = 255
+            if v < 0:
+                v = 0
+            rgb_out[i] = v
+
+    except Exception as e:
+        print("rgb exception ",e)
+
+    return rgb_out
 
 class VALUE():
     def __init__(self,v=0,_min=0,_max=255):
@@ -332,6 +346,7 @@ class Button():
         pos = self.pos
 
         rgb = self.btn1.get_color()
+        rgb = check_rgb(rgb)
         pygame.draw.rect(self.window,rgb,pos)
 
     def _draw_fader(self):

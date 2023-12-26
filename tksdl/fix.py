@@ -137,16 +137,17 @@ def read_dmx():
     dmx = {} #univ
     iii = 0
     y=mc.get("index")
-    key=y.keys()
-    key = list(key)
-    key.sort()
+    if y:
+        key=y.keys()
+        key = list(key)
+        key.sort()
 
-    for k in key:
-        if k.startswith("ltp-out"):
-            #v = y[k]
-            u = k.split(":")[-1]
-            x=mc.get(k)
-            dmx[u] = x
+        for k in key:
+            if k.startswith("ltp-out"):
+                #v = y[k]
+                u = k.split(":")[-1]
+                x=mc.get(k)
+                dmx[u] = x
     return dmx
             
 def read_fix(dmx):

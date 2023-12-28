@@ -152,7 +152,7 @@ def vpu03():
     cmd += " --start-univ=1"
     #cmd += " --countdown=71,91,111,131"
     cmd += " --videoplayer=221,241"
-    cmd += " --title=DUAL-VPU"
+    cmd += " --title=DUAL-8x8"
     print("CMD:",cmd)
     os.system(cmd)
     #time.sleep(1)

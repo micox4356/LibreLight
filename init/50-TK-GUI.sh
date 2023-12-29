@@ -9,6 +9,7 @@ echo "- STARTING $SES"
 
 cd "$path/Xdesk/"
 screen -XS "$SES" quit | echo ""
+sleep 1
 CMD="screen -d -m -S $SES $CMD"
 #echo "$CMD"
 $CMD

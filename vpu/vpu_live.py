@@ -1990,14 +1990,17 @@ def read_dmx_data(ip,ips):
     data3 = read_dmx(ip)
     data.extend(data3)
 
-    ip = select_ip(ips,univ=START_UNIV+4)
+    ip = select_ip(ips,univ=START_UNIV+3)
     data3 = read_dmx(ip)
     data.extend(data3)
 
-    #ip = select_ip(ips,univ=START_UNIV+5)
-    #data3 = read_dmx(ip)
-    #data.extend(data3)
+    ip = select_ip(ips,univ=START_UNIV+4)
+    data3 = read_dmx(ip)
+    data.extend(data3)
     
+    ip = select_ip(ips,univ=START_UNIV+5)
+    data3 = read_dmx(ip)
+    data.extend(data3)
     return data
 
 def draw_gobo(GRID,data):

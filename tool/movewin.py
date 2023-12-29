@@ -125,3 +125,15 @@ if __name__ == "__main__":
         time.sleep(0.1)
         system(c3)
 
+def check_is_started(CAPTION,_file_path,sleep=0):
+    if sleep:
+        time.sleep(sleep)
+
+    pids = search_process(_file_path)
+    if len(pids) >= 2:
+        search = CAPTION[:]
+        _ids = winfo(search)
+        for _id in _ids:
+            c3  = activate(_id)
+            os.system(c3)
+        sys.exit()

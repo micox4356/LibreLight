@@ -1254,6 +1254,8 @@ def event():
 
         if event.type==pygame.QUIT: 
             running=False
+            #time.sleep(1)
+            sys.exit()
 
 
 fps = 0

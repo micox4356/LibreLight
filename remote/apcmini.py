@@ -59,13 +59,14 @@ RED_BLINK = 4
 class MAIN():
     def __init__(self):
         self.buf = []
+        self.dbg = 0
     def loop(self):
         release = 0
         if 0:
             r = 225
             for i in range(4):
                 for i in range(r):
-                    print(i)
+                    if self.dbg:print(i)
                     midi.write([144,40+i,GREEN])
                 time.sleep(0.2)
                 for i in range(r):
@@ -172,7 +173,7 @@ class MAIN():
 
                 #print(row,"in:",FN,"ch",ch,"raw",midi_date,_bin,btn_row,btn_col,[value])
                 #print([btn_row,btn_col,btn,value])
-                print([btn,value])
+                if self.dbg:print([btn,value])
 
                 self.buf.append([btn,value])
 

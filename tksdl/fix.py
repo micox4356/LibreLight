@@ -791,7 +791,9 @@ while 1:
 
                             if mouse_grab_active:
                                 if mg.btn1.val.get():
-                                    msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                    msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS"
+                                                        ,"FIX":str(FIX),"VAL":"click"
+                                                        ,"ATTR":ATTR}]).encode("utf-8")
                                     #print("  mouse_grab ",msg,mg.btn1.val.get())
                                     cmd_client.send(msg)
 

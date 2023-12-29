@@ -153,6 +153,8 @@ def vpu03():
     #cmd += " --countdown=71,91,111,131"
     cmd += " --videoplayer=221,241"
     cmd += " --title=DUAL-8x8"
+    cmd += " --grid-a1-idim=12" 
+    cmd += " --grid-a2-idim=22"
     print("CMD:",cmd)
     os.system(cmd)
     #time.sleep(1)

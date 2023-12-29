@@ -30,7 +30,10 @@ parser.add_option("-y", "--yy", dest="ysplit",#default=1,
 parser.add_option("", "--start-univ", dest="start_univ",#default=1,
                   help="set start-univers default=2") #, metavar="FILE")
 
-parser.add_option("", "--gobo-ch", dest="gobo_ch",#default=1,
+parser.add_option("", "--gobo-ch", dest="gobo_ch",default=0,
+                  help="gobo ch univ on 1") #, metavar="FILE")
+
+parser.add_option("", "--gobo-ch2", dest="gobo_ch2",default=0,
                   help="gobo ch univ on 1") #, metavar="FILE")
 
 #os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (200,164)
@@ -1261,6 +1264,15 @@ frame_t = time.time()
 frame2_t = time.time()
 IP = "yyy"
 
+vplay1=0
+vplay2=0
+if options.videoplayer:
+    try:
+        t=options.videoplayer.split(",")
+        vplay1=t[0]
+        vplay2=t[1]
+    except:pass
+
 def draw_overlay():
     global fps,fps2
     fr = font15.render("DMX-FPS: {}".format(fps) ,1, (200,0,255))
@@ -1273,12 +1285,22 @@ def draw_overlay():
     #window.blit(fr,(100,2))
 
     fr = font15.render("start-uni: {:}.xx dRGB".format(options.start_univ) ,1, (200,0,255))
-    window.blit(fr,(100,2))
+    window.blit(fr,(90,2))
 
     fr = font15.render("a1_idim: 1.{:}".format(options.grid_a1_idim) ,1, (200,0,255))
-    window.blit(fr,(100,12))
+    window.blit(fr,(90,12))
     fr = font15.render("a2_idim: 1.{:}".format(options.grid_a2_idim) ,1, (200,0,255))
-    window.blit(fr,(100,22))
+    window.blit(fr,(90,22))
+
+    fr = font15.render("gobo_ch1: 1.{:}".format(options.gobo_ch) ,1, (200,0,255))
+    window.blit(fr,(180,12))
+    fr = font15.render("gobo_ch2: 1.{:}".format(options.gobo_ch2) ,1, (200,0,255))
+    window.blit(fr,(180,22))
+
+    fr = font15.render("v-play1: 1.{:}".format(vplay1) ,1, (200,0,255))
+    window.blit(fr,(270,12))
+    fr = font15.render("v-play2: 1.{:}".format(vplay2) ,1, (200,0,255))
+    window.blit(fr,(270,22))
 
 def draw_frame(window,rgb,p1,p2,offset=0):
     o = offset 

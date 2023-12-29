@@ -43,6 +43,14 @@ parser.add_option("", "--pixel-mapping", dest="pixel_mapping",default=0,
 parser.add_option("", "--dual-vpu", dest="dual_vpu",default=0,
                   help=" --dual-vpu=1/0") #, metavar="FILE")
 
+
+parser.add_option("", "--grid-a1-idim", dest="grid_a1_idim",default=0,
+                  help=" grid_a1_idim") #, metavar="FILE")
+
+parser.add_option("", "--grid-a2-idim", dest="grid_a2_idim",default=0,
+                  help=" grid_a2_idim") #, metavar="FILE")
+
+
 parser.add_option("", "--countdown", dest="countdown",#default=1,
                   help="enable countdown") #, metavar="FILE")
 
@@ -1148,9 +1156,9 @@ class POINTER():
             window.blit(fr,(130,1))
 
         # fix pos
-        txt=str(pos) #"[0, 0, 0, 0]"
-        fr = font15.render(txt ,1, (200,200,200))
-        window.blit(fr,(10,1))
+        #txt=str(pos) #"[0, 0, 0, 0]"
+        #fr = font15.render(txt ,1, (200,200,200))
+        #window.blit(fr,(10,1))
 
         # pointer
         fr = font15.render("X:{:03}".format(self._x) ,1, (200,200,200))
@@ -1255,14 +1263,22 @@ IP = "yyy"
 
 def draw_overlay():
     global fps,fps2
-    fr = font15.render("DMX-FPS:{}".format(fps) ,1, (200,0,255))
-    window.blit(fr,(10,10))
+    fr = font15.render("DMX-FPS: {}".format(fps) ,1, (200,0,255))
+    window.blit(fr,(10,2))
 
-    fr = font15.render("GUI-FPS  :{}".format(fps2) ,1, (200,0,255))
-    window.blit(fr,(10,20))
+    fr = font15.render("GUI-FPS  : {}".format(fps2) ,1, (200,0,255))
+    window.blit(fr,(10,12))
 
-    fr = font.render("ip:{}".format(IP) ,1, (200,0,255))
-    window.blit(fr,(90,10))
+    #fr = font15.render("ip:{}".format(IP) ,1, (200,0,255))
+    #window.blit(fr,(100,2))
+
+    fr = font15.render("start-uni: {:}.xx dRGB".format(options.start_univ) ,1, (200,0,255))
+    window.blit(fr,(100,2))
+
+    fr = font15.render("a1_idim: 1.{:}".format(options.grid_a1_idim) ,1, (200,0,255))
+    window.blit(fr,(100,12))
+    fr = font15.render("a2_idim: 1.{:}".format(options.grid_a2_idim) ,1, (200,0,255))
+    window.blit(fr,(100,22))
 
 def draw_frame(window,rgb,p1,p2,offset=0):
     o = offset 
@@ -1341,18 +1357,15 @@ def open_playlist():
     _lines = os.listdir(play_list)
     _lines.sort()
 
-    lines = ['']*25 # first is empty
+    lines = ['']*25 
     i=0
     for l in _lines:
-        #print(">> ",l.strip(),len(lines))
         l = l.strip()
         if "_" in l:
             ll = l.split("_",1)
             print(">> ",ll)
-            #ll = int(ll)
             try:
                 lll = int(ll[0])
-                #lines.append(l.strip())
                 lines[lll] = l
             except:pass
 
@@ -1366,7 +1379,6 @@ PLAYLIST = open_playlist()
 # ===== GUI =========
 
 
-#def draw_circle(surface, x, y, radius, color):
 def draw_circle(surface,color, pos, radius):
     x,y=pos
     pygame.gfxdraw.aacircle(surface, int(x), int(y), radius-1, color)
@@ -1994,13 +2006,14 @@ def read_dmx_data(ip,ips):
     data3 = read_dmx(ip)
     data.extend(data3)
 
-    ip = select_ip(ips,univ=START_UNIV+4)
-    data3 = read_dmx(ip)
-    data.extend(data3)
-    
-    ip = select_ip(ips,univ=START_UNIV+5)
-    data3 = read_dmx(ip)
-    data.extend(data3)
+    if options.dual_vpu:
+        ip = select_ip(ips,univ=START_UNIV+4)
+        data3 = read_dmx(ip)
+        data.extend(data3)
+        
+        ip = select_ip(ips,univ=START_UNIV+5)
+        data3 = read_dmx(ip)
+        data.extend(data3)
     return data
 
 def draw_gobo(GRID,data):
@@ -2212,26 +2225,17 @@ def main():
         draw_overlay()
 
 
-
-
-
         # GRID loop
         try:
-            ddd = 1023 #univ 3 512
-            #FUNC = data[ddd]
-            FUNC2 = dataA[gobo_ch-1]
-            FUNC = FUNC2
-            #print("FUNC", FUNC )#:ddd+512])
-            #FUNC = 15
+            FUNC = dataA[gobo_ch-1]
+            FUNC2 = FUNC
         except Exception as e:
             print("EXC FUNC",e)
 
 
+
         draw_gobo(GRID,data) 
 
-        
-
-        #COUNTER.append({"DMX":31,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":0})
 
         if VIDEO:
             draw_video(VIDEO)
@@ -2252,6 +2256,8 @@ def main():
                 GRID_X = GRID_A[8*8:]
                 xx = p*8
                 reshape(GRID,GRID_X,xx+102,-xx,name="GRID_A2") #start pos
+
+                
             except Exception as e:
                 print("Exception 23123",e)
 
@@ -2264,6 +2270,58 @@ def main():
 
         frame_area()
 
+        # GRID_A1 DIM
+        if options.grid_a1_idim:
+            grid_dim_ch = int(options.grid_a1_idim)
+            grid_dim_v = dataA[grid_dim_ch-1]
+            dim=255
+            try:
+                dim = int(grid_dim_v)
+                if dim > 255:
+                    dim = 255
+                if dim <=0:
+                    dim = 0
+            except:pass
+            dim_raw = dim*-1
+            #dim = 255-dim
+            xx = p*8
+            s = pygame.Surface((p*8,p*8))   # the size of your rect
+            s.set_alpha(dim)                # alpha level
+            s.fill((0,0,0))                 # this fills the entire surface
+            window.blit(s, (40,60))#(xx,-xx))    # (0,0) are the top-left coordinates
+
+            #tmp_font = pygame.font.SysFont("freemonobold",int(p*0.8))
+
+            fr   = font15.render("inv-dim: "+str(dim_raw) ,1, (255,255,255))
+            fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
+            window.blit(fr,(48,p*9+60))
+
+
+
+        # GRID_A2 DIM
+        if options.grid_a2_idim:
+            grid_dim_ch = int(options.grid_a2_idim)
+            grid_dim_v = dataA[grid_dim_ch-1]
+            dim=255
+            try:
+                dim = int(grid_dim_v)
+                if dim > 255:
+                    dim = 255
+                if dim <=0:
+                    dim = 0
+            except:pass
+
+            dim_raw = dim*-1
+            #dim = 255-dim
+            xx = p*8
+            s = pygame.Surface((p*8,p*8))   # the size of your rect
+            s.set_alpha(dim)                # alpha level
+            s.fill((0,0,0))                 # this fills the entire surface
+            window.blit(s, (xx*2+14,60))#(xx,-xx))    # (0,0) are the top-left coordinates
+
+            fr   = font15.render("inv-dim: "+str(dim_raw) ,1, (255,255,255))
+            fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
+            window.blit(fr,(p*16+22,p*9+60))
 
         pygame.display.flip()
         clock.tick(25)

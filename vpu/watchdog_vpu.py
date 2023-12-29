@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import time
+import sys
 
 # Ayrton VPU Offset X 235 Y 253 (Pannel 255)  7,5m-4m ... 9,5m-4m
 
@@ -164,8 +165,10 @@ def vpu03():
 
 
 while 1:
-    #r1=vpu01()
-    #r2=vpu02()
+    if "-vpu01" in sys.argv:
+        r1=vpu01()
+    if "-vpu02" in sys.argv:
+        r2=vpu02()
     r3=vpu03()
 
     time.sleep(3)

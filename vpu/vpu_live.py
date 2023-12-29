@@ -27,7 +27,7 @@ parser.add_option("-x", "--xx", dest="xsplit", #default=1,
 parser.add_option("-y", "--yy", dest="ysplit",#default=1,
                   help="y-split") #, metavar="FILE")
 
-parser.add_option("", "--start-univ", dest="start_univ",#default=1,
+parser.add_option("", "--start-univ", dest="start_univ",default=2,
                   help="set start-univers default=2") #, metavar="FILE")
 
 parser.add_option("", "--gobo-ch", dest="gobo_ch",default=0,
@@ -986,7 +986,7 @@ print()
 print()
 print()
 
-window = pygame.display.set_mode(MAIN_SIZE)#,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+window = pygame.display.set_mode(MAIN_SIZE,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
 
 pg.display.set_caption('LibreLight VPU-{}'.format(options.title))
 

@@ -17,17 +17,10 @@ _file_path=pathlib.Path(__file__)
 print("file:",_file_path)
 
 import tool.movewin as movewin
-pids = movewin.search_process(_file_path)
 
 CAPTION = 'LibreLight SDL-CONFIG '
+movewin.check_is_started(CAPTION,_file_path,sleep=0)
 
-if len(pids) >= 2:
-    search = CAPTION[:]
-    _ids = movewin.winfo(search)
-    for _id in _ids:
-        c3  = movewin.activate(_id)
-        os.system(c3)
-    sys.exit()
 
 # ===== GUI =========
 import pygame

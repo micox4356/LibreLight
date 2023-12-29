@@ -149,7 +149,7 @@ def vpu03():
     cmd += " --dual-vpu=1"
     cmd += " --gobo-ch=11"
     #cmd += " --win-pos 430,164"
-    cmd += " --start-univ=1"
+    cmd += " --start-univ=2"
     #cmd += " --countdown=71,91,111,131"
     cmd += " --videoplayer=221,241"
     cmd += " --title=DUAL-8x8"

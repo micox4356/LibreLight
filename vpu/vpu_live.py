@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 
 import math
 import random
@@ -51,11 +52,6 @@ parser.add_option("", "--videoplayer", dest="videoplayer",#default=1,
 parser.add_option("", "--title", dest="title",default="SCREEN",
               help="set title") #, metavar="FILE")
 
-#parser.add_option("-f", "--file", dest="filename",
-#                  help="write report to FILE", metavar="FILE")
-#parser.add_option("-q", "--quiet",
-#                  action="store_false", dest="verbose", default=True,
-#                  help="don't print status messages to stdout")
 
 (options, args) = parser.parse_args()
 
@@ -80,8 +76,6 @@ def read_index():
     if ips is None:
         ips = {}
 
-    #for k,v in ips.items():
-    #    print(k,v)
     return ips
 
 def select_ip(ips, univ=2): # artnet univ
@@ -104,7 +98,13 @@ if options.countdown:
     for cdmx in cdmx_start:
         try:
             cdmx = int(cdmx)
-            COUNTER.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
+            _tmp={"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127
+                    ,"CONTROL":0,"SEC":10
+                    ,"RED":255,"GREEN":255,"BLUE":255
+                    ,"_time":time.time(),"_RUN":0
+                    ,"_SEC":">{}<".format(cdmx)
+                    }
+            COUNTER.append(_tmp)
         except Exception as e:
             print("EXCEPTION COUNTER INIT ",cdmx)
 
@@ -146,42 +146,8 @@ except:pass
 #import json
 #import pickle
 
-def scan_capture(name="MiraBox",serial=""):
-    ls = os.listdir("/dev/")
-    name = name.upper()
-    serial = serial.upper()
-    out = []
-    for l in ls:
-        if l.startswith("video"):
-            #print(l)
-            cmd="udevadm info --query=all /dev/{}".format(l)
-            print("# cmd:",cmd)
-            r = os.popen(cmd)
-            ok_name = 0
-            ok_capture = 0
-            ok_serial = 0
-
-            for line in r.readlines():
-                line = line.strip()
-                line = line.upper()
-
-                #print(l,line)
-                #ID_V4L_CAPABILITIES=:capture:
-                if "ID_V4L_CAPABILITIES=:capture:".upper() in line:
-                    ok_capture = 1
-                if name != "" and "_MODEL" in line and name in line:
-                    ok_name = 1
-                if serial != "" and "ID_SERIAL_SHORT" in line and serial in line:
-                    ok_serial = 1
-
-            if (name == "" or ok_name) and (serial == "" or ok_serial) and ok_capture:
-                print(l,"# name:",ok_name,"capture:",ok_capture,"serial:",ok_serial,"# OK !",[name,serial])
-                out.append([l,name,serial])
-            else:
-                print("#",l,"# name:",ok_name,"capture:",ok_capture,"serial:",ok_serial,"# FAIL !",[name,serial])
-            print()
-    return out
-
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+from tool.video_capture import scan_capture #as scan_capture
 
 class Vopen():
 
@@ -385,10 +351,6 @@ class Vopen():
         if self.cv2:
             if self._stop:
                 return
-            #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
-
-            #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname, cv2.CAP_GSTREAMER) 
-            #GSTREAMER Assertion fctx->async_lock failed at libavcodec/pthread_frame.c:175
 
             if self.fname.startswith("cam_"): 
                 self._open_cam()
@@ -397,24 +359,15 @@ class Vopen():
                 #FFMPEG malloc(): unsorted double linked list corrupted ... Abgebrochen
 
             print("_init ?",self.Rcap)
-            #print(dir(self.Rcap))
-            #print(self.Rcap.getExceptionMode())
             print("open ?" ,self.Rcap.isOpened())
             self.Rcap.read()
 
             #self.Rfvs = FileVideoStream(self.fpath+self.fname).start()
             self.Rsuccess = 1
             self._read()
+
     def _del(self):
         self._stop = 1
-        #self.Rcap = self.cv2.VideoCapture(self.fpath+self.fname)
-        #for i in dir(self.Rcap):
-        #    print(i)
-
-        #print()
-        #for i in dir(self.cv2):
-        #    print(i)
-        #time.sleep(0.01)
 
         self.buffer = [] #.append(self.img)
         self.Rcap.release()
@@ -423,10 +376,6 @@ class Vopen():
         self.Rcap = None
         self.cap = None
         del self.Rcap #.release()
-        #time.sleep(4)
-        #sys.exit()
-        #gc.collect()
-        #import gc
         gc.collect()
 
 
@@ -461,13 +410,6 @@ class Vopen():
                 else:
                     img = self.rescale_frame2(img, 200)
 
-                #ret, img = self.cv2.threshold(img, 100, 130, self.cv2.THRESH_BINARY) # treshold
-                #self.img = self.cv2.Canny(self.img, 100, 200) # kanten
-                
-                #M = cv2.getPerspectiveTransform(Punkte_A, Punkte_B)
-                #warped = cv2.warpPerspective(Bild, m, (420,594))
-                
-                #self.cv2.normalize(self.img, self.img, 0, self.dim, self.cv2.NORM_MINMAX) 
                 
                 # store frame into buffer list
                 if self.fname.startswith("cam_"): 
@@ -518,10 +460,6 @@ class Vopen():
             if angle in r:
                 pass
             elif  0:#angle in r2:
-                # bug on 90 and 270 degrees on portrait video !! TODO
-                #shape = shape[::-1]
-                #bg_shape = shape[::-1]
-                #delta_x = (shape[1]-shape[0])/2
                 bg_shape = bg_shape[::-1]
                 delta_y = -65 #shape[1]/2 # # + nach unten
                 delta_x = 30 #shape[1]/2 # # + nach unten
@@ -545,8 +483,6 @@ class Vopen():
 
             bg_shape = tuple(bg_shape) # exception ... if angle 0 no tuple !!!
             rot_mat = self.cv2.getRotationMatrix2D(center,angle,1.0) 
-            #print("wrapAffine:", image, rot_mat, bg_shape) #,flags=self.cv2.INTER_LINEAR)
-            #print("wrapAffine:", type(image), type(rot_mat), type(bg_shape) ) #,flags=self.cv2.INTER_LINEAR)
             frame   = self.cv2.warpAffine(image, rot_mat,  bg_shape  ) #,flags=self.cv2.INTER_LINEAR)
             return frame
         except Exception as e:
@@ -614,12 +550,10 @@ class Vopen():
             if self.img is None:
                 return
 
-            #self.img = self.cv2.cvtColor(self.img, self.cv2.COLOR_BGR2RGB)
             self.img = self.rescale_frame(self.img, percent=self.scale)
             
             # rotate frame BUG: x,y offset ??? !!!
             self.img = self.rotateImage(self.img, self.angle)
-            #print(sys.getsizeof(self.img))
             self.shape = self.img.shape[1::-1]
 
             if len(self.buffer) % 100 == 0:
@@ -679,13 +613,8 @@ class Vopen():
         yellow[0] = int(yellow[0]*self.dim/255)  
         yellow[1] = int(yellow[1]*self.dim/255)  
         yellow[2] = int(yellow[2]*self.dim/255)  
-        #print(yellow)
+
         if self.fname.startswith("cam_"):
-            #if 10: #corner left up
-            #pygame.draw.rect(wn,yellow,[self.x,self.y,__xw,__yw])
-            #pygame.draw.rect(wn,[25,20,20],[self.x+1,self.y+1,__xw-2,__yw-2])
-            #pygame.draw.line(wn,yellow,[self.x+2,self.y+2],[self.x+__xw-4,self.y+__yw-4])
-            #pygame.draw.line(wn,yellow,[self.x+__xw-4,self.y+2],[self.x+2,self.y+__yw-4])
             pass
         elif 1: #corner left up
             p1 = [self.x+2,self.y+2]  
@@ -700,12 +629,7 @@ class Vopen():
             
             hx=int(xx/2)
             hy=int(yy/2)
-            #print(hx,hy,xx,yy) #,ratio)
-            #print("-")
-            #print(sys.getsizeof(self.buffer))
-            #print(sys.getsizeof(self))
-            #print(sys.getsizeof(self.Rcap))
-            #print(dir(self.Rcap))
+
             p1 = [self.x-hx,self.y-hy]  
             p2 = [self.x+__xw-hx,self.y+__yw-hy]
             p3 = [self.x+__xw-hx,self.y-hy]
@@ -721,24 +645,10 @@ class Vopen():
             pygame.draw.line(wn,yellow,[self.x+2-__xw,self.y+2-__yw],[self.x+__xw-4-__xw,self.y+__yw-4-__yw])
             pygame.draw.line(wn,yellow,[self.x+__xw-4-__xw,self.y+2-__yw],[self.x+2-__xw,self.y+__yw-4-__yw])
 
-        #pygame.draw.line(wn,yellow,[self.x,self.y],[self.x,self.y+300])
-        #pygame.draw.line(wn,yellow,[self.x,self.y],[self.x+300,self.y])
         pz = 0
-        #txt = "FPS:{} F:{:05} von {:05} sec:{:0.02f} von {:0.02f}"
-        #txt = txt.format(self.fps,int(self.pos),len(self.buffer),(-1),pz ) 
-        #if self.end:
-        #    fr = font15.render(txt,1, (0,255,0))
-        #else:
-        #    fr = font15.render(txt,1, (255,0,0))
-        #wn.blit(fr,(10,MAIN_SIZE[1]-(self._id+1)*35))
 
         if self.success and wn and self.im: # is not None:
-            #wn.blit(self.im, (int(self.x), int(self.y)))
-            #wn.blit(self.im, (int(self.x-__xw), int(self.y-__yw)))
-            #xx ,yy = self._img.shape[:2]
             xx ,yy = self.im.get_size()[:2]
-            #print(xx,yy)
-            #wn.blit(self.im, (int(self.x+xx/2), int(self.y+yy/2)))
             if self.fname.startswith("cam_"):
                 wn.blit(self.im, (int(self.x-xx/2), int(self.y)))
             else:
@@ -809,7 +719,13 @@ if type(options.videoplayer) is str:
             cdmx = int(cdmx)
             videoplayer.append( Vopen(cdmx,_id=_vid) )
             _vid += 1
-            VIDEO.append({"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"VIDEO":"3","RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":">{}<".format(cdmx)})
+            _tmp = {"DMX":cdmx,"DIM":0,"PAN":127,"TILT":127
+                    ,"CONTROL":0,"SEC":10,"VIDEO":"3"
+                    ,"RED":255,"GREEN":255,"BLUE":255
+                    ,"_time":time.time()
+                    ,"_RUN":0,"_SEC":">{}<".format(cdmx)
+                   }
+            VIDEO.append(_tmp)
         except Exception as e:
             print("EXCEPTION COUNTER INIT ",cdmx)
 
@@ -825,8 +741,7 @@ def loop_videoplayer():
                     ok = 1
             except Exception as e:
                 print("EXCEPTION loop_videoplayer ",e)
-            #time.sleep(0.002)
-        #time.sleep(1/120)
+
         if ok == 0:
             time.sleep(0.1)
         else:
@@ -852,26 +767,21 @@ def loop2_videoplayer():
 
 
         _videoplayer = videoplayer2[:]
-        #print(".")
+
         ok = 0
         j =0 
         for i in _videoplayer: #.append( Vopen(cdmx,_id=_vid) )
             try:
                 r = i._read() # read next frame from file
-                #print(j,len(videoplayer2),i,len(i.buffer))
                 if r:
                     print(j,len(videoplayer2),i,len(i.buffer))
                     ok = 1
             except Exception as e:
                 print("EXCEPTION loop2_videoplayer ",e)
+
             time.sleep(0.002)
             j += 1
-        if ok == 0:
-            pass#time.sleep(0.01)
-        else:
-            pass#time.sleep(0.005)
 
-#thread.start_new_thread(loop2_videoplayer,())
 
 
 p = 16
@@ -933,6 +843,7 @@ try:
         pass#_x2 = int(options.XX)
 except Exception as e:
     print( "Exc",options.mode,e)
+
 print("_x2 , -X",_x2)
 # ===== GUI =========
 import pygame
@@ -1064,11 +975,9 @@ print()
 print()
 print()
 
-window = pygame.display.set_mode(MAIN_SIZE,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
-#if options.title:
+window = pygame.display.set_mode(MAIN_SIZE)#,pg.RESIZABLE)#,32)#,pygame.FULLSCREEN) #x left->right ,y top-> bottom
+
 pg.display.set_caption('LibreLight VPU-{}'.format(options.title))
-#else:
-#    pg.display.set_caption('LibreLight VPU-SCREEN')
 
 
 class Fix():
@@ -1093,29 +1002,23 @@ class Fix():
 
         spalte = (_id-1)%_y +1
         zeile = int((_id-1)/_x2) #+1
-        #zeile = zeile*_x*CFG_BLOCK["h-split"]*CFG_BLOCK["v-split"]
 
         add_row = _x*CFG_BLOCK["h-split"]*CFG_BLOCK["v-split"]
 
         #zeile 1
         sid = (_id-1)*2  + zeile*CFG_BLOCK["h-split"]*_x2
-        #for i in range(1,CFG_BLOCK["h-split"]):
         sid = sid+1
-        #sid = zeile
         sub_pos= [pos[0]*block[0],pos[1]*block[1]]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
 
         sid = sid+1
-        #sid = zeile
         sub_pos= [pos[0]*block[0]+block[0]/2,pos[1]*block[1]]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
 
         #zeile 2
         sid = (_id-1)*2+1 + _x2*CFG_BLOCK["h-split"]  + zeile*CFG_BLOCK["h-split"]*_x2 # int(add_row)
-        #sid = sid+1
-        #sid = CFG_BLOCK["h-split"]
         sub_pos= [pos[0]*block[0],pos[1]*block[1]+block[1]/2]
         sub_fix = SubFix(sid,sub_pos,sub_block,univ,dmx,ch)
         self.sub_fix.append(sub_fix)
@@ -1171,7 +1074,6 @@ class SubFix():
     def calc(self,data):
         #return [130,30,20]
         dmx_sub = [30]*10
-        #print(dmx_sub)
         dmx = self.dmx -1
         _dmx_sub = []
         if self.dmx >= 0:
@@ -1180,10 +1082,8 @@ class SubFix():
                 _dmx_sub = data[dmx:dmx+self.ch]
         if _dmx_sub:
             dmx_sub = _dmx_sub
-        #print(dmx_sub)
         dim = dmx_sub[0]/255
 
-        #print("dmx",dmx,dmx_sub)
         r = dmx_sub[1]*dim
         g = dmx_sub[2]*dim
         b = dmx_sub[3]*dim
@@ -1218,9 +1118,11 @@ class POINTER():
     def row_move(self,x,y):
         self._x = x
         self._y = y
+
     def move(self,pos):
         self.pos = pos
         self.on = 1
+
     def cross(self,x,y):
         self.x = x
         self.y = y
@@ -1232,18 +1134,14 @@ class POINTER():
         pos[1] += y
         fix_x= self.fix.x
         fix_y= self.fix.y +y
-        #print("draw",x,y,pos)
 
         if self.on:
             pygame.draw.rect(window,self.rgb,pos)
-            #pygame.draw.line(window,self.rgb, (pos[0],pos[1]) , (pos[0]+100,pos[1]) ) 
-
         
             # mouse grid posision
             fr = font15.render("{}/{}".format(fix_x+1,fix_y) ,1, (200,200,200))
             
             _nr = fix_y * _x + fix_x +1
-            #fr = font15.render("{:02} {}/{}".format(_nr, fix_x+1,fix_y+1 ) ,1, (200,200,200))
             fr = font15.render("{:02}".format(_nr ) ,1, (200,200,200))
 
             window.blit(fr,(pos[0]+2,pos[1]+2 ))
@@ -1252,13 +1150,8 @@ class POINTER():
         # fix pos
         txt=str(pos) #"[0, 0, 0, 0]"
         fr = font15.render(txt ,1, (200,200,200))
-        #window.blit(fr,(pos[0]+2,pos[1]+2 ))
         window.blit(fr,(10,1))
 
-        # univers
-        #fr = font15.render("{:02}:{:03}".format(fix.univ,fix.dmx) ,1, (200,200,200))
-        #window.blit(fr,(300,10))
-        
         # pointer
         fr = font15.render("X:{:03}".format(self._x) ,1, (200,200,200))
         window.blit(fr,(10,30))
@@ -1359,6 +1252,7 @@ frame2 = 0
 frame_t = time.time()
 frame2_t = time.time()
 IP = "yyy"
+
 def draw_overlay():
     global fps,fps2
     fr = font15.render("DMX-FPS:{}".format(fps) ,1, (200,0,255))
@@ -1429,6 +1323,7 @@ def open_text_block():
         for i in range(10-len(lines)):
             lines.append("LINE ERROR")
     return lines
+
 TEXT_BLOCK = open_text_block()
 TEXT_BLOCK_TIME = time.time()
 
@@ -1480,7 +1375,6 @@ def draw_circle(surface,color, pos, radius):
 def rDMX(univ,dmx):
     return univ*512+dmx
 
-
 def generate_grid(mapping=0):
     _log = []
     #if PIXEL_MAPPING:
@@ -1490,16 +1384,14 @@ def generate_grid(mapping=0):
     head = "univ,dmx,x,y,ch\n"
     head = "nr,id,info\n"
     print("csv:",head)
-    #if PIXEL_MAPPING:
-    #    log.write(head)
+
     _log.append(head)
     dmx = 1-1
     ch = 4
 
     y=0
     x=0
-    #for i in range((_y)*(_x)):
-    #for i in range((8)*(8)*2):
+
     for i in range((_y)*(_x)):
         #if x > _x and i%_x == 0:
         if x > 8 and i%8 == 0:
@@ -1511,12 +1403,7 @@ def generate_grid(mapping=0):
         _dmx = dmx - (_univ)*512 
 
         pos=[x,y]
-        #line="{},{},{},{},{},{}\n".format(i+1,_univ,_dmx+1,pos[0],pos[1],ch)
-        #line="{},{},{},{},{}\n".format(_univ,_dmx+1,x,y,ch)
         line="{},{},x\n".format(i+1,i+1)
-        #print("wcsv:",[line])
-        #if PIXEL_MAPPING:
-        #    log.write(line)
         _log.append(line)
         dmx += ch
         x+=1
@@ -1558,26 +1445,13 @@ def init_grid(mapping=0,_x=4,_y=4,_xp=0,_yp=0,start=0,name="init_gird"):
             y+=1
         if y >= _y:
             break
-        #if y == 8:
-        #    x=0
-        #    y=0
 
-        #i    = int(line[0])
         _id    = int(line[1])
-        #univ = int(line[0])
-        #dmx  = int(line[1])
-        #x    = int(line[3])
-        #y    = int(line[4])
-        #ch   = int(line[4])
 
         pos = [x+_xp,y+_yp] 
         f   = Fix(_id,pos,block) #pos,univ,dmx,ch)
-        #f.x = x
-        #f.y = y 
-        #f.block = block
         GRID.append(f)
         x+=1
-        #print("y, _y",y,_y)
     return GRID
 
 def find_pix(x,y):
@@ -1587,25 +1461,16 @@ def find_pix(x,y):
         Y = 0
 
         pos = fix.POS()
-        #pos = fix.POS()
-        #pos = fix.POS(40,60-pm_wy)
-        #pos = fix.POS(x,y+pm_wy)#40,60)
         if x > pos[0] and x < pos[0]+pos[2]:
             X = 1
         if y > pos[1] and y < pos[1]+pos[3]:
             Y = 1
         if X and Y:
-            #print(pos,x,y)
-            #print("find",X,Y)
             return fix
             
 GRID = []
 
 GRID_A = []
-#GRID_A =  init_grid(_x=8,_y=16,mapping=1) #init_gird()
-
-GRID_B = []
-#GRID_B =  init_grid(_x=8,_y=16,mapping=1) #init_gird()
 
 NR = 0
 START_UNIV=2
@@ -1663,21 +1528,14 @@ def draw_box(pos1,pos2,color=[128,128,128],text=1):
     pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
 def grab(x=55,y=55,w=60,h=60):
-    # usage
-    # sub = grab()
-    # window.blit(sub, (500,10))
     crop = None
     rect = pygame.Rect(x, y, w, h)
     try:
         sub = window.subsurface(rect)
-        #pixArray = pygame.PixelArray(screen)
         crop = pygame.Surface((w,h))
         crop.blit(sub, (0,0))
     except ValueError as e:
-        pass#print("exception",e,"line715")
-    #except Exception as e:
-    #    print("exception",e,"line715")
-    #print(rect)
+        pass
         
     return crop
 
@@ -1699,48 +1557,33 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
     y_min = 99999
     y_max = 0
 
-    # black background for -> output MAP
-    #pygame.draw.rect(window,[0,0,20],[0,60,600,pm_wy-1]) 
-    #pygame.draw.rect(window,[0,0,20],[wx,wy-80,400,pm_wy+10]) 
+    pos= [0,0]
+    pos[0] = _x+p*3 #+10
+    pos[1] = p*8+65 #-10 #_y+p*8+80 
+
     
     tmp_font = pygame.font.SysFont("freemonobold",int(p*0.8))
 
     fr   = tmp_font.render("OUTPUT: "+str(name) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*1.5)))
-    #window.blit(fr,fr_r)
-    pos= [0,0]
-    pos[0] = _x+p*3 #+10
-    pos[1] = p*8+65 #-10 #_y+p*8+80 
+    fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
     window.blit(fr,pos)
-
-    #fr   = tmp_font.render("↑  ↑    MAP    ↑  ↑" ,1, (255,255,255))
-    #fr_r = fr.get_rect(center=(int(wx/2),int(60+pm_wy-p)))
-    #window.blit(fr,fr_r)
 
     fr   = tmp_font.render("INPUT" ,1, (255,255,255))
     fr_r = fr.get_rect(center=(int(wx/2),int(60+pm_wy-p/2)))
     window.blit(fr,fr_r)
 
-    #fr   = tmp_font.render(name ,1, (255,255,255))
-    ##fr_r = fr.get_rect(center=(x+int(wx/2),int(60+pm_wy-p/2)))
-    ##fr_r = fr.get_rect(center=(x,int(60+pm_wy-p/2)))
-    #pos= [0,0]
-    #pos[0] = _x+p*6
-    #pos[1] = pm_wy+0 #_y+p*8+80 
-    #window.blit(fr,pos)
-
 
     j = 0
     for fix in GRID_OUT:
-        if j >= 64:##_x*_y:#8*8: # max output size
+        if j >= 64:
             break
         j+=1
         ii = i
-        #z= i # helping border offset 
         pos = fix.POS(40,60)
         rgb = fix.rgb
         pos[0]+=_x
         pos[1]+=_y
+
         # green
         pygame.draw.rect(window,[0,40,0],pos)
 
@@ -1748,15 +1591,12 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
         for fix2 in GRID:
             if fix._id == fix2._id:
                 _xposs = fix2.POS(40,60) 
-                #_xposs[0]+=_x
-                #_xposs[1]+=_y
                 xposs.append( _xposs) #fix2.POS(40,60) )
         # ToDo
         for xpos in xposs:
             sub = grab(xpos[0],xpos[1]+pm_wy,xpos[2],xpos[3])
             if sub:
-                if 1:#j <= _x*_y: # max input size
-                    window.blit(sub, (pos[0]+z,pos[1]+z))
+                window.blit(sub, (pos[0]+z,pos[1]+z))
             else:
                 # red
                 pygame.draw.rect(window,[40,0,0],pos) #[x+pos[0]+2+z,y+pos[1]+2+z-pm_wy,12,9])
@@ -1773,8 +1613,6 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
                 y_max += xpos[3]
             # DRAW FIX NUMBER on TOP
 
-        #apos = pos
-        #argb = rgb
         apos = fix.POS(40,60)#+pm_wy)
         apos[0]+=_x
         apos[1]+=_y
@@ -1782,9 +1620,7 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
 
         # overwrite number overlay
         if  NR:
-            pygame.draw.rect(window,[30,40,0],[apos[0],apos[1],12,9])
-            #pygame.draw.rect(window,[20,40,0],[x+apos[0]+2+z,y+apos[1]+2+z-pm_wy,12,9])
-            pygame.draw.rect(window,[20,40,0],[x+apos[0]+2+z,y+apos[1]+2+z-pm_wy,12,9])
+            pygame.draw.rect(window,[20,20,20],[apos[0],apos[1],12,8])
 
         fix_id = fix._id
         if fix_id > 8*8:
@@ -1792,21 +1628,16 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
         if NR:# == 2: # sub fix_nr
             if fix_id != i+1:
                 fr = font12.render("{:02}".format(fix._id) ,1, (255,255,0))
-                #window.blit(fr,(apos[0]+2+z,apos[1]+2+z-pm_wy+20))
                 window.blit(fr,(apos[0],apos[1]))
-                #print(fix._id,xposs,pos)
             else:
                 fr = font12.render("{:02}".format(fix._id) ,1, (100,100,255))
-                #window.blit(fr,(apos[0]+2+z,apos[1]+2+z-pm_wy))
                 window.blit(fr,(apos[0],apos[1]))
         i += 1
         #print("--#")
 
     # frame box
-    #pygame.draw.box(window,[100,0,0],[x+x_min,y+x_min,x_max+x_min,y_min+y_max])
     pos1= [x+x_min,y+x_min]
     pos2= [x_max+x_min,y_min+y_max]
-    #draw_box(pos1,pos2,text=0)
 
 
 
@@ -1831,27 +1662,15 @@ def reload_grid():
     print("==== reload_grid")
     global GRID
     global GRID_A
-    global GRID_B
     try:
         GRID   = init_grid(_x=_x,_y=_y,name="GRID") #init_gird()
         GRID_A = init_grid(_x=8,_y=16,mapping=1,name="GRID_A") #init_gird()
-        #for i,v in enumerate(GRID_A):
-        #    if i > 8*8:
-        #        print(i,dir(v))
-        #        print(v.pos,v.x,v.y)
-        #GRID_B = init_grid(_x=8,_y=16,_yp=-100,mapping=1,start=8*8,name="GRID_B") #,_xp=100) #init_gird()
-        #GRID_A.extend(GRID_B)
-        #GRID = []
-        #GRID.extend( GRID_A)
-        #GRID.extend( GRID_B)
     except Exception as e:
         print("Except: grid re init",e)
 
 VPU_TEXT = []
 def load_vpu_text(nr=0):
     txt = "NONE"
-    if not VPU_TEXT:
-        pass #create VPU_TEXT_FILE
     if len(VPU_TEXT) > nr:
         txt = VPU_TEXT[0]
     return txt
@@ -2356,7 +2175,6 @@ def main():
     global GRID
 
     global GRID_A
-    global GRID_B
     global FUNC
     global count_tilt
     global TEXT_BLOCK
@@ -2366,18 +2184,13 @@ def main():
     global dataA
     global frame2
 
-    #GRID =  init_grid(_x=_x,_y=16)#_y) #init_gird()
-    #GRID =  init_grid(_x=8,_y=8) #init_gird()
     reload_grid()
-    print("GRID LEN:",len(GRID))
-
 
     s=time.time()
-    #print("run")
     r = ""
     IP = "xx"
+
     while running:
-        #print("run",_x,_y,len(GRID),len(GRID_A),len(GRID_B))
         if  TEXT_BLOCK_TIME+5 < time.time():
             TEXT_BLOCK = open_text_block()
             TEXT_BLOCK_TIME = time.time()
@@ -2413,7 +2226,6 @@ def main():
 
         draw_gobo(GRID,data) 
 
-        # DRAW FIX NUMBER on TOP
         
 
         #COUNTER.append({"DMX":31,"DIM":0,"PAN":127,"TILT":127,"CONTROL":0,"SEC":10,"RED":255,"GREEN":255,"BLUE":255,"_time":time.time(),"_RUN":0,"_SEC":0})
@@ -2425,37 +2237,37 @@ def main():
             draw_counter(COUNTER)
 
         pointer.draw(0,pm_wy) #wy
-        draw_fix_nr(GRID)
+
+        pygame.draw.rect(window,[5,5,5],[0,60,MAIN_SIZE[0],p*9]) # background
+        #pygame.draw.rect(window,[5,5,5],[0,p*8+p*10+120,MAIN_SIZE[0],500]) # background
+
+
 
         spos = [0,0,0,0]
         if PIXEL_MAPPING >= 1:
             try:
                 GRID_X = GRID_A[8*8:]
                 xx = p*8
-                reshape(GRID,GRID_X,xx+102,-xx,name="GRID_B") #start pos
+                reshape(GRID,GRID_X,xx+102,-xx,name="GRID_A2") #start pos
             except Exception as e:
                 print("Exception 23123",e)
 
-            reshape(GRID,GRID_A,0,0,name="GRID_A") #start pos
+            reshape(GRID,GRID_A,0,0,name="GRID_A1") #start pos
         else:
             reshape(GRID,GRID_A,spos[0]+spos[2]+20,10) #start pos
-            #reshape(spos[0]+spos[2]+20,10) #start pos
 
+        # DRAW FIX NR 
+        draw_fix_nr(GRID)
 
         frame_area()
 
 
         pygame.display.flip()
-        #pg.time.wait(55)
-        #clock.tick(120) # fast hight cpu
-
         clock.tick(25)
-        #time.sleep(1/120)
 
         if 'SDL_VIDEO_WINDOW_POS' in os.environ:
             del os.environ['SDL_VIDEO_WINDOW_POS'] #= '%i,%i' % (200,164)
-        #if 'SDL_VIDEO_CENTERED' in os.environ['SDL_VIDEO_CENTERED']:
-        #    del os.environ['SDL_VIDEO_CENTERED'] #= '0'
+
         frame2 += 1
 
 if __name__ == "__main__":

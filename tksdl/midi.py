@@ -6,6 +6,7 @@ boot = time.time()
 import random
 import os
 import sys
+import json
 
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 #print(sys.path)
@@ -18,7 +19,7 @@ print("file:",_file_path)
 
 import tool.movewin as movewin
 
-CAPTION = 'LibreLight SDL-CONFIG '
+CAPTION = 'LibreLight SDL-MIDI '
 movewin.check_is_started(CAPTION,_file_path,sleep=0)
 
 
@@ -28,7 +29,7 @@ import pygame.gfxdraw
 import pygame.font
 
 pg = pygame
-main_size=(600,500)
+main_size=(500,100)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
 
 pg = pygame
@@ -46,7 +47,6 @@ CAPTION += ':{}'.format(random.randint(100,999))
 import tool.git as git
 CAPTION += git.get_all()
 
-
 _id = movewin.winfo(CAPTION)
 c1 = movewin.movewin(_id,200,50)
 os.system(c1)
@@ -54,6 +54,10 @@ c1 = movewin.activate(_id)
 os.system(c1)
 
 pg.display.set_caption(CAPTION)
+
+import lib.zchat as chat
+cmd_client = chat.Client(port=30003)
+
 
 font0  = pygame.font.SysFont("freesans",10)
 font0b = pygame.font.SysFont("freesansbold",10)
@@ -139,7 +143,32 @@ except Exception as e:
 #        for m in buf:
 #            print("-> midi:",m)
 
+def remap_midi_row(m,row_len=8):
+    btn,val=m
+    row_def = []
+    row_def.append([56,63])
+    row_def.append([48,55])
+    row_def.append([40,47])
+    row_def.append([32,39])
+    row_def.append([24,31])
+    row_def.append([16,23])
+    row_def.append([8,15])
+    row_def.append([0,7])
+    row_def.append([64,71])
+
+    b2=-1
+    v2=0
+
+    for i,b in enumerate(row_def):
+        #print(i,btn,b,val)
+        if btn >= b[0] and btn <= b[1]:
+            b2 = btn-b[0]
+            btn2 = (i)*row_len + b2+1
+            #print("btn2",btn2,val)
+            return [btn2,val]
+            break
 buf = []
+buf2 = []
 while 1:
     fps +=1
     t = time.time()
@@ -157,11 +186,11 @@ while 1:
     window.fill((5,5,5))
     pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
 
-    fr = font22.render("FPS:"+str(fps_old)  ,1, (200,200,200))
-    window.blit(fr,(10,10 ))
+    fr = font15.render("FPS:"+str(fps_old)  ,1, (200,200,200))
+    window.blit(fr,(10,2 ))
 
-    fr = font22.render("SDL-CONFIG "  ,1, (200,200,200))
-    window.blit(fr,(100,10 ))
+    fr = font15.render("SDL-MIDI "  ,1, (200,200,200))
+    window.blit(fr,(100,2 ))
 
 
 
@@ -169,18 +198,44 @@ while 1:
         if apc_main.buf:
             buf = apc_main.buf[:]
             apc_main.buf = []
+            buf2=[]
+            msgs = []
+            for m in buf:
+                if m[0] > 1000:
+                    continue
+                btn,val = remap_midi_row(m,row_len=10)
+                btn+=400
+                msg={"event":"EXEC","EXEC":str(btn),"VAL":str(val)}
+                msgs.append(msg)
+                #print("msg: ",msg)
+                buf2.append(["EXEC",str(btn),val])
+
+            if msgs:
+                msgs = json.dumps(msgs).encode("utf-8")
+                cmd_client.send(msgs)
+                    
     except Exception as e:
         print("midi",e)
 
     r = 10
-    fr = font22.render("MIDI: APCMINI"  ,1, (200,100,200))
-    window.blit(fr,(330,30+r ))
-    r+=30
+    fr = font15.render("MIDI: APCMINI"  ,1, (200,100,200))
+    window.blit(fr,(330,10+r ))
+    r+=10
     for m in buf:
         #print("-> midi:",m)
-        fr = font22.render("MIDI:"+str(m)  ,1, (200,200,0))
-        window.blit(fr,(330,30+r ))
-        r+=30
+        fr = font15.render("MIDI:"+str(m)  ,1, (200,200,0))
+        window.blit(fr,(330,10+r ))
+        r+=10
+
+    r = 10
+    fr = font15.render("EXEC:"  ,1, (200,100,200))
+    window.blit(fr,(10,10+r ))
+    r+=10
+    for m in buf2:
+        #print("-> midi:",m)
+        fr = font15.render("SEND:"+str(m)  ,1, (200,200,0))
+        window.blit(fr,(10,10+r ))
+        r+=10
 
     if 0: #timer balken
         pos = [160,110,70+80,20]
@@ -276,5 +331,5 @@ while 1:
     if resize_changed:# = True
         screen = pygame.display.set_mode(scrsize,pg.RESIZABLE)
 
-    clock.tick(30)
+    clock.tick(10)
 

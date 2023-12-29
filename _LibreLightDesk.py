@@ -379,7 +379,7 @@ def server1_loop():
         time.sleep(0.01)
 thread.start_new_thread(server1_loop,()) # SERVER
 # remote input - end
-chat.dbg=1
+#chat.dbg=1
 
 class DEVENT():
     def __init__(self):
@@ -430,6 +430,20 @@ def JSCB(x,sock=None):
                             #cb.cb(event)
                         if "CLEAR" == msg["event"]:
                             FIXTURES.clear()
+                        if "EXEC" == msg["event"]:
+                            print("  EXEC EXEC")
+                            val = -1
+                            exec_nr = -1
+                            try:
+                                if "VAL" in msg:
+                                    val = int(msg["VAL"])
+                                if "EXEC" in msg:
+                                    exec_nr = int(msg["EXEC"])
+                                if val >= 0 and exec_nr > 0:
+                                    print("PRESET_GOOO",exec_nr,val)
+                                    master.preset_go(exec_nr-1,xfade=None,val=val)
+                            except Exception as e:
+                                print("EXEC ERR:",e)
             #bounce msg
             #if sock:
             #    msg = json.dumps(msg)
@@ -4931,7 +4945,7 @@ if __run_main:
     data.append({"text":"---"})
     data.append({"text":"FIXTURE-EDITOR","name":"FIX-EDIT"})
     data.append({"text":"CONFIG"})
-    data.append({"text":"SDL-CONFIG"})
+    data.append({"text":"SDL-MIDI"})
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
     #data.append({"text":"SDL-FIX"})
@@ -4976,10 +4990,10 @@ if __run_main:
     #print(dir(cls))
     #print(cls)
     #sys.exit()
-    name="SDL-CONFIG"
+    name="SDL-MIDI"
     def sdl_config():
-        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
-        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py " #&"
+        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/midi.py &"
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/midi.py " #&"
         print(cmd)
         #os.popen(cmd)
 

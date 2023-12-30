@@ -107,7 +107,7 @@ def artnet_loop():
     while 1:
         #artnet._test_frame()
         artnet.next()
-        time.sleep(0.01)
+        time.sleep(0.001)
 
 
 class CLOCK():
@@ -135,7 +135,7 @@ class CLOCK_REAL():
     def __init__(self):
         self.__time = 0
         self.__start = time.time() # only for debugging
-        self.__tick = 0.01 # incremental timer drift's on highe cpu load ?
+        self.__tick = 0.001 # incremental timer drift's on highe cpu load ?
     def time(self):
         self.__time = time.time()
         return self.__time
@@ -947,14 +947,17 @@ class Main():
             except:pass
             self.lock.release_lock()
             #self.lock.acquire_lock()
-            time.sleep(0.01)
+            #time.sleep(1/35)
             fps += 1
-            if fps >= 100:
+            stop_fps = 50
+            time.sleep(1/60)
+            if fps >= stop_fps:
                 fps_t = time.time()
                 #print(int((fps_t-fps_start)*1000),"ms") 
-                print(round(100/(fps_t-fps_start),2),"core/fps") 
+                print(round(stop_fps/(fps_t-fps_start),2),"core/fps") 
                 fps = 0
                 fps_start = time.time()
+                time.sleep(1/60)
 
 main = Main()
 if __run_main:
@@ -1011,30 +1014,8 @@ def set_dmx_fine_ch(Admx,dmx_fine_nr):
         cprint(x,color="red")
         cprint("except 3455",e,color="red")
 
-def JCB(data,sock=None): #json client input
-    t_start = time.time()
-    #print("-->-",data)
-    jdatas = []
-    l2 = 0
-    for line in data:
-        data2 = json.loads(line)
-        l2 += len(data2)
-        #print("line:",line)
-        jdatas.append(data2) #["CMD"])
-
-    print("INPUT JCB =>",len(data),":",l2)
-    c = clock.time() 
-    c = float(c)
-    ftime = 0
-    delay = 0
-
-    for cmds in jdatas:
-
-        master_fx = MASTER_FX()
-        if not cmds:
-            continue
-
-        try:
+def parse_cmds(cmds,clock=0,master_fx=None):
+            c=clock
             out = {}
             for x in cmds:
                 Admx = DMXCH() #dummy
@@ -1057,7 +1038,7 @@ def JCB(data,sock=None): #json client input
                         size_master.val(x["NR"],x["VALUE"])
 
                 else:
-                    print(x)
+                    #print("x",x)
                     
                     if "DMX" in x:
                         DMX = int(x["DMX"])
@@ -1208,10 +1189,52 @@ def JCB(data,sock=None): #json client input
                             CB({"cmd":"fxf"+ccm})
                         else:
                             CB({"cmd":"fx"+ccm})
+            return out
+import hashlib
+JCB_GLOB_BUF = {}
+def JCB(data,sock=None): #json client input
+    t_start = time.time()
+    s = time.time()
+    e = time.time()
+    print("JCB TIME:","{:0.02f}".format(e-s),int(e*100)/100)
+    #print("-->-",data)
+    jdatas = []
+    l2 = 0
+    for line in data:
+        
+        data2 = json.loads(line)
+        l2 += len(data2)
+        #print("line:",line)
+        jdatas.append(data2) #["CMD"])
+
+    print("INPUT JCB =>",len(data),":",l2)
+    c = clock.time() 
+    c = float(c)
+    ftime = 0
+    delay = 0
+
+    for cmds in jdatas:
+        line = json.dumps(cmds)
+        #md5 = hashlib.md5.hexdigest(line)
+
+        master_fx = MASTER_FX()
+        if not cmds:
+            continue
+
+        try:
+            out = parse_cmds(cmds,clock=c,master_fx=master_fx)
 
 
             #cprint("-","{:0.04} sec.".format(time.time()-t_start),color="yellow")
             # ------- ---------------------------------------------------- 
+
+        except Exception as e:
+            cprint("EXCEPTION JCB",e,color="red")
+            cprint("----",str(cmds)[:150],"...",color="red")
+            cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
+            raise e
+    if out:
+        try:
             try: # second loop to sync-start all dmxch's
                 main.lock.acquire_lock()
                 for _id in out:
@@ -1228,16 +1251,23 @@ def JCB(data,sock=None): #json client input
                                 #print("SET V_MASTER",row)
                             
                     _init_action(row)
+                e = time.time()
+                print(" sub-JCB TIME:","{:0.02f}".format(e-s),int(e*100)/100)
 
             finally:
                 main.lock.release_lock()
+            #time.sleep(1/30)
 
         except Exception as e:
             cprint("EXCEPTION JCB",e,color="red")
             cprint("----",str(cmds)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             raise e
-    #cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
+
+        #cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
+        e = time.time()
+        print("JCB TIME:","{:0.02f}".format(e-s),int(e*100)/100)
+        time.sleep(1/60)
             
 def CB(data): # raw/text client input 
     #print("CB",data)
@@ -1346,7 +1376,7 @@ if __run_main:
     s = chat.Server(cb=JCB)
     while 1:
         s.poll()
-        time.sleep(0.01)
+        time.sleep(0.001)
 
 
 

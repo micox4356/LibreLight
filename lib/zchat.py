@@ -128,7 +128,7 @@ class Poll():
                     print("Exception self.cb",e)
                     print(traceback.format_exc())
             else:
-                time.sleep(0.02)
+                time.sleep(0.002)
 
     def _rloop(self):
         msg = b""
@@ -145,7 +145,7 @@ class Poll():
                 finally:
                     self.lock.release()
             else:
-                time.sleep(0.1)
+                time.sleep(0.001)
 
 # CORE CLASSES ---
 
@@ -203,7 +203,7 @@ class Server():
                 print("+++ Client %s open" % addr[0],client)
             finally:
                 self.client_lock.release()
-                time.sleep(0.2)
+                time.sleep(0.02)
 
     def rem_client(self,client):
         self.client_lock.acquire()
@@ -238,7 +238,7 @@ class Server():
     def poll(self,cb=None):
         self.check_client()
         idle = 1
-        time.sleep(0.1)
+        time.sleep(0.001)
         return
 
         for sock in self.get_clients():
@@ -256,7 +256,7 @@ class Server():
                 self.cb(msg)
 
         if idle:
-            time.sleep(0.02)
+            time.sleep(0.002)
         
 
 

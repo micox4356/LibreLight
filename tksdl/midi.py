@@ -196,6 +196,7 @@ while 1:
 
     try:
         if apc_main.buf:
+            s = time.time()
             buf = apc_main.buf[:]
             apc_main.buf = []
             buf2=[]
@@ -213,6 +214,8 @@ while 1:
             if msgs:
                 msgs = json.dumps(msgs).encode("utf-8")
                 cmd_client.send(msgs)
+                e = time.time()
+                print("TIME:",int((e-s)*10000),int(e*100)/100)
                     
     except Exception as e:
         print("midi",e)

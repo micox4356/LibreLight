@@ -187,7 +187,7 @@ def showwarning(msg="<ERROR>",title="<TITLE>"):
     geo ="{}x{}".format(20,20)
     _main.geometry(geo)
     def _quit():
-        time.sleep(.02)
+        time.sleep(1/10)
         _main.quit()
     thread.start_new_thread(_main.mainloop,())
     #_main.quit()
@@ -376,7 +376,7 @@ r1_server = chat.Server(port=30002)
 def server1_loop():
     while 1:
         r1_server.poll(cb=JCB)
-        time.sleep(0.01)
+        #time.sleep(1/90)
 thread.start_new_thread(server1_loop,()) # SERVER
 # remote input - end
 #chat.dbg=1
@@ -441,7 +441,15 @@ def JSCB(x,sock=None):
                                     exec_nr = int(msg["EXEC"])
                                 if val >= 0 and exec_nr > 0:
                                     print("PRESET_GOOO",exec_nr,val)
+                                    s = time.time()
                                     master.preset_go(exec_nr-1,xfade=None,val=val)
+                                    e = time.time()
+                                    #print("time:",e-s,e)
+                                    #print("TIME:",int((e-s)*1000),int(e*10)-1_703_800_000)
+                                    #print("TIME:",int((e-s)*1000),int(e*10)/10)
+                                    print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
+                                    print()
+
                             except Exception as e:
                                 print("EXEC ERR:",e)
             #bounce msg
@@ -461,6 +469,7 @@ def JSCB(x,sock=None):
             msg = bytes(msg,"utf8")
             chat._send(sock,msg)
 
+    #time.sleep(1/60)
 
 
 # external GUI
@@ -468,7 +477,7 @@ r_server = chat.Server(port=30003,cb=JSCB)
 def server_loop():
     while 1:
         r_server.poll(cb=JSCB)
-        time.sleep(0.001)
+        #time.sleep(1/90)
 thread.start_new_thread(server_loop,()) # SERVER
 
 # read memcachd
@@ -599,7 +608,7 @@ class MC():
                             traceback.print_exc()
                             pass
 
-                time.sleep(0.01)
+                time.sleep(1/10)
             except Exception as e:
                 cprint("exc", e)
                 time.sleep(1)
@@ -2902,6 +2911,7 @@ class MASTER():
                 #elem["bg"] = "yellow"
 
     def preset_go(self,nr,val=None,xfade=None,event=None,button="",ptfade=None):
+        s=time.time()
         t_start = time.time()
         if xfade is None and FADE._is():
             xfade = FADE.val()
@@ -2948,9 +2958,12 @@ class MASTER():
             self._preset_go(rdata,cfg,fcmd,value,xfade=0,xFLASH=xFLASH)
         elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
+            e=time.time()
+            print("_GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade,nr=nr)
-
-
+            e=time.time()
+            print("GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
+        return
 
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()

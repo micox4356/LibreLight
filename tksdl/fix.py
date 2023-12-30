@@ -506,7 +506,11 @@ while 1:
 
                     active = is_active_fix(v)
                     bx.btn1.val.set(active)
-
+                    try:
+                        if int(k) % 10 == 0:
+                            #pygame.draw.aaline(window,[255,0,0],[2,r],[800,r],1)
+                            pygame.draw.rect(window,[58,58,58],[2,r,2000,25])
+                    except:pass
                     bx.text = "ID:"+ k 
                     bx.text += " "+v["NAME"]
                     bx.font0 = bx_font0

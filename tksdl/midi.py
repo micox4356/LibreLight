@@ -204,10 +204,14 @@ while 1:
     try:
         if apc_main.buf:
             s = time.time()
-            buf = apc_main.buf[:]
+            _buf = apc_main.buf[:]
+            for b in _buf:
+                buf.insert(0,b)
+
             apc_main.buf = []
-            buf2=[]
             msgs = []
+
+
             for m in buf:
                 if m[0] > 1000:
                     continue
@@ -216,7 +220,7 @@ while 1:
                 msg={"event":"EXEC","EXEC":str(btn),"VAL":str(val)}
                 msgs.append(msg)
                 #print("msg: ",msg)
-                buf2.append(["EXEC",str(btn),val])
+                buf2.insert(0,["EXEC",str(btn),val])
 
             if msgs:
                 msgs = json.dumps(msgs).encode("utf-8")
@@ -226,6 +230,16 @@ while 1:
                     
     except Exception as e:
         print("midi",e)
+
+    while 1:
+        if len(buf2) < 7:
+            break
+        buf2.pop(len(buf2)-1)
+
+    while 1:
+        if len(buf) < 7:
+            break
+        buf.pop(len(buf)-1)
 
     r = 10
     fr = font15.render("MIDI: APCMINI"  ,1, (200,100,200))

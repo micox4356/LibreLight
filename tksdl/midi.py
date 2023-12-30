@@ -205,14 +205,18 @@ while 1:
         if apc_main.buf:
             s = time.time()
             _buf = apc_main.buf[:]
+            buf_exec =[]
             for b in _buf:
+                #if b[0] > 1000:
+                #    continue
                 buf.insert(0,b)
+                buf_exec.append(b)
 
             apc_main.buf = []
             msgs = []
 
 
-            for m in buf:
+            for m in buf_exec:
                 if m[0] > 1000:
                     continue
                 btn,val = remap_midi_row(m,row_len=10)
@@ -220,21 +224,22 @@ while 1:
                 msg={"event":"EXEC","EXEC":str(btn),"VAL":str(val)}
                 msgs.append(msg)
                 #print("msg: ",msg)
-                buf2.insert(0,["EXEC",str(btn),val])
+                buf2.append(["EXEC",str(btn),val,m[0],m[1]])
 
             if msgs:
                 msgs = json.dumps(msgs).encode("utf-8")
+                print(msgs)
                 cmd_client.send(msgs)
                 e = time.time()
                 print("TIME:",int((e-s)*10000),int(e*100)/100)
-                    
+            msgs=[]        
     except Exception as e:
         print("midi",e)
 
     while 1:
         if len(buf2) < 7:
             break
-        buf2.pop(len(buf2)-1)
+        buf2.pop(0)#len(buf2)-1)
 
     while 1:
         if len(buf) < 7:
@@ -247,7 +252,12 @@ while 1:
     r+=10
     for m in buf:
         #print("-> midi:",m)
-        fr = font15.render("MIDI:"+str(m)  ,1, (200,200,0))
+        try: 
+            rgb =(200,200,0)
+            if m[0] >= 1000:
+                rgb = [100,100,100]
+        except:pass
+        fr = font15.render("MIDI:"+str(m)  ,1, rgb)
         window.blit(fr,(330,10+r ))
         r+=10
 
@@ -269,7 +279,7 @@ while 1:
     fr = font15.render("EXEC:"  ,1, (200,100,200))
     window.blit(fr,(10,10+r ))
     r+=10
-    for m in buf2:
+    for m in buf2: #[::-1]:
         #print("-> midi:",m)
         fr = font15.render("SEND:"+str(m)  ,1, (200,200,0))
         window.blit(fr,(10,10+r ))

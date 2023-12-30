@@ -60,6 +60,9 @@ class MAIN():
     def __init__(self):
         self.buf = []
         self.dbg = 0
+        self.blink   = -1
+        self.is_open = -1
+        self.midi = midi 
     def loop(self):
         release = 0
         if 0:
@@ -181,13 +184,16 @@ class MAIN():
 
             if time.time()>last_t+0.5:
                 last_t = time.time()
-                print("blink",blink)
+                #print("blink",blink)
                 if blink:
                     blink = 0
                     midi.write([144,82,YELLOW])
                 else:
                     blink = 1
                     midi.write([144,82,BLACK])
+
+                self.is_open = midi.is_open
+                self.blink = blink
 
 
 if __name__ == "__main__":

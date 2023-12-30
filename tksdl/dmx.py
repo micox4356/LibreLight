@@ -43,17 +43,17 @@ import tool.sdl_elm as sdl_elm
 
 
 #CAPTION = 'LibreLight DMX '
-CAPTION += ':{}'.format(random.randint(100,999))
+#CAPTION += ':{}'.format(random.randint(100,999))
 
 import tool.git as git
 CAPTION += git.get_all()
 
 
-_id = movewin.winfo(CAPTION)
-c1 = movewin.movewin(_id,main_size[0],main_size[1]) #800,500)
-os.system(c1)
-c1 = movewin.activate(_id)
-os.system(c1)
+#_id = movewin.winfo(CAPTION)
+#c1 = movewin.movewin(_id,main_size[0],main_size[1]) #800,500)
+#os.system(c1)
+#c1 = movewin.activate(_id)
+#os.system(c1)
 
 pg.display.set_caption(CAPTION)
 

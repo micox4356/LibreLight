@@ -46,7 +46,11 @@ def search_process(_file_path,exact=1):
     count = 0
     out = []
     for pid in pids:
-        p = psutil.Process(pid)
+        try:
+            p = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            break
+
         ps = p.cmdline()
 
         if len(ps) < 2:
@@ -135,5 +139,7 @@ def check_is_started(CAPTION,_file_path,sleep=0):
         _ids = winfo(search)
         for _id in _ids:
             c3  = activate(_id)
+            print("check_is_started CMD:",c3)
             os.system(c3)
+        time.sleep(1)
         sys.exit()

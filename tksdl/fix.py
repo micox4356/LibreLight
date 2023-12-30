@@ -13,17 +13,27 @@ sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 print(sys.path)
 print()
 
+CAPTION = 'LibreLight FIXTURE-LIST '
+
+
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+import tool.movewin as movewin
+import tool.git as git
+
+#CAPTION += ':{}'.format(random.randint(100,999))
+CAPTION += git.get_all()
 
 import pathlib
-
 _file_path=pathlib.Path(__file__)
 print("file:",_file_path)
 
-import tool.movewin as movewin
+#_id = movewin.winfo(CAPTION)
+#c1 = movewin.movewin(_id,200,50)
+#os.system(c1)
+#c1 = movewin.activate(_id)
+#os.system(c1)
 
-CAPTION = 'LibreLight FIXTURE-LIST '
 movewin.check_is_started(CAPTION,_file_path)
-
 
 
 
@@ -45,21 +55,9 @@ pygame.display.set_icon(icon)
 import tool.movewin as movewin
 import tool.sdl_elm as sdl_elm
 
-
-#CAPTION = 'LibreLight DMX '
-CAPTION += ':{}'.format(random.randint(100,999))
-
-import tool.git as git
-CAPTION += git.get_all()
-
-
-_id = movewin.winfo(CAPTION)
-c1 = movewin.movewin(_id,main_size[0],main_size[1]) #800,500)
-os.system(c1)
-c1 = movewin.activate(_id)
-os.system(c1)
-
 pg.display.set_caption(CAPTION)
+
+
 
 font0  = pygame.font.SysFont("freesans",10)
 font0b = pygame.font.SysFont("freesansbold",10)

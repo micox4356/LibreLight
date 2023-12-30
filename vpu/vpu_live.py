@@ -661,7 +661,9 @@ class Vopen():
         if self.success and wn and self.im: # is not None:
             xx ,yy = self.im.get_size()[:2]
             if self.fname.startswith("cam_"):
-                wn.blit(self.im, (int(self.x-xx/2), int(self.y)))
+                #wn.blit(self.im, (int(self.x-xx/2), int(self.y))) # corner center-top
+                #wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy))) # corner center-bottom
+                wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy))) # corner center-bottom
             else:
                 wn.blit(self.im, (int(self.x-xx/2), int(self.y-yy/2)))
 

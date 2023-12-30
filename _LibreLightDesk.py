@@ -376,7 +376,7 @@ r1_server = chat.Server(port=30002)
 def server1_loop():
     while 1:
         r1_server.poll(cb=JCB)
-        #time.sleep(1/90)
+        time.sleep(1/90)
 thread.start_new_thread(server1_loop,()) # SERVER
 # remote input - end
 #chat.dbg=1

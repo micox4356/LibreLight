@@ -84,6 +84,8 @@ class MAIN():
             time.sleep(0.5)
 
 
+        last_t = time.time()
+        blink = 0
         while True:
             if release:
                 release = 0
@@ -176,6 +178,16 @@ class MAIN():
                 if self.dbg:print([btn,value])
 
                 self.buf.append([btn,value])
+
+            if time.time()>last_t+0.5:
+                last_t = time.time()
+                print("blink",blink)
+                if blink:
+                    blink = 0
+                    midi.write([144,82,YELLOW])
+                else:
+                    blink = 1
+                    midi.write([144,82,BLACK])
 
 
 if __name__ == "__main__":

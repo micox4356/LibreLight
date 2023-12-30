@@ -1014,182 +1014,182 @@ def set_dmx_fine_ch(Admx,dmx_fine_nr):
         cprint(x,color="red")
         cprint("except 3455",e,color="red")
 
-def parse_cmds(cmds,clock=0,master_fx=None):
-            c=clock
-            out = {}
-            for x in cmds:
-                Admx = DMXCH() #dummy
+def _parse_cmds(cmds,clock=0,master_fx=None):
+    c=clock
+    out = {}
+    for x in cmds:
+        Admx = DMXCH() #dummy
 
-                _fix_id=0
-                _attr = ""
-                if "CMD" in x:
-                    print("CMD:",x)
+        _fix_id=0
+        _attr = ""
+        if "CMD" in x:
+            print("CMD:",x)
 
-                    if "EXEC-SPEED-MASTER" == x["CMD"]:
-                        exec_speed_master.val(x["NR"],x["VALUE"])
-                    if "EXEC-SIZE-MASTER" == x["CMD"]:
-                        exec_size_master.val(x["NR"],x["VALUE"])
-                    if "EXEC-OFFSET-MASTER" == x["CMD"]:
-                        exec_offset_master.val(x["NR"],x["VALUE"])
+            if "EXEC-SPEED-MASTER" == x["CMD"]:
+                exec_speed_master.val(x["NR"],x["VALUE"])
+            if "EXEC-SIZE-MASTER" == x["CMD"]:
+                exec_size_master.val(x["NR"],x["VALUE"])
+            if "EXEC-OFFSET-MASTER" == x["CMD"]:
+                exec_offset_master.val(x["NR"],x["VALUE"])
 
-                    if "SPEED-MASTER" == x["CMD"]:
-                        speed_master.val(x["NR"],x["VALUE"])
-                    if "SIZE-MASTER" == x["CMD"]:
-                        size_master.val(x["NR"],x["VALUE"])
+            if "SPEED-MASTER" == x["CMD"]:
+                speed_master.val(x["NR"],x["VALUE"])
+            if "SIZE-MASTER" == x["CMD"]:
+                size_master.val(x["NR"],x["VALUE"])
 
+        else:
+            #print("x",x)
+            
+            if "DMX" in x:
+                DMX = int(x["DMX"])
+            else:
+                continue
+
+            if "VALUE" in x:
+                v = x["VALUE"]
+            else:
+                continue
+
+            _inc = 0
+            _fix_id = 0
+            _val = 0
+            _clock = 0
+            exec_id = None
+
+            if "VALUE" in x:
+                _val = x["VALUE"]
+            if "INC" in x:
+                _inc = x["INC"]
+            if "FIX" in x:
+                _fix_id = x["FIX"]
+            if "clock" in x:
+                _clock=x["clock"]
+            if "ATTR" in x:
+                _attr = x["ATTR"]
+
+            if DMX <= 0: # VIRTUAL
+                DMX = "FIX"+str(_fix_id)
+                ok = 0
+                if "ATTR" in x:
+                    _attr = x["ATTR"]
+                    if "DIM" == x["ATTR"]:
+                        if _fix_id not in V_MASTER:
+                            V_MASTER[_fix_id] = DMXCH()
+                        #print("_val",_val)
+                        #V_MASTER[_fix_id].fade(_val,ftime=0,clock=0,delay=0)
+                        #print("  V-MASTER",_fix_id,_val,_inc)
+                        ok = 1
+                
+
+                if _fix_id in V_MASTER:
+                    Admx = V_MASTER[_fix_id]
+
+                if not ok:
+                    continue
+            else:
+                if DMX < len(Bdmx):
+                    Admx = Bdmx[DMX-1]
                 else:
-                    #print("x",x)
-                    
-                    if "DMX" in x:
-                        DMX = int(x["DMX"])
-                    else:
-                        continue
+                    print("DMX ADDRESS too BIG",DMX)
+                    continue 
 
-                    if "VALUE" in x:
-                        v = x["VALUE"]
-                    else:
-                        continue
+            
+            if "DMX-FINE" in x and DMX > 0:
+                set_dmx_fine_ch(Admx, x["DMX-FINE"])
 
-                    _inc = 0
-                    _fix_id = 0
-                    _val = 0
-                    _clock = 0
-                    exec_id = None
+            #print("-")
+            if "EXEC" in x:
+                exec_id = x["EXEC"]
 
-                    if "VALUE" in x:
-                        _val = x["VALUE"]
-                    if "INC" in x:
-                        _inc = x["INC"]
-                    if "FIX" in x:
-                        _fix_id = x["FIX"]
-                    if "clock" in x:
-                        _clock=x["clock"]
-                    if "ATTR" in x:
-                        _attr = x["ATTR"]
-
-                    if DMX <= 0: # VIRTUAL
-                        DMX = "FIX"+str(_fix_id)
-                        ok = 0
-                        if "ATTR" in x:
-                            _attr = x["ATTR"]
-                            if "DIM" == x["ATTR"]:
-                                if _fix_id not in V_MASTER:
-                                    V_MASTER[_fix_id] = DMXCH()
-                                #print("_val",_val)
-                                #V_MASTER[_fix_id].fade(_val,ftime=0,clock=0,delay=0)
-                                #print("  V-MASTER",_fix_id,_val,_inc)
-                                ok = 1
-                        
-
-                        if _fix_id in V_MASTER:
-                            Admx = V_MASTER[_fix_id]
-
-                        if not ok:
-                            continue
-                    else:
-                        if DMX < len(Bdmx):
-                            Admx = Bdmx[DMX-1]
-                        else:
-                            print("DMX ADDRESS too BIG",DMX)
-                            continue 
-
-                    
-                    if "DMX-FINE" in x and DMX > 0:
-                        set_dmx_fine_ch(Admx, x["DMX-FINE"])
-
-                    #print("-")
-                    if "EXEC" in x:
-                        exec_id = x["EXEC"]
-
-                    if "ATTR" in x:
-                        _attr = x["ATTR"]
-                    if "FIX" in x:
-                        _fix_id = x["FIX"]
+            if "ATTR" in x:
+                _attr = x["ATTR"]
+            if "FIX" in x:
+                _fix_id = x["FIX"]
 
 
-                    fx=""
-                    fx2={}
-                    ftime=0
-                    delay=0
-                    if "FX" in x:
-                        fx = x["FX"]
-                    if "FX2" in x:
-                        fx2 = x["FX2"]
-                    if "FADE" in x:
-                        ftime = x["FADE"]
-                    if "DELAY" in x:
-                        delay = x["DELAY"]
+            fx=""
+            fx2={}
+            ftime=0
+            delay=0
+            if "FX" in x:
+                fx = x["FX"]
+            if "FX2" in x:
+                fx2 = x["FX2"]
+            if "FADE" in x:
+                ftime = x["FADE"]
+            if "DELAY" in x:
+                delay = x["DELAY"]
 
-                    #print("---------",[x])
-                    if "FLASH" in x:
-                        if v == "off" and Admx.exec_id() != exec_id:
-                            continue # stop
-                    
-                    #Bdmx[DMX].exec_id(exec_id)
-                    Admx.exec_id(exec_id)
-                    out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{},"fix_id":_fix_id,"attr":_attr,"DMXCH":Admx}
-                    if v is not None:
-                        if "FLASH" in x:
-                            out[DMX]["flash"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay,"DMXCH":Admx}
-                        else:
-                            out[DMX]["fade"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay,"DMXCH":Admx}
-                    
-                    if type(fx2) is dict and fx2:
-                        xtype="fade"
-                        size  = 10
-                        speed = 10
-                        start = 0
-                        offset= 0
-                        width=100
-                        invert=0
-                        base = "-"
-                        if "TYPE" in fx2:
-                            xtype = fx2["TYPE"]
-                        if "SIZE" in fx2:
-                            size = fx2["SIZE"]
-                        if "SPEED" in fx2:
-                            speed = fx2["SPEED"]
-                        if "OFFSET" in fx2:
-                            offset = fx2["OFFSET"]
-                        if "BASE" in fx2:
-                            base = fx2["BASE"]
-                        if "INVERT" in fx2:
-                            invert = fx2["INVERT"]
-                        if "WIDTH" in fx2:
-                            width = fx2["WIDTH"]
-                        
-                        if "off" == x["VALUE"]: #fix fx flash off
-                            xtype= "off"
+            #print("---------",[x])
+            if "FLASH" in x:
+                if v == "off" and Admx.exec_id() != exec_id:
+                    continue # stop
+            
+            #Bdmx[DMX].exec_id(exec_id)
+            Admx.exec_id(exec_id)
+            out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{},"fix_id":_fix_id,"attr":_attr,"DMXCH":Admx}
+            if v is not None:
+                if "FLASH" in x:
+                    out[DMX]["flash"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay,"DMXCH":Admx}
+                else:
+                    out[DMX]["fade"] = {"target":v,"ftime":ftime, "clock":c,"delay":delay,"DMXCH":Admx}
+            
+            if type(fx2) is dict and fx2:
+                xtype="fade"
+                size  = 10
+                speed = 10
+                start = 0
+                offset= 0
+                width=100
+                invert=0
+                base = "-"
+                if "TYPE" in fx2:
+                    xtype = fx2["TYPE"]
+                if "SIZE" in fx2:
+                    size = fx2["SIZE"]
+                if "SPEED" in fx2:
+                    speed = fx2["SPEED"]
+                if "OFFSET" in fx2:
+                    offset = fx2["OFFSET"]
+                if "BASE" in fx2:
+                    base = fx2["BASE"]
+                if "INVERT" in fx2:
+                    invert = fx2["INVERT"]
+                if "WIDTH" in fx2:
+                    width = fx2["WIDTH"]
+                
+                if "off" == x["VALUE"]: #fix fx flash off
+                    xtype= "off"
 
-                        if "alloff" == xtype.lower():
-                            for dmxch in Bdmx:
-                                if dmxch is not None:
-                                    dmxch.flash_fx(xtype="off",clock=c)
-                                    dmxch.fx(xtype="off",clock=c)
-                            for j in V_MASTER:
-                                dmxch = V_MASTER[j]
-                                if j is not None:
-                                    dmxch.flash_fx(xtype="off",clock=c)
-                                    dmxch.fx(xtype="off",clock=c)
+                if "alloff" == xtype.lower():
+                    for dmxch in Bdmx:
+                        if dmxch is not None:
+                            dmxch.flash_fx(xtype="off",clock=c)
+                            dmxch.fx(xtype="off",clock=c)
+                    for j in V_MASTER:
+                        dmxch = V_MASTER[j]
+                        if j is not None:
+                            dmxch.flash_fx(xtype="off",clock=c)
+                            dmxch.fx(xtype="off",clock=c)
 
-                        if "FLASH" in x:
-                            out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,
-                                        "invert":invert,"width":width,"start":start
-                                        ,"offset":offset,"base":base,"clock":c,"master":master_fx}
-                        else:
-                            out[DMX]["fx"] = {"xtype":xtype,"size":size,"speed":speed
-                                    ,"invert":invert,"width":width,"start":start
-                                    ,"offset":offset,"base":base,"clock":c,"master":master_fx}
+                if "FLASH" in x:
+                    out[DMX]["flash_fx"] = {"xtype":xtype,"size":size,"speed":speed,
+                                "invert":invert,"width":width,"start":start
+                                ,"offset":offset,"base":base,"clock":c,"master":master_fx}
+                else:
+                    out[DMX]["fx"] = {"xtype":xtype,"size":size,"speed":speed
+                            ,"invert":invert,"width":width,"start":start
+                            ,"offset":offset,"base":base,"clock":c,"master":master_fx}
 
-                    elif type(fx) is str and fx:  
-                        # old fx like sinus:200:12:244 
-                        ccm = str(DMX+1)+":"+fx
-                        print("fx",ccm)
-                        if "FLASH" in x:
-                            CB({"cmd":"fxf"+ccm})
-                        else:
-                            CB({"cmd":"fx"+ccm})
-            return out
+            elif type(fx) is str and fx:  
+                # old fx like sinus:200:12:244 
+                ccm = str(DMX+1)+":"+fx
+                print("fx",ccm)
+                if "FLASH" in x:
+                    CB({"cmd":"fxf"+ccm})
+                else:
+                    CB({"cmd":"fx"+ccm})
+    return out
 import hashlib
 JCB_GLOB_BUF = {}
 def JCB(data,sock=None): #json client input
@@ -1222,7 +1222,7 @@ def JCB(data,sock=None): #json client input
             continue
 
         try:
-            out = parse_cmds(cmds,clock=c,master_fx=master_fx)
+            out = _parse_cmds(cmds,clock=c,master_fx=master_fx)
 
 
             #cprint("-","{:0.04} sec.".format(time.time()-t_start),color="yellow")

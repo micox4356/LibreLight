@@ -94,6 +94,7 @@ def draw_preset(gui,xframe,PRESETS):
     gui.elem_presets = {}
     i=0
     for k in PRESETS.val_presets:
+        #print( PRESETS.val_presets[k])
         if i%(10*8)==0 or i ==0:
             c=0
             #b = tk.Label(frame,bg="black", text="" )
@@ -137,6 +138,7 @@ def draw_preset(gui,xframe,PRESETS):
         b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
         
         if k not in gui.elem_presets:
+            #print(b)
             gui.elem_presets[k] = b
         #b.pack(expand=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)

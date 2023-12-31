@@ -60,6 +60,7 @@ class MiniButton:
         self.bb = tk.Canvas(self.rb, highlightbackground = "black", highlightthickness = 1, bd=1,relief=tk.RAISED)
         self.bb.configure(width=width, height=height)
         self.fg = "#002"
+        self.fx = 0
         self.label = []
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
@@ -135,6 +136,9 @@ class MiniButton:
             #if len(self.label):
             #    self.label[0].configure(color="red") #args["fg"])
             #self.defaultBackground=args["fg"]
+        if "fx" in args:
+            #print(dir(self.bb))
+            self.fx=args["fx"]
     def configure(self,**args):
         self._configure(**args)
     def config(self,**args):
@@ -226,6 +230,10 @@ class ExecButton(MiniButton):
             self.l = self.bb.create_line(20,34 ,45,34,fill="black",arrow=tk.BOTH,tag=tag)
         if "tilt" in text.lower(): 
             self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag=tag)
+        if self.fx: 
+            #self.l = self.bb.create_line(30,25 ,35,45,fill="black",arrow=tk.BOTH,tag=tag)
+            #self.l = self.bb.create_rectangle(3,35,6,38,fill="cyan",tag=tag)
+            self.l = self.bb.create_text(2,33,text="FX",anchor="nw",tag=tag,fill="black",font=self.x5font)
 
         text = txt2
         z = 0

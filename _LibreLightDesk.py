@@ -320,6 +320,7 @@ def set_exec_fader_cfg(nr,val,label="",color=""):
             if cfg:
                 exec_wing.fader_elem[nr].attr["bg"] = cfg["bg"]
                 exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
+                exec_wing.fader_elem[nr].attr["fx"] = cfg["fx"]
     except Exception as e:
         cprint("- exception:",e)
         print(nr,val,label)
@@ -2431,6 +2432,7 @@ def get_exec_btn_cfg(nr):
     #for k in PRESETS.val_presets: 
     k = nr
     if 1:
+        
         _bg = "grey"
         _ba = "grey"
         _fg = "lightgrey"
@@ -2457,6 +2459,7 @@ def get_exec_btn_cfg(nr):
         
         ifval = 0
         fx_only = 0
+        fx_color = 0
         if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
             sdata = PRESETS.val_presets[k]
 
@@ -2477,7 +2480,6 @@ def get_exec_btn_cfg(nr):
 
             if len(sdata) > 1:
                 ifval = 1
-                fx_color = 0
                 val_color = 0
                 for fix in sdata:
                     if fix == "CFG":
@@ -2536,9 +2538,13 @@ def get_exec_btn_cfg(nr):
             _fg = "#00e"
         
         out = {}
+        
+        out["fx"] = fx_color
         out["bg"] = _bg
         out["ba"] = _ba
         out["fg"] = _fg
+        #if fx_color:
+        #    out["fg"] = "red"
         out["text"] = _text
         
         return out
@@ -2731,7 +2737,7 @@ class MASTER():
                 cfg = out
 
             b = self.elem_presets[nr]
-            b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"])
+            b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
 
 
         time.sleep(0.01)
@@ -4190,6 +4196,7 @@ class Presets():
             self.val_presets[nr]["CFG"] = OrderedDict()
         if "BUTTON" not in self.val_presets[nr]["CFG"]:
             self.val_presets[nr]["CFG"]["BUTTON"] = ""
+
         if type(txt) is str:
             self.val_presets[nr]["CFG"]["BUTTON"] = txt
         if self.val_presets[nr]["CFG"]["BUTTON"] is None:

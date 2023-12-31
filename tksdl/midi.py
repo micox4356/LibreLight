@@ -207,6 +207,8 @@ while 1:
             _buf = apc_main.buf[:]
             buf_exec =[]
             for b in _buf:
+                b.append("None")
+                b.append(time.time())
                 #if b[0] > 1000:
                 #    continue
                 buf.insert(0,b)
@@ -217,12 +219,14 @@ while 1:
 
 
             for m in buf_exec:
+                m[2]= "ignore"
                 if m[0] > 1000:
                     continue
-                btn,val = remap_midi_row(m,row_len=10)
+                btn,val = remap_midi_row(m[:2],row_len=10)
                 btn+=400
                 msg={"event":"EXEC","EXEC":str(btn),"VAL":str(val)}
                 msgs.append(msg)
+                m[2] = "ok"
                 #print("msg: ",msg)
                 buf2.append(["EXEC",str(btn),val,m[0],m[1]])
 
@@ -250,14 +254,30 @@ while 1:
     fr = font15.render("MIDI: APCMINI"  ,1, (200,100,200))
     window.blit(fr,(330,10+r ))
     r+=10
+    t2=time.time() 
     for m in buf:
         #print("-> midi:",m)
+        rgb = [100,100,100]
         try: 
-            rgb =(200,200,0)
-            if m[0] >= 1000:
-                rgb = [100,100,100]
+            if m[2] == "ok":#>= 1000:
+                rgb =(200,200,0)
         except:pass
-        fr = font15.render("MIDI:"+str(m)  ,1, rgb)
+        m2 = m[:]
+        m2[3] -= t2 
+        m2[3] = str(round(m2[3],1))+" sec"
+        rgb2 = [10,10,10]
+        if m2[1]:
+            rgb2 = [0,200,0]
+        if m2[0] >= 1000:
+            v=m2[1]
+            v=v*2
+            if v > 255:
+                v = 255
+            if v < 0:
+                v=0
+            rgb2 = [v,v,v]
+        pygame.draw.rect(window,rgb2,[315,10+r,10,12])
+        fr = font15.render("MIDI:"+str(m2)  ,1, rgb)
         window.blit(fr,(330,10+r ))
         r+=10
 
@@ -279,9 +299,14 @@ while 1:
     fr = font15.render("EXEC:"  ,1, (200,100,200))
     window.blit(fr,(10,10+r ))
     r+=10
-    for m in buf2: #[::-1]:
+    for m in buf2[::-1]:
         #print("-> midi:",m)
         fr = font15.render("SEND:"+str(m)  ,1, (200,200,0))
+
+        rgb2 = [10,10,10]
+        if m[2]:
+            rgb2 = [200,0,200]
+        pygame.draw.rect(window,rgb2,[160,10+r,10,12])
         window.blit(fr,(10,10+r ))
         r+=10
 

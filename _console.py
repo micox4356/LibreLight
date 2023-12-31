@@ -1133,7 +1133,7 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
             #    if v == "off" and Admx.exec_ids()[3] != exec_id:
             #        continue # stop
 
-            print("DO",[exec_id],x)
+            #print("DO",[exec_id],x)
             # ids = [401,402,304,103] 
             # exec-id, exec-fx-id, flush-id, flush-fx-id
             if v != "off":
@@ -1143,20 +1143,20 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
                         ids[2] = exec_id
                     if fx2:
                         ids[3] = exec_id
-                    print(" ",[ids, exec_id],"FL")
+                    #print(" ",[ids, exec_id],"FL")
                 else: # GO or ON
                     ids = Admx.exec_ids()
                     if type(v) is int:
                         ids[0] = exec_id
                     if fx2:
                         ids[1] = exec_id
-                    print(" ",[ids, exec_id],"GO")
+                    #print(" ",[ids, exec_id],"GO")
 
             if v == "off":
                 if "FLASH" in x:
                     ids = Admx.exec_ids()
                     stop = 0
-                    print(" ",[ids, exec_id])
+                    #print(" ",[ids, exec_id])
                     if ids[2] != exec_id:
                         stop = 1
                     else:
@@ -1174,8 +1174,9 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
 
 
             #aprint("OK")        
-            ids = Admx.exec_ids()
-            print("OK ",[ids, exec_id])
+            #ids = Admx.exec_ids()
+            #print("OK ",[ids, exec_id])
+
             #Bdmx[DMX].exec_id(exec_id)
             out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{},"fix_id":_fix_id,"attr":_attr,"DMXCH":Admx}
             if v is not None:

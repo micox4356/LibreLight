@@ -4492,6 +4492,9 @@ class Window():
             self.tk.mainloop()
         finally:
             self.tk.quit()
+            cmd="xset -display :0.0 r rate 240 15"
+            print(cmd)
+            os.system(cmd)
 
     def callback(self,event,data={}):#value=255):
         global _global_short_key

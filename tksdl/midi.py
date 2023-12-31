@@ -252,7 +252,7 @@ while 1:
 
     r = 10
     fr = font15.render("MIDI: APCMINI"  ,1, (200,100,200))
-    window.blit(fr,(330,10+r ))
+    window.blit(fr,(270,10+r ))
     r+=10
     t2=time.time() 
     for m in buf:
@@ -276,9 +276,9 @@ while 1:
             if v < 0:
                 v=0
             rgb2 = [v,v,v]
-        pygame.draw.rect(window,rgb2,[315,10+r,10,12])
+        pygame.draw.rect(window,rgb2,[255,10+r,10,12])
         fr = font15.render("MIDI:"+str(m2)  ,1, rgb)
-        window.blit(fr,(330,10+r ))
+        window.blit(fr,(270,10+r ))
         r+=10
 
     r = 2

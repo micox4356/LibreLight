@@ -591,7 +591,9 @@ class DMXCH(object):
                 self._fx[1] = None
                 self._fx_value = 0 
         else:
-            self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=1) 
+            self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert
+                                ,width=width,start=start,offset=offset,base=base
+                                ,clock=clock,master=master,master_id=1) 
             self._fx[1].exec_id(self._exec_ids[1])
 
         self.next(clock)
@@ -615,7 +617,9 @@ class DMXCH(object):
             self._flash_fx = None 
             self._flash_fx_value = 0 
         else:
-            self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=0)
+            self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert
+                                ,width=width,start=start,offset=offset,base=base
+                                ,clock=clock,master=master,master_id=0)
             self._flash_fx.exec_id(self._exec_ids[3])
         self.next(clock)
         #print("init flash_fx",self)
@@ -625,6 +629,7 @@ class DMXCH(object):
     
     def __str__(self):
         return self.__repr__()
+
     def exec_ids(self,_id=None):
         #if type(_id) is not type(None):
         #    #self._exec_id = _id
@@ -632,11 +637,16 @@ class DMXCH(object):
         return self._exec_ids
 
     def __repr__(self):
-        print(self._dmx,self._dmx_fine, self._last_val,self._exec_ids,self._fx,self._fade)
-        return "<BUFFER {} {} v:{} EXEC:{}> fx:[{}] fd:{}".format(
+        v = self._last_val
+        if type(self._last_val) in [int,float]:
+            v = round(self._last_val,2)
+
+        return "<BUFFER DMX:{} FINE:{} VAL:{} EXEC:{}\n  fd:{}\n  fx:{}\n  fx_flash:{}\n".format(
                     self._dmx,self._dmx_fine
-                    ,self._last_val,str(self._exec_ids)
-                    ,self._fx,self._fade)
+                    ,v,str(self._exec_ids)
+                    ,self._fade
+                    ,self._fx
+                    ,self._flash_fx)
     
     def fade_ctl(self,cmd=""): #start,stop,backw,fwd,bounce
         pass
@@ -650,7 +660,9 @@ class DMXCH(object):
         return out
     def _next(self,clock=0):
         value = self._base_value
-
+        #if self._dmx == 1024:
+        #    print(self)
+        
         if self._last_val is None:
             self._last_val = value
         fx_value = self._fx_value
@@ -1127,11 +1139,6 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
             if "DELAY" in x:
                 delay = x["DELAY"]
 
-            #print("---------",[x])
-            #if "FLASH" in x:
-            #    #print("FLASH",Admx.exec_ids(),(exec_id))
-            #    if v == "off" and Admx.exec_ids()[3] != exec_id:
-            #        continue # stop
 
             #print("DO",[exec_id],x)
             # ids = [401,402,304,103] 

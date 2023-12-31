@@ -354,6 +354,7 @@ class FX():
 
         self.next()
         #print("init FX",self)
+
     def exec_id(self,_id=None):
         if type(_id) is not type(None):
             self._exec_id = str(_id)
@@ -363,11 +364,15 @@ class FX():
         #print("self.__offset",self.__offset)
         return {"offset":self.__offset,"xtype":self.__xtype}
         #return self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run 
+
     def __str__(self):
         return self.__repr__()
+
     def __repr__(self):
         return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} base:{} Clock:{:0.2f} run:{} EXEC:{}>".format( 
-                    self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run,self._exec_id )
+                    self.next(), self.__xtype, self.__size, self.__speed, self.__angel
+                    , self.__base, self.__clock_curr, self.run, self._exec_id )
+
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
@@ -558,7 +563,7 @@ class DMXCH(object):
         self._flash_fx = None
         self._flash_fx_value = 0
         self._last_val = None
-        self._exec_id = None
+        self._exec_ids = [None,None,None,None] # go, go-fx, flash, flash-fx
         #self.next(clock)
         #print("init",self)
     
@@ -587,7 +592,7 @@ class DMXCH(object):
                 self._fx_value = 0 
         else:
             self._fx[1] = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=1) 
-            self._fx[1].exec_id(self._exec_id)
+            self._fx[1].exec_id(self._exec_ids[1])
 
         self.next(clock)
         #print("init fx",self)
@@ -611,7 +616,7 @@ class DMXCH(object):
             self._flash_fx_value = 0 
         else:
             self._flash_fx = FX(xtype=xtype,size=size,speed=speed,invert=invert,width=width,start=start,offset=offset,base=base,clock=clock,master=master,master_id=0)
-            self._flash_fx.exec_id(self._exec_id)
+            self._flash_fx.exec_id(self._exec_ids[3])
         self.next(clock)
         #print("init flash_fx",self)
 
@@ -620,16 +625,18 @@ class DMXCH(object):
     
     def __str__(self):
         return self.__repr__()
-    def exec_id(self,_id=None):
-        if type(_id) is not type(None):
-            self._exec_id = _id
-            #print("set exec_id",_id)
-        return self._exec_id
+    def exec_ids(self,_id=None):
+        #if type(_id) is not type(None):
+        #    #self._exec_id = _id
+        #    #print("set exec_id",_id)
+        return self._exec_ids
 
     def __repr__(self):
-        print(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
-        return "<BUFFER {} {} v:{} EXEC:{}> fx:[{}] fd:{}".format(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
-        return "<BUFFER {} {} v:{:0.2f} EXEC:{}> fx:[{}] fd:{}".format(self._dmx,self._dmx_fine, self._last_val,self._exec_id,self._fx,self._fade)
+        print(self._dmx,self._dmx_fine, self._last_val,self._exec_ids,self._fx,self._fade)
+        return "<BUFFER {} {} v:{} EXEC:{}> fx:[{}] fd:{}".format(
+                    self._dmx,self._dmx_fine
+                    ,self._last_val,str(self._exec_ids)
+                    ,self._fx,self._fade)
     
     def fade_ctl(self,cmd=""): #start,stop,backw,fwd,bounce
         pass
@@ -1052,7 +1059,7 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
 
             _inc = 0
             _fix_id = 0
-            _val = 0
+            _val = -1
             _clock = 0
             exec_id = None
 
@@ -1121,12 +1128,55 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
                 delay = x["DELAY"]
 
             #print("---------",[x])
-            if "FLASH" in x:
-                if v == "off" and Admx.exec_id() != exec_id:
-                    continue # stop
-            
+            #if "FLASH" in x:
+            #    #print("FLASH",Admx.exec_ids(),(exec_id))
+            #    if v == "off" and Admx.exec_ids()[3] != exec_id:
+            #        continue # stop
+
+            print("DO",[exec_id],x)
+            # ids = [401,402,304,103] 
+            # exec-id, exec-fx-id, flush-id, flush-fx-id
+            if v != "off":
+                if "FLASH" in x:
+                    ids = Admx.exec_ids()
+                    if type(v) is int:
+                        ids[2] = exec_id
+                    if fx2:
+                        ids[3] = exec_id
+                    print(" ",[ids, exec_id],"FL")
+                else: # GO or ON
+                    ids = Admx.exec_ids()
+                    if type(v) is int:
+                        ids[0] = exec_id
+                    if fx2:
+                        ids[1] = exec_id
+                    print(" ",[ids, exec_id],"GO")
+
+            if v == "off":
+                if "FLASH" in x:
+                    ids = Admx.exec_ids()
+                    stop = 0
+                    print(" ",[ids, exec_id])
+                    if ids[2] != exec_id:
+                        stop = 1
+                    else:
+                        ids[2] = None
+
+                    if fx2:
+                        if ids[3] != exec_id:
+                            stop = 1
+                        else:
+                            ids[3] = None
+                            stop = 0
+                    if stop:
+                        # this FLASH cmd OFF/RELEASE is not valid anymore
+                        continue
+
+
+            #aprint("OK")        
+            ids = Admx.exec_ids()
+            print("OK ",[ids, exec_id])
             #Bdmx[DMX].exec_id(exec_id)
-            Admx.exec_id(exec_id)
             out[DMX] = {"flash":{},"fade":{},"fx":{},"flash_fx":{},"fix_id":_fix_id,"attr":_attr,"DMXCH":Admx}
             if v is not None:
                 if "FLASH" in x:
@@ -1216,7 +1266,7 @@ def JCB(data,sock=None): #json client input
     for cmds in jdatas:
         line = json.dumps(cmds)
         #md5 = hashlib.md5.hexdigest(line)
-
+        
         master_fx = MASTER_FX()
         if not cmds:
             continue

@@ -1191,6 +1191,7 @@ class GUI_FixtureEditor():
         ok = 1
         out=[]
         err = []
+        msg=""
         err2 = []
         sucess = []
         _fixture = fixture 
@@ -1223,7 +1224,6 @@ class GUI_FixtureEditor():
         print("OK:",ok)
         print()
         if err:
-            msg=""
             #msg+="Name:'"+name+"'\n"
             msg+="FIX-ID is in use !\n"
             msg+="\n"

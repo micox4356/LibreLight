@@ -660,6 +660,8 @@ class DMXCH(object):
         return out
     def _next(self,clock=0):
         value = self._base_value
+        #self._last_val = value
+        #return value
         #if self._dmx == 1024:
         #    print(self)
         
@@ -875,7 +877,10 @@ class Main():
 
         fps_start = time.time()
         fps = 0
+        dbg= 0#1
         while 1:
+            start = time.time()
+            _t=0
             self.lock.acquire_lock()
             t = clock.time()
             ii = 0
@@ -884,19 +889,29 @@ class Main():
             for ii,dmxch in enumerate(Bdmx):
                 i = ii%512
                 univ = ii//512
-                if str(univ) not in self.artnet:
+                s_univ = str(univ)
+                if s_univ not in self.artnet:
                     print("add uiv",univ)
-                    self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
+                    self.artnet[s_univ] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
                     #self.artnet[str(univ)].dmx[512-1] = 100+univ
 
-                if univ != old_univ:
-                    old_univ = univ
-                    #print("UNIV",ii/512)
-                    try:
-                        artnet.next()
-                    except:pass
-                    artnet = self.artnet[str(univ)]
-                    #artnet.dmx = xx
+                #if univ != old_univ:
+                #    old_univ = univ
+                #    #print("UNIV",ii/512)
+                #    try:
+                #        artnet.next()
+                #    except:pass
+                #    artnet = self.artnet[str(univ)]
+                #    #artnet.dmx = xx
+
+            #for k,artnet in self.artnet.items():
+            #    artnet.next()
+
+            if dbg:
+                end = time.time()
+                print(" t",_t,ii,round(end-start,4))
+            start = time.time()
+            _t+=1
 
             old_univ = -1
             xx = [0]*512
@@ -911,36 +926,42 @@ class Main():
 
                 
                 v = dmxch.next(t)
-                vv = vdmx.by_dmx(clock=i,dmx=ii+1)
-                try:
-                    v = v*vv # disable v-master
-                except Exception as e:
-                    cprint("Exception v*vv",[v,vv],e)
-                    continue
+                #vv = vdmx.by_dmx(clock=i,dmx=ii+1)
+                #try:
+                #    v = v*vv # disable v-master
+                #except Exception as e:
+                #    cprint("Exception v*vv",[v,vv],e)
+                #    continue
 
                 xx[i] = int(v)
+
+            if dbg:
+                end = time.time()
+                print(" t",_t,ii,round(end-start,4))
+            start = time.time()
+            _t+=1
 
             old_univ = -1
             xx = [0]*512
             for ii,dmxch in enumerate(Bdmx): #fine loop
-                i = ii%512
-                univ = ii//512
-
-                if univ != old_univ:
-                    artnet = self.artnet[str(univ)]
-                    xx = artnet.dmx# = xx
-                
-                v = dmxch.next(t)
-                vv = vdmx.by_dmx(clock=i,dmx=ii+1)
-                try:
-                    v = v*vv # disable v-master
-                except Exception as e:
-                    cprint("Exception v*vv",[v,vv],e)
-                    continue
-
-                #xx[i] = int(v)
                 dmx_fine =  dmxch._dmx_fine
                 if dmx_fine > 0:
+                    i = ii%512
+                    univ = ii//512
+
+                    if univ != old_univ:
+                        artnet = self.artnet[str(univ)]
+                        xx = artnet.dmx# = xx
+                    
+                    v = dmxch.next(t)
+                    vv = vdmx.by_dmx(clock=i,dmx=ii+1)
+                    try:
+                        v = v*vv # disable v-master
+                    except Exception as e:
+                        cprint("Exception v*vv",[v,vv],e)
+                        continue
+
+                    #xx[i] = int(v)
                     vf = int(v%1*255)
                     #print(dmx_fine,end=" ")
                     dmx_fine = dmx_fine%512
@@ -959,24 +980,31 @@ class Main():
                             xx[dmx_fine-1] = int(v%1*255)
                     except Exception as e:
                         print("E dmx_fine",e,dmx_fine)
+            if dbg:
+                end = time.time()
+                print(" t",_t,ii,round(end-start,4))
+                print()
+            start = time.time()
+            _t+=1
 
 
-            try:    
-                artnet.next()
-            except:pass
             self.lock.release_lock()
+
+            for k,artnet in self.artnet.items():
+                artnet.next()
+
             #self.lock.acquire_lock()
             #time.sleep(1/35)
             fps += 1
             stop_fps = 50
-            time.sleep(1/60)
+            time.sleep(1/30)
             if fps >= stop_fps:
                 fps_t = time.time()
                 #print(int((fps_t-fps_start)*1000),"ms") 
                 print(round(stop_fps/(fps_t-fps_start),2),"core/fps") 
                 fps = 0
                 fps_start = time.time()
-                time.sleep(1/60)
+                #time.sleep(1/60)
 
 main = Main()
 if __run_main:
@@ -1270,7 +1298,7 @@ def JCB(data,sock=None): #json client input
     c = float(c)
     ftime = 0
     delay = 0
-
+    out = {}
     for cmds in jdatas:
         line = json.dumps(cmds)
         #md5 = hashlib.md5.hexdigest(line)

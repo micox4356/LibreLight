@@ -818,7 +818,7 @@ if options.mode:
 
 # PARSE COMMANDLINE ARGUMENTS
 CFG_IN    = {"name":"CFG_IN","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300}
-CFG_OUT   = {"name":"CFG_OUT","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
+CFG_OUT   = {"name":"CFG_OUT","x1":40+80,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
 CFG_OUT2   = {"name":"CFG_OUT2","x1":p*8+142,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
 CFG_BLOCK = {"name":"CFG_BLOCK","size":16,"h-split":2,"v-split":2,"h-count":8,"v-count":8}
 
@@ -1240,7 +1240,8 @@ def event():
                 posA = _pos 
                 fix = find_pix(_pos[0]-40,_pos[1]-60+pm_wy)
                 if fix:
-                    pos = fix.POS(40,60+pm_wy) 
+                    #pos = fix.POS(40,60+pm_wy) 
+                    pos = fix.POS(CFG_IN["x1"],CFG_IN["y1"])#0,0) #+pm_wy) 
                     rgb = [0,0,0] 
                     pointer.move(pos) 
                     pointer.fix  = fix
@@ -1255,6 +1256,7 @@ def event():
             print(e)
 
         if event.type==pygame.QUIT: 
+            print("QUIT")
             running=False
             #time.sleep(1)
             sys.exit()
@@ -1293,6 +1295,7 @@ def draw_overlay():
 
     fr = font15.render("a1_idim: 1.{:}".format(options.grid_a1_idim) ,1, (200,0,255))
     window.blit(fr,(90,12))
+
     fr = font15.render("a2_idim: 1.{:}".format(options.grid_a2_idim) ,1, (200,0,255))
     window.blit(fr,(90,22))
 
@@ -1602,9 +1605,9 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
     
     tmp_font = pygame.font.SysFont("freemonobold",int(p*0.8))
 
-    fr   = tmp_font.render("OUTPUT: "+str(name) ,1, (255,255,255))
-    fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
-    window.blit(fr,pos)
+    #fr   = tmp_font.render("OUTPUT: "+str(name) ,1, (255,255,255))
+    #fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
+    #window.blit(fr,pos)
 
     fr   = tmp_font.render("INPUT" ,1, (255,255,255))
     fr_r = fr.get_rect(center=(int(wx/2),int(60+pm_wy-p/2)))
@@ -1617,7 +1620,8 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
             break
         j+=1
         ii = i
-        pos = fix.POS(40,60)
+        #pos = fix.POS(40,60)
+        pos = fix.POS(0,0)
         rgb = fix.rgb
         pos[0]+=_x
         pos[1]+=_y
@@ -1628,11 +1632,16 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
         xposs = [] #None #pos[:]
         for fix2 in GRID:
             if fix._id == fix2._id:
-                _xposs = fix2.POS(40,60) 
+                #_xposs = fix2.POS(40,60) 
+                #_xposs = fix2.POS(0,0)#_x,_y) 
+                _xposs = fix2.POS(CFG_IN["x1"],CFG_IN["y1"])
                 xposs.append( _xposs) #fix2.POS(40,60) )
         # ToDo
         for xpos in xposs:
-            sub = grab(xpos[0],xpos[1]+pm_wy,xpos[2],xpos[3])
+            #sub = grab(xpos[0],xpos[1]+pm_wy,xpos[2],xpos[3])
+            sub = grab(xpos[0],xpos[1],xpos[2],xpos[3])
+            if NR:
+                pygame.draw.rect(window,[255,0,255],xpos,1) # frame on grab area
             if sub:
                 window.blit(sub, (pos[0]+z,pos[1]+z))
             else:
@@ -1651,7 +1660,8 @@ def reshape(GRID,GRID_OUT,_x,_y,name="GRID_Z"):
                 y_max += xpos[3]
             # DRAW FIX NUMBER on TOP
 
-        apos = fix.POS(40,60)#+pm_wy)
+        #apos = fix.POS(40,60)#+pm_wy)
+        apos = fix.POS(0,0)#+pm_wy)
         apos[0]+=_x
         apos[1]+=_y
         argb = fix.rgb
@@ -1716,13 +1726,14 @@ def load_vpu_text(nr=0):
 
 
 grid_counter = time.time()
-def draw_fix_nr(GRID):
+def draw_fix_nr(GRID,_x=0,_y=0):
     global grid_counter
     i=0
     y=0
 
     for fix in GRID:
-        pos = fix.POS(40,60+pm_wy)
+        #pos = fix.POS(40,60+pm_wy)
+        pos = fix.POS(_x,_y)#+pm_wy)
         rgb = fix.rgb
 
 
@@ -1906,8 +1917,10 @@ def draw_video(VIDEO):
 
 
         video1.pos 
-        video1.x=40+0+cpan 
-        video1.y=60+0+pm_wy+ctilt
+        #video1.x=40+0+cpan 
+        #video1.y=60+0+pm_wy+ctilt
+        video1.x=CFG_IN["x1"]+cpan 
+        video1.y=CFG_IN["y1"]+ctilt
         video1.scale = int((csize))
         video1.angle = int(360-(cang))
 
@@ -2042,14 +2055,16 @@ def read_dmx_data(ip,ips):
         data.extend(data3)
     return data
 
-def draw_gobo(GRID,data):
+def draw_gobo(GRID,data,_x=0,_y=0):
 
     i = 0
     dmx = 1
     h = 1
     v = 1
     for fix in GRID:
-        pos = fix.POS(40,60+pm_wy)
+        #pos = fix.POS(40,60+pm_wy)
+        pos = fix.POS(_x,_y)#40,60+pm_wy)
+        
         rgb = fix.rgb
 
 
@@ -2070,7 +2085,8 @@ def draw_gobo(GRID,data):
         for subfix in fix.sub_fix:#calc(data):
             subfix.calc(data)
             #fix = subfix
-            spos = subfix.POS(40,60+pm_wy)
+            #spos = subfix.POS(40,60+pm_wy)
+            spos = subfix.POS(_x,_y)#+pm_wy)
             srgb = subfix.rgb
 
             #print(fix.dmx,rgb,pos)
@@ -2121,7 +2137,8 @@ def draw_gobo(GRID,data):
         for subfix in fix.sub_fix:#calc(data):
             subfix.calc(data)
             #fix = subfix
-            spos = subfix.POS(40,60+pm_wy)
+            #spos = subfix.POS(40,60+pm_wy)
+            spos = subfix.POS(_x,_y)#+pm_wy)
             srgb = subfix.rgb
 
             # draw row/col grid number
@@ -2225,7 +2242,7 @@ def main():
     global PLAYLIST_TIME
     global dataA
     global frame2
-
+    global runnung
     reload_grid()
 
     s=time.time()
@@ -2260,7 +2277,7 @@ def main():
 
 
 
-        draw_gobo(GRID,data) 
+        draw_gobo(GRID,data,_x=CFG_IN["x1"],_y=CFG_IN["y1"]) 
 
 
         if VIDEO:
@@ -2272,32 +2289,29 @@ def main():
         pointer.draw(0,pm_wy) #wy
 
         pygame.draw.rect(window,[5,5,5],[0,60,MAIN_SIZE[0],p*9]) # background
-        #pygame.draw.rect(window,[5,5,5],[0,p*8+p*10+120,MAIN_SIZE[0],500]) # background
-
-
 
         spos = [0,0,0,0]
         if PIXEL_MAPPING >= 1:
             try:
                 GRID_X = GRID_A[8*8:]
                 xx = p*8
-                reshape(GRID,GRID_X,xx+102,-xx,name="GRID_A2") #start pos
-
-                
+                reshape(GRID,GRID_X,CFG_OUT2["x1"],CFG_OUT2["y1"]-p*8,name="GRID_A2") #start pos
             except Exception as e:
                 print("Exception 23123",e)
 
-            reshape(GRID,GRID_A,0,0,name="GRID_A1") #start pos
+            reshape(GRID,GRID_A,CFG_OUT["x1"],CFG_OUT["y1"],name="GRID_A1") #start pos
         else:
-            reshape(GRID,GRID_A,spos[0]+spos[2]+20,10) #start pos
+            pass #reshape(GRID,GRID_A,spos[0]+spos[2]+20,10) #start pos
 
         # DRAW FIX NR 
-        draw_fix_nr(GRID)
-
+        draw_fix_nr(GRID,_x=CFG_IN["x1"],_y=CFG_IN["y1"]) 
         frame_area()
+
+        # OUTPUT -> MAPING
 
         # GRID_A1 DIM
         if options.grid_a1_idim:
+            CFG=CFG_OUT
             grid_dim_ch = int(options.grid_a1_idim)
             grid_dim_v = dataA[grid_dim_ch-1]
             dim=255
@@ -2309,23 +2323,24 @@ def main():
                     dim = 0
             except:pass
             dim_raw = dim*-1
-            #dim = 255-dim
-            xx = p*8
             s = pygame.Surface((p*8,p*8))   # the size of your rect
             s.set_alpha(dim)                # alpha level
             s.fill((0,0,0))                 # this fills the entire surface
-            window.blit(s, (40,60))#(xx,-xx))    # (0,0) are the top-left coordinates
+            window.blit(s, (CFG["x1"],CFG["y2"]-p*8))
 
-            #tmp_font = pygame.font.SysFont("freemonobold",int(p*0.8))
+            fr   = font15.render("Output:GRID_A1",1, (255,255,255))
+            fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
+            window.blit(fr,(CFG["x1"],CFG["y2"]+5))
 
             fr   = font15.render("inv-dim: "+str(dim_raw) ,1, (255,255,255))
             fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
-            window.blit(fr,(48,p*9+60))
+            window.blit(fr,(CFG["x1"],CFG["y2"]+15))
 
 
 
         # GRID_A2 DIM
         if options.grid_a2_idim:
+            CFG=CFG_OUT2
             grid_dim_ch = int(options.grid_a2_idim)
             grid_dim_v = dataA[grid_dim_ch-1]
             dim=255
@@ -2338,16 +2353,18 @@ def main():
             except:pass
 
             dim_raw = dim*-1
-            #dim = 255-dim
-            xx = p*8
             s = pygame.Surface((p*8,p*8))   # the size of your rect
             s.set_alpha(dim)                # alpha level
             s.fill((0,0,0))                 # this fills the entire surface
-            window.blit(s, (xx*2+14,60))#(xx,-xx))    # (0,0) are the top-left coordinates
+            window.blit(s, (CFG["x1"],CFG["y2"]-p*8))
+
+            fr   = font15.render("Output:GRID_A2",1, (255,255,255))
+            fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
+            window.blit(fr,(CFG["x1"],CFG["y2"]+5))
 
             fr   = font15.render("inv-dim: "+str(dim_raw) ,1, (255,255,255))
             fr_r = fr.get_rect(center=(int(wx/2),int(0+pm_wy-p*0-10)))
-            window.blit(fr,(p*16+22,p*9+60))
+            window.blit(fr,(CFG["x1"],CFG["y2"]+15))
 
         pygame.display.flip()
         clock.tick(25)

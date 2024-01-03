@@ -40,7 +40,7 @@ import pygame.font
 
 pg = pygame
 main_size=(500,100)
-window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
+window = pygame.display.set_mode(main_size)#,pg.RESIZABLE,32)
 
 pg = pygame
 pygame.init()
@@ -134,13 +134,8 @@ fps_old = 0
 
 
 import _thread as thread
-try:
-    import remote.apcmini as apcmini
-    apc_main = apcmini.MAIN()
-    thread.start_new_thread(apc_main.loop,())
-    time.sleep(1)
-except Exception as e:
-    print("MIDI INI",e)
+
+apc_main = None
 
 
 #while 1:
@@ -174,8 +169,11 @@ def remap_midi_row(m,row_len=8):
             #print("btn2",btn2,val)
             return [btn2,val]
             break
-buf = []
+buf  = []
 buf2 = []
+msgs = []
+buf_exec =[] 
+
 while 1:
     fps +=1
     t = time.time()
@@ -199,7 +197,20 @@ while 1:
     fr = font15.render("SDL-MIDI "  ,1, (200,200,200))
     window.blit(fr,(100,2 ))
 
-
+    if apc_main is None:
+        try:
+            print("scan for apcmidi ...")
+            import remote.apcmini as apcmini
+            apc_main = apcmini.MAIN()
+            thread.start_new_thread(apc_main.loop,())
+            time.sleep(1)
+            buf  = []
+            buf2 = []
+            buf_exec =[]
+            msgs = []
+        except Exception as e:
+            time.sleep(1)
+            pass#print("MIDI INI",e)
 
     try:
         if apc_main.buf:
@@ -213,32 +224,38 @@ while 1:
                 #    continue
                 buf.insert(0,b)
                 buf_exec.append(b)
-
-            apc_main.buf = []
-            msgs = []
-
-
-            for m in buf_exec:
-                m[2]= "ignore"
-                if m[0] > 1000:
-                    continue
-                btn,val = remap_midi_row(m[:2],row_len=10)
-                btn+=400
-                msg={"event":"EXEC","EXEC":str(btn),"VAL":str(val)}
-                msgs.append(msg)
-                m[2] = "ok"
-                #print("msg: ",msg)
-                buf2.append(["EXEC",str(btn),val,m[0],m[1]])
-
-            if msgs:
-                msgs = json.dumps(msgs).encode("utf-8")
-                print(msgs)
-                cmd_client.send(msgs)
-                e = time.time()
-                print("TIME:",int((e-s)*10000),int(e*100)/100)
-            msgs=[]        
+        apc_main.buf = []
     except Exception as e:
-        print("midi",e)
+        pass #print("midi",e)
+
+
+    msgs = []
+
+    try:
+        for m in buf_exec:
+            m[2]= "ignore"
+            if m[0] > 1000:
+                continue
+            btn,val = remap_midi_row(m[:2],row_len=10)
+            btn+=400
+            msg={"event":"EXEC","EXEC":str(btn),"VAL":str(val)}
+            msgs.append(msg)
+            m[2] = "ok"
+            #print("msg: ",msg)
+            buf2.append(["EXEC",str(btn),val,m[0],m[1]])
+            buf_exec = []
+
+        if msgs:
+            msgs = json.dumps(msgs).encode("utf-8")
+            print(msgs)
+            cmd_client.send(msgs)
+            e = time.time()
+            print("TIME:",int((e-s)*10000),int(e*100)/100)
+        msgs=[]        
+
+    except Exception as e:
+        pass #print("midi",e)
+
 
     while 1:
         if len(buf2) < 7:
@@ -249,6 +266,8 @@ while 1:
         if len(buf) < 7:
             break
         buf.pop(len(buf)-1)
+
+
 
     r = 10
     fr = font15.render("MIDI: APCMINI"  ,1, (200,100,200))
@@ -282,18 +301,30 @@ while 1:
         r+=10
 
     r = 2
+    _blink =0 
+    _is_open  =0
     try:
         rgb = [10,10,10]
         if apc_main.blink:
             rgb = [110,110,110]
+        _blink = apc_main.blink
+        _is_open  = apc_main.is_open
+    
+    except Exception as e:
+        pass #print(e)
 
-        pygame.draw.rect(window,rgb,[200,r,60,25])
-        fr = font15.render("BLINK:"+str(apc_main.blink)  ,1, (200,200,200))
-        window.blit(fr,(200,r ))
-        r+=10
-        fr = font15.render("open:"+str(apc_main.is_open)  ,1, (200,200,200))
-        window.blit(fr,(200,r ))
-    except Exception as e:print(e)
+    if _is_open == 0:
+        buf  = []
+        buf2 =  ["connect to apcmini ..."]
+        buf_exec = []
+        msgs = []
+
+    pygame.draw.rect(window,rgb,[200,r,60,25])
+    fr = font15.render("BLINK:"+str(_blink)  ,1, (200,200,200))
+    window.blit(fr,(200,r ))
+    r+=10
+    fr = font15.render("open:"+str(_is_open)  ,1, (200,200,200))
+    window.blit(fr,(200,r ))
 
     r = 10
     fr = font15.render("EXEC:"  ,1, (200,100,200))
@@ -310,38 +341,7 @@ while 1:
         window.blit(fr,(10,10+r ))
         r+=10
 
-    if 0: #timer balken
-        pos = [160,110,70+80,20]
-        pygame.draw.rect(window,rgb,pos)
-        t=(time.time()-start)
-        if t > 15:
-            start = time.time()
-        b= 80-int(t*10)
-        pos = [160,110,70+(b),20]
-        rgb = (0x00,0xff,0xff,0)
-        pygame.draw.rect(window,rgb,pos)
-        rgb = (0x00,0x00,0x00,0)
-        fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-        window.blit(fr,pos[:2])
-        
-        pos = [160,200,80,20]
-        #fd = sdl_elm.Fader(window,pos)
-        #fd.draw()
-        
-        pos = [160,90,70+80,20]
-        pygame.draw.rect(window,rgb,pos)
-        b= int(t*10)
-        pos = [160,90,0+(b),20]
-        rgb = (0x00,0xff,0xff,0)
-        pygame.draw.rect(window,rgb,pos)
-        rgb = (0x00,0x00,0x00,0)
-        fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-        window.blit(fr,pos[:2])
 
-
-        rgb = (0xaa,0xaa,0xaa,0)
-        fr = font22.render(str(round(t,1)) ,1, rgb) #(200,200,200))
-        window.blit(fr,(500,500))
 
     for t in table:
         t.draw()

@@ -818,7 +818,7 @@ if options.mode:
 
 # PARSE COMMANDLINE ARGUMENTS
 CFG_IN    = {"name":"CFG_IN","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300}
-CFG_OUT   = {"name":"CFG_OUT","x1":40+80,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
+CFG_OUT   = {"name":"CFG_OUT","x1":40+40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
 CFG_OUT2   = {"name":"CFG_OUT2","x1":p*8+142,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
 CFG_BLOCK = {"name":"CFG_BLOCK","size":16,"h-split":2,"v-split":2,"h-count":8,"v-count":8}
 

@@ -32,6 +32,7 @@ class tcp_sender(object):
     def connect(self,client_name="unkown"):
         self.xip = "127.0.0.1" #raw_input("IP-Adresse: ")
         self.xs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("port:",self.port)
         try:
             self.xs.connect((self.xip, self.port)) #50000))
         except ConnectionRefusedError as e:
@@ -45,7 +46,7 @@ class tcp_sender(object):
 
         try:
             #self.xs.send(bytes(nachricht+";","utf-8") )
-            self.xs.send(nachricht+b";" )
+            self.xs.send(nachricht.encode("utf-8")+b";" )
         except socket.error as e:
             self.connect()
     def close(self):
@@ -72,6 +73,7 @@ class CMD():
         #self.xs.getsockopt(socket.AF_INET, socket.SO_REUSEADDR )
 
         while 1:
+            print("bind port:",port)
             try:
                 server.bind(("", port))
                 break
@@ -81,7 +83,7 @@ class CMD():
                 time.sleep(1)
 
         
-        
+       
         server.listen(1)
 
         clients = []

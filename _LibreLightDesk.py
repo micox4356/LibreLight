@@ -661,7 +661,8 @@ def jclient_send(data):
 
                     if jdata["ATTR"].startswith("_"):
                         pass # ignore attr._ACTIVE 
-                    else:
+                    else:#
+                        jdata["time"] = t_start
                         jdatas.append(jdata)
                 
                 #cprint("-- ",jdata,color="red")
@@ -2600,6 +2601,11 @@ class MASTER():
                 PRESETS.label_presets[i] = "-"
 
         modes.set_cb(self.xcb)
+
+    def jclient_send(self,data):
+        # namespace wraper
+        jclient_send(data)
+
     def button_refresh(self,name,color,color2=None,text="",fg=None):
         cprint("button_refresh",name,color)
         #if color == "gold":
@@ -3756,13 +3762,15 @@ class Fixtures():
             #x=self.select(fix,"ALL",mode="swap")
             return x
         out = []
+
+        #cprint("Fixture.Encoder(...)",fix,attr)
         if fix not in self.fixtures: 
-            cprint(" activate Fixture in fixture list on encoder click ")
+            #cprint(" activate Fixture in fixture list on encoder click ")
 
             ii =0
             delay=0
             sstart = time.time()
-            cprint("-->A HIER <--")
+            #cprint("  encoder fix  <--")
             sub_data = []
             for _fix in self.fixtures:
                 ii+=1
@@ -3787,13 +3795,16 @@ class Fixtures():
                 sub_jdata.append(_x123)
 
             if sub_jdata:
-                cprint("--- SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
-                jclient_send(sub_jdata) 
+                cprint("  SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
+                if not _blind:
+                    jclient_send(sub_jdata) 
 
             jdata=[{"MODE":ii}]
-            cprint("-->B HIER <--")
-            jclient_send(jdata)
-            return 0
+            #cprint("  ENCODER j send <--")
+
+            if not _blind:
+               jclient_send(jdata)
+            return sub_jdata  #len(sub_data)
 
         data = self.fixtures[fix]
 
@@ -3847,7 +3858,7 @@ class Fixtures():
             jdata["DMX-FINE"] = dmx_fine
 
         out = {} 
-        if change:
+        if 1: #change:
             data["ATTRIBUT"][attr]["ACTIVE"] = 1
             data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
             data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)

@@ -214,8 +214,8 @@ def draw_colorpicker(gui,xframe,data):
             #gui.old_color = data["color"]
             color = data["color"]
             
-            print("e",event,data)
-            print("e",dir(event))#.keys())
+            #print("e",event,data)
+            #print("e",dir(event))#.keys())
             try:
                 print("e.state",event.state)
             except:pass
@@ -270,18 +270,40 @@ def draw_colorpicker(gui,xframe,data):
                     cg = color[1]
                     cb = color[2]
 
-
+                rr,rg,rb = "","",""
                 if cr is not None:
-                    FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade)
+                    rr = FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade,blind=1)
+                else:
+                    print("RED   ERR ---"*10)
                 if cg is not None:
-                    FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade)
+                    rg = FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade,blind=1)
+                else:
+                    print("GREEN ERR ---"*10)
                 if cb is not None:
-                    FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade)
-                FIXTURES.encoder(fix=0,attr="WHITE",xval=cw,xfade=set_fade)
-                FIXTURES.encoder(fix=0,attr="AMBER",xval=ca,xfade=set_fade)
+                    rb = FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade,blind=1)
+                else:
+                    print("BLUE  ERR ---"*10,event_num)
+
+                #print(" COLOR PICK:",cr,cg,cb)
+                rw = FIXTURES.encoder(fix=0,attr="WHITE",xval=cw,xfade=set_fade,blind=1)
+                ra = FIXTURES.encoder(fix=0,attr="AMBER",xval=ca,xfade=set_fade,blind=1)
+                #print(dir())
+                #print((rr))
+                #print((rg))
+                #print((rb))
+                #print((rw))
+                #print((ra))
+                jdata = []
+                jdata.extend(rr)
+                jdata.extend(rg)
+                jdata.extend(rb)
+                jdata.extend(rw)
+                jdata.extend(ra)
+                master.jclient_send(jdata)
                 master.refresh_fix()
                  
                 print("PICK COLOR:",data["color"])
+
     _cb=_CB(FIXTURES,master)
     colp.colorpicker(xframe,width=580,height=113, xcb=_cb.cb)
     return 0

@@ -65,6 +65,7 @@ dmx  = [0]*512 # absolute dmx data
 
 gcolor = 1
 def cprint(*text,color="blue",space=" ",end="\n"):
+    color = color.lower()
     #return 0 #disable print dbg
     if not gcolor:
         print(text)
@@ -838,23 +839,11 @@ htp_master = HTP_MASTER()
 
 class Main():
     def __init__(self):
-        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=12)
-        #artnet = ANN.ArtNetNode(to="127.0.0.1",port=6555,univ=0)
-        #artnet = ANN.ArtNetNode(to="2.0.0.255",univ=0)
-        #artnet = ANN.ArtNetNode(to="10.10.10.255",univ=1)
         self.artnet = {}
-        #self.artnet["0"] = ANN.ArtNetNode(to="10.10.10.255",univ=0)
-        #self.artnet["0"].dmx[512-1] = 10
-        #self.artnet["1"] = ANN.ArtNetNode(to="10.10.10.255",univ=1)
-        #self.artnet["1"].dmx[512-1] = 11
         self.fx = {} # key is dmx address
         self.lock = thread.allocate_lock()
     def loop(self):
-        #dmx[205] = 255 #205 BLUE
-        #self.artnet.send()
         xx = [0]*512
-        #artnet = self.artnet["0"]
-        #artnet.dmx = xx# [:] #dmx #[0]*512
         ii = 0
         old_univ = -1
         xx = [0]*512
@@ -864,11 +853,9 @@ class Main():
             if str(univ) not in self.artnet:
                 print("add uiv",univ)
                 self.artnet[str(univ)] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
-                #self.artnet[str(univ)].dmx[512-1] = 100+univ
 
             if univ != old_univ:
                 old_univ = univ
-                #print("UNIV",ii/512)
                 try:
                     artnet.next()
                 except:pass
@@ -879,9 +866,10 @@ class Main():
         fps = 0
         dbg= 0#1
         while 1:
+            self.lock.acquire_lock()
+
             start = time.time()
             _t=0
-            self.lock.acquire_lock()
             t = clock.time()
             ii = 0
             old_univ = -1
@@ -893,19 +881,7 @@ class Main():
                 if s_univ not in self.artnet:
                     print("add uiv",univ)
                     self.artnet[s_univ] = ANN.ArtNetNode(to="10.10.10.255",univ=univ)
-                    #self.artnet[str(univ)].dmx[512-1] = 100+univ
 
-                #if univ != old_univ:
-                #    old_univ = univ
-                #    #print("UNIV",ii/512)
-                #    try:
-                #        artnet.next()
-                #    except:pass
-                #    artnet = self.artnet[str(univ)]
-                #    #artnet.dmx = xx
-
-            #for k,artnet in self.artnet.items():
-            #    artnet.next()
 
             if dbg:
                 end = time.time()
@@ -924,15 +900,7 @@ class Main():
                     artnet = self.artnet[str(univ)]
                     xx = artnet.dmx 
 
-                
                 v = dmxch.next(t)
-                #vv = vdmx.by_dmx(clock=i,dmx=ii+1)
-                #try:
-                #    v = v*vv # disable v-master
-                #except Exception as e:
-                #    cprint("Exception v*vv",[v,vv],e)
-                #    continue
-
                 xx[i] = int(v)
 
             if dbg:
@@ -961,17 +929,9 @@ class Main():
                         cprint("Exception v*vv",[v,vv],e)
                         continue
 
-                    #xx[i] = int(v)
                     vf = int(v%1*255)
-                    #print(dmx_fine,end=" ")
                     dmx_fine = dmx_fine%512
-                    #print(dmx_fine,end=" ")
-                    #print(int(v),end=" ")
-                    #print(vf,end=" ")
-                    #print()
-                    #univ = ii//512
                     try:
-                        #xx[dmx_fine+1] = 9# int(v%1*255)
                         if v >= 255:
                             xx[dmx_fine-1] = 255
                         elif v < 0:
@@ -993,27 +953,23 @@ class Main():
             for k,artnet in self.artnet.items():
                 artnet.next()
 
-            #self.lock.acquire_lock()
-            #time.sleep(1/35)
             fps += 1
             stop_fps = 50
             time.sleep(1/30)
             if fps >= stop_fps:
                 fps_t = time.time()
-                #print(int((fps_t-fps_start)*1000),"ms") 
                 print(round(stop_fps/(fps_t-fps_start),2),"core/fps") 
                 fps = 0
                 fps_start = time.time()
-                #time.sleep(1/60)
 
 main = Main()
 if __run_main:
-    #thread.start_new_thread(artnet_loop,())
     thread.start_new_thread(main.loop,())
 
 
 def _init_action(row):#Bdmx,out,DMX):
     Admx = row["DMXCH"]
+    line_sub_count = 0
     if row["fx"]:
         x = row["fx"]
         Admx.fx(xtype=x["xtype"]
@@ -1026,7 +982,8 @@ def _init_action(row):#Bdmx,out,DMX):
                 ,base=x["base"]
                 ,clock=x["clock"]
                 ,master=x["master"])
-
+        
+        line_sub_count += 1
     if row["flash_fx"]:
         x = row["flash_fx"]
         Admx.flash_fx(xtype=x["xtype"]
@@ -1039,6 +996,7 @@ def _init_action(row):#Bdmx,out,DMX):
                 ,base=x["base"]
                 ,clock=x["clock"]
                 ,master=x["master"])
+        line_sub_count += 1
 
     if row["flash"]:
         x = row["flash"]
@@ -1046,12 +1004,17 @@ def _init_action(row):#Bdmx,out,DMX):
                 ,ftime=x["ftime"]
                 ,clock=x["clock"]
                 ,delay=x["delay"])
+        line_sub_count += 1
     if row["fade"]:
         x = row["fade"]
         Admx.fade(target=x["target"]
                 ,ftime=x["ftime"]
                 ,clock=x["clock"]
                 ,delay=x["delay"])
+        line_sub_count += 1
+
+    return line_sub_count
+
 
 def set_dmx_fine_ch(Admx,dmx_fine_nr):
     try:
@@ -1272,18 +1235,27 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
                 ccm = str(DMX+1)+":"+fx
                 print("fx",ccm)
                 if "FLASH" in x:
-                    CB({"cmd":"fxf"+ccm})
+                    pass#CB({"cmd":"fxf"+ccm})
                 else:
-                    CB({"cmd":"fx"+ccm})
+                    pass#CB({"cmd":"fx"+ccm})
     return out
+
+
+
 import hashlib
 JCB_GLOB_BUF = {}
+
 def JCB(data,sock=None): #json client input
     t_start = time.time()
     s = time.time()
-    e = time.time()
-    print("JCB TIME:","{:0.02f}".format(e-s),int(e*100)/100)
-    #print("-->-",data)
+
+    e  = time.time()
+    ct = int(e*100)/100
+    print()
+    msg = "{} JCB START: {:0.02f} sizeof:{}"
+    msg = msg.format(ct,e-s,sys.getsizeof(data) ) 
+    print(msg)
+
     jdatas = []
     l2 = 0
     for line in data:
@@ -1299,8 +1271,32 @@ def JCB(data,sock=None): #json client input
     ftime = 0
     delay = 0
     out = {}
+    line=""
     for cmds in jdatas:
-        line = json.dumps(cmds)
+        for line in cmds: # run first
+            #print(line)
+            if "FLASH" in line:
+                cprint("FLUSH",end=" ",color="CYAN")
+                if "VALUE" in line:
+                    if line["VALUE"] == "off":
+                        cprint("OFF",end=" ",color="red")
+                    else:
+                        cprint("ON",end=" ",color="green")
+                print("")
+            else:
+                cprint("FADE",color="CYAN")
+            break
+
+    for cmds in jdatas:
+        for line in cmds:
+            if "time" in line:
+                jt_start = line["time"]
+                latenz = round(t_start-jt_start,4)
+                if latenz > 0.5:
+                    cprint("latenz 0.5 >",latenz,color="red")
+                    break
+    for cmds in jdatas:
+        #line = json.dumps(cmds)
         #md5 = hashlib.md5.hexdigest(line)
         
         master_fx = MASTER_FX()
@@ -1319,15 +1315,33 @@ def JCB(data,sock=None): #json client input
             cprint("----",str(cmds)[:150],"...",color="red")
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             raise e
+
+    line_count = 0
+    line_count_sub = 0
+    line_size = 0
+    attr_count = {}
+    attr_count2 = 0
+
+
     if out:
         try:
             try: # second loop to sync-start all dmxch's
                 main.lock.acquire_lock()
                 for _id in out:
                     row = out[_id]
+                    #print(row)
+                    line_size += sys.getsizeof(row)
+
                     #print("_id",_id)
                     Admx = row["DMXCH"]
                     #print("Admx",Admx)
+
+                    if "attr" in row:
+                        if row["attr"] not in attr_count:
+                            attr_count[row["attr"]] = 0
+                    attr_count[row["attr"]] += 1
+                    attr_count2 +=1
+
                     if row["fix_id"]:
                         _fix_id = row["fix_id"]
                         Admx._fix_id = _fix_id
@@ -1336,7 +1350,8 @@ def JCB(data,sock=None): #json client input
                                 Admx._v_master_id = _fix_id
                                 #print("SET V_MASTER",row)
                             
-                    _init_action(row)
+                    line_count_sub += _init_action(row)
+                    line_count += 1
                 e = time.time()
                 print(" sub-JCB TIME:","{:0.02f}".format(e-s),int(e*100)/100)
 
@@ -1351,111 +1366,16 @@ def JCB(data,sock=None): #json client input
             raise e
 
         #cprint(" ","{:0.04} sec.".format(time.time()-t_start),color="yellow")
-        e = time.time()
-        print("JCB TIME:","{:0.02f}".format(e-s),int(e*100)/100)
+        print("attr_count:",attr_count)
+        #print(line_count,line_size)
+
+        e  = time.time()
+        ct = int(e*100)/100
+        msg = "{} JCB: END  {:0.02f} sizeof:{} fix-count:{} attr-count:{}"
+        msg = msg.format(ct,e-s,line_size,line_count,line_count_sub ) 
+        print(msg)
         time.sleep(1/60)
             
-def CB(data): # raw/text client input 
-    #print("CB",data)
-
-    cmds = split_cmd(data)
-    c = clock.time() 
-    c = float(c)
-    ftime = 0
-    delay = 0
-
-    for xcmd in cmds:
-        if xcmd:
-            cprint("CB",xcmd,end=" ")
-            pass
-        else:
-            continue
-
-        if xcmd.startswith("fxf"):
-            xxcmd=xcmd[3:].split(":")
-            #print("fxf:",xxcmd)
-            if "alloff" == xxcmd[1].lower():
-                for i in Bdmx:
-                    if i is not None:
-                        i.flash_fx(xtype="off",clock=c)
-
-                for i in V_MASTER:
-                    if i is not None:
-                        i.flash_fx(xtype="off",clock=c)
-            l = xxcmd
-            try:
-                xtype=""
-                size=40
-                speed=100
-                start=0
-                offset=0
-                base=""
-                k=int(l[0])-1
-                xtype=l[1]
-                if len(l) >= 3:
-                    try:size=int(l[2])
-                    except:pass
-                if len(l) >= 4:
-                    try:speed=int(l[3])
-                    except:pass
-                if len(l) >= 5:
-                    try:start=int(l[4])
-                    except:pass
-                if len(l) >= 6:
-                    try:offset=int(l[5])
-                    except:pass
-                if len(l) >= 7:
-                    try:base=l[6]
-                    except:pass
-                
-                if len(Bdmx) > k:
-                    #Bdmx[k].fade(target=v,ftime=t, clock=c)
-                    Bdmx[k].flash_fx(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=c)
-            except Exception as e:
-                print("EXCEPTION IN FX",e)
-                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
-        elif xcmd.startswith("fx"):
-            xxcmd=xcmd[2:].split(":")
-            print("DMX:",xxcmd)
-            if len(xxcmd) < 2:
-                print("xxcmd err",xxcmd,xcmd)
-                continue  
-            if "alloff" == xxcmd[1].lower():
-                for i in Bdmx:
-                    i.fx(xtype="off",clock=c)
-            l = xxcmd
-            try:
-                xtype=""
-                size=40
-                speed=100
-                start=0
-                offset=0
-                base=""
-
-                k=int(l[0])-1
-                xtype=l[1]
-                if len(l) >= 3:
-                    try:size=int(l[2])
-                    except:pass
-                if len(l) >= 4:
-                    try:speed=int(l[3])
-                    except:pass
-                if len(l) >= 5:
-                    try:start=int(l[4])
-                    except:pass
-                if len(l) >= 6:
-                    try:offset=int(l[5])
-                    except:pass
-                if len(l) >= 7:
-                    try:base=l[6]
-                    except:pass
-                
-                if len(Bdmx) > k:
-                    #Bdmx[k].fade(target=v,ftime=t, clock=c)
-                    Bdmx[k].fx(xtype=xtype,size=size,speed=speed,start=start,offset=offset,base=base,clock=c)
-            except Exception as e:
-                print("EXCEPTION IN FX",xcmd,e)
-                print("Error on line {}".format(sys.exc_info()[-1].tb_lineno))
 
 if __run_main:
         

@@ -167,6 +167,8 @@ class Fade():
         self.__last = start
         self.__target = target
         self.run = 1
+        self.end = 0
+        self.off = 0
         #print("INIT", str(self) )
     def __str__(self):
         return self.__repr__()
@@ -176,6 +178,7 @@ class Fade():
     def next(self,clock=None):
         if self.__ftime <= 0 and self.__delay <= 0:
             self.__last = self.__target
+            self.end = 1
             self.run = 0
         
         if type(clock) is float or type(clock) is int:#not None:
@@ -184,10 +187,12 @@ class Fade():
         if self.__target > self.__start:
             if self.__last >= self.__target:
                 self.run = 0
+                self.end = 1
                 return self.__target
         else:
             if self.__last <= self.__target:
                 self.run = 0
+                self.end = 1
                 return self.__target
             
         current = (self.__clock - self.__clock_curr) / self.__ftime
@@ -602,11 +607,18 @@ class DMXCH(object):
 
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
-            self._flash = None
+            #self._flash = None
+            if self._flash:
+                cur_val = self._flash.next()
+                #cur_tar = self._fade.next()
+                cur_tar = self._base_value
+                self._flash = Fade(cur_val,cur_tar,ftime=0.0,clock=clock) 
+                self._flash.off = 1
         else:#elif target != self._base_value:
             try:
                 target = float(target)
                 self._flash = Fade(self._last_val,target,ftime=ftime,clock=clock,delay=delay)
+                self._flash = Fade(self._last_val,target,ftime=0,clock=clock,delay=delay)
             except Exception as e:
                 print( "Except:flash",target,ftime,clock,__name__,e,)
         self.next(clock)
@@ -674,6 +686,8 @@ class DMXCH(object):
             value = self._flash.next(clock)
             #flicker bug ?!
             value = self._flash.next(clock)
+            if self._flash.end == 1 and self._flash.off == 1:
+                self._flash = None
             fx_value = 0
         elif self._fade is not None:#is Fade:# is Fade:
             self._base_value = self._fade.next(clock)

@@ -2663,6 +2663,33 @@ class MASTER():
                     PRESETS.label(nr,txt) 
                     self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
 
+                if "Delay" in  data and type(data["Delay"]) is str:
+                    txt = data["Delay"]
+                    try:
+                        txt = float(txt) 
+                        if "DELAY" in cfg:
+                            cfg["DELAY"] = round(txt,2)
+                    except e as Exception:
+                        print("DELAY Exception",e)
+
+                if "in-Fade" in  data and type(data["in-Fade"]) is str:
+                    txt = data["in-Fade"]
+                    try:
+                        txt = float(txt) 
+                        if "FADE" in cfg:
+                            cfg["FADE"] = round(txt,2)
+                    except e as Exception:
+                        print("in-Fade Exception",e)
+
+                if "out-Fade" in  data and type(data["out-Fade"]) is str:
+                    txt = data["out-Fade"]
+                    try:
+                        txt = float(txt) 
+                        #if "OUT-FADE" in cfg:
+                        cfg["OUT-FADE"] = round(txt,2)
+                    except e as Exception:
+                        print("out-Fade Exception",e)
+
             modes.val("CFG-BTN",0)
             master._refresh_exec(nr=nr)
         dialog._cb = _cb

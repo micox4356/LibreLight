@@ -137,6 +137,7 @@ class Dialog():
         bg = "#e0e"
         bg = "#cd5"
         bg = "lightgrey"
+        bg = "#bbb"
         self.tk["bg"] = bg
         #self.tk.overrideredirect(1)
         #self.tk.attributes('-toolwindow', True)
@@ -242,72 +243,96 @@ class Dialog():
         # ----------------------------------- frame left
 
         self.f = tk.Frame(self.fl) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.f.pack(side="top")
+        self.f.pack(side="top",expand=1,fill="y")
 
-        self.el = tk.Label(self.f,text=str("NR:"),anchor="w",width=8)
-        self.el["bg"] = bg
+        self.el = tk.Label(self.f,text=str("EXEC:  "),anchor="e",width=9)
+        self.el["bg"] = "#aaa"
         self.el.pack(side="left",expand=1,fill="y")
-        self.el = tk.Label(self.f,text=str(prompt),anchor="w",width=12)
-        self.el["bg"] = bg
+        self.el = tk.Label(self.f,text=str(prompt),anchor="e",width=4)
+        self.el["bg"] = "#aaa"
         self.el.pack(side="left",expand=1,fill="y")
+
+        self.el2 = tk.Label(self.f,text="",anchor="w",width=9)
+        self.el2.config(fg="#aaa")
+        self.el2["bg"] = "#aaa"
+        self.el2.pack(side="left")
 
 
         self.f2 = tk.Frame(self.fl) 
         self.f2.pack(side="top",expand=1,fill="y")
-        self.data["Fade"] = tk.StringVar()
-        self.el = tk.Label(self.f2,text="Fade",anchor="w",width=8)
+        self.data["in-Fade"] = tk.StringVar()
+        self.el = tk.Label(self.f2,text="in-Fade",anchor="e",width=8)
         self.el.pack(side="left")
-        self.e = tk.Entry(self.f2,state="disable",textvariable=self.data["Fade"],width=12)
-        print("---",self.data["Fade"].get())
+        self.e = tk.Entry(self.f2,textvariable=self.data["in-Fade"],width=4)
+        print("---",self.data["in-Fade"].get())
         if "cfg" in args and "FADE" in args["cfg"]:
-            self.data["Fade"].set(str(args["cfg"]["FADE"])) 
-        print("---",self.data["Fade"].get())
-        #self.e["bg"] = "#eee"
+            self.data["in-Fade"].set(str(args["cfg"]["FADE"])) 
+        print("---",self.data["in-Fade"].get())
         self.e.config(highlightthickness=2)
         self.e.config(highlightcolor= "red")
-        #self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
         self.e.bind("<Key>",self._event)
         self.e.bind("<Button>",self._event)
         self.e.pack(side="left")
+        self.el2 = tk.Label(self.f2,text="",anchor="w",width=9)
+        self.el2.config(fg="#aaa")
+        self.el2.pack(side="left")
         self.e1 = self.e
+ 
+
         
+        self.f2 = tk.Frame(self.fl) 
+        self.f2.pack(side="top",expand=1)
+        self.data["out-Fade"] = tk.StringVar()
+        self.data["out-Fade"].set("0.0")
+        self.el = tk.Label(self.f2,text="out-Fade",anchor="e",width=8)
+        self.el.pack(side="left")
+        self.e   = tk.Entry(self.f2,textvariable=self.data["out-Fade"],width=4)
+        print("---",self.data["out-Fade"].get())
+        if "cfg" in args and "OUT-FADE" in args["cfg"]:
+            self.data["out-Fade"].set(str(args["cfg"]["OUT-FADE"])) 
+        print("---",self.data["out-Fade"].get())
+        self.e.config(highlightthickness=2)
+        self.e.config(highlightcolor= "red")
+        self.e.bind("<Key>",self._event)
+        self.e.bind("<Button>",self._event)
+        self.e.pack(side="left")
+        self.el2 = tk.Label(self.f2,text="* only FL",anchor="w",width=9)
+        self.el2.config(fg="#aaa")
+        self.el2.pack(side="left")
+        self.e1 = self.e
+
+
+
         self.f2 = tk.Frame(self.fl) 
         self.f2.pack(side="top",expand=1,fill="y")
         self.data["Delay"] = tk.StringVar()
-        self.el = tk.Label(self.f2,text="Delay",anchor="w",width=8)
+        self.el = tk.Label(self.f2,text="Delay",anchor="e",width=8)
         self.el.pack(side="left")
-        self.e = tk.Entry(self.f2,state="disable",textvariable=self.data["Delay"],width=12)
+        self.e = tk.Entry(self.f2,textvariable=self.data["Delay"],width=4)
         if "cfg" in args and "DELAY" in args["cfg"]:
             self.data["Delay"].set(str(args["cfg"]["DELAY"])) 
-        #self.e["bg"] = "#eee"
         self.e.config(highlightthickness=2)
         self.e.config(highlightcolor= "red")
-        #self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
         self.e.bind("<Key>",self._event)
         self.e.bind("<Button>",self._event)
         self.e.pack(side="left")
+        self.el2 = tk.Label(self.f2,text="",anchor="w",width=9)
+        self.el2.config(fg="#aaa")
+        self.el2.pack(side="left")
         self.e2 = self.e
         
         self.f2 = tk.Frame(self.fl) 
         self.f2.pack(side="top",expand=1,fill="y")
-        self.el = tk.Label(self.f2,text="Button",anchor="w",width=8)
+        self.el = tk.Label(self.f2,text="Button",anchor="e",width=8)
         self.el.pack(side="left")
 
         self.e_txt = tk.StringVar()
-        #self.e = tk.Entry(self.f2,textvariable=self.e_txt,width=6)
-        #dialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
         self.e = tk.OptionMenu(self.f2,self.e_txt,"FL", "SEL", "GO","ON") #,width=6)
         self.data["Button"] = self.e_txt
-        self.e["width"] = 9
-        #self.e["bg"] = "#eee"
+        self.e["width"] = 4
         self.e.config(highlightthickness=2)
         self.e.config(highlightcolor= "red")
-        #self.e_txt.set(str(initialvalue)+"<")
         self.e_txt.set(str(""))
-        #self.e.icursor(999)
-        #self.e.selection_range(0, 999)#"end")
 
         ev1 = DialogEvent()
         ev1.e = self.e
@@ -320,6 +345,9 @@ class Dialog():
         if "button" in args and type(args["button"]) is str:
             self.e_txt.set(args["button"]) # default value
         self.e3 = self.e
+        self.el2 = tk.Label(self.f2,text="",anchor="w",width=4)
+        self.el2.config(fg="#aaa")
+        self.el2.pack(side="left")
         del self.e_txt
         del ev1
 
@@ -331,7 +359,7 @@ class Dialog():
         self.f2 = tk.Frame(self.f) 
         self.f2.pack(side="top",expand=1,fill="y")
         self.data["Label"] = tk.StringVar()
-        self.el = tk.Label(self.f2,text="Label",anchor="w",width=8)
+        self.el = tk.Label(self.f2,text="Label",anchor="e",width=8)
         self.el.pack(side="left")
         self.e = tk.Entry(self.f2,textvariable=self.data["Label"],width=12) #,command=ev._event)
         if "label" in args and type(args["label"]) is str:
@@ -357,16 +385,19 @@ class Dialog():
         # ---------------------- frame bottom [ok,cancel]
 
         self.fu = tk.Frame(self.tk,bd=2) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
-        self.fu.pack(side="top")
         self.fu["bg"] = "lightgrey"##eee"
+        self.fu["bg"] = "#bbb"
+        self.fu.pack(side="top")
         # --- Spacer ---- OK,Cancle
         self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
         self.f.pack(side="top")
         self.elx = tk.Label(self.f,text="")
         self.elx["bg"] = bg
+        self.elx["bg"] = "#bbb"
         self.elx.pack(side="left")
 
         self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.f["bg"] = "#bbb"
         self.f.pack(side="top")
 
         self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
@@ -375,6 +406,7 @@ class Dialog():
         self.b.pack(side="left")
 
         self.fxx = tk.Frame(self.f,width=20) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        self.fxx["bg"] = "#bbb"
         self.fxx.pack(side="left")
 
         self.b = tk.Button(self.f,bg="lightgrey", text="Cancel",width=10,command=self.close)
@@ -382,6 +414,7 @@ class Dialog():
         self.b.pack(side="left")
 
         self.f = tk.Frame(self.fu) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
+        #self.f["bg"] = "#bbb"
         self.f.pack(side="top")
         self.elx = tk.Label(self.f,text="")
         self.elx["bg"] = bg

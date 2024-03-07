@@ -2981,13 +2981,22 @@ class MASTER():
             xfade = 0
             if type(val) is not type(None) and val == 0 :
                 value = "off"
+                xfade=0
+                if "OUT-FADE" in cfg:
+                    xfade=cfg["OUT-FADE"]
             if event:
                 if str(event.type) == "ButtonRelease" or event.type == '5' :
                     value = "off"
+                    xfade=0
+                    if "OUT-FADE" in cfg:
+                        xfade=cfg["OUT-FADE"]
+
 
             cprint("preset_go() FLUSH",value,color="red")
-            
+            #print(";",rdata)
+            print(";",cfg)
             fcmd  = FIXTURES.update_raw(rdata,update=0)
+            #print(":",fcmd) # raw dmx
             self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,nr=nr)
                 
         elif not val:

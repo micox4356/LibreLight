@@ -612,7 +612,7 @@ class DMXCH(object):
                 cur_val = self._flash.next()
                 #cur_tar = self._fade.next()
                 cur_tar = self._base_value
-                self._flash = Fade(cur_val,cur_tar,ftime=0.0,clock=clock) 
+                self._flash = Fade(cur_val,cur_tar,ftime=ftime,clock=clock) 
                 self._flash.off = 1
         else:#elif target != self._base_value:
             try:

@@ -2604,7 +2604,8 @@ class MASTER():
 
     def jclient_send(self,data):
         # namespace wraper
-        jclient_send(data)
+        if not modes.val("BLIND"):
+            jclient_send(data)
 
     def button_refresh(self,name,color,color2=None,text="",fg=None):
         cprint("button_refresh",name,color)

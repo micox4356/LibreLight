@@ -4803,7 +4803,8 @@ class Console():
                 jdata = {'VALUE': None, 'args': [], 'FX2': {"TYPE":"alloff"}, 'FADE': 2,'FLASH':1, 'DMX': '1'}
                 j.append(jdata)
 
-            jclient_send(j)
+            if not modes.val("BLIND"):
+                jclient_send(j)
             return 0
 
 def test_1():

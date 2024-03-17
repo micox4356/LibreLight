@@ -299,6 +299,8 @@ def draw_colorpicker(gui,xframe,data):
                 jdata.extend(rb)
                 jdata.extend(rw)
                 jdata.extend(ra)
+                
+                print("# blind ???")
                 master.jclient_send(jdata)
                 master.refresh_fix()
                  

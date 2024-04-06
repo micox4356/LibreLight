@@ -6,6 +6,10 @@ import psutil
 import json    
 import inspect
 
+HOME = os.getenv('HOME')
+show_path = HOME+"/LibreLight/"
+show_path2 = HOME+"/LibreLight/show/"
+
 # python3 movewin.py window-title x y
 # python3 movewin.py COMMA 723 943
 
@@ -136,6 +140,7 @@ def get_store_line():
 
 def load_all_sdl(title="X"):
     fname ="/home/user/gui-sdl.txt"
+    fname = show_path2+ _read_init_txt()[0]+ "/gui-sdl.txt"
     if os.path.isfile(fname):
         f=open(fname,"r")
         lines = f.readlines()
@@ -150,6 +155,7 @@ def startup_all_sdl():
     print()
     print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     fname ="/home/user/gui-sdl.txt"
+    fname = show_path2+ _read_init_txt()[0]+ "/gui-sdl.txt"
     if os.path.isfile(fname):
         f=open(fname,"r")
         xlines = f.readlines()
@@ -175,6 +181,36 @@ def startup_all_sdl():
                     cmd.format("fix.py")
                     os.system(cmd)
 
+def _read_init_txt():#show_path):
+    fname = show_path+"init.txt"
+    show_name = None
+    msg = ""
+
+    if not os.path.isfile( fname ):
+        msg = "_read_init_txt Errror: " +fname +"\n NOT FOUND !"
+        return [None,msg]
+
+    try:
+        f = open(fname,"r")
+        for line in f.readlines():
+            line = line.strip()
+            print("  init.txt:",[line])
+            if line.startswith("#"):
+                continue
+            if not line:
+                continue
+
+            show_name = line
+            show_name = show_name.replace(".","")
+            show_name = show_name.replace("\\","")
+            show_name = show_name.replace("/","")
+    except Exception as e:
+        cprint("show name exception",color="red")
+        msg="read_init_txt Error:{}".format(e)
+    finally:
+        f.close()
+
+    return [show_name,msg]
 #example test use
 #python3 -i -c "import tool.movewin as w;d=w.Control();d.title='SDL-DMX';d.winfo()"
 #w.store_all_sdl()
@@ -183,7 +219,7 @@ def startup_all_sdl():
 def store_all_sdl():
     print()
     print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
-    fname ="/home/user/gui-sdl.txt"
+    fname = show_path2+ _read_init_txt()[0]+ "/gui-sdl.txt"
     in_lines = []
 
     if os.path.isfile(fname):

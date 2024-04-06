@@ -785,11 +785,11 @@ DELAY.val(0.2)
 
 fx_prm_move = {"SIZE":40,"SPEED":8,"OFFSET":100,"BASE":"0","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":100}
 
-fx_prm      = {"SIZE":255,"SPEED":10,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":1,"SHUFFLE":0,"WING":2,"WIDTH":25,"2D-X":1,"2D:MODE":0}
-fx_x_modes    = ["spiral","left","right","up","down","left_right","up_down"]
+fx_prm = {"SIZE":255,"SPEED":10,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":1,"SHUFFLE":0,"WING":2,"WIDTH":25,"2D-X":1,"2D:MODE":0}
+fx_x_modes = ["spiral","left","right","up","down","left_right","up_down"]
 
-fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
-fx_mo       = ["fade","on","rnd","ramp","ramp2","cosinus","sinus","static"]
+fx_modes = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
+fx_mo    = ["fade","on","rnd","ramp","ramp2","cosinus","sinus","static"]
 
 class FX_handler():
     def __init__():
@@ -997,7 +997,7 @@ def process_effect(wing_buffer,fx_name=""):
                     if ":DIM" in fx_name:
                         base=""
                         ffxb=fx_mo[fx_prm["MO"]] 
-                        #ffxb= "cosinus" 
+
                         if attr == "DIM":
                             if fx_prm["SPEED"] < 0:
                                 fx = "off"
@@ -1034,67 +1034,84 @@ def process_effect(wing_buffer,fx_name=""):
                                 fx = "off"
                             else:
                                 fx = "sinus"
-                    elif ":RED" in fx_name:
 
-                        ffxb= fx_mo[fx_prm["MO"]] 
-                        ffx= "off" #fx_mo[fx_prm["MO"]] 
-                        if "RED" in fx_modes[fx_prm["MODE"]]:#
+                    elif ":RED" in fx_name:
+                        fxon  = "on" #"sinus"  #fx_mo[fx_prm["MO"]] 
+                        fxoff = "static" #"off" 
+                        MODE = fx_modes[fx_prm["MODE"]]
+                        
+                        if "RED" in MODE: #fx_modes[fx_prm["MODE"]]:#
                             base="-"
                             if attr == "RED":
-                                fx=ffx
+                                fx = fxon
+                                csize *=-1
                             if attr == "GREEN":
-                                fx = ffxb# "off"
+                                fx = "static"
+                                csize = 0
+                                fx = fxon
+                                #csize *=-1
                             if attr == "BLUE":
-                                fx =  ffxb#"off"
-                        elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in fx_name:
+                                fx = "static"
+                                csize = 0
+                        elif "GREEN" in MODE: #fx_modes[fx_prm["MODE"]]:
                             base="-"
                             if attr == "RED":
-                                fx =  ffxb#"off" 
-                        elif "GREEN" in fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#in fx_name:
+                                fx = "static"
+                                csize = 0
                             if attr == "GREEN":
-                                fx = ffxb# "off"
-                                fx=ffx
+                                fx = fxon
+                                csize *=-1
                             if attr == "BLUE":
-                                fx =  ffxb#"off"
-                        elif "BLUE" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                                fx = "static"
+                                csize = 0
+                        elif "BLUE" in MODE: # fx_modes[fx_prm["MODE"]]:
                             base="-"
                             if attr == "RED":
-                                fx = ffxb# "off" 
+                                fx = "static"
+                                csize = 0
                             if attr == "GREEN":
-                                fx = ffxb# "off"
+                                fx = "static"
+                                csize = 0
                             if attr == "BLUE":
-                                fx = ffxb# "off"
-                                fx=ffx
-                        elif "YELLOW" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                                fx = fxon
+                                csize *=-1
+                        elif "YELLOW" in MODE: # fx_modes[fx_prm["MODE"]]:
                             base="-"
                             if attr == "RED":
-                                fx = ffxb# "off" 
-                                fx=ffx
+                                fx = fxon
+                                csize *=-1
                             if attr == "GREEN":
-                                fx = ffxb# "off"
-                                fx=ffx
+                                fx = fxon
+                                csize *=-1
                             if attr == "BLUE":
-                                fx = "off"
-                        elif "CYAN" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                                fx = "static"
+                                csize = 0
+                        elif "CYAN" in MODE: # fx_modes[fx_prm["MODE"]]:
                             base="-"
                             if attr == "RED":
-                                fx = ffxb# "off" 
+                                fx = fxoff
+                                invert *= -1
+                                csize = 0
+                                fx = fxon
                             if attr == "GREEN":
-                                fx = ffxb# "off"
-                                fx=ffx
+                                fx = fxon
+                                csize=0
                             if attr == "BLUE":
-                                fx = ffxb# "off"
-                                fx=ffx
-                        elif "MAG" in  fx_modes[fx_prm["MODE"]]:#fx_prm["MODE"]:#fx_name:
+                                fx = fxon
+                                csize=0
+                        elif "MAG" in MODE: # fx_modes[fx_prm["MODE"]]:
                             base="-"
                             if attr == "RED":
-                                fx = ffxb# "off" 
-                                fx=ffx
+                                fx = fxon
+                                csize=0
                             if attr == "GREEN":
-                                fx = ffxb# "off"
+                                fx = fxoff
+                                invert *= -1
+                                csize = 0
+                                fx = fxon
                             if attr == "BLUE":
-                                fx = ffxb# "off"
-                                fx=ffx
+                                fx = fxon
+                                csize=0
                         else:
                             cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
 

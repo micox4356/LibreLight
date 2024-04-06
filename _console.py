@@ -199,15 +199,10 @@ class Fade():
         current = (self.__clock - self.__clock_curr) / self.__ftime
         length = self.__start - self.__target
         self.__last = self.__start+ length*current 
-        #if self.__last < 0:
-        #    self.__last = 0
-        #if self.__last > 255:
-        #    self.__last = 255
         self.run = 1
         return self.__last
 
     def ctl(self,cmd="",value=None): # if x-fade cmd="%" value=50
-        # start,stop,fwd,bwd,revers
         pass
 
 class _MASTER():
@@ -248,8 +243,6 @@ exe_master.append({"SIZE":100,"SPEED":100,"id":12,"link-ids":[2]})
 
 class MASTER_FX():
     def __init__(self):
-        #cprint(self,"MASTER_FX INIT !",color="green")
-
         self.__data = []
         self.__ok = []
         self.i=0
@@ -257,12 +250,11 @@ class MASTER_FX():
         self.offsets = []
         self.count = -1
         self.init = 10
+
     def add(self,fx):
         if fx not in self.__data:
-            #cprint(self,"ADD TO MASTER !",color="green")
             self.__data.append(fx)
             info = fx._get_info()
-            #cprint(self,"ADD" ,info,color="green")
             offset = 0
             if "offset" in info:
                 offset = info["offset"]
@@ -271,19 +263,13 @@ class MASTER_FX():
             if "xtype" in info:
                 if info["xtype"] == "rnd":
                     self._shuffle()
-                    #self.init += 1
             
     def _shuffle(self):
-        #cprint(self,"REORDER RANDOM !",color="green")
-        #self.init = 0
-
-        #cprint(self.old_offsets)
         random.seed(1000)
         random.shuffle(self.old_offsets)
-        #cprint(self.old_offsets)
+
     def _init(self):
         self._shuffle()
-        #self.offsets = []
         for i,v in enumerate(self.old_offsets):
             offset = self.old_offsets[i]
             self.offsets[i] =  offset
@@ -293,13 +279,8 @@ class MASTER_FX():
         offset = self.old_offsets[i]
         self.offsets[i] =  offset
         return offset
-        #for i,v in enumerate(self.old_offsets):
-        #    offset = self.old_offsets[i]
-        #    self.offsets[i] =  offset
-
 
     def get(self,child,count):
-
         offset = 0
 
         if child not in self.__data:
@@ -312,7 +293,6 @@ class MASTER_FX():
         if (self.count != count and idx == 0 ) or  self.init == 0:
             self.init = 1
             self._shuffle()
-            #print( count)
             self.count=count
             
         idx = self.__data.index(child) 
@@ -381,7 +361,6 @@ class FX():
                     self.next(), self.__xtype, self.__size, self.__speed, self.__angel
                     , self.__base, self.__clock_curr, self.run, self._exec_id,ABS )
 
-    #def _calc_fx(self):
     def _calc_fx(self,v,t,size,base):
         base = 0
         if self.__base == "-": # sub
@@ -394,6 +373,7 @@ class FX():
                 v = v-1
         else:
             v = (t%1-0.5)
+        return v
 
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
@@ -461,43 +441,31 @@ class FX():
                  self.__master.next(self)#,count)
             self.__offset = self.__master.get(self,count)
                 
-            self._calc_fx(v,t,size,base)
+            v = self._calc_fx(v,t,size,base)
 
         elif self.__xtype == "on":
             if self.__angel > 90 and self.__angel <=270:
                 v=1
             else:
                 v=0
-            self._calc_fx(v,t,size,base)
+            v = self._calc_fx(v,t,size,base)
 
-        elif self.__xtype == "ramp" or self.__xtype == "ramp":
+        elif self.__xtype == "ramp" or self.__xtype == "bump":
             v = (t%1) 
-            base = 0
-            if self.__base == "-": # sub
-                if self.__invert:
-                    v = 1-v
-                    size *=-1
-                v *=-1
-            elif self.__base == "+": # sub
-                if self.__invert:
-                    v = v-1
-            else:
-                v = (t%1-0.5)
-            self._calc_fx(v,t,size,base)
-
-
-        elif self.__xtype == "static":
-            self.abs = 1
-            base = size #100
-            v=0
-            size=0
+            v = self._calc_fx(v,t,size,base)
             
         elif self.__xtype == "ramp2" or self.__xtype == "bump2":
             v = (t%1) 
             v = 1-v  
             if v == 1:
                 v=0
-            self._calc_fx(v,t,size,base)
+            v = self._calc_fx(v,t,size,base)
+
+        elif self.__xtype == "static":
+            self.abs = 1
+            base = size #100
+            v=0
+            size=0
 
         elif self.__xtype == "fade":
             x = t * 2 
@@ -535,6 +503,7 @@ class DMXCH(object):
 
         self._fix_id = 0 
         self._v_master_id=0
+        self._last_val_raw=0
 
         self._flash    = None
         self._flash_fx = None
@@ -557,7 +526,10 @@ class DMXCH(object):
             fx_value = self._fx_value
             if fx_value != 0:
                 cprint("???????______ FX OFF AS FADE",fx_value,0,255)
-                self._fx[1] = Fade(fx_value,0,ftime=0.5,clock=clock) 
+                if self._fx[1].abs:
+                    self._fx[1] = Fade(self._last_val_raw,0,ftime=0.5,clock=clock) 
+                else:
+                    self._fx[1] = Fade(fx_value,0,ftime=0.5,clock=clock) 
             else:
                 self._fx[1] = None
                 self._fx_value = 0 
@@ -669,6 +641,8 @@ class DMXCH(object):
             self._last_val = fx_value
         else:
             self._last_val = value + fx_value
+        
+        self._last_val_raw = self._last_val 
 
 
         if self._v_master_id in V_MASTER:

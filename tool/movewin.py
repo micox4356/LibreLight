@@ -4,6 +4,7 @@ import sys
 import time
 import psutil
 import json    
+import inspect
 
 # python3 movewin.py window-title x y
 # python3 movewin.py COMMA 723 943
@@ -116,10 +117,11 @@ def winfo2(name="WinfoWinName"):
     return _data
 
 def get_store_line():
+    print()
+    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     lines = winfo2(name="SDL-")
     out_lines=[]
     for line in lines:
-        #print(" ##",line)
         t=line[2].split()
         for k in t:
             k = k.replace(" ", "_")
@@ -128,58 +130,121 @@ def get_store_line():
                 p=line[-1]
 
                 # info: b x h + x + y
-                #out = "{} {} {} {} {} {}\n".format(1,k, s[0],s[1],p[0],p[1] )
                 out = [1,k, s[0],s[1],p[0],p[1] ]
-                #print("  --",k,out)
                 out_lines.append(out)
     return out_lines
 
+def load_all_sdl(title="X"):
+    fname ="/home/user/gui-sdl.txt"
+    if os.path.isfile(fname):
+        f=open(fname,"r")
+        lines = f.readlines()
+        f.close()
 
-def store_all_sdl():
+        print("  read",fname)
+        for line in lines:
+            if title in line:
+                return json.loads(line)
+
+def startup_all_sdl():
+    print()
+    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     fname ="/home/user/gui-sdl.txt"
     if os.path.isfile(fname):
         f=open(fname,"r")
         xlines = f.readlines()
         f.close()
 
-        in_lines = []
+        print("  read",fname)
+        for line in xlines:
+            line = line.strip()
+            if line.startswith("#-- history"):
+                break
+            elif line.startswith("#"):
+                continue
+            else:
+                line = json.loads(line)
+                cmd = "python3 /opt/LibreLight/Xdesk/tksdl/{}"
+                if line[1] == "SDL-MIDI":
+                    cmd.format("midi.py")
+                    os.system(cmd)
+                elif line[1] == "SDL-DMX":
+                    cmd.format("dmx.py")
+                    os.system(cmd)
+                elif line[1] == "SDL-FIX-LIST":
+                    cmd.format("fix.py")
+                    os.system(cmd)
+
+#example test use
+#python3 -i -c "import tool.movewin as w;d=w.Control();d.title='SDL-DMX';d.winfo()"
+#w.store_all_sdl()
+#d.get_winfo2()
+#d.move(100,100)
+def store_all_sdl():
+    print()
+    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
+    fname ="/home/user/gui-sdl.txt"
+    in_lines = []
+
+    if os.path.isfile(fname):
+        f=open(fname,"r")
+        xlines = f.readlines()
+        f.close()
+
         print("  read",fname)
         for line in xlines:
             line = line.strip()
             if not line.startswith("#") and line:
-                #print(" ++",[line])
                 in_lines.append(line)
-        in_lines.append("[0,0,00,0,0,0]")
+        #in_lines.append('[0,"xx aa",0,0,0,0]')
+        for line in in_lines:
+            print(" R:",[line])
 
-    print("Öö"*20)
     lines = get_store_line()
     ap_line = []
+    pop = []
     for line in lines:
         ok = 0
         iline = ""
-        for iline in in_lines:
+        for j,iline in enumerate(in_lines):
             if line[1] in iline:
-                ok = 1 
-        if not ok and iline:
-           ap_line.append(iline)
+                if j not in pop:
+                    pop.append(j)
+                print(" del ",j,line)
 
+    for i in pop[::-1]:
+        try:
+            in_lines.pop(i)
+        except Exception as e:
+            print("ERR:",e) 
+    temp = {}
+    for i in in_lines:
+        k = json.loads(i)[1]
+        if k not in temp:
+            temp[k] = i
 
     f=open(fname,"w")
     f.write("#"+json.dumps(["on","title","w","h","x","y"])+"\n")
     for line in lines:
         f.write(json.dumps(line)+"\n")
 
-    for line in ap_line:
+    f.write("\n")
+    f.write("#-- history \n")
+    for k,line in temp.items(): #in_lines:
         print("+++>",line)
         f.write(line+"\n")
     f.write("\n")
     f.close()
 
 def movewin(_id="0xWinId",x=None,y=None):
+    print()
+    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     cmd="xdotool windowmove {} {} {}".format(_id,x,y)
     return cmd
 
 def sizewin(_id="0xWinId",x=None,y=None):
+    print()
+    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     cmd="xdotool windowsize {} {} {}".format(_id,x,y)
     return cmd
 
@@ -236,7 +301,6 @@ def process_kill(path):
         p.terminate()
         p.wait()
 
-import inspect
 def get_lineno():
   callerframerecord = inspect.stack()[1]    # 0 represents this line
                                             # 1 represents line at caller

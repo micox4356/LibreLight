@@ -22,13 +22,24 @@ import tool.movewin as movewin
 CAPTION = 'LibreLight SDL-DMX '
 movewin.check_is_started(CAPTION,_file_path)
 
+win_title =CAPTION.strip().split()[-1]
+store = movewin.load_all_sdl(win_title)
+print(store)
+W=850
+H=460
+POS=None
+if store:
+    W = store[-4]
+    H = store[-3]
+    POS=[store[-2],store[-1]]
+#exit()
 
 # ===== GUI =========
 import pygame
 import pygame.gfxdraw
 import pygame.font
 pg = pygame
-main_size=(850,460)
+main_size=(W,H)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
 
 pg = pygame
@@ -38,7 +49,6 @@ clock = pygame.time.Clock()
 icon = pygame.image.load('icon/scribble.png')
 pygame.display.set_icon(icon)
 
-import tool.movewin as movewin
 import tool.sdl_elm as sdl_elm
 
 
@@ -159,6 +169,13 @@ delta = start
 #r+=bx.get_rect()[3]
 
 
+win_con = movewin.Control()
+win_con.title = win_title
+win_con.winfo()
+if POS:
+    win_con.move(POS[0],POS[1])
+print(POS,win_con.title)
+#exit()
 
 table={}
 btn1_press = [] #["10.10.10.13:0"]
@@ -350,6 +367,7 @@ while 1:
 
         print("event",event)
         if event.type == pygame.QUIT:
+            movewin.store_all_sdl()
             pygame.quit()
             sys.exit(0)
         elif event.type == pygame.VIDEORESIZE:

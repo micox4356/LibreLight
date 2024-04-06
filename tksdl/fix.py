@@ -13,12 +13,25 @@ sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 print(sys.path)
 print()
 
-CAPTION = 'LibreLight FIXTURE-LIST '
+CAPTION = 'LibreLight SDL-FIX-LIST '
 
 
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 import tool.movewin as movewin
 import tool.git as git
+
+
+win_title =CAPTION.strip().split()[-1]
+store = movewin.load_all_sdl(win_title)
+print(store)
+W=850
+H=460
+POS=None
+if store:
+    W = store[-4]
+    H = store[-3]
+    POS=[store[-2],store[-1]]
+#exit()
 
 #CAPTION += ':{}'.format(random.randint(100,999))
 CAPTION += git.get_all()
@@ -42,7 +55,7 @@ import pygame
 import pygame.gfxdraw
 import pygame.font
 pg = pygame
-main_size=(850,460)
+main_size=(W,H)#850,460)
 window = pygame.display.set_mode(main_size,pg.RESIZABLE,32)
 
 pg = pygame
@@ -292,6 +305,15 @@ def get_fix_type(fix_row):
         return "DIM"
 
     return "UNKNOWN"
+
+
+win_con = movewin.Control()
+win_con.title = win_title
+win_con.winfo()
+if POS:
+    win_con.move(POS[0],POS[1])
+print(POS,win_con.title)
+
 
 table={}
 table_grid={}
@@ -663,6 +685,7 @@ while 1:
                     cmd_client.send(msg)
 
             if event.type == pygame.QUIT:
+                movewin.store_all_sdl()
                 pygame.quit()
                 sys.exit(0)
             elif event.type == pygame.VIDEORESIZE:

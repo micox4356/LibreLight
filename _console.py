@@ -277,6 +277,7 @@ class MASTER_FX():
         #self.init = 0
 
         #cprint(self.old_offsets)
+        random.seed(1000)
         random.shuffle(self.old_offsets)
         #cprint(self.old_offsets)
     def _init(self):

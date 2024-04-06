@@ -908,6 +908,7 @@ def process_wings(xfixtures):
         _wing_buffer = []
         for wing in wing_buffer:
             wing = wing[:]
+            random.seed(9300) # sync random
             random.shuffle(wing)
             _wing_buffer.append(wing)
         wing_buffer = _wing_buffer

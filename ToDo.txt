@@ -1,0 +1,13 @@
+
+- Midi Timecode
+- Artnet Timecode
+- SWAP Button
+- BTN FL FADE-IN
+
+
+difficult
+- rewrite core in ZIG (realtime)
+
+- LTC / SMPTE Timecode
+- Sound input trigger
+- TOGGLE Button 

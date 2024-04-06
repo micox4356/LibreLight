@@ -523,7 +523,7 @@ def _draw_fx(frame,c,r,gui,mode="FX"):
             b["bg"] = "grey"
         elif comm == "FX OFF":
             b["bg"] = "magenta"
-        elif comm[:3] == "FX:":
+        elif comm[:3] == "FX:" or comm[:3] == "2D:":
             b["text"] = comm
             b["bg"] = "#ffbf00"
         elif comm[:3] == "MO:":

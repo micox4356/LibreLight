@@ -286,10 +286,13 @@ class Dialog():
         self.e7.bind("<Key>",self._event)
         self.e7.bind("<Button>",self._event)
         self.e7.pack(side="left")
-
-        self.el2 = tk.Label(self.f2,text="",anchor="w",width=9)
+        self.el2 = tk.Label(self.f2,text="* only GO",anchor="w",width=9)
         self.el2.config(fg="#aaa")
         self.el2.pack(side="left")
+
+        #self.el2 = tk.Label(self.f2,text="",anchor="w",width=9)
+        #self.el2.config(fg="#aaa")
+        #self.el2.pack(side="left")
         self.e1 = self.e
  
 

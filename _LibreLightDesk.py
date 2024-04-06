@@ -785,11 +785,11 @@ DELAY.val(0.2)
 
 fx_prm_move = {"SIZE":40,"SPEED":8,"OFFSET":100,"BASE":"0","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":0,"WING":2,"WIDTH":100}
 
-fx_prm      = {"SIZE":255,"SPEED":10,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":1,"SHUFFLE":0,"WING":2,"WIDTH":25,"FX-X":1,"FX:MODE":0}
+fx_prm      = {"SIZE":255,"SPEED":10,"OFFSET":100,"BASE":"-","START":0,"MODE":0,"MO":0,"DIR":1,"INVERT":1,"SHUFFLE":0,"WING":2,"WIDTH":25,"2D-X":1,"2D:MODE":0}
 fx_x_modes    = ["spiral","left","right","up","down","left_right","up_down"]
 
 fx_modes    = ["RED","GREEN","BLUE","MAG","YELLOW","CYAN"]
-fx_mo       = ["fade","on","rnd","ramp","ramp2","cosinus","sinus"]
+fx_mo       = ["fade","on","rnd","ramp","ramp2","cosinus","sinus","static"]
 
 class FX_handler():
     def __init__():
@@ -973,6 +973,8 @@ def process_effect(wing_buffer,fx_name=""):
                     fx = "fade"
                 elif "RND" in fx_name:
                     fx = "rnd"
+                elif "STATIC" in fx_name:
+                    fx = "static"
                 elif "ON" in fx_name:
                     fx = "on"
                 elif "RAMP2" in fx_name:
@@ -1152,8 +1154,8 @@ def process_effect(wing_buffer,fx_name=""):
 
 def process_matrix(xfixtures):
     fix_count = len(xfixtures)
-    fx_x = fx_prm["FX-X"]
-    fx_mod = fx_x_modes[fx_prm["FX:MODE"]]
+    fx_x = fx_prm["2D-X"]
+    fx_mod = fx_x_modes[fx_prm["2D:MODE"]]
     cprint("----",fx_x,fx_mod)
     if fx_x > 1 and fix_count > fx_x:
         try: 
@@ -1206,41 +1208,43 @@ class Xevent_fx():
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
         fx2 = {}
-        if event.num == 4:
-            cprint("FX:COLOR CHANGE",fx_prm,color="red")
-            txt = "FX:RED" 
-            fx_prm["MODE"] += 1
-            if fx_prm["MODE"] >= len(fx_modes):
-                fx_prm["MODE"]=0
-            txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
+        if self.attr == "FX:RED":
+            if event.num == 4:
+                cprint("FX:COLOR CHANGE",fx_prm,color="red")
+                txt = "FX:RED" 
+                fx_prm["MODE"] += 1
+                if fx_prm["MODE"] >= len(fx_modes):
+                    fx_prm["MODE"]=0
+                txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
 
-            master.fx.elem["FX:RED"]["text"] = txt
-        elif event.num == 5:
-            cprint("FX:COLOR CHANGE",fx_prm,color="red")
-            txt = "FX:RED" 
-            fx_prm["MODE"] -= 1
-            if fx_prm["MODE"] < 0:
-                fx_prm["MODE"]= len(fx_modes)-1
-            txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
-            master.fx.elem["FX:RED"]["text"] = txt
+                master.fx.elem["FX:RED"]["text"] = txt
+            elif event.num == 5:
+                cprint("FX:COLOR CHANGE",fx_prm,color="red")
+                txt = "FX:RED" 
+                fx_prm["MODE"] -= 1
+                if fx_prm["MODE"] < 0:
+                    fx_prm["MODE"]= len(fx_modes)-1
+                txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
+                master.fx.elem["FX:RED"]["text"] = txt
 
-        if event.num == 4:
-            cprint("FX-X: CHANGE",fx_prm,color="red")
-            txt = "FX-X:" 
-            fx_prm["FX:MODE"] += 1
-            if fx_prm["FX:MODE"] >= len(fx_x_modes):
-                fx_prm["FX:MODE"]=0
-            txt = "FX:MODE\n"+fx_x_modes[fx_prm["FX:MODE"]]
+        if self.attr.startswith("2D"):
+            if event.num == 4:
+                cprint("2D-X: CHANGE",fx_prm,color="red")
+                txt = "2D-X:" 
+                fx_prm["2D:MODE"] += 1
+                if fx_prm["2D:MODE"] >= len(fx_x_modes):
+                    fx_prm["2D:MODE"]=0
+                txt = "2D:MODE\n"+fx_x_modes[fx_prm["2D:MODE"]]
 
-            master.fx.elem["FX:MODE"]["text"] = txt
-        elif event.num == 5:
-            cprint("FX-X: CHANGE",fx_prm,color="red")
-            txt = "FX-X:" 
-            fx_prm["FX:MODE"] -= 1
-            if fx_prm["FX:MODE"] < 0:
-                fx_prm["FX:MODE"]= len(fx_x_modes)-1
-            txt = "FX:MODE\n"+fx_x_modes[fx_prm["FX:MODE"]]
-            master.fx.elem["FX:MODE"]["text"] = txt
+                master.fx.elem["2D:MODE"]["text"] = txt
+            elif event.num == 5:
+                cprint("2D-X: CHANGE",fx_prm,color="red")
+                txt = "2D-X:" 
+                fx_prm["2D:MODE"] -= 1
+                if fx_prm["2D:MODE"] < 0:
+                    fx_prm["2D:MODE"]= len(fx_x_modes)-1
+                txt = "2D:MODE\n"+fx_x_modes[fx_prm["2D:MODE"]]
+                master.fx.elem["2D:MODE"]["text"] = txt
 
         elif event.num == 1:
             xfixtures = []
@@ -1441,9 +1445,9 @@ class Xevent_fx():
                     prm[k] =5
                 ct.elem[self.attr]["text"] = k+":\n{}".format(prm[k])
                 cprint(prm)
-            elif self.attr.startswith("FX-X:"):#SIN":
+            elif self.attr.startswith("2D-X:"):#SIN":
                 #global prm
-                k = "FX-X"
+                k = "2D-X"
                 if event.num == 1:
                     prm[k] = 1
                 elif event.num == 3:
@@ -1458,7 +1462,7 @@ class Xevent_fx():
                     prm[k] =1
                     
                 txt = prm[k] 
-                ct.elem[self.attr]["text"] = "FX-X:\n{}".format(prm[k])
+                ct.elem[self.attr]["text"] = "2D-X:\n{}".format(prm[k])
                 cprint(prm)
             elif self.attr.startswith("WING:"):#SIN":
                 #global prm
@@ -1516,6 +1520,8 @@ class Xevent_fx():
                 elif event.num == 5:
                     prm[k] = "0"
                 ct.elem[self.attr]["text"] = "BASE:\n{}".format(prm[k])
+            elif self.attr.startswith("2D:"):#SIN":
+                self.fx(event)
             elif self.attr.startswith("FX:"):#SIN":
                 self.fx(event)
 
@@ -2581,10 +2587,10 @@ class MASTER():
         self.fx = Elem_Container()
         self.fx.commands =[
                 "FX:DIM","FX:RED", "WIDTH:\n25","WING:\n2","DIR:\n1","INVERT:\n1","\n","SHUFFLE:\n0"
-                ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","BASE:\n-","FX-X:\n-","FX:MODE"
+                ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","BASE:\n-","2D-X:\n-","2D:MODE"
                 ]
         self.fx_generic = Elem_Container()
-        self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON"] 
+        self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON","FX:STATIC"] 
 
         self.commands = Elem_Container()
         self.commands.commands =["\n","ESC","CFG-BTN","LABEL","-","DEL","-","\n"
@@ -5330,7 +5336,7 @@ if __run_main:
         window_manager.top(name)
 
     name="FX"
-    args = {"title":name,"master":0,"width":415,"height":297,"left":L1+10+W1,"top":TOP+302,"resize":0}
+    args = {"title":name,"master":0,"width":415,"height":297+30,"left":L1+10+W1,"top":TOP+302,"resize":1}
     geo = split_window_position(pos_list,name)
     if geo:
         args.update(geo)

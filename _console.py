@@ -166,6 +166,7 @@ class Fade():
         self.__start = start
         self.__last = start
         self.__target = target
+        self.abs = 0
         self.run = 1
         self.end = 0
         self.off = 0
@@ -344,13 +345,13 @@ class FX():
         self.old_v = -1
         self.run = 1
         self.count = -1
+        self.abs = 0 # ABSOLUT
         self.__angel = self.__clock_curr*360%360
         if master is None:
             cprint(master, "MASTER_FX ERR",master,color="red")
             self.__master = MASTER_FX()
             self.__master.add(self)
         else:
-            #cprint( "MASTER_FX OK",master,color="red")
             self.__master = master
             self.__master.add(self)
         if self.__xtype == "rnd":
@@ -360,7 +361,6 @@ class FX():
         self._exec_id = None
 
         self.next()
-        #print("init FX",self)
 
     def exec_id(self,_id=None):
         if type(_id) is not type(None):
@@ -368,53 +368,58 @@ class FX():
         return self._exec_id
 
     def _get_info(self):
-        #print("self.__offset",self.__offset)
         return {"offset":self.__offset,"xtype":self.__xtype}
-        #return self.next(),self.__xtype, self.__size,self.__speed,self.__angel, self.__base,self.__clock_curr,self.run 
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} base:{} Clock:{:0.2f} run:{} EXEC:{}>".format( 
+        ABS = "INC"
+        if self.abs:
+            ABS = "ABS"
+        return "<FX Next:{:0.2f} xtype:{} Size:{:0.2f} Speed:{:0.2f} ang:{:0.2f} base:{} Clock:{:0.2f} run:{} EXEC:{} :{}>".format( 
                     self.next(), self.__xtype, self.__size, self.__speed, self.__angel
-                    , self.__base, self.__clock_curr, self.run, self._exec_id )
+                    , self.__base, self.__clock_curr, self.run, self._exec_id,ABS )
+
+    #def _calc_fx(self):
+    def _calc_fx(self,v,t,size,base):
+        base = 0
+        if self.__base == "-": # sub
+            if self.__invert:
+                v = 1-v
+                size *=-1
+            v *=-1
+        elif self.__base == "+": # sub
+            if self.__invert:
+                v = v-1
+        else:
+            v = (t%1-0.5)
 
     def next(self,clock=None):
         if type(clock) is float or type(clock) is int:#not None:
             self.__clock_curr = clock
         
         d  = (self.__clock_curr - self.__clock_old) 
-
-        #print()
-        #print("A",d)
         
         m1 = ( speed_master.val(self.__master_id)) # global speed-master
-        #print("B {:0.4}".format(m1))
-
         m2 = ( exec_speed_master.val(self._exec_id)) # exec start by 0
-        #print("C {:0.4}".format(m2))
 
         shift  = 0
         m = (m1 * m2)  -1
         shift += d * m
-        #print("D",shift)
 
         self.__clock_delta += shift
-
-        #print(self.__clock_delta )
         self.__clock_old = self.__clock_curr
-
         
         t = self.__clock_curr
         t += self.__clock_delta
         t *= self.__speed / 60 
+
         offset2 = self.__offset 
         offset2 *= exec_offset_master.val(self._exec_id) 
-        #t += self.__offset / 100 #255 #1024 #255
+
         t += offset2 / 100 
         t += self.__start  / 1024 #255
-        #t = t*speed_master.val(self.__master_id)
 
         tw = t%1
         count = t//1
@@ -426,6 +431,7 @@ class FX():
         t = t%1
         rad = math.radians(self.__angel)
 
+        self.abs = 0
         v=0
         out = 0
         base = 0
@@ -446,57 +452,30 @@ class FX():
 
             v/=2
         elif self.__xtype == "rnd":
-            #base = 0
             if self.__angel > 90 and self.__angel <=270:
                 v=1
             else:
                 v=0
-            #if count != self.count and v: # % 2 == 0:#!= self.count:
-            #    #self.__offset = random.randint(0,1024)# /1024
-            #    self.__master._shuffle()
             
             if count != self.count and v == 0: # and v: # % 2 == 0:#!= self.count:
                  self.__master.next(self)#,count)
-            #self.__master.next(self)#,count)
             self.__offset = self.__master.get(self,count)
                 
-            base = 0
-            if self.__base == "-": # sub
-                if self.__invert:
-                    v = 1-v
-                    #base = -size
-                    size *=-1
-                v *=-1
-            elif self.__base == "+": # sub
-                if self.__invert:
-                    v = v-1
-            else:
-                v = (t%1-0.5)
+            self._calc_fx(v,t,size,base)
+
         elif self.__xtype == "on":
-            #base = 0
             if self.__angel > 90 and self.__angel <=270:
                 v=1
             else:
                 v=0
-            base = 0
-            if self.__base == "-": # sub
-                if self.__invert:
-                    v = 1-v
-                    #base = -size
-                    size *=-1
-                v *=-1
-            elif self.__base == "+": # sub
-                if self.__invert:
-                    v = v-1
-            else:
-                v = (t%1-0.5)
+            self._calc_fx(v,t,size,base)
+
         elif self.__xtype == "ramp" or self.__xtype == "ramp":
             v = (t%1) 
             base = 0
             if self.__base == "-": # sub
                 if self.__invert:
                     v = 1-v
-                    #base = -size
                     size *=-1
                 v *=-1
             elif self.__base == "+": # sub
@@ -504,25 +483,21 @@ class FX():
                     v = v-1
             else:
                 v = (t%1-0.5)
+            self._calc_fx(v,t,size,base)
 
 
+        elif self.__xtype == "static":
+            self.abs = 1
+            base = size #100
+            v=0
+            size=0
+            
         elif self.__xtype == "ramp2" or self.__xtype == "bump2":
             v = (t%1) 
             v = 1-v  
             if v == 1:
                 v=0
-            base = 0
-            if self.__base == "-": # sub
-                if self.__invert:
-                    v = 1-v
-                    #base = -size
-                    size *=-1
-                v *=-1
-            elif self.__base == "+": # sub
-                if self.__invert:
-                    v = v-1
-            else:
-                v = (t%1-0.5)
+            self._calc_fx(v,t,size,base)
 
         elif self.__xtype == "fade":
             x = t * 2 
@@ -530,10 +505,8 @@ class FX():
                 x = 2-x 
             x -= 0.5
             v = x*2
-            #base /= 2
-            #base *=2 
             if self.__base == "+": # add
-                pass#base /= 2
+                pass
             else:
                 v *= -1
 
@@ -542,15 +515,12 @@ class FX():
         if self.__invert:
             v *=-1
     
-        #if self.__fade_in_master < 255:
-        #    self.__fade_in_master += v*size
         out = v *size +base 
         self.out = out
         self.count = count
 
         out = out * size_master.val(self.__master_id)  # master 
         out = out * exec_size_master.val(self._exec_id)  # master 
-        #* (self.__fade_in_master /255.)
         return out 
 
 class DMXCH(object):
@@ -571,23 +541,17 @@ class DMXCH(object):
         self._flash_fx_value = 0
         self._last_val = None
         self._exec_ids = [None,None,None,None] # go, go-fx, flash, flash-fx
-        #self.next(clock)
-        #print("init",self)
     
     def fade(self,target,ftime=0,clock=0,delay=0):
         if target != self._base_value:
             try:
                 target = float(target)
                 self._fade = Fade(self._base_value,target,ftime=ftime,clock=clock,delay=delay)
-                #self._fade.next()
-                #self._fade.next()
             except Exception as e:
                 print( "Except:fade",e,target,ftime,clock)
         self.next(clock)
-        #print("init fade",self)
 
     def fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="", clock=0,master=None):
-        #print("DMXCH.fx",[self,xtype,size,speed,start,offset,base, clock])
         self._fx[0] = self._fx[1]
         if str(xtype).lower() == "off":
             fx_value = self._fx_value
@@ -604,18 +568,15 @@ class DMXCH(object):
             self._fx[1].exec_id(self._exec_ids[1])
 
         self.next(clock)
-        #print("init fx",self)
 
     def flash(self,target,ftime=0,clock=0,delay=0):
         if str(target).lower() == "off":
-            #self._flash = None
             if self._flash:
                 cur_val = self._flash.next()
-                #cur_tar = self._fade.next()
                 cur_tar = self._base_value
                 self._flash = Fade(cur_val,cur_tar,ftime=ftime,clock=clock) 
                 self._flash.off = 1
-        else:#elif target != self._base_value:
+        else:
             try:
                 target = float(target)
                 self._flash = Fade(self._last_val,target,ftime=ftime,clock=clock,delay=delay)
@@ -623,7 +584,6 @@ class DMXCH(object):
             except Exception as e:
                 print( "Except:flash",target,ftime,clock,__name__,e,)
         self.next(clock)
-        #print("init flush",self)
 
     def flash_fx(self,xtype="sinus",size=40,speed=40,invert=0,width=100,start=0,offset=0,base="",clock=0,master=None):
         if str(xtype).lower() == "off":
@@ -672,25 +632,24 @@ class DMXCH(object):
             cprint("Exception DMXCH.next()" ,e)
         out = self._last_val
         return out
+
     def _next(self,clock=0):
         value = self._base_value
-        #self._last_val = value
-        #return value
-        #if self._dmx == 1024:
-        #    print(self)
         
         if self._last_val is None:
             self._last_val = value
         fx_value = self._fx_value
+        fx_abs = 0
 
         if self._flash is not None:
             value = self._flash.next(clock)
-            #flicker bug ?!
-            value = self._flash.next(clock)
+            value = self._flash.next(clock) #flicker bug ?!
+
             if self._flash.end == 1 and self._flash.off == 1:
                 self._flash = None
             fx_value = 0
-        elif self._fade is not None:#is Fade:# is Fade:
+
+        elif self._fade is not None: # is Fade: # is Fade:
             self._base_value = self._fade.next(clock)
             self._base_value = self._fade.next(clock) #flicker bug ?!
             value = self._base_value
@@ -698,22 +657,25 @@ class DMXCH(object):
         
         if self._flash_fx is not None:# is FX:
             fx_value = self._flash_fx.next(clock)
+            fx_abs = self._flash_fx.abs
         else:
             self._fx_value = 0
             if self._fx[-1] is not None and self._flash is None:# is FX:
                 self._fx_value += self._fx[-1].next(clock)
+                fx_abs = self._fx[-1].abs
             fx_value = self._fx_value
 
-        self._last_val = value + fx_value
-        #self._last_val *= v_master.val(self._fix_id)
+        if fx_abs == 1:
+            self._last_val = fx_value
+        else:
+            self._last_val = value + fx_value
+
 
         if self._v_master_id in V_MASTER:
             vm = V_MASTER[self._v_master_id].next(clock)
-            #print("V_MASTER is ", V_MASTER[self._v_master_id])
             vm = vm/256
-            self._last_val *= vm # v_master.val(self._v_master_id)
+            self._last_val *= vm 
 
-        #out = self._last_val * htp_master.master_by_dmx(self._dmx)
         out = self._last_val
         return out
 

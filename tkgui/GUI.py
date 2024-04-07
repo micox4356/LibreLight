@@ -1,8 +1,17 @@
 
+import _thread as thread
+import time
+
 import tkinter as tk
-from __main__ import *
-import __main__ as _M
+
+import __main__ as MAIN
+
+from lib.cprint import *
+
 import lib.mytklib as mytklib
+import lib.fixlib as fixlib
+import lib.baselib as baselib
+
 
 class Event():
     def __init__(self,name):
@@ -846,7 +855,7 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
             if c == 3:
                 bg="grey"
                 dbg="grey"
-                _cb2 = _M.BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
+                _cb2 = MAIN.BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
                 b = tk.Button(frame,text=v,anchor="w",height=1,bg=bg,command=_cb2)
             else: 
                 b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="flat",height=1)
@@ -920,7 +929,7 @@ class GUI_FixtureEditor():
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
         self.b = tk.Button(self.frame,bg=bg,text="HELP", width=5)#,command=self.event) #bv.change_dmx)
-        self.b["command"] = _M.online_help("fixture-editor")
+        self.b["command"] = fixlib.online_help("fixture-editor")
         self.b.pack( side=tk.LEFT)
         # HEAD 2
         
@@ -1082,7 +1091,7 @@ class GUI_FixtureEditor():
             jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(nr)}
             print("   ",jdata)
             j.append(jdata)
-            jclient_send(j)
+            MAIN.jclient_send(j)
         except Exception as e:
             print("exec",arg,args,nr)
             print(e)
@@ -1203,11 +1212,11 @@ class GUI_FixtureEditor():
             fixture["NAME"] = name + "-{:0>4}".format(name_nr)
             fixture["ID"] = ID 
             print(fixture)
-            fixture = _M.FIXTURE_CHECK_SDATA(ID,fixture)
+            fixture = fixlib.FIXTURE_CHECK_SDATA(ID,fixture)
             #out.append(sdata)
             out.append(fixture)
             #fixture = copy.deepcopy(fixture)
-            if str(ID) in _M.FIXTURES.fixtures:
+            if str(ID) in MAIN.FIXTURES.fixtures:
                 ok = 0
                 #err.append(" ID '{}' is in use ! ".format(ID))
                 err.append("FIX-ID '{}' ".format(ID))
@@ -1256,9 +1265,9 @@ class GUI_FixtureEditor():
                     print(";;",fix)
                     k = str(fix["ID"])
                     v = fix
-                    _M.FIXTURES.fixtures[k] = v
+                    MAIN.FIXTURES.fixtures[k] = v
 
-                _M.FIXTURES._re_sort()
+                MAIN.FIXTURES._re_sort()
 
 
     def set_fixid(self,_event=None):
@@ -1314,7 +1323,7 @@ class GUI_FixtureEditor():
         line3="CHOOS to EDIT >> DEMO MODUS"
 
         cb = None #LOAD_FIXTURE(self,"USER").cb 
-        self.pw = _M.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
+        self.pw = baselib.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
         frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
 
 
@@ -1328,7 +1337,7 @@ class GUI_FixtureEditor():
             self.name["text"] = data["name"] #"load_MH2"
             self.name["text"] = data["name"] #"load_MH2"
             xpath = data["xpath"] + "/" + data["xfname"]
-            fdata = _M._read_sav_file(xpath)
+            fdata = baselib._read_sav_file(xpath)
             n = []
             a = []
             m = []
@@ -1349,7 +1358,7 @@ class GUI_FixtureEditor():
                     #print("a    ::",type(k),":",type(fixture))
 
 
-                    attr_by_nr = _M.fixture_order_attr_by_nr(fixture)
+                    attr_by_nr = fixlib.fixture_order_attr_by_nr(fixture)
 
                     if "ATTRIBUT" in fixture:
                         for at in attr_by_nr: #fixture["ATTRIBUT"]:
@@ -1374,7 +1383,7 @@ class GUI_FixtureEditor():
 
                             if at.endswith("-FINE"):
                                 m.append("-")
-                            elif at in _M._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+                            elif at in MAIN._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
                                 m.append("F")
                             else:
                                 m.append("S")
@@ -1384,8 +1393,11 @@ class GUI_FixtureEditor():
 
             self._load_fix(None,n,a,m)
             self.close_fixture_list()
-
-        blist = _M._load_fixture_list(mode=mode)
+        #_x =dir(MAIN)
+        #_x.sort()
+        #for _a in _x:
+        #    print(_a)
+        blist = fixlib._load_fixture_list(mode=mode)
         
         r=GUI_LOAD_FIXTURE_LIST(frame,data=blist,cb=cb,bg="#333")
 
@@ -1430,7 +1442,7 @@ class GUI_FixtureEditor():
         for a in attr:
             if a.endswith("-FINE"):
                 mode.append("-")
-            elif a in _M._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+            elif a in MAIN._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
                 mode.append("F")
             else:
                 mode.append("S")
@@ -1627,7 +1639,7 @@ class ELEM_FADER():
                 return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
-            #w = _M.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w = MAIN.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
             #w.pack()
             self._set_mode(txt)
             #w.show()
@@ -1659,7 +1671,7 @@ class ELEM_FADER():
             if txt.startswith("EMPTY"):
                 self.attr["bg"] = "#fa0"
             else:
-                if txt in _M._FIX_FADE_ATTR:
+                if txt in MAIN._FIX_FADE_ATTR:
                     self._set_mode("F")
                 else:
                     self._set_mode("S")
@@ -1786,7 +1798,7 @@ class EXEC_FADER():
                 return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
-            #w = _M.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w = MAIN.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
             #w.pack()
             self._set_mode(txt)
             #w.show()
@@ -1809,11 +1821,11 @@ class EXEC_FADER():
         if event.state > 0:
             value = 0
             #PRESETS.go(self.id+80)
-            _M.master.preset_go(nr-1,xfade=None,val=value)
+            MAIN.master.preset_go(nr-1,xfade=None,val=value)
         else:
             value = 1
             #PRESETS.go(self.id+80)
-            _M.master.preset_go(nr-1,xfade=None,val=value)
+            MAIN.master.preset_go(nr-1,xfade=None,val=value)
 
     def pack(self,init=None,from_=255,to=0,**args):
         width=11
@@ -1839,7 +1851,7 @@ class EXEC_FADER():
             self.b.bind("<ButtonRelease>",self.go) #BEvent({"NR":self.id+80,"text":""},self.go).cb)
             #b = self.b
             #k = ""
-            #gui = _M.master
+            #gui = MAIN.master
             #self.b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
             #self.b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
             self.attr=self.b
@@ -1970,7 +1982,7 @@ class GUI_ExecWingLayout():
 
         #print("   ExecWing.event_cb",jdata)
         j = [jdata]
-        jclient_send(j)
+        MAIN.jclient_send(j)
 
     def set_name(self,_event=None):
         txt = self.name["text"]
@@ -2090,7 +2102,7 @@ class GUI_MasterWingLayout():
 
         print(" MasterWing.event_cb",jdata)
         j = [jdata]
-        jclient_send(j)
+        MAIN.jclient_send(j)
 
     def set_name(self,_event=None):
         txt = self.name["text"]

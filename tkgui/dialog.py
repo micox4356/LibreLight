@@ -1,7 +1,106 @@
+#!/usr/bin/python3
+
+import os
+import time
 
 import tkinter
-from __main__ import *
+tk = tkinter 
+from idlelib.tooltip import Hovertip
 
+import __main__ as MAIN
+from lib.cprint import *
+
+
+class InputEventBlocker():
+    def __init__(self):
+        self.__init = 0
+        self.cursor = "88888"
+
+    def set(self,el,txt):
+        self.e = el
+        self.e_txt = txt
+        self.cursor = "88888"
+
+    def init(self):
+        if self.__init == 0:
+            try:
+                self.el = tk.Button()
+                self.e_txt = tk.StringVar()
+                self.__init = 1
+            except Exception as e:
+                pirnt("init() exception",e)
+    def _lock(self):
+        global _global_short_key
+        _global_short_key = 0
+        try:MAIN.master.commands.elem["S-KEY"]["bg"] = "red"
+        except Exception as e:cprint("exc",self,e)
+        cmd="xset -display :0.0 r rate 240 15"
+        print(cmd)
+        os.system(cmd)
+
+    def _unlock(self):
+        global _global_short_key
+        _global_short_key = 1
+        try:MAIN.master.commands.elem["S-KEY"]["bg"] = "green"
+        except Exception as e:cprint("exc",self,e)
+        cmd = "xset -display :0.0 r off"
+        print(cmd)
+        os.system(cmd)
+
+
+    def lock(self):
+        self._lock()
+        #self.e["bg"] = "red"
+        #self.el.config({"background": "grey"})
+        #self.e.focus()
+
+    def unlock(self):
+        self._unlock()
+        #self.e["bg"] = "blue"
+        #self.el.config({"background": "yellow"})
+        #self.el.focus_set()
+
+    def event(self,event,**args):
+        self.init()
+        #print()
+
+        cprint(self,event,args)
+        #print("###-",self.e_txt,dir(self.e_txt))
+        if "S-KEY" not in MAIN.master.commands.elem:
+            #cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
+            return 
+
+        if "num" in dir(event):
+            self.lock()
+        if "keysym" in dir(event):
+            t=self.e_txt.get()
+            if t and t[-1] == "<":
+                t = t[:-1]
+            if event.keysym == "Return" or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
+                self.unlock() 
+                #self.e_txt.set(t)
+            cprint("filter: get()",_global_short_key,t)
+            t2 = t
+            if _global_short_key == 0:
+                if event.keysym == "BackSpace":
+                    if len(t) > 1:
+                        t2 = t[:-1]
+                    else:
+                        t2=""
+                elif event.keysym == "Escape":
+                    t2=""
+                elif event.keysym == "space":
+                    t2=t+" "
+                elif event.char in "äöüÄÖÜ-_,.;:#'*+~":
+                    t2=t+event.char
+                elif len(event.keysym) == 1:
+                    t2=t+event.keysym
+            
+                #self.e_txt.set(t2+"<")
+        #time.sleep(0.2)
+        #_global_short_key = 1
+
+input_event_blocker = InputEventBlocker()
 
 class DialogEvent():
     def __init__(self):

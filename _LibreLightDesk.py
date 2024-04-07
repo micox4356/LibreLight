@@ -23,7 +23,22 @@ import subprocess
 import string
 import copy
 import traceback
+
+import json
+import time
+import sys
+import os 
+
+import _thread as thread
+
+
+
+IS_GUI = 0
+if __name__ == "__main__":
+    IS_GUI = 1
+
 import tool.movewin as movewin
+import lib.fixlib as  fixlib
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
@@ -43,27 +58,21 @@ except:
 
 if "/" in xtitle:
     xtitle = xtitle.split("/")[-1]
-import sys
 
 sys.stdout.write("\x1b]2;"+str(xtitle)+" "+str(rnd_id)+"\x07") # terminal title
 
-import json
-import time
-import sys
-import os 
 
 HOME = os.getenv('HOME')
 
-import _thread as thread
-import traceback
-
-import tkinter
-import tkinter as tk
-from tkinter import font
-
 space_font = None
-import tkinter.simpledialog
-from idlelib.tooltip import Hovertip
+
+if IS_GUI:
+    import tkinter
+    import tkinter as tk
+    from tkinter import font
+
+    import tkinter.simpledialog
+    from idlelib.tooltip import Hovertip
 
 INIT_OK = 0
 _global_short_key = 1
@@ -92,40 +101,7 @@ if "--easy" in sys.argv:
         os.system(cmd)
     # check if EASY show exist !
 
-
-icolor = 1
-def cprint(*text,color="blue",space=" ",end="\n"):
-    #return 0 #disable print dbg
-    if not color:
-        print(text)
-        return 0
-
-    if color == "green":
-        txt = '\033[92m'
-    elif color == "red":
-        txt = '\033[0;31m\033[1m'
-    elif color == "yellow":
-        txt = '\033[93m\033[1m'
-    elif color == "cyan":
-        txt = '\033[96m'
-    else:
-        txt = '\033[94m'
-    for t in text:
-        txt += str(t ) +" "
-    #HEADER = '\033[95m'
-    #OKBLUE = '\033[94m'
-    #OKCYAN = '\033[96m'
-    #OKGREEN = '\033[92m'
-    #WARNING = '\033[93m'
-    #FAIL = '\033[91m'
-    #ENDC = '\033[0m'
-    #BOLD = '\033[1m'
-    #UNDERLINE = '\033[4m'
-    txt += '\033[0m'
-    print(txt,end=end)
-    #return txt
-    sys.stdout.flush() # to grep output
-
+from lib.cprint import *
 cprint("________________________________")
  
 
@@ -177,27 +153,33 @@ except Exception as e:
 
 
 def showwarning(msg="<ERROR>",title="<TITLE>"):
-    _main = tkinter.Tk()
-    defaultFont = tkinter.font.nametofont("TkDefaultFont")
-    cprint("showwarning",defaultFont)
-    defaultFont.configure(family="FreeSans",
-                           size=10,
-                           weight="normal")
-    
-    geo ="{}x{}".format(20,20)
-    _main.geometry(geo)
-    def _quit():
-        time.sleep(1/10)
-        _main.quit()
-    thread.start_new_thread(_main.mainloop,())
-    #_main.quit()
+    cprint("showwarning","MSG:",msg,"tilte:",title)
 
-    #msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
-    #msg += "please check\n"
-    #msg += "-{}init.txt\n".format(self.show_path0)
-    #msg += "-{}".format(self.show_path1)
+    if IS_GUI:
+        _main = tkinter.Tk()
+        defaultFont = tkinter.font.nametofont("TkDefaultFont")
 
-    r=tkinter.messagebox.showwarning(message=msg,title=title,parent=None)
+        cprint("showwarning",defaultFont)
+
+    if IS_GUI:
+        defaultFont.configure(family="FreeSans",
+                               size=10,
+                               weight="normal")
+        
+        geo ="{}x{}".format(20,20)
+        _main.geometry(geo)
+        def _quit():
+            time.sleep(1/10)
+            _main.quit()
+        thread.start_new_thread(_main.mainloop,())
+        #_main.quit()
+
+        #msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
+        #msg += "please check\n"
+        #msg += "-{}init.txt\n".format(self.show_path0)
+        #msg += "-{}".format(self.show_path1)
+
+        r=tkinter.messagebox.showwarning(message=msg,title=title,parent=None)
 
 
 CUES    = OrderedDict()
@@ -373,12 +355,14 @@ def JCB(x,sock=None):
             print(sys.exc_info()[2])
         #print("remote in:",round(time.time(),0),"x",i,v)
 
-r1_server = chat.Server(port=30002)
-def server1_loop():
-    while 1:
-        r1_server.poll(cb=JCB)
-        time.sleep(1/90)
-thread.start_new_thread(server1_loop,()) # SERVER
+
+if __name__ == "__main__":
+    r1_server = chat.Server(port=30002)
+    def server1_loop():
+        while 1:
+            r1_server.poll(cb=JCB)
+            time.sleep(1/90)
+    thread.start_new_thread(server1_loop,()) # SERVER
 # remote input - end
 #chat.dbg=1
 
@@ -402,62 +386,61 @@ def JSCB(x,sock=None):
             #print("i",[i])
             msgs = json.loads(i)
             print(" JSCB",msgs) #,sock)
-            if type(msgs) is list:
-                for msg in msgs:
-                    print("  ",msg)
-                    # FIXTURES.encoder
-                    if "event" in msg:
-                        if "FIXTURES" == msg["event"]:
-                            FIX=0
-                            VAL=""
-                            ATTR=""
-                            if "FIX" in msg:
-                                FIX=msg["FIX"]
-                            if "VAL" in msg:
-                                VAL=msg["VAL"]
-                            if "ATTR" in msg:
-                                ATTR=msg["ATTR"]
-                            print("  Xevent",FIX,VAL,ATTR)
-                            #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
-                            #FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
-                            FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
+            if type(msgs) is not list:
+                continue
 
-                            #print(dir(cb))
-                            #event =  DEVENT()
-                            #event.num = enum
+            for msg in msgs:
+                print("  ",msg)
+                # FIXTURES.encoder
+                if "event" not in msg:
+                    continue
 
-                            #master.refresh_fix() # delayed
-                            #refresher_fix.reset() # = Refresher()
-                            #cb.cb(event)
-                        if "CLEAR" == msg["event"]:
-                            FIXTURES.clear()
-                        if "EXEC" == msg["event"]:
-                            print("  EXEC EXEC")
-                            val = -1
-                            exec_nr = -1
-                            try:
-                                if "VAL" in msg:
-                                    val = int(msg["VAL"])
-                                if "EXEC" in msg:
-                                    exec_nr = int(msg["EXEC"])
-                                if val >= 0 and exec_nr > 0:
-                                    print("PRESET_GOOO",exec_nr,val)
-                                    s = time.time()
-                                    master.preset_go(exec_nr-1,xfade=None,val=val)
-                                    e = time.time()
-                                    #print("time:",e-s,e)
-                                    #print("TIME:",int((e-s)*1000),int(e*10)-1_703_800_000)
-                                    #print("TIME:",int((e-s)*1000),int(e*10)/10)
-                                    print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
-                                    print()
+                if "FIXTURES" == msg["event"]:
+                    FIX=0
+                    VAL=""
+                    ATTR=""
+                    if "FIX" in msg:
+                        FIX=msg["FIX"]
+                    if "VAL" in msg:
+                        VAL=msg["VAL"]
+                    if "ATTR" in msg:
+                        ATTR=msg["ATTR"]
+                    print("  Xevent",FIX,VAL,ATTR)
+                    #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
+                    #FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
+                    FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
 
-                            except Exception as e:
-                                print("EXEC ERR:",e)
-            #bounce msg
-            #if sock:
-            #    msg = json.dumps(msg)
-            #    msg = bytes(msg,"utf8")
-            #    chat._send(sock,msg)
+                    #print(dir(cb))
+                    #event =  DEVENT()
+                    #event.num = enum
+
+                    #master.refresh_fix() # delayed
+                    #refresher_fix.reset() # = Refresher()
+                    #cb.cb(event)
+                if "CLEAR" == msg["event"]:
+                    FIXTURES.clear()
+                if "EXEC" == msg["event"]:
+                    print("  EXEC EXEC")
+                    val = -1
+                    exec_nr = -1
+                    try:
+                        if "VAL" in msg:
+                            val = int(msg["VAL"])
+                        if "EXEC" in msg:
+                            exec_nr = int(msg["EXEC"])
+                        if val >= 0 and exec_nr > 0:
+                            print("PRESET_GOOO",exec_nr,val)
+                            s = time.time()
+                            master.preset_go(exec_nr-1,xfade=None,val=val)
+                            e = time.time()
+                            #print("time:",e-s,e)
+                            #print("TIME:",int((e-s)*1000),int(e*10)-1_703_800_000)
+                            #print("TIME:",int((e-s)*1000),int(e*10)/10)
+                            print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
+                            print()
+
+                    except Exception as e:
+                        print("EXEC ERR:",e)
             
     except Exception as e:
         cprint("exception JSCB:",e)
@@ -473,13 +456,14 @@ def JSCB(x,sock=None):
     #time.sleep(1/60)
 
 
-# external GUI
-r_server = chat.Server(port=30003,cb=JSCB)
-def server_loop():
-    while 1:
-        r_server.poll(cb=JSCB)
-        #time.sleep(1/90)
-thread.start_new_thread(server_loop,()) # SERVER
+if __name__ == "__main__":
+    # external GUI
+    r_server = chat.Server(port=30003,cb=JSCB)
+    def server_loop():
+        while 1:
+            r_server.poll(cb=JSCB)
+            #time.sleep(1/90)
+    thread.start_new_thread(server_loop,()) # SERVER
 
 # read memcachd
 memcache = None
@@ -799,74 +783,6 @@ class FX_handler():
 
 
 
-def reshape_preset(data ,value=None,xfade=0,flash=0,ptfade=0):
-
-    f=0 #fade
-
-    out = []
-    delay=0
-    for row in data:
-        #cprint("reshape_preset in:",row)
-        line = {}
-        line["DELAY"]=delay
-        if type(value) is float:
-            line["VALUE"] = value #round(value,3)
-        else:
-            line["VALUE"] = value
-
-        if "FX" not in row:
-            cprint("698 FX not in row...",row,color="red")
-            row["FX"] = ""
-        else:
-            if type(row["FX"]) is not str:
-                cprint("702 FX is not str...",row,color="red")
-                row["FX"] = ""
-
-        if value is not None:
-            line["FX"] = row["FX"].split(":",1)[-1]
-        else:
-            line["FX"] = row["FX"]
-
-        if row["FX2"]:
-            line["FX2"] = row["FX2"]
-
-        if row["FIX"]:
-            line["FIX"] = row["FIX"]
-        if row["ATTR"]:
-            line["ATTR"] = row["ATTR"]
-
-
-        if row["VALUE"] is not None:
-            if value is None: 
-                v=row["VALUE"]
-                if type(v) is float:
-                    line["VALUE"]  = v #round(v,3)
-                else:
-                    line["VALUE"]  = v
-
-        if row["ATTR"] in ["PAN","TILT"]:
-            f = ptfade 
-
-        for a in ["DIM","ZOOM","FOCUS","RED","GREEN","BLUE","WHITE","AMBER","IRIS","BLADE"]: 
-            #FADE ATTRIBUTES
-            if a in row["ATTR"]:
-                f = xfade 
-                break
-
-        if flash:
-            xfade = 0
-        if type( f ) is float:
-            line["FADE"] = round(f,4)
-        else:
-            line["FADE"] = f
-        
-        if 0:
-            cprint("reshape_preset j",line,color="red") 
-        #cprint("reshape_preset out:",line)
-        out.append(line)
-        if DELAY._is():
-            delay+=DELAY.val()/100 #0.02
-    return out
 
 class dummy_event():
     def __init__(self):
@@ -875,306 +791,22 @@ class dummy_event():
         self.set_value=-1
 
 
+from lib import matrix
+import lib.fxlib as fxlib
 
-def process_wings(xfixtures):
-    """process the wing's of selected fixtures
-    input: [1,2,3,4,10,12,13,14]
-    if WING = 2 return: [[1,2,3,4][14,13,12,10]]
-    """
-    wing_buffer = []
-    fix_count = len(xfixtures)
-    prm = fx_prm # ToDo:  global WING for PAN/TILE !? ATTRIBUT is not availible in this moment 
-
-    if prm["WING"] > 1 and fix_count > 1:
-        wing_count = fix_count // prm["WING"]
-        number_of_fix_in_wing = fix_count // wing_count
-
-        if number_of_fix_in_wing < 2:
-            number_of_fix_in_wing = 2
-
-        for i in range(number_of_fix_in_wing):
-            j = i*wing_count
-            wing = xfixtures[j:j+wing_count]
-            if i%2!=0:
-                wing = wing[::-1]
-            cprint("wing",i,"j",j,"wing_count:",wing_count,"wing",wing)
-            wing_buffer.append(wing)
-
-        if fix_count > j+wing_count: # append Fixtures Left over
-            wing = xfixtures[j+wing_count:]
-            wing_buffer.append(wing)
-    else:
-        wing_buffer.append(xfixtures)
-
-    if prm["SHUFFLE"]:
-        _wing_buffer = []
-        for wing in wing_buffer:
-            wing = wing[:]
-            random.seed(9300) # sync random
-            random.shuffle(wing)
-            _wing_buffer.append(wing)
-        wing_buffer = _wing_buffer
-    return wing_buffer
-
-def process_effect(wing_buffer,fx_name=""):
-    jdatas = []
-    offset = 0
-    offset_move = 0
-    start = fx_prm["START"]
-    base  = fx_prm["BASE"]
-
-    for wi, wing in enumerate(wing_buffer):
-        count_of_fix_in_wing = len(wing)
-        coffset= 0 # 1024/count_of_fix_in_wing * (offset/255)
-        coffset_move=0
-    
-        for fix in wing:
-            if fix not in FIXTURES.fixtures:
-                continue
-            data = FIXTURES.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-
-                if attr.startswith("_"):
-                    continue
-                if attr.endswith("-FINE"):
-                    continue
-
-                jdata = {"MODE":"FX"}
-                jdata["WING"] = wi
-                jdata["VALUE"]    = None
-                jdata["FIX"]      = fix
-                dmx               = FIXTURES.get_dmx(fix,attr)
-                jdata["DMX"]      = dmx
-
-                dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
-                if dmx_fine != jdata["DMX"] and dmx > 0:
-                    jdata["DMX-FINE"] = dmx_fine
-
-                jdata["ATTR"]     = attr
-
-                tmp_fx_prm = fx_prm
-                coffset= round(offset,1)
-
-                if attr in ["PAN","TILT"]:
-                    tmp_fx_prm = fx_prm_move
-                    coffset_move= round(offset_move,1)
-
-                csize  = tmp_fx_prm["SIZE"]
-                cspeed = tmp_fx_prm["SPEED"]
-                cstart = tmp_fx_prm["START"]
-                cbase  = tmp_fx_prm["BASE"]
-                width  = tmp_fx_prm["WIDTH"]
-                invert = tmp_fx_prm["INVERT"]
-
-                fx=""
-                if "SIN" in fx_name:
-                    fx = "sinus"
-                elif "FD" in fx_name:
-                    fx = "fade"
-                elif "RND" in fx_name:
-                    fx = "rnd"
-                elif "STATIC" in fx_name:
-                    fx = "static"
-                elif "ON" in fx_name:
-                    fx = "on"
-                elif "RAMP2" in fx_name:
-                    fx = "bump2"
-                    fx = "ramp2"
-                elif "RAMP" in fx_name:
-                    fx = "ramp"
-                elif "COS" in fx_name:
-                    fx = "cosinus"
-
-                if fx:
-                    if attr in ["PAN","TILT"]:
-                        cprint("SKIP FX attr:{} fix:{} " .format(attr,fix) )
-                        continue
-
-                if fx:
-                    if cspeed < 0:
-                        fx = "off"
-                else:
-                    if ":DIM" in fx_name:
-                        base=""
-                        ffxb=fx_mo[fx_prm["MO"]] 
-
-                        if attr == "DIM":
-                            if cspeed < 0:
-                                fx = "off"
-                            else:
-                                fx = ffxb #"fade"
-                    elif ":TILT" in fx_name:
-                        base=""
-                        if attr == "PAN":
-                            fx = "off"
-                        if attr == "TILT":
-                            if cspeed < 0:
-                                fx = "off"
-                            else:
-                                fx = "sinus"
-                    elif ":PAN" in fx_name:
-                        base=""
-                        if attr == "PAN":
-                            if cspeed < 0:
-                                fx = "off"
-                            else:
-                                fx = "cosinus" 
-                        if attr == "TILT":
-                           fx = "off"
-                    elif ":CIR" in fx_name:
-                        base=""
-                        if attr == "PAN":
-                            if cspeed < 0:
-                                fx = "off"
-                            else:
-
-                                fx = "cosinus" 
-                        if attr == "TILT":
-                            if cspeed < 0:
-                                fx = "off"
-                            else:
-                                fx = "sinus"
-
-                    elif ":RED" in fx_name:
-                        fxon  = "on" 
-                        fxoff = "static" #"off" 
-                        MODE = fx_modes[fx_prm["MODE"]]
-                        
-                        if "RED" in MODE:
-                            base="-"
-                            if attr == "RED":
-                                fx = fxon # ON ---- 
-                                #csize *=-1
-                            if attr == "GREEN":
-                                fx = "static"
-                                csize = 0
-                            if attr == "BLUE":
-                                fx = "static"
-                                csize = 0
-                        elif "GREEN" in MODE:
-                            base="-"
-                            if attr == "RED":
-                                fx = "static"
-                                csize = 0
-                            if attr == "GREEN":
-                                fx = fxon # ON ----
-                                csize *=-1
-                            if attr == "BLUE":
-                                fx = "static"
-                                csize = 0
-                        elif "BLUE" in MODE:
-                            base="-"
-                            if attr == "RED":
-                                fx = "static"
-                                csize = 0
-                            if attr == "GREEN":
-                                fx = "static"
-                                csize = 0
-                            if attr == "BLUE":
-                                fx = fxon # ON ----
-                                csize *=-1
-                        elif "YELLOW" in MODE:
-                            base="-"
-                            if attr == "RED":
-                                fx = fxon
-                                csize *=-1
-                            if attr == "GREEN":
-                                fx = fxon
-                                csize *=-1
-                            if attr == "BLUE":
-                                fx = "static"
-                                csize = 0
-                        elif "CYAN" in MODE: 
-                            base="-"
-                            if attr == "RED":
-                                fx = fxoff
-                                invert *= -1
-                                csize = 0
-                                fx = fxon
-                            if attr == "GREEN":
-                                fx = fxon
-                                csize=0
-                            if attr == "BLUE":
-                                fx = fxon
-                                csize=0
-                        elif "MAG" in MODE: 
-                            base="-"
-                            if attr == "RED":
-                                fx = fxon
-                                csize=0
-                            if attr == "GREEN":
-                                fx = fxoff
-                                invert *= -1
-                                csize = 0
-                                fx = fxon
-                            if attr == "BLUE":
-                                fx = fxon
-                                csize=0
-                        else:
-                            cprint("FX: unbekant",fx_modes[fx_prm["MODE"]],color="red")
-
-                    fxtype = fx
-
-                fxtype = fx
-
-                if "FX" not in data["ATTRIBUT"][attr]:
-                    data["ATTRIBUT"][attr]["FX"] =""
-                if "FX2" not in data["ATTRIBUT"][attr]:
-                    data["ATTRIBUT"][attr]["FX2"] ={}
-
-                if data["ATTRIBUT"][attr]["ACTIVE"] and fxtype:
-                    fjdata = {}
-                    if cspeed < 0.1:
-                        fjdata["TYPE"]  = "off"
-                    else:
-                        fjdata["TYPE"]  = fxtype
-                    fjdata["SIZE"]  = round(csize,2)
-                    fjdata["SPEED"] = round(cspeed,2)
-                    fjdata["WIDTH"] = int(width)
-                    fjdata["START"] = cstart
-                    if attr in ["PAN","TILT"]:
-                        fjdata["OFFSET"]= round(coffset_move,2)
-                    else:
-                        fjdata["OFFSET"]= round(coffset,2)
-                    fjdata["INVERT"]= int(invert)
-                    fjdata["BASE"]  = cbase
-                    jdata["FX2"]    = fjdata
-                    data["ATTRIBUT"][attr]["FX2"] = fjdata
-                    jdatas.append(jdata)
-                    print("GOO FX:",jdata)
-
-            
-            if fx_prm_move["OFFSET"] > 0.5: # and 
-                aoffset_move = (100/count_of_fix_in_wing) * (fx_prm_move["OFFSET"]/100) 
-                if fx_prm_move["DIR"] <= 0:
-                    offset_move -= aoffset_move 
-                else:
-                    offset_move += aoffset_move 
-                offset_move = round(offset_move,2)
-
-            if fx_prm["OFFSET"] > 0.5: # and 
-                aoffset = (100/count_of_fix_in_wing) * (fx_prm["OFFSET"]/100) 
-                if fx_prm["DIR"] <= 0:
-                    offset -= aoffset 
-                else:
-                    offset += aoffset 
-                offset = round(offset,2)
-
-    #exit()
-    if jdatas and not modes.val("BLIND"):
-        jclient_send(jdatas)
-    master._refresh_fix()
-
-    return jdatas
 
 def process_matrix(xfixtures):
-    fix_count = len(xfixtures)
     fx_x = fx_prm["2D-X"]
     fx_mod = fx_x_modes[fx_prm["2D:MODE"]]
+
+    r = _process_matrix(xfixtures,fx_x,fx_mod)
+    return r 
+
+def _process_matrix(xfixtures,fx_x,fx_mod):
+    fix_count = len(xfixtures)
     cprint("----",fx_x,fx_mod)
     if fx_x > 1 and fix_count > fx_x:
         try: 
-            from lib import matrix
             w=fx_x
             h=int(fix_count/fx_x)
 
@@ -1223,6 +855,7 @@ class Xevent_fx():
     def fx(self,event):
         cprint("Xevent.fx",self.attr,self.fix,event)
         fx2 = {}
+
         if self.attr == "FX:RED":
             if event.num == 4:
                 cprint("FX:COLOR CHANGE",fx_prm,color="red")
@@ -1274,9 +907,11 @@ class Xevent_fx():
                 return 0
             
             
-            xfixtures = process_matrix(xfixtures)
-            wing_buffer = process_wings(xfixtures)
-            process_effect(wing_buffer,fx_name=self.attr)
+            xfixtures   = process_matrix(xfixtures)
+            wing_buffer = fxlib.process_wings(xfixtures,fx_prm)
+            fxlib.process_effect(wing_buffer,fx_prm,fx_prm_move,modes,jclient_send,master,FIXTURES,fx_name=self.attr)
+
+
 
 
     def command(self,event,mode=""):       
@@ -1602,7 +1237,7 @@ def save_window_position(save_as=""):
     cprint()
     cprint("save_window_position",[save_as])
 
-    base = Base()
+    base = baselib.Base()
     fname = HOME+"/LibreLight"
     fname = base.show_path1 +base.show_name 
     if save_as:
@@ -1679,7 +1314,7 @@ def get_window_position(_filter="",win=None):
 
 def read_window_position():
     try:
-        base = Base()
+        base = baselib.Base()
         fname = HOME+"/LibreLight"
         fname = base.show_path1 +base.show_name 
         fname +=  "/gui.txt"
@@ -1828,7 +1463,7 @@ class Xevent():
                 self._save_show()
             elif self.attr == "LOAD\nSHOW":
                 name = "LOAD-SHOW"
-                base = Base()
+                base = baselib.Base()
                 line1 = "PATH: "+base.show_path1 +base.show_name
                 line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
                 class cb():
@@ -1839,14 +1474,14 @@ class Xevent():
                         cprint("   LOAD-SHOW.cdb",self.name,event,args)
                         if self.name != "<exit>":
                             cprint("-----------------------:")
-                            LOAD_SHOW_AND_RESTAT(self.name).cb()
+                            LOAD_SHOW_AND_RESTART(self.name).cb()
 
                 pw = PopupList(name,cb=cb)
                 print(line1,line2)
                 frame = pw.sframe(line1=line1,line2=line2)
                 r = frame_of_show_list(frame,cb=cb)
             elif self.attr == "NEW\nSHOW":
-                base = Base()
+                base = baselib.Base()
 
                 #def _cb(fname):
                 def _cb(data):
@@ -1863,11 +1498,11 @@ class Xevent():
                         #base._set(fname)
                         
                         save_window_position(save_as=fpath)
-                        LOAD_SHOW_AND_RESTAT(fname).cb() 
+                        LOAD_SHOW_AND_RESTART(fname).cb() 
                 dialog._cb = _cb
                 dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
             elif self.attr == "SAVE\nSHOW AS":
-                base = Base()
+                base = baselib.Base()
 
                 #def _cb(fname):
                 def _cb(data):
@@ -1884,7 +1519,7 @@ class Xevent():
                         #base._set(fname)
                         
                         save_window_position(save_as=fpath)
-                        LOAD_SHOW_AND_RESTAT(fname).cb() 
+                        LOAD_SHOW_AND_RESTART(fname).cb() 
                 dialog._cb = _cb
                 dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
             elif self.attr == "SAVE &\nRESTART":
@@ -1900,7 +1535,7 @@ class Xevent():
                 self.elem["text"] = "RESTARTING..."
                 self.elem["bg"] = "lightgrey"
                 self.elem.config(activebackground="lightgrey")
-                LOAD_SHOW_AND_RESTAT("").cb(force=1)
+                LOAD_SHOW_AND_RESTART("").cb(force=1)
             elif self.attr == "DRAW\nGUI":
                 old_text = self.elem["text"]
                 window_manager.top("PATCH")
@@ -1918,7 +1553,8 @@ class Xevent():
                 import lib.restart as restart
                 restart.easy()
             else:
-                r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
+                if IS_GUI:
+                    r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
 
     def live(self,event):       
@@ -2202,37 +1838,7 @@ class Element():
     def set(self,key,val):
         self.__data[key] = val
 
-def _fixture_decode_sav_line(line):
-    out = None
-    out = [0,"none",{}]
 
-    if line.count("\t") < 2:
-        cprint("Error line.count('\\t') < 2  (is:{})".format(line.count("\t")),color="red",end=" ")
-        cprint("file:{}".format(line),color="red")
-    else:
-        key,label,rdata = line.split("\t",2)
-        jdata = json.loads(rdata,object_pairs_hook=OrderedDict)
-        key = int(key)
-        #label += " dsav"
-        #label = label.replace(" dsav","")
-        out = [key,label,jdata]
-
-    #if not out:
-    #print(line)
-    #sys.exit()
-    return out
-
-def _fixture_repair_nr0(jdata):
-    nrnull = 0
-    if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
-        if nrnull:
-            cprint("DMX NR IS NULL",attr,"CHANGE +1")
-            for attr in jdata["ATTRIBUT"]:
-                if "NR" in jdata["ATTRIBUT"][attr]:
-                    nr = jdata["ATTRIBUT"][attr]["NR"]
-                    if nr >= 0:
-                        jdata["ATTRIBUT"][attr]["NR"] +=1
-    #return jdata
         
 def _clean_path(fpath):
     _path=[]
@@ -2243,211 +1849,10 @@ def _clean_path(fpath):
     path = "".join(_path)
     return path
 
-def _read_init_txt(show_path):
-    fname = show_path+"init.txt"
-    show_name = None
-    msg = ""
-
-    if not os.path.isfile( fname ):
-        msg = "_read_init_txt Errror: " +fname +"\n NOT FOUND !"
-        return [None,msg]
-
-    try:
-        f = open(fname,"r")
-        for line in f.readlines():
-            line = line.strip()
-            print("  init.txt:",[line])
-            if line.startswith("#"):
-                continue
-            if not line:
-                continue
-
-            show_name = line
-            show_name = show_name.replace(".","")
-            show_name = show_name.replace("\\","")
-            show_name = show_name.replace("/","")
-    except Exception as e:
-        cprint("show name exception",color="red")
-        msg="read_init_txt Error:{}".format(e)
-    finally:
-        f.close()
-
-    return [show_name,msg]
 
 
-def _listdir(show_path):
-    #self._check()
-    show_list =  list(os.listdir( show_path ))
-    out = []
-    for fname in show_list:
-        if fname == "EASY": #hidde EASY show in list !
-            continue
-        #print(fname)
-        ctime = os.path.getmtime(show_path+fname)
-        ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
-        try:
-            mtime = os.path.getmtime(show_path+fname+"/patch.sav")
-            mtime = time.strftime("%Y-%m-%d %X",  time.localtime(mtime)) #1650748726.6604707))
-        except:
-            mtime = 0
-
-        if mtime:
-            out.append([fname,mtime])#,ctime])
-
-    from operator import itemgetter
-    out=sorted(out, key=itemgetter(1))
-    out.reverse()
-    return out
-
-
-
-def _read_sav_file(xfname):
-    cprint("load",xfname)
-    lines = []
-    if not os.path.isfile(xfname):
-        return []
-
-    f = open(xfname,"r")
-    lines = f.readlines()
-    f.close()    
-
-    data   = OrderedDict()
-    labels = OrderedDict()
-    i=0
-    for line in lines:
-        r = _fixture_decode_sav_line(line)
-        if r:
-            key,label,jdata = r
-            _fixture_repair_nr0(jdata)
-            data[key]   = jdata
-            labels[key] = label
-        
-    return data,labels
-
-
-class Base():
-    def __init__(self):
-        cprint("Base.init()",color="red")
-        self._init()
-
-    def _init(self):
-        show_name = "" #DemoShow #"ErrorRead-init.txt"
-        self.show_path0 = HOME +"/LibreLight/"
-        self.show_path  = self.show_path0 
-        self.show_path1 = self.show_path0 + "show/"
-        
-        msg = " X "
-        self.show_name,msg = _read_init_txt(self.show_path)
-        if not self.show_name:
-            r=tkinter.messagebox.showwarning(message=msg,parent=None)
-            sys.exit()
-        
-        fpath = self.show_path1 +show_name 
-        if not os.path.isdir(fpath):
-            cprint(fpath)
-            cprint( os.path.isdir(fpath))
-
-            msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
-            msg += "please check\n"
-            msg += "-{}init.txt\n".format(self.show_path0)
-            msg += "-{}".format(self.show_path1)
-
-            showwarning(msg=msg,title="Show Error")
-            exit()
-
-        self._check()
-    def _set(self,fname):
-        ok= os.path.isdir(self.show_path1+"/"+fname)
-        ini = self.show_path0+"init.txt"
-        cprint("SET SHOW NAME",fname,ok,ini)
-        try:
-            f = open( ini ,"r")
-            lines = f.readlines()
-            f.close()
-            if len(lines) >= 10: # cut show history
-                cprint("_set",ini,len(lines))
-                lines = lines[-10:]
-                f = open( ini ,"w")
-                f.writelines(lines)
-                f.close()
-                exit()
-
-        except:pass
-        if ok:
-            #self.show_name = fname
-            f = open( ini ,"a")
-            f.write(fname+"\n")
-            f.close()
-            return 1
-        
-    def _check(self):
-        if not os.path.isdir(self.show_path):
-            os.mkdir(self.show_path)
-        self.show_path += "/show/"
-        if not os.path.isdir(self.show_path):
-            os.mkdir(self.show_path)
-        self.show_path += "/" +self.show_name +"/"
-        if not os.path.isdir(self.show_path):
-            os.mkdir(self.show_path)
-        pass
-    def _list(self):
-        cprint("BASE._list()")
-        out = _listdir(self.show_path1)
-        return out
-
-    def _load(self,filename):
-        xpath = self.show_path+"/"+str(filename)+".sav"
-        if not os.path.isfile(xpath):
-            msg = ""#"Exception: {}".format(e)
-            msg += "\n\ncheck\n-init.txt"
-            cprint(msg,color="red")
-            showwarning(msg=msg,title="load Error")
-            return
-        return _read_sav_file(xpath)
-
-
-
-    def build_path(self,save_as):
-        save_as = _clean_path(save_as)
-        path = self.show_path.split("/")
-        path = "/".join(path[:-2])
-        fpath = path+"/"+save_as
-        return fpath,save_as
-
-    def _create_path(self,fpath):
-        if os.path.isdir(fpath):
-            cprint("STOP SHOW EXIST !",color="red")
-            return 0
-        else:
-            cprint("CREATE DIR ",fpath,color="green")
-            os.mkdir(fpath)
-        #self._set(save_as)
-        return fpath
-
-    def _backup(self,filename,data,labels,save_as):
-
-        if save_as:
-            xfname = save_as +"/"+str(filename)+".sav"
-        else:
-            xfname = self.show_path+"/"+str(filename)+".sav"
-
-        cprint("backup",xfname)
-        f = open(xfname,"w")
-        for key in data:
-            line = data[key]
-            #print(line)
-            label = "label" 
-            if key in labels:
-                label = labels[key]
-            if label == "Name-"+str(key):
-                label = ""
-            #print(xfname,"load",key,label,len(line))
-
-            f.write( "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) )
-        f.close()
-
-        return 1
-
+#import lib.base as _base
+import lib.baselib as baselib
 
 def hex_to_rgb(hex):
   return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) 
@@ -2602,10 +2007,13 @@ class Elem_Container():
         self.val = {}
         self.elem = {}
 
+
+import lib.execlib as execlib
+
 class MASTER():
     def __init__(self):
         #super().__init__() 
-        self.base = Base ()
+        self.base = baselib.Base ()
         self.load()
         self._XX = 0
 
@@ -2630,7 +2038,7 @@ class MASTER():
                 ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","BASE:\n-","2D-X:\n-","2D:MODE"
                 ]
         self.fx_generic = Elem_Container()
-        self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON"]#,"FX:STATIC"]
+        self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON","FX:STATIC"]
 
         self.fx_color = Elem_Container()
         self.fx_color.commands =["FX:RED","FX-C:A","FX-C:B"] 
@@ -3092,7 +2500,7 @@ class MASTER():
             ptfade = cfg["FADE"]
         #vcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
         #cprint(rdata,color="red")
-        vcmd = reshape_preset( rdata ,value,xfade=xfade,ptfade=ptfade) 
+        vcmd = execlib.reshape_preset( rdata ,value,xfade=xfade,ptfade=ptfade) 
 
         cmd = []
         delay=0
@@ -3134,113 +2542,19 @@ class MASTER():
 ##draw_sub_dim
 
 
-
-class InputEventBlocker():
-    def __init__(self):
-        self.__init = 0
-        self.cursor = "88888"
-
-    def set(self,el,txt):
-        self.e = el
-        self.e_txt = txt
-        self.cursor = "88888"
-
-    def init(self):
-        if self.__init == 0:
-            try:
-                self.el = tk.Button()
-                self.e_txt = tk.StringVar()
-                self.__init = 1
-            except Exception as e:
-                pirnt("init() exception",e)
-    def _lock(self):
-        global _global_short_key
-        _global_short_key = 0
-        try:master.commands.elem["S-KEY"]["bg"] = "red"
-        except Exception as e:cprint("exc",self,e)
-        cmd="xset -display :0.0 r rate 240 15"
-        print(cmd)
-        os.system(cmd)
-
-    def _unlock(self):
-        global _global_short_key
-        _global_short_key = 1
-        try:master.commands.elem["S-KEY"]["bg"] = "green"
-        except Exception as e:cprint("exc",self,e)
-        cmd = "xset -display :0.0 r off"
-        print(cmd)
-        os.system(cmd)
-
-
-    def lock(self):
-        self._lock()
-        #self.e["bg"] = "red"
-        #self.el.config({"background": "grey"})
-        #self.e.focus()
-
-    def unlock(self):
-        self._unlock()
-        #self.e["bg"] = "blue"
-        #self.el.config({"background": "yellow"})
-        #self.el.focus_set()
-
-    def event(self,event,**args):
-        self.init()
-        #print()
-
-        cprint(self,event,args)
-        #print("###-",self.e_txt,dir(self.e_txt))
-        if "S-KEY" not in master.commands.elem:
-            #cprint("<GLOBAL-GUI-EVENT-DISABLED>",event,color="red")
-            return 
-
-        if "num" in dir(event):
-            self.lock()
-        if "keysym" in dir(event):
-            t=self.e_txt.get()
-            if t and t[-1] == "<":
-                t = t[:-1]
-            if event.keysym == "Return" or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
-                self.unlock() 
-                #self.e_txt.set(t)
-            cprint("filter: get()",_global_short_key,t)
-            t2 = t
-            if _global_short_key == 0:
-                if event.keysym == "BackSpace":
-                    if len(t) > 1:
-                        t2 = t[:-1]
-                    else:
-                        t2=""
-                elif event.keysym == "Escape":
-                    t2=""
-                elif event.keysym == "space":
-                    t2=t+" "
-                elif event.char in "äöüÄÖÜ-_,.;:#'*+~":
-                    t2=t+event.char
-                elif len(event.keysym) == 1:
-                    t2=t+event.keysym
-            
-                #self.e_txt.set(t2+"<")
-        #time.sleep(0.2)
-        #_global_short_key = 1
-
-input_event_blocker = InputEventBlocker()
-
 from tkgui.dialog import *
 dialog = Dialog()
 
-from tkgui.draw import *
-            
 
-           
+from tkgui.draw import *
 from tkgui.GUI import *
 
 
 
-class LOAD_SHOW_AND_RESTAT():
+class LOAD_SHOW_AND_RESTART():
     def __init__(self,fname=""):
         self.fname=fname
-        self.base = Base()
+        self.base = baselib.Base()
 
     def cb(self,event=None,force=0):
         cprint("LOAD_SHOW_AND_RESTART.cb force={} name={}".format(force,self.fname) )
@@ -3341,7 +2655,7 @@ class BaseCallback():
 def frame_of_show_list(frame,cb=None):
     c=0
     r=0
-    base = Base()
+    base = baselib.Base()
     for i in ["name","stamp"]: #,"create"]:
         b = tk.Label(frame,bg="grey",text=i)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
@@ -3382,711 +2696,9 @@ def frame_of_show_list(frame,cb=None):
             c+=1
         r+=1
 
-def _parse_fixture_name(name):
-    out = []
-    #{"FIX","MAN","CH","PATH":""}
-    if name.count(".") == 2:
-        m,n,e = name.split(".")
-        #out = [n,m,"0",name]
-        out = {"name":n,"manufactor":m,"fname":name}
-    elif name.count("_") == 2:
-        name,e = name.split(".")
-        m,n,c = name.split("_")
-        out = {"name":n,"ch":c,"manufactor":m,"name":name}
-        #out = [n,m,c,name]
-    else:
-        out = {"name":name}
-    return out
 
-def online_help(page):
-    print("INIT:online_help",page)
 
-    try:
-        page = page.replace("&","")
-        page = page.replace("=","")
-        page = page.replace("/","")
-        import webbrowser
-        def _cb():
-            print("online_help",page)
-            webbrowser.open("http://librelight.de/wiki/doku.php?id="+page )
-        return _cb
-    except Exception as e:
-        print("online_help Exception",e)
-        raise e
 
-    def _cb():
-        print("error online_help",page)
-    return _cb 
-
-
-
-def index_fixtures():
-    p="/opt/LibreLight/Xdesk/fixtures/"
-    ls = os.listdir(p )
-    ls.sort()
-    blist = []
-    
-    for l in ls:
-        b = _parse_fixture_name(l)
-        b.append(p)
-        b.insert(0,"base")
-        blist.append(b)
-    return blist
-
-
-
-#def _fixture_create_import_list(path=None):
-def _fixture_load_import_list(path=None):
-    if not path:
-        path = "/home/user/LibreLight/show"
-
-    blist = []
-    lsd = os.listdir(path)
-    lsd.sort()
-    fname_buffer = []
-    for sname in lsd:
-        #print("   ",sname)
-        ok = 0
-        try:
-            fname = path+"/"+sname+"/patch.sav"
-            if os.path.isfile(fname):
-                ok = 1
-            else:
-                fname = path+"/"+sname
-                if os.path.isfile(fname):
-                    ok = 1
-            #fname_buffer = []
-            if not ok:
-                continue
-
-            f = open(fname)
-            lines = f.readlines()
-            f.close()
-
-            for line in lines:
-                ok2 = 0
-                _key = ""
-                line = line.split("\t")
-                if len(line) < 2:
-                    continue
-                jdata = json.loads(line[2])
-
-                fixture = jdata
-                _len = str(fixture_get_ch_count(fixture))
-                if "ATTRIBUT" in jdata:
-                    #_len = len(jdata["ATTRIBUT"])
-                    #if "_ACTIVE" in jdata["ATTRIBUT"]:
-                    #    _len -= 1
-                    _key = list(jdata["ATTRIBUT"].keys()) 
-                    _key.sort()
-                    _key = str(_key)
-                    if _key not in fname_buffer:
-                        fname_buffer.append(_key) # group same fixtures by ATTR
-                        ok2 = 1
-                if ok2:
-                    name = jdata["NAME"]
-                    #row = [name,fname+":"+name,path])
-                    xfname = fname.replace(path,"")
-                    row = {"xfname":xfname ,"name":name,"ch":_len, "xpath":path,"d":_key} #,"b":jdata}
-                    blist.append(row)
-        except Exception as e:
-            print("exception",e)
-            raise e
-    return blist
-
-
-def fixture_get_ch_count(fixture):
-    _len = [0,0]
-    if "ATTRIBUT" not in fixture:
-        return [-1,-1]
-
-    for at in fixture["ATTRIBUT"]:
-        #print(at,_len)
-        #print(" ",fixture["ATTRIBUT"][at])
-        if not at.startswith("_") and not at.startswith("EMPTY"):
-            _len[1] += 1
-
-        if "NR" in fixture["ATTRIBUT"][at]:
-            NR = fixture["ATTRIBUT"][at]["NR"]
-            if NR > _len[0]:
-                _len[0] = NR
-        #print("-",at,_len)
-
-    return _len
-
-def fixture_get_attr_data(fixture,attr):
-    if "ATTRIBUT" in fixture:
-        if attr in fixture["ATTRIBUT"]:
-            return fixture["ATTRIBUT"][attr]
-
-    if "NAME" in fixture:
-        print("  NO fixture_get_attr_data A",fixture["NAME"],attr)
-    else:
-        print("  NO fixture_get_attr_data B",fixture,attr)
-
-def fixture_order_attr_by_nr(fixture):
-    out1 = []
-    max_nr = 0
-    if "ATTRIBUT" not in fixture:
-        return []
-
-    nrs = {}
-    for at in fixture["ATTRIBUT"]:
-        #print("+   ",at)
-        atd = fixture_get_attr_data(fixture,at)
-        #print("+   ",atd)
-        if not atd:
-            continue
-
-        k = atd["NR"]
-        v = at
-        nrs[k] = v
-        if k > max_nr:
-            max_nr = k
-
-    for i in range(1,max_nr+1):
-        if i not in nrs:
-            v = "EMPTY" #-{}".format(i)
-            nrs[i] = v
-            #print("-: ",v)
-
-
-    nrs_key = list(nrs.keys())
-    nrs_key.sort()
-    #print(nrs_key)
-
-    for k in nrs_key:
-        v = nrs[k]
-        #print("-: ",k,v)
-        out1.append(v)
-
-    #print()
-    return out1 
-
-def _load_fixture_list(mode="None"):
-    blist = []
-
-    if mode == "USER":
-        path = HOME+"/LibreLight/fixtures/"
-
-    elif mode == "GLOBAL":
-        path="/opt/LibreLight/Xdesk/fixtures/"
-
-    elif mode == "IMPORT":
-        path=None 
-
-    _r =  _fixture_load_import_list(path=path)
-    blist.extend( _r )
-    return blist
-
-
-
-
-def FIXTURE_CHECK_SDATA(ID,sdata):
-    print("FIXTURE_CHECK_SDATA",ID)
-    new_f = OrderedDict()
-    #print("++++")
-    for k,j in sdata.items():
-        overide=0 # only for repair
-        if overide:
-            if k in ["TYPE","VENDOR"]: #ignor
-                continue
-        new_f[k] = j
-        if k =="NAME":
-            #print("AAAADDDDDD")
-            if "TYPE" not in sdata and not overide:
-                if len( sdata["ATTRIBUT"]) == 1:
-                    new_f["TYPE"] = "DIMMER"
-                elif "PAN" in sdata["ATTRIBUT"]:
-                    new_f["TYPE"] = "MOVER"
-                elif "RED" in sdata["ATTRIBUT"] and len(sdata["ATTRIBUT"]) == 3:
-                    new_f["TYPE"] = "RGB"
-                elif "RED" in sdata["ATTRIBUT"]:
-                    new_f["TYPE"] = "LED"
-                elif "CYAN" in sdata["ATTRIBUT"]:
-                    new_f["TYPE"] = "COLOR"
-                else:
-                    new_f["TYPE"] = ""
-            if "VENDOR" not in sdata and not overide:
-                new_f["VENDOR"] = ""
-
-        #print(k,j)#,sdata)
-    sdata = new_f
-    if "ACTIVE" not in sdata:
-        sdata["ACTIVE"] = 0
-
-    sdata["ATTRIBUT"]["_ACTIVE"] = OrderedDict()
-    sdata["ATTRIBUT"]["_ACTIVE"]["NR"] = 0
-    sdata["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-    sdata["ATTRIBUT"]["_ACTIVE"]["VALUE"] = 0
-    sdata["ATTRIBUT"]["_ACTIVE"]["FX2"] = {}
-    sdata["ATTRIBUT"]["_ACTIVE"]["FX"] = ""
-
-    if "DIM" not in sdata["ATTRIBUT"]:
-        _tmp = None
-        #print(sdata)
-        vdim_count = 0
-        for a in ["RED","GREEN","BLUE"]:#,"WHITE","AMBER"]:
-            if a in sdata["ATTRIBUT"]:
-                vdim_count +=1
-
-        if vdim_count == 3:
-            _tmp =  {"NR": 0, "MASTER": "0", "MODE": "F", "VALUE": 255, "ACTIVE": 0, "FX": "", "FX2": {}}
-            _tmp = OrderedDict(_tmp)
-            sdata["ATTRIBUT"]["DIM"] =_tmp 
-        print("ADD ---- VDIM",vdim_count,_tmp)
-        #input("STOP")
-
-    for attr in sdata["ATTRIBUT"]:
-        row = sdata["ATTRIBUT"][attr]
-        row["ACTIVE"] = 0
-
-        if "FX" not in row:
-            row["FX"] =""
-        if "FX2" not in row:
-            row["FX2"] = {}
-        if "MASTER" not in row:
-            row["MASTER"] = 0
-
-
-    if "ID" not in sdata:
-        sdata["ID"] = str(ID)
-    return sdata
-
-
-class Fixtures():
-    def __init__(self):
-        #super().__init__() 
-        self.base=Base()
-        #self.load()
-        self.fixtures = OrderedDict()
-        self.gui = GUIHandler()
-
-
-    def load_patch(self):
-        filename="patch"
-        #self.base._init()
-        d,l = self.base._load(filename)
-        self.fixtures = OrderedDict()
-        for i in l:
-            sdata = d[i]
-            #sdata = self._repair_sdata(sdata)
-            sdata = FIXTURE_CHECK_SDATA(i,sdata)
-
-            self.fixtures[str(i)] = sdata
-        #PRESETS.label_presets = l
-        self._re_sort()
-        self.fx_off("all")
-
-    def _re_sort(self):
-        keys = list(self.fixtures.keys())
-        keys2=[]
-        for k in keys:
-            #k = "{:0>5}".format(k)
-            k = int(k)
-            keys2.append(k)
-        keys2.sort()
-        fixtures2 = OrderedDict()
-        for k in keys2:
-            k = str(k)
-            fixtures2[k] = self.fixtures[k]
-
-
-        self.fixtures = fixtures2
-
-    def backup_patch(self,save_as="",new=0):
-        filename = "patch"
-        #self.fx_off("all")
-        data  = self.fixtures
-        labels = {}
-        for k in data:
-            labels[k] = k
-        if new:
-            data = []
-            labels = {}
-        #self.base._init()
-        self.base._backup(filename,data,labels,save_as)
-
-    def fx_get(self,fix=None):
-        out={}
-        if not fix or fix == "all":
-            #self.data.fx.elem[self.attr]["bg"] = "magenta"
-            for fix in self.fixtures:
-                data = self.fixtures[fix]
-                for attr in data["ATTRIBUT"]:
-                    out[str(fix)+"."+str(attr)+".fx"] =  data["ATTRIBUT"][attr]["FX"] 
-                    out[str(fix)+"."+str(attr)+".fx"] =  data["ATTRIBUT"][attr]["FX2"]
-
-        return out
-    def fx_off(self,fix=None):
-        if not fix or fix == "all":
-            #self.data.fx.elem[self.attr]["bg"] = "magenta"
-            for fix in self.fixtures:
-                data = self.fixtures[fix]
-                for attr in data["ATTRIBUT"]:
-                    data["ATTRIBUT"][attr]["FX"] = ""
-                    data["ATTRIBUT"][attr]["FX2"] = OrderedDict()
-
-    def get_attr(self,fix,attr):
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-            if "ATTRIBUT" in data:
-                if attr in data["ATTRIBUT"]:
-                    return data["ATTRIBUT"][attr]
-
-    def get_max_dmx_nr(self,fix):
-        max_dmx = 0
-        used_dmx = 0
-        if fix not in self.fixtures:
-            return (used_dmx,max_dmx)
-
-        data = self.fixtures[fix]
-        used_dmx = len(data["ATTRIBUT"])
-        for a in data["ATTRIBUT"]:
-            attr = data["ATTRIBUT"][a]
-            if "NR" in attr:
-                try:
-                    _n = int(attr["NR"])
-                    if _n > max_dmx:
-                        max_dmx=_n
-                except ValueError:pass
-        return (used_dmx,max_dmx)
-
-    def get_dmx(self,fix,attr):
-        #cprint("get_dmx",[fix,attr], fix in self.fixtures)
-        DMX = -99
-        if attr.startswith("_"):
-            return -88
-
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-            if "DMX" in data:
-                DMX = int(data["DMX"])
-            
-            if DMX <= 0:
-                return DMX # VIRTUAL FIX
-
-            if "UNIVERS" in data:
-                DMX += int(data["UNIVERS"])*512
-
-            adata = self.get_attr(fix,attr)
-
-            if adata:
-                if "NR" in adata:
-                    NR = adata["NR"] 
-                    if NR <= 0:
-                        return -12 # not a VIRTUAL ATTR
-                    else:
-                        DMX+=NR-1
-                    return DMX
-        return -199
-
-    def update_raw(self,rdata,update=1):
-        #cprint("update_raw",len(rdata))
-        cmd = []
-        for i,d in enumerate(rdata):
-            xcmd = {"DMX":""}
-            fix   = d["FIX"]
-            attr  = d["ATTR"]
-            v2    = d["VALUE"]
-            v2_fx = d["FX"]
-
-            if fix not in self.fixtures:
-                continue 
-
-            sdata = self.fixtures[fix] #shortcat
-
-            ATTR  = sdata["ATTRIBUT"] 
-            if attr not in ATTR:
-                continue
-
-            #print(sdata)
-            #print("FIX",fix,attr)
-            sDMX = FIXTURES.get_dmx(fix,attr)
-            #print(sDMX)
-            xcmd["DMX"] = str(sDMX)
-
-            cmd.append(xcmd)
-
-            v=ATTR[attr]["VALUE"]
-            if v2 is not None and update:
-                ATTR[attr]["VALUE"] = v2
-            
-            if d["FX2"] and update:
-                ATTR[attr]["FX2"] = d["FX2"] 
-
-            text = str(attr)+' '+str(round(v,2))
-        return cmd
-
-
-    def encoder(self,fix,attr,xval="",xfade=0,xdelay=0,blind=0):
-        _blind = 0
-        if modes.val("BLIND"):
-            _blind = 1 
-        if blind:
-            _blind = 1
-        
-        if not _blind:
-            cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
-
-        if attr == "CLEAR":
-            self.clear()
-            return 0
-
-        if attr == "ALL":
-            x=self.select(fix,attr,mode="toggle")
-            return x
-
-        if attr == "INV-ATTR":
-            cprint("-x-x-x-x-x-x-x-X-")
-            x=self.select(fix,attr,mode="swap")
-            #x=self.select(fix,"ALL",mode="swap")
-            master.refresh_fix()
-            return x
-        if attr == "INV-FIX":
-            cprint("-x-x-x-x-x-x-x-x-")
-            x=self.select(fix,attr,mode="swap")
-            #x=self.select(fix,"ALL",mode="swap")
-            return x
-        out = []
-
-        #cprint("Fixture.Encoder(...)",fix,attr)
-        if fix not in self.fixtures: 
-            #cprint(" activate Fixture in fixture list on encoder click ")
-
-            ii =0
-            delay=0
-            sstart = time.time()
-            #cprint("  encoder fix  <--")
-            sub_data = []
-            for _fix in self.fixtures:
-                ii+=1
-                data = self.fixtures[_fix]
-                if "-FINE" in attr.upper():
-                    continue
-
-                elif (attr in data["ATTRIBUT"] ) and "-FINE" not in attr.upper()   :
-                    if xval == "click":
-                        self.select(_fix,attr,mode="on")
-                    elif data["ATTRIBUT"][attr]["ACTIVE"]:
-                        if _fix:
-                            sub_data.append([_fix,attr,xval,xfade,delay])
-                if DELAY._is():
-                    delay += DELAY.val()/100
-
-            sub_jdata = []
-            for dd in sub_data:
-                #print("---",len(sub_data),end="")
-                #self.encoder(fix,attr,xval,xfade,delay)
-                _x123 = self.encoder(dd[0],dd[1],dd[2],dd[3],dd[4],blind=1)
-                sub_jdata.append(_x123)
-
-            if sub_jdata:
-                cprint("  SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
-                if not _blind:
-                    jclient_send(sub_jdata) 
-
-            jdata=[{"MODE":ii}]
-            #cprint("  ENCODER j send <--")
-
-            if not _blind:
-               jclient_send(jdata)
-            return sub_jdata  #len(sub_data)
-
-        data = self.fixtures[fix]
-
-        if xval == "click":
-            #cprint(data)
-            return self.select(fix,attr,mode="toggle")
-
-    
-        v2=data["ATTRIBUT"][attr]["VALUE"]
-        change=0
-        increment = 5 #4.11
-        jdata = {"MODE":"ENC"}
-        if xval == "++":
-            v2+= increment
-            jdata["INC"] = increment
-            change=1
-        elif xval == "--":
-            jdata["INC"] = increment*-1
-            v2-= increment
-            change=1
-        elif xval == "+":
-            increment = 0.25 #.5
-            v2+= increment
-            jdata["INC"] = increment
-            change=1
-        elif xval == "-":
-            increment = 0.25 #.5
-            jdata["INC"] = increment*-1
-            v2-= increment
-            change=1
-        elif type(xval) is int or type(xval) is float:
-            v2 = xval 
-            change=1
-
-            
-        if v2 < 0:
-            v2=0
-        elif v2 > 256:
-            v2=256
-
-        jdata["VALUE"]    = round(v2,4)
-        jdata["FIX"]      = fix
-        jdata["FADE"]     = 0
-        jdata["DELAY"]    = 0
-        jdata["ATTR"]     = attr
-        dmx               = FIXTURES.get_dmx(fix,attr)
-        jdata["DMX"]      = dmx
-
-        dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
-        if dmx_fine != jdata["DMX"] and dmx > 0:
-            jdata["DMX-FINE"] = dmx_fine
-
-        out = {} 
-        if 1: #change:
-            data["ATTRIBUT"][attr]["ACTIVE"] = 1
-            data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-            data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
-
-            if xfade:
-                jdata["FADE"] = xfade
-
-            if xdelay:
-                #if attr not in ["PAN","TILT"] and 1:
-                jdata["DELAY"] = xdelay
-
-            if not _blind:
-                jdata = [jdata]
-                jclient_send(jdata)
-                time.sleep(0.001)
-
-        return jdata
-
-    def get_active(self):
-        cprint("get_active",self)
-        CFG = OrderedDict()
-
-        sdata = OrderedDict()
-        sdata["CFG"] = CFG # OrderedDict()
-        sdata["CFG"]["FADE"] = FADE.val()
-        sdata["CFG"]["DEALY"] = 0
-
-        for fix in self.fixtures:                            
-            data = self.fixtures[fix]
-
-            for attr in data["ATTRIBUT"]:
-                if not data["ATTRIBUT"][attr]["ACTIVE"]:
-                    continue
-
-                if fix not in sdata:
-                    sdata[fix] = {}
-
-                if attr not in sdata[fix]:
-                    sdata[fix][attr] = OrderedDict()
-
-                    if not modes.val("REC-FX"):
-                        sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                    else:
-                        sdata[fix][attr]["VALUE"] = None 
-
-                    if "FX" not in data["ATTRIBUT"][attr]: 
-                         data["ATTRIBUT"][attr]["FX"] = ""
-
-                    if "FX2" not in data["ATTRIBUT"][attr]: 
-                         data["ATTRIBUT"][attr]["FX2"] = {}
-                    
-                    sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
-                    sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
-    
-        return sdata
-
-    def _deselect_all(self,fix=None):
-        cprint("FIXTURES._deselect_all()",fix,"ALL",color="yellow")
-        c=0
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-
-            for attr in data["ATTRIBUT"]:
-                #print("SELECT ALL",fix,attr)
-                if "-FINE" in attr.upper():
-                    pass
-                else:
-                    c+=self.select(fix,attr,mode="off",mute=1)
-        
-        return c
-
-    def _select_all(self,fix=None,mode="toggle",mute=0):
-        if not mute:
-            cprint("FIXTURES._select_all()",fix,"ALL",mode,color="yellow")
-        c=0
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-                #print("SELECT ALL",fix,attr)
-                if "-FINE" in attr.upper():
-                    continue
-                
-                if mode == "toggle":
-                    c+=self.select(fix,attr,mode="on",mute=mute)
-                elif mode == "swap":
-                    if not attr.startswith("_"):
-                        c+=self.select(fix,attr,mode="toggle",mute=mute)
-
-            if not c and mode == "toggle": # unselect all
-                c= self._deselect_all(fix=fix)
-        return c 
-
-    def select(self,fix=None,attr=None,mode="on",mute=0):
-        if not mute:
-            cprint("FIXTURES.select() >>",fix,attr,mode,color="yellow")
-        out = 0
-    
-        if fix == "SEL":
-            if attr.upper() == "INV-ATTR":
-                fixs = self.get_active()
-                cprint("selected:",len(fixs))
-                for fix in fixs:
-                    x=self._select_all(fix=fix,mode=mode,mute=1)
-                return None 
-
-        if fix in self.fixtures:
-            if attr.upper() == "ALL":
-                x=self._select_all(fix=fix,mode=mode)
-                return x
-
-            data = self.fixtures[fix]
-            if attr in data["ATTRIBUT"]:
-                if mode == "on":
-                    if not data["ATTRIBUT"][attr]["ACTIVE"]:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 1
-                        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-                        out = 1
-                elif mode == "off":
-                    if data["ATTRIBUT"][attr]["ACTIVE"]:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                        out = 1
-                elif mode == "toggle":
-                    if data["ATTRIBUT"][attr]["ACTIVE"]:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                    else:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 1
-                        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-                    out = 1
-        return out
-
-    def clear(self):
-        out = 0
-        for fix in self.fixtures:
-            data = self.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-                #if attr.endswith("-FINE"):
-                #    continue
-                if data["ATTRIBUT"][attr]["ACTIVE"]:
-                    out +=1
-                data["ATTRIBUT"][attr]["ACTIVE"] = 0
-        return out
 
 
 
@@ -4127,7 +2739,7 @@ def PRESET_CFG_CHECKER(sdata):
 class Presets():
     def __init__(self):
         #super().__init__() 
-        self.base = Base()
+        self.base = baselib.Base()
         #self.load()
         self._last_copy = None
         self._last_move = None
@@ -4628,7 +3240,7 @@ class Window():
 
                     save_window_position()
                     #self.elem.config(activebackground="lightgrey")
-                    LOAD_SHOW_AND_RESTAT("").cb(force=1)
+                    LOAD_SHOW_AND_RESTART("").cb(force=1)
                 #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
                 return
 
@@ -4868,7 +3480,8 @@ window_manager = WindowManager()
 CONSOLE = Console()
 PRESETS = Presets()
 
-FIXTURES = Fixtures()
+FIXTURES = fixlib.Fixtures()
+FIXTURES.gui = GUIHandler()
 
 def LOAD_SHOW():
     PRESETS.load_presets()

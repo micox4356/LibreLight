@@ -1,3 +1,7 @@
+wichtig ! TODO! 
+- remove start * import with namespace import
+# from lib.xx import *  -> import lib.xx as xxlib
+
 
 - Midi Timecode
 - Artnet Timecode

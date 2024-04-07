@@ -2243,8 +2243,8 @@ class MASTER():
 ##draw_sub_dim
 
 
-from tkgui.dialog import *
-dialog = Dialog()
+import tkgui.dialog as dialoglib
+dialog = dialoglib.Dialog()
 
 
 from tkgui.draw import *

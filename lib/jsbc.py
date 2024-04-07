@@ -1,5 +1,12 @@
 #!/usr/bin/python3
 
+import time
+import traceback
+import json
+
+import __main__ as MAIN
+from lib.cprint import *
+
 def JSCB(x,sock=None):
     i = ""
     msg = ""
@@ -15,7 +22,7 @@ def JSCB(x,sock=None):
 
             for msg in msgs:
                 print("  ",msg)
-                # FIXTURES.encoder
+                # MAIN.FIXTURES.encoder
                 if "event" not in msg:
                     continue
 
@@ -31,8 +38,8 @@ def JSCB(x,sock=None):
                         ATTR=msg["ATTR"]
                     print("  Xevent",FIX,VAL,ATTR)
                     #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
-                    #FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
-                    FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
+                    #MAIN.FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
+                    MAIN.FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
 
                     #print(dir(cb))
                     #event =  DEVENT()
@@ -42,7 +49,7 @@ def JSCB(x,sock=None):
                     #refresher_fix.reset() # = Refresher()
                     #cb.cb(event)
                 if "CLEAR" == msg["event"]:
-                    FIXTURES.clear()
+                    MAIN.FIXTURES.clear()
                 if "EXEC" == msg["event"]:
                     print("  EXEC EXEC")
                     val = -1

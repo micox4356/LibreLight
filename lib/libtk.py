@@ -2,6 +2,7 @@
 
 import os
 import time
+
 import tkinter
 tk = tkinter
 
@@ -174,8 +175,8 @@ class Window():
                 if str(event.keysym) == "s":
                     cprint("tTtT ReW "*20)
                     #print("numbersign !!")
-                    PRESETS.backup_presets()
-                    FIXTURES.backup_patch()
+                    MAIN.PRESETS.backup_presets()
+                    MAIN.FIXTURES.backup_patch()
                     libwin.save_window_position()
 
                     e =  master.setup_elem["SAVE\nSHOW"]
@@ -183,18 +184,18 @@ class Window():
                     b = BLINKI(e)
                     b.blink()
                 if str(event.keysym) == "c":
-                    PRESETS.backup_presets()
-                    FIXTURES.backup_patch()
+                    MAIN.PRESETS.backup_presets()
+                    MAIN.FIXTURES.backup_patch()
 
                     libwin.save_window_position()
                     #self.elem.config(activebackground="lightgrey")
-                    LOAD_SHOW_AND_RESTART("").cb(force=1)
+                    MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
                 #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
                 return
 
         if "keysym" in dir(event):
             if "Escape" == event.keysym:
-                FIXTURES.clear()
+                MAIN.FIXTURES.clear()
                 modes.val("ESC",1)
                 master.refresh_fix()
             elif event.keysym in ["Shift_L","Shift_R"]:
@@ -234,7 +235,7 @@ class Window():
                 elif "m" == event.keysym:
                     x=modes.val("MOVE",1)
                     if not x:
-                        PRESETS.clear_move()
+                        MAIN.PRESETS.clear_move()
                 elif "s" == event.keysym:
                     modes.val("SELECT",1)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
@@ -252,8 +253,8 @@ class Window():
                 master.preset_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
                 cprint("numbersign !!")
-                PRESETS.backup_presets()
-                FIXTURES.backup_patch()
+                MAIN.PRESETS.backup_presets()
+                MAIN.FIXTURES.backup_patch()
 
                 libwin.save_window_position()
 
@@ -266,11 +267,11 @@ class Window():
                 #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
                 #e.cb(event=event)
             elif "End" == event.keysym:
-                FIXTURES.fx_off("all")
+                MAIN.FIXTURES.fx_off("all")
                 CONSOLE.fx_off("all")
                 CONSOLE.flash_off("all")
             elif "Delete" == event.keysym:
-                #PRESETS.delete(nr)
+                #MAIN.PRESETS.delete(nr)
                 if value:
                     modes.val("DEL",1)
 

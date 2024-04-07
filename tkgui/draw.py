@@ -18,10 +18,6 @@ def draw_command(gui,xframe,data):
     frame = tk.Frame(frame_cmd,bg="black")
     frame.pack(fill=tk.X, side=tk.TOP)
    
-    # b = tk.Button(frame,bg="lightblue", text="COMM.",width=6)
-    #b.bind("<Button>",Xevent(fix=fix,elem=b).cb)
-    #b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    #r+=1
     c+=1
     gui.commands.elem = {}
     for comm in gui.commands.commands:
@@ -90,14 +86,12 @@ def draw_preset(gui,xframe,PRESETS):
     
     frame = tk.Frame(root,bg="black")
     frame.pack(fill=tk.X, side=tk.TOP)
-    #time.sleep(0.1)
+
     gui.elem_presets = {}
     i=0
     for k in PRESETS.val_presets:
-        #print( PRESETS.val_presets[k])
         if i%(10*8)==0 or i ==0:
             c=0
-            #b = tk.Label(frame,bg="black", text="" )
             b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             r+=1
@@ -115,9 +109,6 @@ def draw_preset(gui,xframe,PRESETS):
         i+=1
         v=0
         label = ""
-        #if k in PRESETS.label_presets:
-        #    label = PRESETS.label_presets[k]
-        #    #print([label])
 
         sdata=PRESETS.val_presets[k]
         BTN="go"
@@ -126,21 +117,15 @@ def draw_preset(gui,xframe,PRESETS):
                 BTN = sdata["CFG"]["BUTTON"]
 
 
-        #bb = tk.Frame(frame, highlightbackground = "red", highlightthickness = 1, bd=0)
-        #bb = tk.Canvas(frame, highlightbackground = "black", highlightthickness = 1, bd=1)
-        #bb.configure(width=70, height=38)
         txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
 
         b = mytklib.ExecButton(frame,text=txt)
 
-        #b = tk.Button(bb,bg="grey", text=txt,width=7,height=2)
         b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
         b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
         
         if k not in gui.elem_presets:
-            #print(b)
             gui.elem_presets[k] = b
-        #b.pack(expand=1)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
         b.config(text="xx")
@@ -150,8 +135,6 @@ def draw_preset(gui,xframe,PRESETS):
             r+=1
     time.sleep(0.1)
     gui._refresh_exec()
-    #gui.refresh_exec()
-    #gui.refresh_exec()
     print("##################################")
 
 
@@ -173,6 +156,7 @@ def draw_input(gui,root2):
     b = tk.Label(frame, text="send:")
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
+    
     b = tk.Entry(frame,bg="grey", text="",width=50)
     gui.entry = b
     b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
@@ -180,6 +164,7 @@ def draw_input(gui,root2):
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
     r+=1
+    
     b = tk.Entry(frame,bg="grey", text="",width=20)
     gui.entry2 = b
     b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
@@ -187,6 +172,7 @@ def draw_input(gui,root2):
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     b.insert("end","d1:0:4")
     r+=1
+
     b = tk.Entry(frame,bg="grey", text="",width=20)
     gui.entry3 = b
     b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
@@ -372,23 +358,16 @@ class GUI_CONF():
         c+=1
         b = tk.Entry(frame,bg="grey", text="",width=50)
         gui.entry = b
-        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        b.insert("end","" ) #d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
+        b.insert("end","" )
         r+=1
         b = tk.Entry(frame,bg="grey", text="",width=20)
         gui.entry2 = b
-        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
-        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         b.insert("end","d1:0:4")
         r+=1
         b = tk.Entry(frame,bg="grey", text="",width=20)
         gui.entry3 = b
-        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-        ##b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         b.insert("end","fx:alloff:::")
 
@@ -407,9 +386,6 @@ class GUI_CONF():
         c+=0
         r+=1
         b1 = tk.Entry(frame,bg="grey", text="",width=50)
-        #gui.entry = b
-        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
         b1.grid(row=r, column=c, sticky=tk.W+tk.E)
         b1.insert("end","fix 1-100 patch @ 2.120")
         r+=1
@@ -423,9 +399,6 @@ class GUI_CONF():
         c+=0
         r+=1
         b2 = tk.Entry(frame,bg="grey", text="",width=50)
-        #gui.entry = b
-        #b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-        #b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
         b2.grid(row=r, column=c, sticky=tk.W+tk.E)
         b2.insert("end","SELECT 33-61 PAN,TILT")
 
@@ -489,14 +462,25 @@ def draw_enc(gui,xframe,data=[]):
     c+=1
 
 def _draw_fx(frame,c,r,gui,mode="FX"):
-    ct  = gui.fx
-    prm = fx_prm
-    if mode=="FX-MOVE":
+    if mode=="FX-MAIN":
+        ct  = gui.fx_main
+        prm = fx_prm_main
+    elif mode=="FX-MOVE":
         ct  = gui.fx_moves
         prm = fx_prm_move
+    elif mode=="FX":
+        ct  = gui.fx
+        prm = fx_prm
     elif mode=="FX-GENERIC":
         ct  = gui.fx_generic
         prm = fx_prm #_generic
+    elif mode=="FX-COLOR":
+        ct  = gui.fx_color
+        prm = fx_color #_generic
+    else:
+        ct = Elem_Container()
+        ct.commands =["err"]
+        prm = ["err"]
 
     for comm in ct.commands:
         if comm == "\n\n":
@@ -554,9 +538,17 @@ def _draw_fx(frame,c,r,gui,mode="FX"):
         if c >=6:
             c=0
             r+=1
+    c=0
+    r+=1
     return c,r
 
 
+def _add_space(frame,r,c):
+    b = tk.Canvas(frame,bg="black", height=2,bd=0,width=6,highlightthickness=0) #,bd="black")
+    b.grid(row=r, column=c, sticky=tk.W+tk.E)
+    r+=1
+    c=0
+    return r,c
 
 def draw_fx(gui,xframe,data=[]):
     frame_fx=xframe
@@ -567,27 +559,30 @@ def draw_fx(gui,xframe,data=[]):
     frame = tk.Frame(frame_fx,bg="black")
     frame.pack(fill=tk.X, side=tk.TOP)
    
+    # ------------------------------
     b = tk.Button(frame,bg="lightblue", text="FX.",width=6)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
+
     thread.start_new_thread(mytklib.tk_btn_bg_loop,(b,))
+    # ------------------------------
 
+
+    _add_space(frame,r,c)
+    c,r = _draw_fx(frame,c,r,gui,mode="FX-MAIN")
+
+    r,c=_add_space(frame,r,c)
     c,r = _draw_fx(frame,c,r,gui,mode="FX-MOVE")
-    r+=1
 
-    b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    r+=1
-    c=0
-
+    r,c=_add_space(frame,r,c)
     c,r = _draw_fx(frame,c,r,gui,mode="FX")
 
-    b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
-    b.grid(row=r, column=c, sticky=tk.W+tk.E)
-    r+=1
-    c=0
-
+    r,c=_add_space(frame,r,c)
+    r,c=_add_space(frame,r,c)
     c,r = _draw_fx(frame,c,r,gui,mode="FX-GENERIC")
+
+    r,c=_add_space(frame,r,c)
+    c,r = _draw_fx(frame,c,r,gui,mode="FX-COLOR")
 
 
 def draw_setup(gui,xframe,data):

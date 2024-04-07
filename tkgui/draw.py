@@ -581,8 +581,8 @@ def draw_fx(gui,xframe,data=[]):
     r,c=_add_space(frame,r,c)
     c,r = _draw_fx(frame,c,r,gui,mode="FX-GENERIC")
 
-    r,c=_add_space(frame,r,c)
-    c,r = _draw_fx(frame,c,r,gui,mode="FX-COLOR")
+    #r,c=_add_space(frame,r,c)
+    #c,r = _draw_fx(frame,c,r,gui,mode="FX-COLOR")
 
 
 def draw_setup(gui,xframe,data):

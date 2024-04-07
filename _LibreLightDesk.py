@@ -2630,7 +2630,7 @@ class MASTER():
                 ,"SIZE:\n","SPEED:\n","START:\n","OFFSET:\n","BASE:\n-","2D-X:\n-","2D:MODE"
                 ]
         self.fx_generic = Elem_Container()
-        self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON","FX:STATIC"]
+        self.fx_generic.commands =["FX:SIN","FX:COS","FX:RAMP","FX:RAMP2","FX:FD","FX:ON"]#,"FX:STATIC"]
 
         self.fx_color = Elem_Container()
         self.fx_color.commands =["FX:RED","FX-C:A","FX-C:B"] 

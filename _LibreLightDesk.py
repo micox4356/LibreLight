@@ -2,21 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-This file is part of LibreLight.
-
-LibreLight is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 2 of the License.
-
-LibreLight is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with LibreLight.  If not, see <http://www.gnu.org/licenses/>.
-
 (c) 2012 micha@librelight.de
+
+SPDX-License-Identifier: GPL-2.0-only
 """
 import random
 import subprocess
@@ -39,6 +27,7 @@ if __name__ == "__main__":
 
 import tool.movewin as movewin
 import lib.fixlib as  fixlib
+import lib.libwin as libwin
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
@@ -152,34 +141,6 @@ except Exception as e:
     cprint("Exception:",e)
 
 
-def showwarning(msg="<ERROR>",title="<TITLE>"):
-    cprint("showwarning","MSG:",msg,"tilte:",title)
-
-    if IS_GUI:
-        _main = tkinter.Tk()
-        defaultFont = tkinter.font.nametofont("TkDefaultFont")
-
-        cprint("showwarning",defaultFont)
-
-    if IS_GUI:
-        defaultFont.configure(family="FreeSans",
-                               size=10,
-                               weight="normal")
-        
-        geo ="{}x{}".format(20,20)
-        _main.geometry(geo)
-        def _quit():
-            time.sleep(1/10)
-            _main.quit()
-        thread.start_new_thread(_main.mainloop,())
-        #_main.quit()
-
-        #msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
-        #msg += "please check\n"
-        #msg += "-{}init.txt\n".format(self.show_path0)
-        #msg += "-{}".format(self.show_path1)
-
-        r=tkinter.messagebox.showwarning(message=msg,title=title,parent=None)
 
 
 CUES    = OrderedDict()
@@ -376,92 +337,14 @@ class DEVENT():
         self.num = 1
         self.type = ""
 
-def JSCB(x,sock=None):
-    i = ""
-    msg = ""
-    msgs = []
-    try:
-        #print("JSCB",sock)
-        for i in x:
-            #print("i",[i])
-            msgs = json.loads(i)
-            print(" JSCB",msgs) #,sock)
-            if type(msgs) is not list:
-                continue
-
-            for msg in msgs:
-                print("  ",msg)
-                # FIXTURES.encoder
-                if "event" not in msg:
-                    continue
-
-                if "FIXTURES" == msg["event"]:
-                    FIX=0
-                    VAL=""
-                    ATTR=""
-                    if "FIX" in msg:
-                        FIX=msg["FIX"]
-                    if "VAL" in msg:
-                        VAL=msg["VAL"]
-                    if "ATTR" in msg:
-                        ATTR=msg["ATTR"]
-                    print("  Xevent",FIX,VAL,ATTR)
-                    #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
-                    #FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
-                    FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
-
-                    #print(dir(cb))
-                    #event =  DEVENT()
-                    #event.num = enum
-
-                    #master.refresh_fix() # delayed
-                    #refresher_fix.reset() # = Refresher()
-                    #cb.cb(event)
-                if "CLEAR" == msg["event"]:
-                    FIXTURES.clear()
-                if "EXEC" == msg["event"]:
-                    print("  EXEC EXEC")
-                    val = -1
-                    exec_nr = -1
-                    try:
-                        if "VAL" in msg:
-                            val = int(msg["VAL"])
-                        if "EXEC" in msg:
-                            exec_nr = int(msg["EXEC"])
-                        if val >= 0 and exec_nr > 0:
-                            print("PRESET_GOOO",exec_nr,val)
-                            s = time.time()
-                            master.preset_go(exec_nr-1,xfade=None,val=val)
-                            e = time.time()
-                            #print("time:",e-s,e)
-                            #print("TIME:",int((e-s)*1000),int(e*10)-1_703_800_000)
-                            #print("TIME:",int((e-s)*1000),int(e*10)/10)
-                            print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
-                            print()
-
-                    except Exception as e:
-                        print("EXEC ERR:",e)
-            
-    except Exception as e:
-        cprint("exception JSCB:",e)
-        cprint("- i:",i)
-        cprint("- msg:",msgs)
-        cprint(traceback.format_exc(),color="red")
-        if sock:
-            msg = ["Notice: Exception on JSCB-SERVER: ",str(e)]
-            msg = json.dumps(msg)
-            msg = bytes(msg,"utf8")
-            chat._send(sock,msg)
-
-    #time.sleep(1/60)
-
+import lib.jsbc as JSBC
 
 if __name__ == "__main__":
     # external GUI
-    r_server = chat.Server(port=30003,cb=JSCB)
+    r_server = chat.Server(port=30003,cb=JSBC.JSCB)
     def server_loop():
         while 1:
-            r_server.poll(cb=JSCB)
+            r_server.poll(cb=JSBC.JSCB)
             #time.sleep(1/90)
     thread.start_new_thread(server_loop,()) # SERVER
 
@@ -1228,188 +1111,6 @@ class Xevent_fx():
             cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
             cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
         return 1 
-        
-
-window_list_buffer = {}
-
-def save_window_position(save_as=""):
-    global window_list_buffer
-    cprint()
-    cprint("save_window_position",[save_as])
-
-    base = baselib.Base()
-    fname = HOME+"/LibreLight"
-    fname = base.show_path1 +base.show_name 
-    if save_as:
-        fname = save_as 
-    fname +=  "/gui.txt"
-    cprint("- fname",fname)
-
-    for k in window_list_buffer:
-        window_list_buffer[k][0] = 0   
-
-    for k,win in window_manager.windows.items():
-        try:
-            geo = win.tk.geometry()
-            data = [1,k,geo]
-            if k not in  window_list_buffer:
-                cprint("-- new:win:pos",k.ljust(15," "),data)
-            elif window_list_buffer[k][2] != geo:
-                cprint("-- update:win:pos",k.ljust(15," "),data)
-            window_list_buffer[k] = data
-
-            if k in ["PATCH","FIXTURES","DIMMER","FIXTURE-EDITOR","CONFIG"]:
-                window_list_buffer[k][0] = 0   
-
-        except Exception as e:
-            cprint("-A save_window_position Exception:",k,e,color="red")
-
-    lines = ""
-    for k,data in window_list_buffer.items():
-        try:
-            #print("-- save:win:pos",k.ljust(15," "),data)
-            if not data[2]:
-                continue
-            line ="{} {} {}\n"
-            line = line.format(data[0],k,data[2])
-            lines += line
-        except Exception as e:
-            cprint("-A save_window_position Exception:",e,color="red")
-
-    try:
-        f = open(fname,"w")
-        f.write( lines )
-    except Exception as e:
-        cprint("-B save_window_position Exception:",e,color="red")
-    finally:
-        f.close() #f.flush()
-
-
-
-def save_window_position_loop(): # like autosave
-    def loop():
-        time.sleep(20)
-        try:
-            while 1:
-                save_window_position()
-                time.sleep(60)
-        except Exception as e:
-            cprint("save_loop",e)
-    thread.start_new_thread(loop,())
-
-def get_window_position(_filter="",win=None):
-    global window_list_buffer
-    cprint()
-    show = None
-    k = _filter
-    geo = ""
-
-    cprint("get_window_position",[_filter])
-    if _filter in window_list_buffer:
-        show,k,geo  = window_list_buffer[_filter]
-        if win:
-            win.tk.geometry(geo)
-    return show,k,geo
-
-
-def read_window_position():
-    try:
-        base = baselib.Base()
-        fname = HOME+"/LibreLight"
-        fname = base.show_path1 +base.show_name 
-        fname +=  "/gui.txt"
-        cprint("- fname:",fname)
-        f = open(fname,"r")
-        lines = f.readlines()
-        f.close()
-        out = []
-        for line in lines:
-            line = line.strip()
-            #print(line)
-            if " " in line:
-                if line.count(" ") >= 2:
-                    show,name,geo = line.split(" ",2)
-                elif line.count(" ") == 1:
-                    name,geo = line.split(" ",1)
-                    show = 1
-
-                if "--easy" in sys.argv:
-                    if name not in ["MAIN","EXEC","SETUP"]:
-                        show=0
-            out.append([show,name,geo])
-
-        return out
-    except Exception as e:
-        cprint("- load_window_position 345 Exception:",e,color="red")
-        return 
-    return []
-
-def split_window_show(lines,_filter=""):
-    try:
-        for show,name,geo in lines:
-            #print( "wwWww "*10,[show,name,geo] )
-            if _filter in name:
-                return int(show)
-    except Exception as e:
-        cprint("- split_window_show 345 Exception:",e,color="red")
-
-def split_window_position(lines,_filter=""):
-    try:
-        for show,name,geo in lines:
-            #print( "wwWww "*10,[show,name,geo] )
-            if _filter in name:
-                geo = geo.replace("+"," ")
-                geo = geo.replace("x"," ")
-                geo = geo.split()
-                #print( "wwWww "*10,[show,name,geo] )
-                if len(geo) == 4:
-                    #print( [show,name,geo] )
-                    args = {}
-                    args["width"]  = int(geo[0])
-                    args["height"] = int(geo[1])
-                    args["left"]   = int(geo[2])
-                    args["top"]    = int(geo[3])
-                    return args
-    except Exception as e:
-        cprint("- split_window_position 345 Exception:",e,color="red")
-
-
-
-def load_window_position(_filter=""):
-    print()
-    global window_list_buffer
-    cprint()
-    cprint("load_window_position",[_filter])
-    try:
-        lines = read_window_position()
-
-        data = {}
-        for show,name,geo in lines:
-            data[name] = [show,name,geo]
-            window_list_buffer[name] = [show,name,geo]
-
-        for name,win in window_manager.windows.items():
-            if not win:
-                continue
-
-            if name not in data:
-                continue
-
-            if _filter:
-                if _filter != name:
-                    continue
-
-            w = data[name][2] 
-
-            print("  set_win_pos","filter:",[_filter],"Name: {:<20}".format(name),w,win)
-            try:
-                win.tk.geometry(w)
-            except Exception as e:
-                cprint("- load_window_position 544 Exception:",e,color="red")
-
-    except Exception as e:
-        cprint("- load_window_position 345 Exception:",e,color="red")
-        return 
  
 class BLINKI():
     def __init__(self,e):
@@ -1449,7 +1150,7 @@ class Xevent():
         modes.val(self.attr,1)
         PRESETS.backup_presets()
         FIXTURES.backup_patch()
-        save_window_position()
+        libwin.save_window_position()
         self.elem["bg"] = "lightgrey"
         self.elem.config(activebackground="lightgrey")
         b = BLINKI(self.elem)
@@ -1476,7 +1177,7 @@ class Xevent():
                             cprint("-----------------------:")
                             LOAD_SHOW_AND_RESTART(self.name).cb()
 
-                pw = PopupList(name,cb=cb)
+                pw = libtk.PopupList(name,cb=cb)
                 print(line1,line2)
                 frame = pw.sframe(line1=line1,line2=line2)
                 r = frame_of_show_list(frame,cb=cb)
@@ -1497,7 +1198,7 @@ class Xevent():
                         b=FIXTURES.backup_patch(save_as=fpath,new=1)
                         #base._set(fname)
                         
-                        save_window_position(save_as=fpath)
+                        libwin.save_window_position(save_as=fpath)
                         LOAD_SHOW_AND_RESTART(fname).cb() 
                 dialog._cb = _cb
                 dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
@@ -1518,7 +1219,7 @@ class Xevent():
                         b=FIXTURES.backup_patch(save_as=fpath)
                         #base._set(fname)
                         
-                        save_window_position(save_as=fpath)
+                        libwin.save_window_position(save_as=fpath)
                         LOAD_SHOW_AND_RESTART(fname).cb() 
                 dialog._cb = _cb
                 dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
@@ -1531,7 +1232,7 @@ class Xevent():
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
 
-                save_window_position()
+                libwin.save_window_position()
                 self.elem["text"] = "RESTARTING..."
                 self.elem["bg"] = "lightgrey"
                 self.elem.config(activebackground="lightgrey")
@@ -2579,63 +2280,8 @@ class LOAD_SHOW_AND_RESTART():
         os.execl("/usr/bin/python3", BASE_PATH, cmd,arg)
         sys.exit()
                 
-class PopupList():
-    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=_POS_LEFT+400,top=_POS_TOP+100,cb=None,bg="black"):
-        self.name = name
-        self.frame = None
-        self.bg=bg
-        self.cb = cb
-        if cb is None: 
-            cb = DummyCallback #("load_show_list.cb")
-        #w = Window(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
-        args = {"title":self.name,"master":master,"width":width,"height":height,"exit":exit,"left":left,"top":top,"cb":cb}
-        w = Window(args)
-        self.w = w
-        w.show()
-    def sframe(self,line1="<line1>",line2="<line2>",data=[]):
-
-        xframe=self.w.tk
-        if self.bg:
-            xframe.configure(bg=self.bg)
-            self.w.tk.configure(bg=self.bg)
-        c=0
-        r=0
-
-        b = tk.Label(xframe,bg="grey",text=line1,anchor="w")
-        b.pack(side="top",expand=0,fill="x" ) 
 
 
-        b = tk.Label(xframe,bg="grey",text=line2,anchor="w")
-        b.pack(side="top",expand=0,fill="x" ) 
-
-        b = tk.Label(xframe,bg="black",fg="black",text="")
-        if self.bg:
-            b.configure(fg=self.bg)
-            b.configure(bg=self.bg)
-        b.pack(side="top") 
-
-        b = tk.Entry(xframe,width=10,text="")#,anchor="w")
-        b.pack(side="top",expand=0,fill="x") 
-        b["state"] = "readonly"
-        b.focus()
-
-
-        #frame = tk.Frame(xframe,heigh=2800)
-        #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
-
-        frame = ScrollFrame(xframe,width=300,height=500,bd=1,bg=self.bg)
-        #frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP) 
-        #self.frame = frame
-        self.w.tk.state(newstate='normal')
-        self.w.tk.attributes('-topmost',True)
-        return frame
-
-
-class DummyCallback():
-    def __init__(self,name="name"):
-        self.name = name
-    def cb(self,event=None):
-        cprint("DummyCallback.cb",[self.name,event])
 
 class BaseCallback():
     def __init__(self,cb=None,args={}):
@@ -3030,7 +2676,7 @@ class FixtureEditor():
 
         jclient_send(j)
 
-class MasterWing():
+class MasterWingX():
     def __init__(self,dmx=1):
         pass
         self.elem=[]
@@ -3069,265 +2715,6 @@ from tkinter import PhotoImage
 
 _shift_key = 0
 
-class on_focus():
-    def __init__(self,name,mode):
-        self.name = name
-        self.mode = mode
-    def cb(self,event=None):
-        print("on_focus",event,self.name,self.mode)
-        try:
-            e = master.commands.elem["."]
-        except:pass
-
-        if self.mode == "Out":
-            cmd="xset -display :0.0 r rate 240 20"
-            print(cmd)
-            os.system(cmd)
-            try:
-                e["bg"] = "#aaa"
-                e["activebackground"] = "#aaa"
-            except:pass
-        if self.mode == "In":
-            cmd = "xset -display :0.0 r off"
-            print(cmd)
-            os.system(cmd)
-            try:
-                e["bg"] = "#fff"
-                e["activebackground"] = "#fff"
-            except:pass
-
-class Window():
-    def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
-        global lf_nr
-        self.args = {"title":"title","master":0,"width":100,"height":100,"left":None,"top":None,"exit":0,"cb":None,"resize":1}
-        self.args.update(args)
-        
-        cprint("Window.init()",id(self.args),color="yellow")
-        cprint("  ",self.args,color="yellow")
-
-        ico_path="./icon/"
-        self.cb = cb
-
-        if self.args["master"]: 
-            self.tk = tkinter.Tk()
-            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
-            self.tk.withdraw() # do not draw
-            self.tk.resizable(self.args["resize"],self.args["resize"])
-            defaultFont = tkinter.font.nametofont("TkDefaultFont")
-            cprint(defaultFont)
-            defaultFont.configure(family="FreeSans",
-                                   size=10,
-                                   weight="bold")
-            # MAIN MENUE
-            try:
-                self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
-            except Exception as e:
-                cprint("Exception GUIWindow.__init__",e)
-        else:
-            # addtional WINDOW
-            self.tk = tkinter.Toplevel()
-            self.tk.iconify()
-            #self.tk.withdraw() # do not draw
-            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
-            self.tk.resizable(self.args["resize"],self.args["resize"])
-            
-            try:
-                if "COLORPICKER" in self.args["title"]:
-                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"picker.png"))
-                elif "ENCODER" in self.args["title"]:
-                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"enc.png"))
-                elif "EXEC" in self.args["title"]:
-                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"exec.png"))
-                elif "FX" in self.args["title"]:
-                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"fx.png"))
-                else:
-                    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
-            except Exception as e:
-                cprint("Exception on load window icon",self.args["title"])
-                cprint("Exception:",e)
-            #time.sleep(3)
-            self.tk.deiconify()
-
-
-
-        self.tk["bg"] = "black"
-        self.tk.bind("<Button>",self.callback)
-        self.tk.bind("<Key>",self.callback)
-        self.tk.bind("<KeyRelease>",self.callback)
-        self.tk.bind("<FocusIn>", on_focus(self.args["title"],"In").cb)
-        self.tk.bind("<FocusOut>", on_focus(self.args["title"],"Out").cb)
-
-        self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
-        lf_nr+=1
-        #self.tk.geometry("270x600+0+65")
-        geo ="{}x{}".format(self.args["width"],self.args["height"])
-        if self.args["left"] is not None:
-            geo += "+{}".format(self.args["left"])
-            if self.args["top"] is not None:
-                geo += "+{}".format(self.args["top"])
-
-        #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
-        self.tk.geometry(geo)
-        self.show()
-    def update_idle_task(self):
-        if INIT_OK:
-            tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-        pass
-    def close_app_win(self,event=None):
-        cprint("close_app_win",self,event,self.args["title"],color="red")
-        if exit:
-            if self.title == "MAIN":
-               save_window_position()
-            save_window_position()
-            
-            self.tk.destroy()
-        try:
-            self.cb("<exit>").cb()
-        except Exception as e:
-            cprint("EXCETPION: close_app_win",e,self,color="red")
-
-    def title(self,title=None):
-        if title is None:
-            return self.tk.title()
-        else:
-            #return self.tk.title(title)
-            self.args["title"] = title
-            return self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
-    def show(self):
-        self.tk.deiconify()
-        pass
-    def mainloop(self):
-        #save_window_position_loop() #like autosave
-        try:
-            self.tk.mainloop()
-        finally:
-            self.tk.quit()
-            cmd="xset -display :0.0 r rate 240 15"
-            print(cmd)
-            os.system(cmd)
-
-    def callback(self,event,data={}):#value=255):
-        global _global_short_key
-        sstart = time.time()
-        #time.sleep(0.1)
-        if not _global_short_key:
-            return 1
-
-        global _shift_key
-        #cprint("<GUI>",event,color="yellow")
-        value = 255
-        if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
-            value = 0
-        cprint("<GUI>",event.state,data,value,[event.type,event.keysym],color="yellow")
-        #print(event)
-        if "state" in dir(event) and "keysym" in dir(event):
-            #print([event.state,event.keysym,event.type])
-            if event.state == 4  and str(2) == str(event.type): # strg + s
-                if str(event.keysym) == "s":
-                    cprint("tTtT ReW "*20)
-                    #print("numbersign !!")
-                    PRESETS.backup_presets()
-                    FIXTURES.backup_patch()
-                    save_window_position()
-
-                    e =  master.setup_elem["SAVE\nSHOW"]
-                    #print(e)
-                    b = BLINKI(e)
-                    b.blink()
-                if str(event.keysym) == "c":
-                    PRESETS.backup_presets()
-                    FIXTURES.backup_patch()
-
-                    save_window_position()
-                    #self.elem.config(activebackground="lightgrey")
-                    LOAD_SHOW_AND_RESTART("").cb(force=1)
-                #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
-                return
-
-        if "keysym" in dir(event):
-            if "Escape" == event.keysym:
-                FIXTURES.clear()
-                modes.val("ESC",1)
-                master.refresh_fix()
-            elif event.keysym in ["Shift_L","Shift_R"]:
-                #cprint(event.type)
-                if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
-                    _shift_key = 0
-                else:
-                    _shift_key = 1
-                #cprint("SHIFT_KEY",_shift_key,"??????????")
-                #cprint("SHIFT_KEY",_shift_key,"??????????")
-                global _ENCODER_WINDOW
-                try:
-                    if _shift_key:
-                        _ENCODER_WINDOW.title("SHIFT/FINE ")
-                    else:
-                        _ENCODER_WINDOW.title("ENCODER") 
-                except Exception as e:
-                    cprint("exc9800",e)
-
-            elif event.keysym in "ebfclrmsRx" and value: 
-                if "e" == event.keysym:
-                    modes.val("EDIT",1)
-                elif "b" == event.keysym:
-                    modes.val("BLIND",1)
-                elif "f" == event.keysym:
-                    modes.val("FLASH",1)
-                elif "c" == event.keysym:
-                    modes.val("CFG-BTN",1)
-                elif "l" == event.keysym:
-                    modes.val("LABEL",1)
-                elif "r" == event.keysym:
-                    modes.val("REC",1)
-                elif "R" == event.keysym:
-                    modes.val("REC-FX",1)
-                elif "x" == event.keysym:
-                    modes.val("REC-FX",1)
-                elif "m" == event.keysym:
-                    x=modes.val("MOVE",1)
-                    if not x:
-                        PRESETS.clear_move()
-                elif "s" == event.keysym:
-                    modes.val("SELECT",1)
-            elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
-                nr = int( event.keysym[1:]) # F:1-12
-                nr = nr-1+81  
-                cprint("F-KEY",value,nr,event.keysym)
-                #print(event)
-                master.preset_go(nr-1,xfade=None,val=value)
-            elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
-                nr = int( event.keysym)
-                if nr == 0:
-                    nr = 10
-                nr = nr-1+161  
-                cprint("NUM-KEY",value,nr)
-                master.preset_go(nr-1,xfade=None,val=value)
-            elif "numbersign" == event.keysym and value: # is char "#"
-                cprint("numbersign !!")
-                PRESETS.backup_presets()
-                FIXTURES.backup_patch()
-
-                save_window_position()
-
-                for e in master.setup_cmd:
-                    cprint(e)
-                e =  master.setup_elem["SAVE\nSHOW"]
-                cprint(e)
-                b = BLINKI(e)
-                b.blink()
-                #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
-                #e.cb(event=event)
-            elif "End" == event.keysym:
-                FIXTURES.fx_off("all")
-                CONSOLE.fx_off("all")
-                CONSOLE.flash_off("all")
-            elif "Delete" == event.keysym:
-                #PRESETS.delete(nr)
-                if value:
-                    modes.val("DEL",1)
-
-        cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
- 
 class WindowManager():
     def __init__(self):
         self.windows = {}
@@ -3406,7 +2793,7 @@ class WindowManager():
                 if not c.args["resize"]:
                     resize = 0
             #if resize:
-            get_window_position(_filter=name,win=w) 
+            libwin.get_window_position(_filter=name,win=w) 
 
             if name in ["ENCODER"]:
                 global _ENCODER_WINDOW 
@@ -3614,7 +3001,7 @@ class window_create_buffer():
         cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
 
         obj = None
-        w = Window(self.args)
+        w = libtk.Window(self.args)
         out = []
         f = None
         h = None
@@ -3658,12 +3045,13 @@ if __run_main:
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager
 
-    pos_list = read_window_position()
+    pos_list = libwin.read_window_position()
     
 
     data = []
     #data.append({"text":"COMMAND"})
     #data.append({"text":"CONFIG"})
+
     data.append({"text":"PATCH"})
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})
@@ -3683,12 +3071,13 @@ if __run_main:
     data.append({"text":"SDL-MIDI"})
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
-    #data.append({"text":"SDL-FIX"})
+
+    #data.append({"text":"MASTER-WING"})
 
     name="MAIN"
     args = {"title":"MAIN","master":1,"width":80,"height":H1,"left":L0,"top":TOP,"resize":1}
 
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3707,7 +3096,7 @@ if __run_main:
     # --------------------------------
     name="EXEC"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3718,7 +3107,7 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
@@ -3738,7 +3127,7 @@ if __run_main:
         return [None,None,None]
     #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3748,7 +3137,7 @@ if __run_main:
 
     c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name="SDL-DMX"
@@ -3764,7 +3153,7 @@ if __run_main:
         return [None,None,None]
     #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3774,7 +3163,7 @@ if __run_main:
 
     c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
@@ -3790,7 +3179,7 @@ if __run_main:
         return [None,None,None]
     #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3800,13 +3189,13 @@ if __run_main:
 
     c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     name="CONFIG"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3816,13 +3205,13 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     name="DIMMER"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3832,13 +3221,13 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     name="FIXTURES"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3848,14 +3237,14 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     # -------------------------------
     name="FIXTURE-EDITOR"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3875,7 +3264,7 @@ if __run_main:
     # -------------------------------
     name="MASTER-WING"
     args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220,"resize":0}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
 
@@ -3888,14 +3277,14 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     # -------------------------------
     name="EXEC-WING"
     args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     data=[]
@@ -3907,13 +3296,13 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     name="ENCODER"
     args = {"title":name,"master":0,"width":620,"height":113,"left":L0+710,"top":TOP+H1+15+HTB*2}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     cls = draw_enc #(master,w.tk)#Xroot)
@@ -3922,14 +3311,14 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name = "SETUP"
     args = {"title":name +" SHOW:"+master.base.show_name,
                 "master":0,"width":445,"height":42,"left":L1+10+W1,"top":TOP,"resize":10}
     args["title"]  = "SETUP SHOW:"+master.base.show_name
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     try:
         geo["width"] = args["width"]
         geo["height"] = args["height"]
@@ -3944,13 +3333,13 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     name = "COMMAND"
     args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":10}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     cls = draw_command #(master,w.tk)
@@ -3959,12 +3348,12 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name = "LIVE"
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":10}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     cls = draw_live #(master,w.tk)
@@ -3973,12 +3362,12 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name = "CLOCK"
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     cclock = X_CLOCK()
@@ -3988,12 +3377,12 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name="FX"
     args = {"title":name,"master":0,"width":415,"height":297+30,"left":L1+10+W1,"top":TOP+302,"resize":1}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     cls = draw_fx #(master,w.tk)
@@ -4002,13 +3391,13 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
 
     name="PATCH"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP,"foot":1,"head":1}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
     cls = GUI_PATCH
@@ -4016,15 +3405,15 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c) #,obj)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name="COLORPICKER"
     args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
-    geo = split_window_position(pos_list,name)
+    geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
-    #w = Window(args)
+    #w = libtk.Window(args)
     #draw_colorpicker(master,w.tk,FIXTURES,master)
     cls = draw_colorpicker #(master,w.tk,FIXTURES,master)
     data = [FIXTURES,master]
@@ -4032,11 +3421,11 @@ if __run_main:
 
     c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    if split_window_show(pos_list,_filter=name):
+    if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     name="TableA"
-    #w = Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #w = libtk.Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     #space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
     #x=TableFrame(root=w.tk)#,left=80,top=620)
     #w.show()

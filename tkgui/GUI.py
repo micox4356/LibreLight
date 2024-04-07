@@ -11,7 +11,7 @@ from lib.cprint import *
 import lib.mytklib as mytklib
 import lib.fixlib as fixlib
 import lib.baselib as baselib
-
+import lib.libtk as libtk
 
 class Event():
     def __init__(self,name):
@@ -1323,7 +1323,7 @@ class GUI_FixtureEditor():
         line3="CHOOS to EDIT >> DEMO MODUS"
 
         cb = None #LOAD_FIXTURE(self,"USER").cb 
-        self.pw = baselib.PopupList(name,width=600,cb=cb,left=_M._POS_LEFT+620,bg="#333")
+        self.pw = libtk.PopupList(name,width=600,cb=cb,left=MAIN._POS_LEFT+620,bg="#333")
         frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
 
 

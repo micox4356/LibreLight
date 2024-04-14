@@ -19,7 +19,7 @@ class on_focus():
     def cb(self,event=None):
         print("on_focus",event,self.name,self.mode)
         try:
-            e = master.commands.elem["."]
+            e = MAIN.master.commands.elem["."]
         except:pass
 
         if self.mode == "Out":
@@ -179,9 +179,9 @@ class Window():
                     MAIN.FIXTURES.backup_patch()
                     libwin.save_window_position()
 
-                    e =  master.setup_elem["SAVE\nSHOW"]
+                    e =  MAIN.master.setup_elem["SAVE\nSHOW"]
                     #print(e)
-                    b = BLINKI(e)
+                    b = MAIN.BLINKI(e)
                     b.blink()
                 if str(event.keysym) == "c":
                     MAIN.PRESETS.backup_presets()
@@ -196,8 +196,8 @@ class Window():
         if "keysym" in dir(event):
             if "Escape" == event.keysym:
                 MAIN.FIXTURES.clear()
-                modes.val("ESC",1)
-                master.refresh_fix()
+                MAIN.modes.val("ESC",1)
+                MAIN.master.refresh_fix()
             elif event.keysym in ["Shift_L","Shift_R"]:
                 #cprint(event.type)
                 if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
@@ -217,40 +217,40 @@ class Window():
 
             elif event.keysym in "ebfclrmsRx" and value: 
                 if "e" == event.keysym:
-                    modes.val("EDIT",1)
+                    MAIN.modes.val("EDIT",1)
                 elif "b" == event.keysym:
-                    modes.val("BLIND",1)
+                    MAIN.modes.val("BLIND",1)
                 elif "f" == event.keysym:
-                    modes.val("FLASH",1)
+                    MAIN.modes.val("FLASH",1)
                 elif "c" == event.keysym:
-                    modes.val("CFG-BTN",1)
+                    MAIN.modes.val("CFG-BTN",1)
                 elif "l" == event.keysym:
-                    modes.val("LABEL",1)
+                    MAIN.modes.val("LABEL",1)
                 elif "r" == event.keysym:
-                    modes.val("REC",1)
+                    MAIN.modes.val("REC",1)
                 elif "R" == event.keysym:
-                    modes.val("REC-FX",1)
+                    MAIN.modes.val("REC-FX",1)
                 elif "x" == event.keysym:
-                    modes.val("REC-FX",1)
+                    MAIN.modes.val("REC-FX",1)
                 elif "m" == event.keysym:
-                    x=modes.val("MOVE",1)
+                    x=MAIN.modes.val("MOVE",1)
                     if not x:
                         MAIN.PRESETS.clear_move()
                 elif "s" == event.keysym:
-                    modes.val("SELECT",1)
+                    MAIN.modes.val("SELECT",1)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
                 nr = int( event.keysym[1:]) # F:1-12
                 nr = nr-1+81  
                 cprint("F-KEY",value,nr,event.keysym)
                 #print(event)
-                master.preset_go(nr-1,xfade=None,val=value)
+                MAIN.master.preset_go(nr-1,xfade=None,val=value)
             elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
                 nr = int( event.keysym)
                 if nr == 0:
                     nr = 10
                 nr = nr-1+161  
                 cprint("NUM-KEY",value,nr)
-                master.preset_go(nr-1,xfade=None,val=value)
+                MAIN.master.preset_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
                 cprint("numbersign !!")
                 MAIN.PRESETS.backup_presets()
@@ -258,11 +258,11 @@ class Window():
 
                 libwin.save_window_position()
 
-                for e in master.setup_cmd:
+                for e in MAIN.master.setup_cmd:
                     cprint(e)
-                e =  master.setup_elem["SAVE\nSHOW"]
+                e =  MAIN.master.setup_elem["SAVE\nSHOW"]
                 cprint(e)
-                b = BLINKI(e)
+                b = MAIN.BLINKI(e)
                 b.blink()
                 #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
                 #e.cb(event=event)
@@ -273,7 +273,7 @@ class Window():
             elif "Delete" == event.keysym:
                 #MAIN.PRESETS.delete(nr)
                 if value:
-                    modes.val("DEL",1)
+                    MAIN.modes.val("DEL",1)
 
         cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
  

@@ -431,36 +431,86 @@ class FX():
                 size *= -1
 
             v/=2
+
+
         elif self.__xtype == "rnd":
+            #base = 0
             if self.__angel > 90 and self.__angel <=270:
                 v=1
             else:
                 v=0
-            
+            #if count != self.count and v: # % 2 == 0:#!= self.count:
+            #    #self.__offset = random.randint(0,1024)# /1024
+            #    self.__master._shuffle()
+
             if count != self.count and v == 0: # and v: # % 2 == 0:#!= self.count:
                  self.__master.next(self)#,count)
+            #self.__master.next(self)#,count)
             self.__offset = self.__master.get(self,count)
-                
-            v = self._calc_fx(v,t,size,base)
 
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
+            else:
+                v = (t%1-0.5)
         elif self.__xtype == "on":
+            #base = 0
             if self.__angel > 90 and self.__angel <=270:
                 v=1
             else:
                 v=0
-            v = self._calc_fx(v,t,size,base)
-
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
+            else:
+                v = (t%1-0.5)
         elif self.__xtype == "ramp" or self.__xtype == "bump":
-            v = (t%1) 
-            v = self._calc_fx(v,t,size,base)
-            
+            v = (t%1)
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
+            else:
+                v = (t%1-0.5)
+
+
         elif self.__xtype == "ramp2" or self.__xtype == "bump2":
-            v = (t%1) 
-            v = 1-v  
+            v = (t%1)
+            v = 1-v
             if v == 1:
                 v=0
-            v = self._calc_fx(v,t,size,base)
-
+            base = 0
+            if self.__base == "-": # sub
+                if self.__invert:
+                    v = 1-v
+                    #base = -size
+                    size *=-1
+                v *=-1
+            elif self.__base == "+": # sub
+                if self.__invert:
+                    v = v-1
+            else:
+                v = (t%1-0.5)
         elif self.__xtype == "static":
             self.abs = 1
             base = size #100
@@ -468,13 +518,15 @@ class FX():
             size=0
 
         elif self.__xtype == "fade":
-            x = t * 2 
+            x = t * 2
             if x > 1:
-                x = 2-x 
+                x = 2-x
             x -= 0.5
             v = x*2
+            #base /= 2
+            #base *=2 
             if self.__base == "+": # add
-                pass
+                pass#base /= 2
             else:
                 v *= -1
 
@@ -482,14 +534,18 @@ class FX():
 
         if self.__invert:
             v *=-1
-    
-        out = v *size +base 
+
+        #if self.__fade_in_master < 255:
+        #    self.__fade_in_master += v*size
+        out = v *size +base
         self.out = out
         self.count = count
 
         out = out * size_master.val(self.__master_id)  # master 
         out = out * exec_size_master.val(self._exec_id)  # master 
-        return out 
+        #* (self.__fade_in_master /255.)
+        return out
+
 
 class DMXCH(object):
     def __init__(self,dmx=-1):

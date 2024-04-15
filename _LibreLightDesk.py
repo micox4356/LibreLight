@@ -841,7 +841,7 @@ class Xevent_fx():
                 #global prm
                 k = "SPEED"
                 if event.num == 1:
-                    _stats = [0,30,100,255]
+                    _stats = [0,5,25,30,100,255]
                     if prm[k] in _stats:
                         idx = _stats.index(prm[k])+1
                         if idx > len(_stats)-1: #rotate
@@ -850,7 +850,7 @@ class Xevent_fx():
                     else:
                         prm[k] = 0
                 elif event.num == 3:
-                    prm[k] = 60
+                    prm[k] = 10
                 elif event.num == 4:
                     if prm[k] <= 0:
                         prm[k] = 0.06

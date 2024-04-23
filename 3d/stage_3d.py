@@ -166,17 +166,20 @@ def event_read():
                 if event.mod == 1:
                     move_x = -inc
                 else:
+                    move_x = -inc
                     rot_z = -1
             if event.key == pg.K_UP:
                 if event.mod == 1:
                     move_z = inc
                 else:
-                    rot_x = 1
+                    move_z = inc
+                    #rot_x = 1
             if event.key == pg.K_DOWN:
                 if event.mod == 1:
                     move_z = -inc
                 else:
-                    rot_x = -1
+                    #rot_x = -1
+                    move_z = -inc
         
         gl.glTranslatef(move_x,move_z,move_y)
         a = 0
@@ -201,6 +204,7 @@ def event_read():
 pg.display.init()
 pg.key.set_repeat(1,100)
 pg.display.set_caption('LibreLight 3D Stage (Demo!)')
+pg.display.set_caption('SDL-Stage (Demo!)')
 display= (400,400)
 display= (800,600)
 pg.display.set_mode(display,pg.DOUBLEBUF|pg.OPENGL)

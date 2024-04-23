@@ -900,6 +900,14 @@ font80 = pygame.font.SysFont("freemonobold",70)
 fr = font.render("hallo" ,1, (200,0,255))
 
 
+def clean_path(path):
+    _path = path[:]
+    _path = _path.replace("/","-")
+    _path = _path.replace(".","-")
+    _path = _path.replace("\"","-")
+    _path = _path.replace("'","-")
+    return _path
+
 
 PIXEL_MAPPING = 0
 grid_file = "/tmp/vpu_grid_hd.csv"
@@ -911,10 +919,7 @@ if options.pixel_mapping:
     PIXEL_MAPPING = 1
     CFG_OUT["on"] = 1
     path = options.pixel_mapping
-    path = path.replace("/","-")
-    path = path.replace(".","-")
-    path = path.replace("\"","-")
-    path = path.replace("'","-")
+    path = clean_path(path)
     grid_file = HOME+"/LibreLight/vpu_grid_hd{}.csv".format(path)
     if options.dual_vpu:
         grid_file = HOME+"/LibreLight/vpu_grid_dual{}.csv".format(path)

@@ -62,6 +62,8 @@ class Window():
             self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
             self.tk.withdraw() # do not draw
             self.tk.resizable(self.args["resize"],self.args["resize"])
+            self.tk.tk_setPalette(background='#bbb', foreground='black', activeBackground='#aaa', activeForeground="black")
+
             defaultFont = tkinter.font.nametofont("TkDefaultFont")
             cprint(defaultFont)
             defaultFont.configure(family="FreeSans",

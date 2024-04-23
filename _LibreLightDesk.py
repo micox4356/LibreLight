@@ -3071,6 +3071,14 @@ if __run_main:
     data.append({"text":"SDL-MIDI"})
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
+    data.append({"text":"---"})
+    data.append({"text":"---"})
+    data.append({"text":"---"})
+    data.append({"text":"---"})
+    data.append({"text":"- DEMO -"})
+    data.append({"text":"---"})
+    data.append({"text":"SDL-STAGE"})
+    data.append({"text":"SDL-Shader"})
 
     #data.append({"text":"MASTER-WING"})
 
@@ -3166,6 +3174,56 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    name="SDL-STAGE"
+    def sdl_config():
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk//3d/stage_3d.py " #&"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+
+    name="SDL-Shader"
+    def sdl_config():
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk//3d/demo_shaders.py " #&"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
     name="FIX-LIST"
     def sdl_config():

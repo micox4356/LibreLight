@@ -77,6 +77,9 @@ import tool.sdl_elm as sdl_elm
 
 import lib.zchat as chat
 cmd_client = chat.Client(port=30003)
+#buf2.append(["EXEC",str(btn),val,m[0],m[1]])
+#msgs = json.dumps(msgs).encode("utf-8")
+#cmd_client.send(msgs)
 
 
 font0  = pygame.font.SysFont("freesans",10)

@@ -820,7 +820,7 @@ if options.mode:
 CFG_IN    = {"name":"CFG_IN","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300}
 CFG_OUT   = {"name":"CFG_OUT","x1":40,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
 #CFG_OUT2   = {"name":"CFG_OUT2","x1":p*8+142,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
-CFG_OUT2   = {"name":"CFG_OUT2","x1":p*8+(16*4)+14,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
+CFG_OUT2   = {"name":"CFG_OUT2","x1":p*8+(16*2)+8,"y1":60,"x2":300,"y2":300 ,"w":300,"h":300,"on":0}
 CFG_BLOCK = {"name":"CFG_BLOCK","size":16,"h-split":2,"v-split":2,"h-count":8,"v-count":8}
 
     
@@ -1319,11 +1319,11 @@ def draw_frame(window,rgb,p1,p2,offset=0):
     o = offset 
     _p1 = [p1[0]-o,p1[1]-o]
     _p2 = [p1[0]-o,p2[1]+o]
-    pygame.draw.line(window,rgb,_p1,_p2)  # left
+    #pygame.draw.line(window,rgb,_p1,_p2)  # left
     _p1 = [p2[0]+o,p2[1]+o]
     pygame.draw.line(window,rgb,_p1,_p2)  # bottom
     _p2 = [p2[0]+o,p1[1]-o]
-    pygame.draw.line(window,rgb,_p1,_p2)  # right
+    #pygame.draw.line(window,rgb,_p1,_p2)  # right
     _p1 = [p1[0]-o,p1[1]-o]
     pygame.draw.line(window,rgb,_p1,_p2)  # top
 

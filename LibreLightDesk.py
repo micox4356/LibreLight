@@ -82,9 +82,33 @@ BASE_PATH = "/opt/LibreLight/Xdesk/"
                 
 import lib.restart as restart
 
-def exit(args):
+def exit(args=None):
     pygame.quit()
     sys.exit()
+
+def check_default():
+    try:
+        f = open("/home/user/LibreLight/config.json")
+        lines = f.readlines()
+        f.close()
+        for line in lines:
+            if '{"START_MODE":"PRO"}' in line:
+                restart.pro()
+                print(" PRO")
+                #pygame.quit()
+                return 0
+            elif '{"START_MODE":"EASY"}' in line:
+                restart.easy()
+                print(" EASY")
+                #pygame.quit()
+                return 0
+            print(line)
+
+    except Exception as e:
+        print("Exception",e)
+
+    return 1
+
 bx = sdl_elm.Button(window,pos=[x,y,400,60])
 bx.text = "       EASY" 
 bx.font0 = pygame.font.SysFont("freesans-bold",85)
@@ -116,7 +140,9 @@ print(int((time.time()-boot)*10),"loop...")
 fps_t = time.time()
 fps = 0
 fps_old = 0
-while 1:
+
+run = check_default()
+while run:
     fps +=1
     t = time.time()
     if t-fps_t >= 1:

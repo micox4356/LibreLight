@@ -47,7 +47,7 @@ class DummyCallback():
 
 class Window():
     def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
-        global lf_nr
+        global MAIN #lf_nr
         self.args = {"title":"title","master":0,"width":100,"height":100,"left":None,"top":None,"exit":0,"cb":None,"resize":1}
         self.args.update(args)
         
@@ -121,8 +121,8 @@ class Window():
         self.tk.geometry(geo)
         self.show()
     def update_idle_task(self):
-        if INIT_OK:
-            tkinter.Tk.update_idletasks(gui_menu_gui.tk)
+        if MAIN.INIT_OK:
+            tkinter.Tk.update_idletasks(MAIN.gui_menu_gui.tk)
         pass
     def close_app_win(self,event=None):
         cprint("close_app_win",self,event,self.args["title"],color="red")
@@ -143,7 +143,7 @@ class Window():
         else:
             #return self.tk.title(title)
             self.args["title"] = title
-            return self.tk.title(""+str(self.args["title"])+" "+str(lf_nr)+":"+str(rnd_id))
+            return self.tk.title(""+str(self.args["title"])+" "+str(MAIN.lf_nr)+":"+str(MAIN.rnd_id))
     def show(self):
         self.tk.deiconify()
         pass
@@ -164,7 +164,7 @@ class Window():
         if not MAIN._global_short_key:
             return 1
 
-        global _shift_key
+        #global MAIN #_shift_key
         #cprint("<GUI>",event,color="yellow")
         value = 255
         if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
@@ -203,19 +203,20 @@ class Window():
             elif event.keysym in ["Shift_L","Shift_R"]:
                 #cprint(event.type)
                 if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
-                    _shift_key = 0
+                    MAIN._shift_key = 0
                 else:
-                    _shift_key = 1
+                    MAIN._shift_key = 1
                 #cprint("SHIFT_KEY",_shift_key,"??????????")
                 #cprint("SHIFT_KEY",_shift_key,"??????????")
-                global _ENCODER_WINDOW
+                #global MAIN #_ENCODER_WINDOW
                 try:
-                    if _shift_key:
-                        _ENCODER_WINDOW.title("SHIFT/FINE ")
+                    if MAIN._shift_key:
+                        MAIN._ENCODER_WINDOW.title("SHIFT/FINE ")
                     else:
-                        _ENCODER_WINDOW.title("ENCODER") 
+                        MAIN._ENCODER_WINDOW.title("ENCODER") 
                 except Exception as e:
                     cprint("exc9800",e)
+                    #raise e
 
             elif event.keysym in "ebfclrmsRx" and value: 
                 if "e" == event.keysym:

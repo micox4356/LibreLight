@@ -8,7 +8,22 @@ from collections import OrderedDict
 from lib.cprint import *
 import lib.fixlib as fixlib
 
+import string
+
+import tkinter
+tk = tkinter
+
+
 HOME = os.getenv('HOME')
+
+def _clean_path(fpath):
+    _path=[]
+    for i in fpath:
+        fpath = fpath.replace(" ","_")
+        if i in string.ascii_letters+string.digits+"äöüßÖÄÜ_-":
+            _path.append(i)
+    path = "".join(_path)
+    return path
 
 def _read_init_txt(show_path):
     fname = show_path+"init.txt"
@@ -104,7 +119,8 @@ class Base():
         msg = " X "
         self.show_name,msg = _read_init_txt(self.show_path)
         if not self.show_name:
-            r=tkinter.messagebox.showwarning(message=msg,parent=None)
+            #r=tkinter.messagebox.showwarning(message=msg,parent=None)
+            r=tkinter.messagebox.showwarning(message=msg,title="Error",parent=None)
             sys.exit()
         
         fpath = self.show_path1 +show_name 
@@ -117,7 +133,8 @@ class Base():
             msg += "-{}init.txt\n".format(self.show_path0)
             msg += "-{}".format(self.show_path1)
 
-            showwarning(msg=msg,title="Show Error")
+            #showwarning(msg=msg,title="Show Error")
+            r=tkinter.messagebox.showwarning(message=msg,title="Show Error",parent=None)
             exit()
 
         self._check()
@@ -166,7 +183,8 @@ class Base():
             msg = ""#"Exception: {}".format(e)
             msg += "\n\ncheck\n-init.txt"
             cprint(msg,color="red")
-            showwarning(msg=msg,title="load Error")
+            #showwarning(msg=msg,title="load Error")
+            r=tkinter.messagebox.showwarning(message=msg,title="Error",parent=None)
             return
         return _read_sav_file(xpath)
 
@@ -181,7 +199,11 @@ class Base():
 
     def _create_path(self,fpath):
         if os.path.isdir(fpath):
-            cprint("STOP SHOW EXIST !",color="red")
+            msg="STOP SHOW EXIST !"
+            cprint(msg,color="red")
+            #showwarning(msg=msg,title="Error")
+            r=tkinter.messagebox.showwarning(message=msg,title="Error",parent=None)
+            #r=tkinter.messagebox.showwarning(message=msg,parent=None)
             return 0
         else:
             cprint("CREATE DIR ",fpath,color="green")

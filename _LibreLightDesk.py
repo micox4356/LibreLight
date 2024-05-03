@@ -1541,14 +1541,6 @@ class Element():
 
 
         
-def _clean_path(fpath):
-    _path=[]
-    for i in fpath:
-        fpath = fpath.replace(" ","_")
-        if i in string.ascii_letters+string.digits+"äöüßÖÄÜ_-":
-            _path.append(i)
-    path = "".join(_path)
-    return path
 
 
 

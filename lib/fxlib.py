@@ -1,5 +1,6 @@
 #/usr/bin/python3
 
+import random
 
 def cprint(*args):
     print(args)

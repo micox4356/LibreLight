@@ -130,7 +130,7 @@ class Dialog():
         self._exit = None
         self._cb = self.dummy_cb
         self.data = {"Value:",None}
-        #self.tk = tkinter.Toplevel()
+        #self.tk = tkinter.Toplevel() # break MAIN FONT !!
     def dummy_cb(self,_return):
         print("dialog.dummy_cb()",self,_return)
         pass

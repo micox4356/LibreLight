@@ -772,7 +772,7 @@ class GUI_PATCH():
                     if fix in FIXTURES.fixtures:
                         data = FIXTURES.fixtures[fix]
                         # print(data)
-                        highlight(fix)
+                        MAIN.highlight(fix)
                 return xx
 
             #print(fix)

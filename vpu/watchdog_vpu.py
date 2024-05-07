@@ -171,6 +171,9 @@ while 1:
         r2=vpu02()
     r3=vpu03()
 
+
+    if "-single" in sys.argv:
+        break
     time.sleep(3)
 
 

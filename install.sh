@@ -11,7 +11,7 @@ apt update
 
 echo ""
 echo "-- system tools"
-pkg="vim lm-sensors htop nmap tcpdump rsync git psmisc screen git gitk" 
+pkg="vim lm-sensors htop nmap tcpdump rsync git psmisc screen git gitk memtest86" 
 apt install -y $pkg 
 
 echo ""
@@ -60,6 +60,7 @@ pip install glnext
 pip install glcontext
 pip3 install pyopengltk
 pip install imutils
+pip install raylib
 EOF
 
 echo ""

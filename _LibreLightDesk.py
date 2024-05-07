@@ -3064,6 +3064,7 @@ if __run_main:
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
     data.append({"text":"SDL-VPU"})
+    data.append({"text":"RAY-DMX"})
     data.append({"text":"---"})
     data.append({"text":"---"})
     data.append({"text":"---"})
@@ -3175,6 +3176,34 @@ if __run_main:
     def sdl_config():
         cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/dmx.py " #&"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+    # =======================================================================
+    #python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single
+    name="RAY-DMX"
+    def sdl_config():
+        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkray/dmx.py " #&"
         print(cmd)
         #os.popen(cmd)
 

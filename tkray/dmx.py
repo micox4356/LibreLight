@@ -9,8 +9,8 @@ mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 #x=mc.get(k)
 
-old_x = 0
-old_y = 0
+old_x = -10
+old_y = -10
 
 while not window_should_close():
     try:
@@ -99,6 +99,8 @@ while not window_should_close():
             old_x = m.x
             old_y = m.y
             print(m.x,m.y)
+        draw_rectangle(int(old_x-10),int(old_y-1),20,2,[255,0,255,255])
+        draw_rectangle(int(old_x-1),int(old_y-10),2,20,[255,0,255,255])
         end_drawing()
         time.sleep(0.1)
     except KeyboardInterrupt as e:

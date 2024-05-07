@@ -3063,7 +3063,7 @@ if __run_main:
     data.append({"text":"SDL-MIDI"})
     data.append({"text":"CLOCK"})
     data.append({"text":"SDL-DMX"})
-    data.append({"text":"---"})
+    data.append({"text":"SDL-VPU"})
     data.append({"text":"---"})
     data.append({"text":"---"})
     data.append({"text":"---"})
@@ -3093,7 +3093,7 @@ if __run_main:
     master._refresh_fix()
 
 
-    # --------------------------------
+    # =======================================================================
     name="EXEC"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
@@ -3114,6 +3114,7 @@ if __run_main:
     #print(dir(cls))
     #print(cls)
     #sys.exit()
+    # =======================================================================
     name="SDL-MIDI"
     def sdl_config():
         cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/midi.py &"
@@ -3140,6 +3141,36 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
+    name="SDL-VPU"
+    def sdl_config():
+        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/dmx.py " #&"
+        cmd="python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single"
+        print(cmd)
+        #os.popen(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    #class window_create_sdl_buffer():
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+    # =======================================================================
+    #python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single
     name="SDL-DMX"
     def sdl_config():
         cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
@@ -3166,6 +3197,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name="SDL-STAGE"
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk//3d/stage_3d.py " #&"
@@ -3192,6 +3224,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name="SDL-Shader"
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk//3d/demo_shaders.py " #&"
@@ -3217,6 +3250,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name="FIX-LIST"
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/fix.py " #&"
@@ -3243,6 +3277,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name="CONFIG"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
@@ -3259,6 +3294,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name="DIMMER"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
@@ -3275,6 +3311,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name="FIXTURES"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
@@ -3291,7 +3328,7 @@ if __run_main:
         window_manager.top(name)
 
 
-    # -------------------------------
+    # =======================================================================
     name="FIXTURE-EDITOR"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
@@ -3311,7 +3348,7 @@ if __run_main:
     #window_manager.top(name)
 
     
-    # -------------------------------
+    # =======================================================================
     name="MASTER-WING"
     args = {"title":name,"master":0,"width":75,"height":405,"left":L0,"top":TOP+H1-220,"resize":0}
     geo = libwin.split_window_position(pos_list,name)
@@ -3331,7 +3368,7 @@ if __run_main:
         window_manager.top(name)
 
 
-    # -------------------------------
+    # =======================================================================
     name="EXEC-WING"
     args = {"title":name,"master":0,"width":600,"height":415,"left":L1,"top":TOP+H1+HTB*2,"H1":H1,"W1":W1}
     geo = libwin.split_window_position(pos_list,name)
@@ -3350,6 +3387,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name="ENCODER"
     args = {"title":name,"master":0,"width":620,"height":113,"left":L0+710,"top":TOP+H1+15+HTB*2}
     geo = libwin.split_window_position(pos_list,name)
@@ -3364,6 +3402,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name = "SETUP"
     args = {"title":name +" SHOW:"+master.base.show_name,
                 "master":0,"width":445,"height":42,"left":L1+10+W1,"top":TOP,"resize":10}
@@ -3387,6 +3426,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name = "COMMAND"
     args = {"title":name,"master":0,"width":415,"height":130,"left":L1+10+W1,"top":TOP+81,"resize":10}
     geo = libwin.split_window_position(pos_list,name)
@@ -3401,6 +3441,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name = "LIVE"
     args = {"title":name,"master":0,"width":415,"height":42,"left":L1+10+W1,"top":TOP+235,"resize":10}
     geo = libwin.split_window_position(pos_list,name)
@@ -3415,6 +3456,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name = "CLOCK"
     args = {"title":name,"master":0,"width":335,"height":102,"left":L1+10+W1+80,"top":TOP+H1+HTB+160,"resize":0}
     geo = libwin.split_window_position(pos_list,name)
@@ -3430,6 +3472,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name="FX"
     args = {"title":name,"master":0,"width":415,"height":297+30,"left":L1+10+W1,"top":TOP+302,"resize":1}
     geo = libwin.split_window_position(pos_list,name)
@@ -3445,6 +3488,7 @@ if __run_main:
         window_manager.top(name)
 
 
+    # =======================================================================
     name="PATCH"
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP,"foot":1,"head":1}
     geo = libwin.split_window_position(pos_list,name)
@@ -3458,6 +3502,8 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+
+    # =======================================================================
     name="COLORPICKER"
     args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
     geo = libwin.split_window_position(pos_list,name)
@@ -3474,6 +3520,7 @@ if __run_main:
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
+    # =======================================================================
     name="TableA"
     #w = libtk.Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     #space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")

@@ -149,7 +149,14 @@ def read_dmx():
     return dmx
             
 def read_fix(dmx):
+    global mc
     y=mc.get("fix")#cmd)
+    if y is None:
+        print("==== "*10)
+        print("error -- read_fix(dmx) mc.get('fix') return",y)
+        print()
+        mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+        return {}
     key=y.keys()
     key = list(key)
     key.sort()

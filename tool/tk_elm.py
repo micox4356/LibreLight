@@ -1,18 +1,15 @@
 #!/usr/bin/python3 
-import pygame
-import pygame.gfxdraw
-import pygame.font
 from lib.xcolor import *
 
-font0 = pygame.font.SysFont("freesans",10)
+font0 = ("freesans",10)
 
-font0b = pygame.font.SysFont("freesansbold",10)
-font = pygame.font.SysFont("freemonobold",22)
-font10 = pygame.font.SysFont("freemonobold",10)
-font12 = pygame.font.SysFont("freemonobold",12)
-font15 = pygame.font.SysFont("freemonobold",15)
-font22 = pygame.font.SysFont("FreeSans",22)
-#font = pygame.font.SysFont(None,30)
+font0b = ("freesansbold",10)
+font = ("freemonobold",22)
+font10 = ("freemonobold",10)
+font12 = ("freemonobold",12)
+font15 = ("freemonobold",15)
+font22 = ("FreeSans",22)
+#font = (None,30)
 
 def check_rgb(rgb):
     rgb_out = [127,127,127,127]
@@ -241,7 +238,7 @@ class Button():
     def __init__(self,window,pos):
         self.window = window
         self.event_pos = [0,0]
-        self.font0 = pygame.font.SysFont("freesans-bold",16)
+        self.font0 = ("freesans-bold",16)
         self.w = 20
         self.h = 10
         self.pos = pos
@@ -315,7 +312,7 @@ class Button():
     def draw(self,text="GOBO1"):
         self.check()
 
-        self.window.set_alpha(128)  
+        #self.window.set_alpha(128)  
 
         self._draw_bg()
         self._draw_fader()
@@ -348,7 +345,7 @@ class Button():
 
         rgb = self.btn1.get_color()
         rgb = check_rgb(rgb)
-        pygame.draw.rect(self.window,rgb,pos)
+        #pygame.draw.rect(self.window,rgb,pos)
 
     def _draw_fader(self):
         rgb = [0,200,0]
@@ -365,7 +362,7 @@ class Button():
                 pos2[2] = int(pos2[2]* v/_max_val)
             else:
                 pos2[2] = 4
-            pygame.draw.rect(self.window,rgb,pos2)
+            #pygame.draw.rect(self.window,rgb,pos2)
         elif self.fader == "v":
             if v > 0: 
                 pos2[1] += int((hight-20)* v/_max_val)
@@ -374,7 +371,7 @@ class Button():
                 pos2[3] = 20 
             pos2[0] += 6
             pos2[2] -= 12 
-            pygame.draw.rect(self.window,rgb,pos2)
+            #pygame.draw.rect(self.window,rgb,pos2)
 
     def _draw_font(self,text=""):
         pos = self.pos
@@ -402,9 +399,10 @@ class Button():
             fr_r=fr.get_rect()
             p2 = [pos[0]+4,r,fr_r[2],fr_r[3]]
             if 0:# dbg # bg highlight
-                pygame.draw.rect(self.window,[0,0,255],p2)
+                #pygame.draw.rect(self.window,[0,0,255],p2)
+                pass
 
-            self.window.blit(fr,(a,r))
+            #self.window.blit(fr,(a,r))
             r+=fr_r[3]+1
 
     def _set_mouse_focus(self,state):
@@ -418,7 +416,8 @@ class Button():
     def _draw_bd(self,delta=0,color=GRAY):#BLACK):
         l_pos = draw_bd(pos=self.pos,delta=delta)
         for i in l_pos:
-            pygame.draw.aaline(self.window,color,i[0],i[1],1)
+            #pygame.draw.aaline(self.window,color,i[0],i[1],1)
+            pass
 
 
     def event(self,event=None):
@@ -488,33 +487,33 @@ def draw_mouse_box(window,pos1,pos2,color=[128,128,128],text=1):
     
     if text:
         fr = font15.render("A" ,1, (200,200,200))
-        window.blit(fr,pos1)
+        #window.blit(fr,pos1)
 
         fr = font15.render("B" ,1, (200,200,200))
-        window.blit(fr,[pos2[0]-10,pos2[1]-10])
+        #window.blit(fr,[pos2[0]-10,pos2[1]-10])
 
     # h unten
     _pos1 = [pos1[0],pos2[1]]
     _pos2 = [pos2[0],pos2[1]]
-    pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    #pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
     color = [255,255,0,127]
     # h rechts
     _pos1 = [pos2[0],pos1[1]]
     _pos2 = [pos2[0],pos2[1]]
-    pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    #pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
 
     color = [0,200,0,127]
     # h links
     _pos1 = [pos1[0],pos1[1]]
     _pos2 = [pos1[0],pos2[1]]
-    pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    #pygame.draw.aaline(window,color,_pos1,_pos2,1)
 
 
     color = [0,0,200,127]
     # h oben
     _pos1 = [pos1[0],pos1[1]]
     _pos2 = [pos2[0],pos1[1]]
-    pygame.draw.aaline(window,color,_pos1,_pos2,1)
+    #pygame.draw.aaline(window,color,_pos1,_pos2,1)
 

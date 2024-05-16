@@ -50,7 +50,25 @@ def JSCB(x,sock=None):
                     #cb.cb(event)
                 if "CLEAR" == msg["event"]:
                     MAIN.FIXTURES.clear()
-                if "EXEC" == msg["event"]:
+                    MAIN.modes.val("REC",0)
+                    #MAIN.master.xcb("CLEAR",1)
+                elif "REC" == msg["event"]:
+                    MAIN.modes.val("REC",1)
+                elif "EDIT" == msg["event"]:
+                    MAIN.modes.val("EDIT",1)
+                elif "BLIND" == msg["event"]:
+                    MAIN.modes.val("BLIND",1)
+                elif "FLASH" == msg["event"]:
+                    MAIN.modes.val("FLASH",1)
+                elif "CFG-BTN" == msg["event"]:
+                    MAIN.modes.val("CFG-BTN",1)
+                elif "LABEL" == msg["event"]:
+                    MAIN.modes.val("LABEL",1)
+                elif "REC" == msg["event"]:
+                    MAIN.modes.val("REC",1)
+                elif "REC-FX" == msg["event"]:
+                    MAIN.modes.val("REC-FX",1)
+                elif "EXEC" == msg["event"]:
                     print("  EXEC EXEC")
                     val = -1
                     exec_nr = -1
@@ -74,14 +92,15 @@ def JSCB(x,sock=None):
                         print("EXEC ERR:",e)
             
     except Exception as e:
-        cprint("exception JSCB:",e)
-        cprint("- i:",i)
-        cprint("- msg:",msgs)
+        cprint("exception JSCB:",e,color="red")
+        cprint("- i:",i,color="red")
+        cprint("- msg:",msgs,color="red")
         cprint(traceback.format_exc(),color="red")
         if sock:
             msg = ["Notice: Exception on JSCB-SERVER: ",str(e)]
             msg = json.dumps(msg)
             msg = bytes(msg,"utf8")
-            chat._send(sock,msg)
+            cprint(msg,color="red")
+            #chat._send(sock,msg)
 
     #time.sleep(1/60)

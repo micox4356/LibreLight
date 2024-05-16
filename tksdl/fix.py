@@ -677,6 +677,7 @@ while 1:
         resize_changed = 0
         for event in pygame.event.get(): 
             if "scancode" in event.dict:
+                print(event.dict,event.type)
                 if event.scancode == 50:
                     if event.type == 2: # press
                         pg.display.set_caption(CAPTION+ " SHIFT/FINE")
@@ -698,6 +699,47 @@ while 1:
                     msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
                     print("ESC",msg)
                     cmd_client.send(msg)
+
+                keycode = {27:"REC",39:"SELECT",46:"LABEL",54:"CFG-BTN",56:"BLIND",41:"FLASH",26:"EDIT"}
+                print( event.scancode in keycode,event.scancode)
+                if event.scancode in keycode: # r
+                    if event.type == 2: # press
+                            
+                        msg=json.dumps([{"event":keycode[event.scancode]}]).encode("utf-8")
+                        print("SPCIAL-KEY",msg)
+                        cmd_client.send(msg)
+                if event.scancode in range(10,20+1):
+                    if event.type in [2,3]: # press
+                        v = 1-event.type+2
+                        if v:
+                            v=255
+                        else:
+                            v=0
+                        btn_nr = event.scancode-9
+                        btn_nr_raw = btn_nr
+                        btn_nr += 161-1
+                        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw}]).encode("utf-8")
+                        print("SPCIAL-KEY",msg)
+                        cmd_client.send(msg)
+                if event.scancode in range(67,76+1) or  event.scancode in [95,96]:
+                    if event.type in [2,3]: # press
+                        v = 1-event.type+2
+                        if v:
+                            v=255
+                        else:
+                            v=0
+                        btn_nr = event.scancode
+                        if btn_nr == 95:
+                            btn_nr = 11
+                        elif btn_nr == 96:
+                            btn_nr = 12
+                        else:
+                            btn_nr = event.scancode-66
+                        btn_nr_raw = btn_nr
+                        btn_nr += 81-1
+                        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"F-KEY":btn_nr_raw}]).encode("utf-8")
+                        print("SPCIAL-KEY",msg)
+                        cmd_client.send(msg)
 
             if event.type == pygame.QUIT:
                 movewin.store_all_sdl()

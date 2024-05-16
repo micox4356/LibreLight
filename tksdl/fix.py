@@ -14,7 +14,7 @@ print(sys.path)
 print()
 
 CAPTION = 'LibreLight SDL-FIX-LIST '
-
+SHIFT_FINE = 0
 
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 import tool.movewin as movewin
@@ -677,6 +677,14 @@ while 1:
         resize_changed = 0
         for event in pygame.event.get(): 
             if "scancode" in event.dict:
+                if event.scancode == 50:
+                    if event.type == 2: # press
+                        pg.display.set_caption(CAPTION+ " SHIFT/FINE")
+                        SHIFT_FINE = 1
+                    if event.type == 3: # release
+                        pg.display.set_caption(CAPTION)
+                        SHIFT_FINE = 0
+
                 if event.scancode == 9:
                     for k in table_draw:
                         t = table[k]
@@ -754,10 +762,17 @@ while 1:
 
                         key = "MOUSE ENCODER"
                         if key in change:
+                            ACC = 2
+                            if SHIFT_FINE:
+                                ACC = 1
+
+                            VAL = ""
                             if "press" in change[key]:
-                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"++","ATTR":ATTR}]).encode("utf-8")
+                                VAL = "+"*ACC
                             if "release" in change[key]:
-                                msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"--","ATTR":ATTR}]).encode("utf-8")
+                                VAL = "-"*ACC
+
+                            msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":VAL,"ATTR":ATTR}]).encode("utf-8")
                             print("   ",msg)
                             cmd_client.send(msg)
 

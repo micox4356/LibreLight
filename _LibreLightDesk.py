@@ -1151,6 +1151,7 @@ class Xevent():
         PRESETS.backup_presets()
         FIXTURES.backup_patch()
         libwin.save_window_position()
+        movewin.store_all_sdl()
         self.elem["bg"] = "lightgrey"
         self.elem.config(activebackground="lightgrey")
         b = BLINKI(self.elem)
@@ -1232,6 +1233,7 @@ class Xevent():
                 PRESETS.backup_presets()
                 FIXTURES.backup_patch()
 
+                movewin.store_all_sdl()
                 libwin.save_window_position()
                 self.elem["text"] = "RESTARTING..."
                 self.elem["bg"] = "lightgrey"
@@ -3023,6 +3025,10 @@ class window_create_buffer():
             obj=self.cls(self.gui,w1,self.data) 
         return w,obj,self.cb_ok
 
+def open_sdl_window():
+    cprint("open_sdl_window ... delay 1sec",color="yellow")
+    time.sleep(1)
+    movewin.startup_all_sdl()
 
 if __run_main:
     cprint("main")
@@ -3618,6 +3624,7 @@ if __run_main:
             time.sleep(1/10)
 
     thread.start_new_thread(mc_fix_loop,())
+    thread.start_new_thread(open_sdl_window,())
     
     try:
         window_manager.mainloop()

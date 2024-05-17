@@ -5,6 +5,7 @@ import time
 import psutil
 import json    
 import inspect
+import _thread as thread
 
 HOME = os.getenv('HOME')
 show_path = HOME+"/LibreLight/"
@@ -12,6 +13,10 @@ show_path2 = HOME+"/LibreLight/show/"
 
 # python3 movewin.py window-title x y
 # python3 movewin.py COMMA 723 943
+
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+print(sys.path)
+from lib.cprint import cprint
 
 class Control():
     def __init__(self):
@@ -120,7 +125,7 @@ def winfo2(name="WinfoWinName"):
     print("--------------")
     return _data
 
-def get_store_line():
+def get_store_sdl_line():
     print()
     print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     lines = winfo2(name="SDL-")
@@ -151,6 +156,23 @@ def load_all_sdl(title="X"):
             if title in line:
                 return json.loads(line)
 
+
+def _start_sub(cmd,name,mute=0):
+    r = os.popen(cmd)
+    while 1:
+        #print(dir(r))
+        line = r.readline()
+        if not line:
+            break
+        line = line.strip()
+        if mute == 0:
+            cprint(name,":",[line],color="blue")
+    cprint("EXIT:",name,cmd)
+    #BrokenPipeError: [Errno 32] Broken pipe
+
+def start_sub(cmd,name="<PROCESS>",mute=0):
+    thread.start_new_thread(_start_sub,(cmd,name,mute)) # SERVER
+
 def startup_all_sdl():
     print()
     print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
@@ -169,17 +191,24 @@ def startup_all_sdl():
             elif line.startswith("#"):
                 continue
             else:
-                line = json.loads(line)
-                cmd = "python3 /opt/LibreLight/Xdesk/tksdl/{}"
-                if line[1] == "SDL-MIDI":
-                    cmd.format("midi.py")
-                    os.system(cmd)
-                elif line[1] == "SDL-DMX":
-                    cmd.format("dmx.py")
-                    os.system(cmd)
-                elif line[1] == "SDL-FIX-LIST":
-                    cmd.format("fix.py")
-                    os.system(cmd)
+                print("    line >> ",[line])
+                try:
+                    line = json.loads(line)
+                    cmd = "python3 /opt/LibreLight/Xdesk/tksdl/{}"
+                    if line[1] == "SDL-MIDI":
+                        cmd=cmd.format("midi.py")
+                        #r=os.popen(cmd)
+                        start_sub(cmd,"SDL-MIDI",mute=1)
+                    elif line[1] == "SDL-DMX":
+                        cmd=cmd.format("dmx.py")
+                        #os.popen(cmd)
+                        start_sub(cmd,"SDL-DMX",mute=1)
+                    elif line[1] == "SDL-FIX-LIST":
+                        cmd=cmd.format("fix.py")
+                        #r=os.popen(cmd)
+                        start_sub(cmd,"SDL-FIX",mute=1)
+                except json.decoder.JSONDecodeError as e:
+                    cprint("ERR",e,color="red")
 
 def _read_init_txt():#show_path):
     fname = show_path+"init.txt"
@@ -236,7 +265,7 @@ def store_all_sdl():
         for line in in_lines:
             print(" R:",[line])
 
-    lines = get_store_line()
+    lines = get_store_sdl_line()
     ap_line = []
     pop = []
     for line in lines:

@@ -367,7 +367,7 @@ while 1:
 
         print("event",event)
         if event.type == pygame.QUIT:
-            movewin.store_all_sdl()
+            #movewin.store_all_sdl()
             pygame.quit()
             sys.exit(0)
         elif event.type == pygame.VIDEORESIZE:

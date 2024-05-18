@@ -209,7 +209,7 @@ def startup_all_sdl():
                         start_sub(cmd,"SDL-FIX",mute=1)
                 except json.decoder.JSONDecodeError as e:
                     cprint("ERR",e,color="red")
-
+            time.sleep(0.3)
 def _read_init_txt():#show_path):
     fname = show_path+"init.txt"
     show_name = None

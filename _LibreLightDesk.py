@@ -1196,197 +1196,191 @@ class Xevent():
 
     def setup(self,event):       
         cprint("xevent.SETUP",[self.mode,self.attr],color="red")
-        if self.mode == "SETUP":
-            if self.attr == "SAVE\nSHOW":
-                self._save_show()
-            elif self.attr == "LOAD\nSHOW":
-                name = "LOAD-SHOW"
-                base = baselib.Base()
-                line1 = "PATH: "+base.show_path1 +base.show_name
-                line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
-                class cb():
-                    def __init__(self,name=""):
-                        self.name=name
-                        cprint("   LOAD-SHOW.init",name)
-                    def cb(self,event=None,**args):
-                        cprint("   LOAD-SHOW.cdb",self.name,event,args)
-                        if self.name != "<exit>":
-                            cprint("-----------------------:")
-                            LOAD_SHOW_AND_RESTART(self.name).cb()
+        if self.mode != "SETUP":
+            return 0
 
-                pw = libtk.PopupList(name,cb=cb)
-                print(line1,line2)
-                frame = pw.sframe(line1=line1,line2=line2)
-                r = frame_of_show_list(frame,cb=cb)
-            elif self.attr == "NEW\nSHOW":
-                base = baselib.Base()
+        if self.attr == "SAVE\nSHOW":
+            self._save_show()
+        elif self.attr == "LOAD\nSHOW":
+            name = "LOAD-SHOW"
+            base = baselib.Base()
+            line1 = "PATH: "+base.show_path1 +base.show_name
+            line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
+            class cb():
+                def __init__(self,name=""):
+                    self.name=name
+                    cprint("   LOAD-SHOW.init",name)
+                def cb(self,event=None,**args):
+                    cprint("   LOAD-SHOW.cdb",self.name,event,args)
+                    if self.name != "<exit>":
+                        cprint("-----------------------:")
+                        LOAD_SHOW_AND_RESTART(self.name).cb()
 
-                #def _cb(fname):
-                def _cb(data):
-                    if not data:
-                        cprint("err443",self,"_cb",data)
-                        return None
-                    fname = data["Value"]
-                    cprint(self,"save_show._cb()",fname)
-                    fpath,fname = base.build_path(fname)
-                    cprint("SAVE NEW SHOW",fpath,fname)
-                    if base._create_path(fpath):
-                        a=PRESETS.backup_presets(save_as=fpath,new=1)
-                        b=FIXTURES.backup_patch(save_as=fpath,new=1)
-                        #base._set(fname)
-                        
-                        libwin.save_window_position(save_as=fpath)
-                        LOAD_SHOW_AND_RESTART(fname).cb() 
-                dialog._cb = _cb
-                dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
-            elif self.attr == "SAVE\nSHOW AS":
-                base = baselib.Base()
+            pw = libtk.PopupList(name,cb=cb)
+            print(line1,line2)
+            frame = pw.sframe(line1=line1,line2=line2)
+            r = frame_of_show_list(frame,cb=cb)
+        elif self.attr == "NEW\nSHOW":
+            base = baselib.Base()
 
-                #def _cb(fname):
-                def _cb(data):
-                    if not data:
-                        cprint("err443",self,"_cb",data)
-                        return None
-                    fname = data["Value"]
-                    cprint(self,"save_show._cb()",fname)
-                    fpath,fname = base.build_path(fname)
-                    cprint("SAVE AS",fpath,fname)
-                    if base._create_path(fpath):
-                        a=PRESETS.backup_presets(save_as=fpath)
-                        b=FIXTURES.backup_patch(save_as=fpath)
-                        #base._set(fname)
-                        
-                        libwin.save_window_position(save_as=fpath)
-                        LOAD_SHOW_AND_RESTART(fname).cb() 
-                dialog._cb = _cb
-                dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
-            elif self.attr == "SAVE &\nRESTART":
-                self.elem["bg"] = "orange"
-                self.elem["text"] = "SAVING..."
-                self.elem["bg"] = "red"
-                self.elem.config(activebackground="orange")
-                modes.val(self.attr,1)
-                PRESETS.backup_presets()
-                FIXTURES.backup_patch()
+            #def _cb(fname):
+            def _cb(data):
+                if not data:
+                    cprint("err443",self,"_cb",data)
+                    return None
+                fname = data["Value"]
+                cprint(self,"save_show._cb()",fname)
+                fpath,fname = base.build_path(fname)
+                cprint("SAVE NEW SHOW",fpath,fname)
+                if base._create_path(fpath):
+                    a=PRESETS.backup_presets(save_as=fpath,new=1)
+                    b=FIXTURES.backup_patch(save_as=fpath,new=1)
+                    #base._set(fname)
+                    
+                    libwin.save_window_position(save_as=fpath)
+                    LOAD_SHOW_AND_RESTART(fname).cb() 
+            dialog._cb = _cb
+            dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
+        elif self.attr == "SAVE\nSHOW AS":
+            base = baselib.Base()
 
-                movewin.store_all_sdl()
-                libwin.save_window_position()
-                self.elem["text"] = "RESTARTING..."
-                self.elem["bg"] = "lightgrey"
-                self.elem.config(activebackground="lightgrey")
-                LOAD_SHOW_AND_RESTART("").cb(force=1)
-            elif self.attr == "DRAW\nGUI":
-                old_text = self.elem["text"]
-                window_manager.top("PATCH")
-                gui_patch.draw(FIXTURES)
-                gui_fix.draw(FIXTURES)
-                window_manager.top("FIXTURES")
-                master._refresh_exec()
-                self.elem["text"] = old_text  
-            elif self.attr == "PRO\nMODE":
-                self._save_show()
-                import lib.restart as restart
-                restart.pro()
-            elif self.attr == "EASY\nMODE":
-                self._save_show()
-                import lib.restart as restart
-                restart.easy()
-            else:
-                if IS_GUI:
-                    r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
+            #def _cb(fname):
+            def _cb(data):
+                if not data:
+                    cprint("err443",self,"_cb",data)
+                    return None
+                fname = data["Value"]
+                cprint(self,"save_show._cb()",fname)
+                fpath,fname = base.build_path(fname)
+                cprint("SAVE AS",fpath,fname)
+                if base._create_path(fpath):
+                    a=PRESETS.backup_presets(save_as=fpath)
+                    b=FIXTURES.backup_patch(save_as=fpath)
+                    #base._set(fname)
+                    
+                    libwin.save_window_position(save_as=fpath)
+                    LOAD_SHOW_AND_RESTART(fname).cb() 
+            dialog._cb = _cb
+            dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
+        elif self.attr == "SAVE &\nRESTART":
+            self.elem["bg"] = "orange"
+            self.elem["text"] = "SAVING..."
+            self.elem["bg"] = "red"
+            self.elem.config(activebackground="orange")
+            modes.val(self.attr,1)
+            PRESETS.backup_presets()
+            FIXTURES.backup_patch()
+
+            movewin.store_all_sdl()
+            libwin.save_window_position()
+            self.elem["text"] = "RESTARTING..."
+            self.elem["bg"] = "lightgrey"
+            self.elem.config(activebackground="lightgrey")
+            LOAD_SHOW_AND_RESTART("").cb(force=1)
+        elif self.attr == "DRAW\nGUI":
+            old_text = self.elem["text"]
+            window_manager.top("PATCH")
+            gui_patch.draw(FIXTURES)
+            gui_fix.draw(FIXTURES)
+            window_manager.top("FIXTURES")
+            master._refresh_exec()
+            self.elem["text"] = old_text  
+        elif self.attr == "PRO\nMODE":
+            self._save_show()
+            import lib.restart as restart
+            restart.pro()
+        elif self.attr == "EASY\nMODE":
+            self._save_show()
+            import lib.restart as restart
+            restart.easy()
+        else:
+            if IS_GUI:
+                r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
         return 1
 
     def live(self,event):       
-        if self.mode == "LIVE":
-                    
-            if "FADE" in self.attr or "DELAY" in self.attr:
-               
-                if self.attr == "FADE":
-                    ct = FADE
-                if self.attr == "DELAY":
-                    ct = DELAY
-                if "PAN/TILT\nFADE" in self.attr:
-                    ct = FADE_move
+        if self.mode != "LIVE":
+            return 0
+                
+        if "FADE" in self.attr or "DELAY" in self.attr:
+           
+            if self.attr == "FADE":
+                ct = FADE
+            if self.attr == "DELAY":
+                ct = DELAY
+            if "PAN/TILT\nFADE" in self.attr:
+                ct = FADE_move
 
-                value = ct.val()
-                #print("EVENT CHANGE ",[self.attr])
-                cprint("EVENT CHANGE:",self.mode,value,self.attr)
-                if value < 0.01:
-                    ct.val(0.01)
-                elif value > 100.0:
-                    pass #value = 100
-                if event.num == 4:
-                    value *= 1.1
-                elif event.num == 5:
-                    value /= 1.1
-                elif event.num == 1:
-                    if ct._is():
-                        ct.off()# = 0
-                        self.data.commands.elem[self.attr]["bg"] = "grey"
-                        self.elem.config(activebackground="grey")
-                    else:
-                        ct.on()# = 1
-                        self.data.commands.elem[self.attr]["bg"] = "green"
-                        self.elem.config(activebackground="lightgreen")
-                elif event.num == 2:
-                    if value > 1 and value < 4:
-                        value = 4
-                    elif value > 3 and value < 6:
-                        value = 6
-                    elif value > 5 and value < 7:
-                        value = 8
-                    elif value > 7 and value < 9:
-                        value = 10
-                    elif value > 9:
-                        value = 0.01
-                    elif value < 1:
-                        value = 1.1
-                value = round(value,3)
-                value = ct.val(value)
+            value = ct.val()
+            #print("EVENT CHANGE ",[self.attr])
+            cprint("EVENT CHANGE:",self.mode,value,self.attr)
+            if value < 0:
+                value = 1
+            if event.num == 4:
+                value += 0.1 
+            elif event.num == 5:
+                value -= 0.1
+            elif event.num == 1:
+                if ct._is():
+                    ct.off()# = 0
+                    self.data.commands.elem[self.attr]["bg"] = "grey"
+                    self.elem.config(activebackground="grey")
+                else:
+                    ct.on()# = 1
+                    self.data.commands.elem[self.attr]["bg"] = "green"
+                    self.elem.config(activebackground="lightgreen")
+            elif event.num == 2:
+                value += 1
 
-                if self.attr == "FADE":
-                    self.data.commands.elem[self.attr]["text"] = "FADE:\n{:0.2f}".format(value)
-                if self.attr == "DELAY":
-                    self.data.commands.elem[self.attr]["text"] = "DELAY:\n{:0.3f}".format(value)
-                if "PAN/TILT\nFADE" in self.attr:
-                    self.data.commands.elem[self.attr]["text"] = "PAN/TILT\nFADE:{:0.2f}".format(value)
+            if value > 10:
+                value = 1
+            value = round(value,1)
+            value = ct.val(value)
+
+            if self.attr == "FADE":
+                self.data.commands.elem[self.attr]["text"] = "FADE:\n{:0.2f}".format(value)
+            if self.attr == "DELAY":
+                self.data.commands.elem[self.attr]["text"] = "DELAY:\n{:0.3f}".format(value)
+            if "PAN/TILT\nFADE" in self.attr:
+                self.data.commands.elem[self.attr]["text"] = "PAN/TILT\nFADE:{:0.2f}".format(value)
 
 
 
     def command(self,event):       
-        if self.mode == "COMMAND":
-            
-            if self.attr == "CLEAR":
-                if event.num == 1:
-                    ok = FIXTURES.clear()
-                    if ok:
-                        master._refresh_fix()
-                    modes.val(self.attr,0)
-
-
-            elif self.attr == "SAVE":
-                modes.val(self.attr,1)
-                PRESETS.backup_presets()
-                FIXTURES.backup_patch()
-                #time.sleep(1)
-                modes.val(self.attr,0)
-            elif self.attr == "S-KEY":
-                global _global_short_key
-                if _global_short_key:
-                    _global_short_key = 0
-                    master.commands.elem["S-KEY"]["bg"] = "red"
-                    master.commands.elem["S-KEY"]["activebackground"] = "red"
-                else:
-                    _global_short_key = 1
-                    master.commands.elem["S-KEY"]["bg"] = "green"
-                    master.commands.elem["S-KEY"]["activebackground"] = "green"
-                cprint("s-key",_global_short_key)
-            else:
-                if event.num == 1:
-                    cprint("ELSE",self.attr)
-                    modes.val(self.attr,1)
-
+        if self.mode != "COMMAND":
             return 0
+
+        if self.attr == "CLEAR":
+            if event.num == 1:
+                ok = FIXTURES.clear()
+                if ok:
+                    master._refresh_fix()
+                modes.val(self.attr,0)
+
+
+        elif self.attr == "SAVE":
+            modes.val(self.attr,1)
+            PRESETS.backup_presets()
+            FIXTURES.backup_patch()
+            #time.sleep(1)
+            modes.val(self.attr,0)
+        elif self.attr == "S-KEY":
+            global _global_short_key
+            if _global_short_key:
+                _global_short_key = 0
+                master.commands.elem["S-KEY"]["bg"] = "red"
+                master.commands.elem["S-KEY"]["activebackground"] = "red"
+            else:
+                _global_short_key = 1
+                master.commands.elem["S-KEY"]["bg"] = "green"
+                master.commands.elem["S-KEY"]["activebackground"] = "green"
+            cprint("s-key",_global_short_key)
+        else:
+            if event.num == 1:
+                cprint("ELSE",self.attr)
+                modes.val(self.attr,1)
+
+        return 0
 
 
     def encoder(self,event):

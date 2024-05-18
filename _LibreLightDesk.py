@@ -348,6 +348,42 @@ if __name__ == "__main__":
             #time.sleep(1/90)
     thread.start_new_thread(server_loop,()) # SERVER
 
+
+import lib.fifo as FIFO
+
+if __name__ == "__main__":
+    # external GUI
+    f_server = FIFO.read_loop() #chat.Server(port=30003,cb=JSBC.JSCB)
+    f_server.loop()
+    def f_server_loop():
+        while 1:
+            try:
+                data = f_server.read()
+                for jdata in data:
+                    # JSCB [{'event': 'EXEC', 'EXEC': 161, 'VAL': 0, 'NR-KEY': 1}]
+                    print("FIFO:",jdata)
+                    ok=1
+                    for i in ["event","VAL","EXEC"]:
+                        if i not in jdata:
+                            ok=0
+                    if ok:
+                        if jdata["event"] != "EXEC":
+                            continue
+
+                        if "EXEC" in jdata:
+                            exec_nr = jdata["EXEC"]
+                        if "VAL" in jdata:
+                            val = jdata["VAL"]
+
+                        master.preset_go(exec_nr-1,xfade=None,val=val)
+                else:
+                    time.sleep(0.01)
+            except KeyboardInterrupt as e:
+                raise e
+            except Exception as e:
+                print("ERR1",e)
+
+    thread.start_new_thread(f_server_loop,()) # SERVER
 # read memcachd
 memcache = None
 try:

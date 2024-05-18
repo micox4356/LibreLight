@@ -398,11 +398,13 @@ while 1:
         data = read_fix(dmx)
 
 
+
+        BTN_WIDTH = 120
         #scroll_bar.btn4.val._max = len(data)-8  #draw()
         scroll_max = len(data)-8
         scroll_max = len(data.keys())-8
         scroll_max = 1 
-        block_wrap = int((width -200 ) /120)
+        block_wrap = int( (width-200) / BTN_WIDTH)
         if block_wrap <= 0:
             block_wrap = 1
 
@@ -415,10 +417,11 @@ while 1:
                 if fix_type == "DIM":
                     continue
 
-                scroll_max += 1
     
-                if acount:
+                if acount > block_wrap:
                     scroll_max += int(acount/block_wrap)
+                else:
+                    scroll_max += 1
 
 
         #print()
@@ -512,7 +515,7 @@ while 1:
                     
                     i += 1
                     if k not in table:
-                        bx = sdl_elm.Button(window,pos=[20,r,50,20])
+                        bx = sdl_elm.Button(window,pos=[20+20,r,50,20])
                         bx.btn1.color_on = [255,255,0]
                         bx.ID = -1
                         if "ID" in v:
@@ -523,7 +526,7 @@ while 1:
                         table[k] = bx
                         
                         # color box
-                        bxc = sdl_elm.Button(window,pos=[-11,r,5,20])
+                        bxc = sdl_elm.Button(window,pos=[-11+20,r,5,20])
                         bxc.btn1.color_on = [255,255,0]
                         table[k+"_color"] = bxc
 
@@ -545,7 +548,7 @@ while 1:
                     bx.font0 = bx_font0
                     bx.btn1.bg_on = [0,255,255]
                     bx.btn1.type = "toggle"
-                    bx.pos  = [10,r,120,20]
+                    bx.pos  = [10+10,r,BTN_WIDTH,20]
 
                     if "ATTRIBUT" in v:
                         bcv_r = 0
@@ -570,7 +573,7 @@ while 1:
                         bxc.btn1.color  = [bcv_r,bcv_g,bcv_b]
                         bxc.btn1.color_on  = [bcv_r,bcv_g,bcv_b]
 
-                    bxc.pos  = [140,r,20,20]
+                    bxc.pos  = [140+5,r,20,20]
                     bxc.text = ""
 
                     bx.draw()
@@ -645,7 +648,7 @@ while 1:
                             bx.btn1.type = "toggle"
                             if type(dmx_val) == int:
                                 bx.btn4.val.set(dmx_val) # "toggle"
-                            bx.pos  = [170+rr,r,120,20]
+                            bx.pos  = [170+rr,r,BTN_WIDTH,20]
                             bx.draw()
                             rr+=bx.get_rect()[2]+2
                             
@@ -673,6 +676,21 @@ while 1:
                 window.blit(fr,(300,5))
 
 
+        if 0: #show line number +scroll_pos
+            bxc = sdl_elm.Button(window,pos=[-11+10,(0*23),50,10])
+            bxc.text = "{:0.02f} {}".format(scroll_pos,scroll_max)
+            ii = int(scroll_pos) #int(scroll_pos/23*29)
+            bxc.font0 = bx_font0
+            bxc.draw()
+
+            for i in range(40+1):
+                bxc = sdl_elm.Button(window,pos=[0,40+(i*23),30,10])
+                bxc.text = "{}".format(1+i+ii)
+                bxc.btn1.color = [255,200,200]
+                bxc.btn2.color = [255,200,200]
+                bxc.btn3.color = [255,200,200]
+                bxc.font0 = bx_font0
+                bxc.draw()
 
         resize_changed = 0
         for event in pygame.event.get(): 
@@ -719,8 +737,13 @@ while 1:
                         btn_nr_raw = btn_nr
                         btn_nr += 161-1
                         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw}]).encode("utf-8")
+
                         print("SPCIAL-KEY",msg)
                         cmd_client.send(msg)
+                        #msg=json.dumps({"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw})#.encode("utf-8")
+                        #cmd =  "echo '{}' > ~/backpipe ".format(msg)
+                        #print(":::::::", cmd)
+                        #os.system(cmd)
                 if event.scancode in range(67,76+1) or  event.scancode in [95,96]:
                     if event.type in [2,3]: # press
                         v = 1-event.type+2
@@ -741,6 +764,10 @@ while 1:
                         print("SPCIAL-KEY",msg)
                         cmd_client.send(msg)
 
+                        #msg=json.dumps({"event":"EXEC","EXEC":btn_nr,"VAL":v,"F-KEY":btn_nr_raw})#.encode("utf-8")
+                        #cmd =  "echo '{}' > ~/backpipe ".format(msg)
+                        #print(":::::::", cmd)
+                        #os.system(cmd)
             if event.type == pygame.QUIT:
                 #movewin.store_all_sdl()
                 pygame.quit()

@@ -3,6 +3,7 @@ cmd="mkfifo backpipe"
 fname = "/home/user/backpipe" # fifo named pipe
 import json
 import sys
+import os
 import time
 import _thread as thread
 
@@ -27,7 +28,13 @@ class read_loop():
         self.s = time.time()
         self.buf = []
         self.lock = thread.allocate_lock()
-    def loop(self):
+        self.sleep = 0
+    def loop(self,sleep=0):
+        print(self,self.fname)
+        if sleep:
+            time.sleep(sleep)
+            self.sleep=sleep
+
         thread.start_new_thread(self._loop,())
     def read(self):
         #print("read",self)
@@ -40,15 +47,29 @@ class read_loop():
         finally:
             self.lock.release()
         return out
+    def check_pipe(self):
+        r=os.popen("file {}".format(self.fname))
+        for i in r.readlines():
+            #print([i])
+            if ": fifo " in i:
+                return 1
 
     def _loop(self):
-
-        print("start._loop",self)
+        if self.sleep:
+            time.sleep(self.sleep)
+        #print("loop_start __ "*100)
+        #print()
+        #print("start._loop",self)
+        #print(self.fname)
         while 1:
             #print(2)
+            if not self.check_pipe():
+                #print("FIFO PIPE ERR:",fname,"is not a pipe")
+                time.sleep(1)
+                continue
+
             self.lock.acquire()
             self.f = open(self.fname,"r")
-            #print(1)
             txt="null"
             try:
                 txt = self.f.read()
@@ -59,8 +80,8 @@ class read_loop():
             except KeyboardInterrupt as e:
                 raise e
             except Exception as e:
-                print("TXT",[txt])
-                print("ERR",e)
+                print("FIFO TXT",[txt])
+                print("FIFO ERR",e)
             finally:
                 self.lock.release()
             time.sleep(0.01)

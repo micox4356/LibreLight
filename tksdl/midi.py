@@ -88,6 +88,7 @@ font   = pygame.font.SysFont("freemonobold",22)
 font10 = pygame.font.SysFont("freemonobold",10)
 font12 = pygame.font.SysFont("freemonobold",12)
 font15 = pygame.font.SysFont("freemonobold",15)
+font20 = pygame.font.SysFont("freemonobold",20)
 font22 = pygame.font.SysFont("FreeSans",22)
 #font  = pygame.font.SysFont(None,30)
 
@@ -326,27 +327,38 @@ while 1:
     _blink =0 
     _is_open  =0
     try:
-        rgb = [10,10,10]
+        rgb = [90,180,10]
         if apc_main.blink:
-            rgb = [110,110,110]
+            rgb = [110,210,10]
         _blink = apc_main.blink
         _is_open  = apc_main.is_open
     
     except Exception as e:
         pass #print(e)
-
+    
+    con_err = "connect to apcmini ??"
+    con_ok = "connect to apcmini OK"
     if _is_open == 0:
-        buf  = []
-        buf2 =  ["connect to apcmini ..."]
-        buf_exec = []
-        msgs = []
+        #buf  = []
+        if len(buf2):
+            if buf2[-1] != con_err:
+                buf2.append(con_err)
+        else:
+            buf2.append(con_err)
+        rgb = [210,110,10]
+        #buf_exec = []
+        #msgs = []
+    else:
+        if len(buf2):
+            if buf2[-1] == con_err:
+                buf2.append(con_ok)
 
-    pygame.draw.rect(window,rgb,[200,r,60,25])
-    fr = font15.render("BLINK:"+str(_blink)  ,1, (200,200,200))
-    window.blit(fr,(200,r ))
+    pygame.draw.rect(window,rgb,[200-3,r,60,25])
+    fr = font15.render("BLINK:"+str(_blink)  ,1, (0,0,0))
+    #window.blit(fr,(200,r+2 ))
     r+=10
-    fr = font15.render("open:"+str(_is_open)  ,1, (200,200,200))
-    window.blit(fr,(200,r ))
+    fr = font20.render("open:"+str(_is_open)  ,1, (0,0,0))
+    window.blit(fr,(200+5,r-5 ))
 
     r = 10
     fr = font15.render("EXEC:"  ,1, (200,100,200))

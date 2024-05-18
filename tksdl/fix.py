@@ -675,6 +675,12 @@ while 1:
                 fr = font18.render("ACTIVE:{}:{} ({:0.01f})".format(active_fix,active_attr,active_ratio) ,1, [255,255,0]) #(200,200,200))
                 window.blit(fr,(300,5))
 
+                if SHIFT_FINE:
+                    fr = font18.render("ENCODER:±0.25" ,1, [255,255,0])
+                else:
+                    fr = font18.render("ENCODER:±5.00" ,1, [255,255,0])
+                window.blit(fr,(420,5))
+
 
         if 0: #show line number +scroll_pos
             bxc = sdl_elm.Button(window,pos=[-11+10,(0*23),50,10])
@@ -698,10 +704,10 @@ while 1:
                 print(event.dict,event.type)
                 if event.scancode == 50:
                     if event.type == 2: # press
-                        pg.display.set_caption(CAPTION+ " SHIFT/FINE")
+                        #pg.display.set_caption(CAPTION+ " SHIFT/FINE")
                         SHIFT_FINE = 1
                     if event.type == 3: # release
-                        pg.display.set_caption(CAPTION)
+                        #pg.display.set_caption(CAPTION)
                         SHIFT_FINE = 0
 
                 if event.scancode == 9:

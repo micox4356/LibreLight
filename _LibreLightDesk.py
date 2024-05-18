@@ -354,8 +354,11 @@ import lib.fifo as FIFO
 if __name__ == "__main__":
     # external GUI
     f_server = FIFO.read_loop() #chat.Server(port=30003,cb=JSBC.JSCB)
-    f_server.loop()
-    def f_server_loop():
+    f_server.loop(sleep=1)
+
+    def f_server_read_loop():
+        time.sleep(10)
+        print("FIFO read_loop() __ ")
         while 1:
             try:
                 data = f_server.read()
@@ -377,13 +380,15 @@ if __name__ == "__main__":
 
                         master.preset_go(exec_nr-1,xfade=None,val=val)
                 else:
-                    time.sleep(0.01)
+                    time.sleep(0.02)
             except KeyboardInterrupt as e:
                 raise e
             except Exception as e:
-                print("ERR1",e)
+                print("FIFO ERR1",e)
+    
+    thread.start_new_thread(f_server_read_loop,()) # SERVER
 
-    thread.start_new_thread(f_server_loop,()) # SERVER
+
 # read memcachd
 memcache = None
 try:
@@ -1406,25 +1411,25 @@ class Xevent():
 
     def _encoder(self,event):
         global _shift_key
-        if 1: #self.mode == "ENCODER" or self.mode == "ENCODER2":
-            cprint("-- Xevent","_ENC",self.fix,self.attr,self.mode)
-            cprint("-- SHIFT_KEY",_shift_key,"??????????")
-            #cprint(self.data)
-            val=""
-            if event.num == 1:
-                val ="click"
-            elif event.num == 4:
-                val ="++"
-                if _shift_key:
-                    val = "+"
-            elif event.num == 5:
-                val ="--"
-                if _shift_key:
-                    val = "-"
-            #print("SHIFT",val,_shift_key)
-            if val:
-                FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
-                return 1       
+
+        cprint("-- Xevent","_ENC",self.fix,self.attr,self.mode)
+        cprint("-- SHIFT_KEY",_shift_key,"??????????")
+        #cprint(self.data)
+        val=""
+        if event.num == 1:
+            val ="click"
+        elif event.num == 4:
+            val ="++"
+            if _shift_key:
+                val = "+"
+        elif event.num == 5:
+            val ="--"
+            if _shift_key:
+                val = "-"
+        #print("SHIFT",val,_shift_key)
+        if val:
+            FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
+            return 1       
 
 
             
@@ -2805,8 +2810,8 @@ class WindowManager():
 
         if name in self.window_init_buffer:
             c = self.window_init_buffer[name] 
-            print(c)
-            print(dir(c))
+            #print("",c)
+            #print(dir(c))
             w,obj,cb_ok = c.create()
             window_manager.update(w,name,obj)
 

@@ -273,7 +273,7 @@ class X_CLOCK():
         self.bb.delete(tag)
 
     def draw_clock(self,gui,xframe,data=[]):
-        print("draw_clock",self)
+        #print("draw_clock",self)
         xframe.pack(fill="both",expand=1)
         frame = tk.Frame(xframe,bg="black")
         frame.pack(fill=tk.X, side=tk.TOP)

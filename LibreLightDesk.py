@@ -14,8 +14,10 @@ print()
 
 import pathlib
 
+BASE_PATH = "/opt/LibreLight/Xdesk/"
+
 _file_path=pathlib.Path(__file__)
-print("file:",_file_path)
+print("__file__ =",_file_path)
 
 import tool.movewin as movewin
 
@@ -42,6 +44,7 @@ pygame.display.set_icon(icon)
 
 import tool.movewin as movewin
 import tool.sdl_elm as sdl_elm
+import lib.baselib as baselib
 
 
 CAPTION = 'LibreLight Start '
@@ -79,6 +82,9 @@ import os
 import lib.fork as fork
 BASE_PATH = "/opt/LibreLight/Xdesk/"
 
+import lib.baselib as baselib
+SHOW_NAME = baselib.current_show_name()
+print([SHOW_NAME])
                 
 import lib.restart as restart
 

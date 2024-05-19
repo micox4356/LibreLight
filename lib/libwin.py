@@ -11,56 +11,75 @@ window_list_buffer = {}
 
 def save_window_position(save_as=""):
     global window_list_buffer
-    cprint()
-    cprint("save_window_position",[save_as])
+    #cprint("save_window_position as=",[save_as])
+    error = 0
 
-    base = baselib.Base()
-    fname = HOME+"/LibreLight"
-    fname = base.show_path1 +base.show_name 
     if save_as:
         fname = save_as 
-    fname +=  "/gui.txt"
-    cprint("- fname",fname)
+        fpath=fname
+    else:
+        fname = baselib.current_show_name() 
+        fpath = baselib.SHOW_DIR + fname
+    if not os.path.isdir(fpath):
+        cprint("  -0 save_window_position no dir:",fpath,color="red")
+        error += 1
+
+    fpath +=  "/gui.txt"
+    #cprint(" fpath:",fpath)
+    
 
     for k in window_list_buffer:
         window_list_buffer[k][0] = 0   
 
     for k,win in MAIN.window_manager.windows.items():
         try:
+            if not win:
+                continue
+            if "tk" not in dir(win):
+                continue
+
             geo = win.tk.geometry()
             data = [1,k,geo]
             if k not in  window_list_buffer:
-                cprint("-- new:win:pos",k.ljust(15," "),data)
+                cprint("  -- new:win:pos",k.ljust(15," "),data)
             elif window_list_buffer[k][2] != geo:
-                cprint("-- update:win:pos",k.ljust(15," "),data)
+                cprint("  -- update:win:pos",k.ljust(15," "),data)
             window_list_buffer[k] = data
 
             if k in ["PATCH","FIXTURES","DIMMER","FIXTURE-EDITOR","CONFIG"]:
                 window_list_buffer[k][0] = 0   
 
         except Exception as e:
-            cprint("-A save_window_position Exception:",k,e,color="red")
+            cprint("  -1 Exception:",[k,e],color="red")
+            cprint("  --- ",[win],color="red")
+            error += 1
 
     lines = ""
     for k,data in window_list_buffer.items():
         try:
-            #print("-- save:win:pos",k.ljust(15," "),data)
             if not data[2]:
                 continue
             line ="{} {} {}\n"
             line = line.format(data[0],k,data[2])
             lines += line
         except Exception as e:
-            cprint("-A save_window_position Exception:",e,color="red")
+            cprint("  -2 Exception:",e,color="red")
+            error += 1
 
     try:
-        f = open(fname,"w")
+        f = open(fpath,"w")
         f.write( lines )
-    except Exception as e:
-        cprint("-B save_window_position Exception:",e,color="red")
-    finally:
         f.close() #f.flush()
+        
+    except Exception as e:
+        cprint(" -3 Exception:",fpath,fname,e,color="red")
+        error += 1
 
+    if not error:
+        cprint("  save_window_position",fpath,"OK",color="green")
+
+        return 1
+    cprint("  save_window_position",fpath,"FAIL",color="red")
 
 
 def save_window_position_loop(): # like autosave
@@ -76,12 +95,11 @@ def save_window_position_loop(): # like autosave
 
 def get_window_position(_filter="",win=None):
     global window_list_buffer
-    cprint()
     show = None
     k = _filter
     geo = ""
 
-    cprint("get_window_position",[_filter])
+    #cprint("get_window_position",[_filter])
     if _filter in window_list_buffer:
         show,k,geo  = window_list_buffer[_filter]
         if win:
@@ -91,10 +109,8 @@ def get_window_position(_filter="",win=None):
 
 def read_window_position():
     try:
-        base = baselib.Base()
-        fname = HOME+"/LibreLight"
-        fname = base.show_path1 +base.show_name 
-        fname +=  "/gui.txt"
+        fname = baselib.current_show_path() + "/gui.txt"
+
         cprint("- fname:",fname)
         f = open(fname,"r")
         lines = f.readlines()
@@ -117,7 +133,7 @@ def read_window_position():
 
         return out
     except Exception as e:
-        cprint("- load_window_position 345 Exception:",e,color="red")
+        cprint("- load_window_position 145 Exception:",e,color="red")
         return 
     return []
 
@@ -128,7 +144,7 @@ def split_window_show(lines,_filter=""):
             if _filter in name:
                 return int(show)
     except Exception as e:
-        cprint("- split_window_show 345 Exception:",e,color="red")
+        cprint("- split_window_show 315 Exception:",e,color="red")
 
 def split_window_position(lines,_filter=""):
     try:
@@ -148,15 +164,15 @@ def split_window_position(lines,_filter=""):
                     args["top"]    = int(geo[3])
                     return args
     except Exception as e:
-        cprint("- split_window_position 345 Exception:",e,color="red")
+        cprint("- split_window_position 341 Exception:",e,color="red")
 
 
 
 def load_window_position(_filter=""):
-    print()
+    #print()
     global window_list_buffer
-    cprint()
-    cprint("load_window_position",[_filter])
+    #cprint()
+    cprint("  load_window_position",[_filter])
     try:
         lines = read_window_position()
 
@@ -185,5 +201,5 @@ def load_window_position(_filter=""):
                 cprint("- load_window_position 544 Exception:",e,color="red")
 
     except Exception as e:
-        cprint("- load_window_position 345 Exception:",e,color="red")
+        cprint("- load_window_position 335 Exception:",e,color="red")
         return 

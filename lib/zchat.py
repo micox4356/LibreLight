@@ -187,7 +187,7 @@ class Server():
 
     def client_loop(self):
         self.client_lock = _thread.allocate_lock()
-        print(dir(self.client_lock),"-----2:") # = _thread.allocate_lock()
+        #print(dir(self.client_lock),"-----2:") # = _thread.allocate_lock()
         _thread.start_new_thread(self._client_loop,())
 
     def _client_loop(self):
@@ -331,7 +331,7 @@ def single_client():
     while 1:
         try:
             i=""
-            print()
+            # print()
             i = input("cmd:: ")
             c.send(bytes(i,"utf8"))
             time.sleep(0.5)

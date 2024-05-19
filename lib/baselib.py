@@ -2,6 +2,9 @@
 
 import os
 import time
+import sys
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+
 import json
 from collections import OrderedDict
 
@@ -13,8 +16,9 @@ import string
 import tkinter
 tk = tkinter
 
-
-HOME = os.getenv('HOME')
+HOME      = os.getenv('HOME')
+BASE_PATH = HOME+"/LibreLight/"
+SHOW_DIR  = BASE_PATH+"/show/"
 
 def _clean_path(fpath):
     _path=[]
@@ -25,49 +29,89 @@ def _clean_path(fpath):
     path = "".join(_path)
     return path
 
-def _read_init_txt(show_path):
-    fname = show_path+"init.txt"
-    show_name = None
+
+
+def current_show_name(base_path=""):
+    if not base_path:
+        base_path = BASE_PATH
+
+    fname = base_path+"/init.txt"
+    show_name = "null"
     msg = ""
 
     if not os.path.isfile( fname ):
-        msg = "_read_init_txt Errror: " +fname +"\n NOT FOUND !"
-        return [None,msg]
+        msg = "current_show_path Error: " +fname +"\n NOT FOUND !"
+        cprint(msg,color="red")
+        return show_name #,msg]
 
     try:
         f = open(fname,"r")
-        for line in f.readlines():
+        lines = f.readlines()
+        f.close()
+
+        for line in lines:
             line = line.strip()
-            print("  init.txt:",[line])
+            #print("  init.txt:",[line])
             if line.startswith("#"):
                 continue
             if not line:
                 continue
 
             show_name = line
-            show_name = show_name.replace(".","")
-            show_name = show_name.replace("\\","")
-            show_name = show_name.replace("/","")
+        show_name = show_name.replace(".","")
+        show_name = show_name.replace("\\","")
+        show_name = show_name.replace("/","")
     except Exception as e:
-        cprint("show name exception",color="red")
-        msg="read_init_txt Error:{}".format(e)
-    finally:
-        f.close()
+        msg="current_show_path \nError:{}".format(e)
+        cprint(msg,color="red")
 
-    return [show_name,msg]
+    #return [show_name,msg]
+    return show_name
+
+def current_show_path():
+    SHOW_PATH = SHOW_DIR + current_show_name()
+    while "//" in SHOW_PATH: 
+        SHOW_PATH = SHOW_PATH.replace("//","/")
+    return SHOW_PATH
+
+def generate_show_path(show_name):
+    show_name = _clean_path(show_name)
+    SHOW_PATH = SHOW_DIR + show_name
+    while "//" in SHOW_PATH: 
+        SHOW_PATH = SHOW_PATH.replace("//","/")
+    return SHOW_PATH
+
+
+def build_path(fn):
+    fn = _clean_path(fn)
+    path = current_show_path().split("/")
+    path = "/".join(path[:-2])
+    fpath = path+"/show/"+fn
+    cprint(fpath,fn,color="red")
+    return fpath,fn
+
+def create_new_show_path(fpath):
+    if os.path.isdir(fpath):
+        cprint("   CREATE DIR FAIL (exist)",[fpath],color="red")
+        return 0
+    os.mkdir(fpath)
+    cprint("   CREATE DIR OK",[fpath],color="green")
+    return 1
+
 
 def _read_sav_file(xfname):
     cprint("load",xfname)
     lines = []
+    data   = OrderedDict()
+    labels = OrderedDict()
+
     if not os.path.isfile(xfname):
-        return []
+        return [] #data,labels
 
     f = open(xfname,"r")
     lines = f.readlines()
     f.close()    
 
-    data   = OrderedDict()
-    labels = OrderedDict()
     i=0
     for line in lines:
         r = fixlib._fixture_decode_sav_line(line)
@@ -79,20 +123,21 @@ def _read_sav_file(xfname):
         
     return data,labels
 
+def list_shows(path=None):
+    if not path:
+        path = SHOW_DIR
 
-def _listdir(show_path):
-    #self._check()
-    show_list =  list(os.listdir( show_path ))
+    show_list =  list(os.listdir( path ))
     out = []
     for fname in show_list:
+        fpath = path+fname
         if fname == "EASY": #hidde EASY show in list !
             continue
-        #print(fname)
-        ctime = os.path.getmtime(show_path+fname)
-        ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) #1650748726.6604707))
+        ctime = os.path.getmtime(fpath)
+        ctime = time.strftime("%Y-%m-%d %X",  time.localtime(ctime)) 
         try:
-            mtime = os.path.getmtime(show_path+fname+"/patch.sav")
-            mtime = time.strftime("%Y-%m-%d %X",  time.localtime(mtime)) #1650748726.6604707))
+            mtime = os.path.getmtime(fpath+"/patch.sav")
+            mtime = time.strftime("%Y-%m-%d %X",  time.localtime(mtime)) 
         except:
             mtime = 0
 
@@ -104,134 +149,159 @@ def _listdir(show_path):
     out.reverse()
     return out
 
+def set_current_show_name(fname):
+    ok= os.path.isdir(SHOW_DIR+"/"+fname)
+    ini = BASE_PATH+"init.txt"
+    print()
+    print()
+    cprint("SET SHOW NAME",fname,ok,ini,color="green")
+    print()
+    try:
+        f = open( ini ,"r")
+        lines = f.readlines()
+        f.close()
+        if len(lines) >= 10: # cut show history
+            cprint("_set",ini,len(lines))
+            lines = lines[-10:]
+            f = open( ini ,"w")
+            f.writelines(lines)
+            f.close()
+            exit()
+
+    except:pass
+    if ok:
+        #self.show_name = fname
+        f = open( ini ,"a")
+        f.write(fname+"\n")
+        f.close()
+        return 1
 
 class Base():
     def __init__(self):
-        cprint("Base.init()",color="red")
-        self._init()
+        self.show_path = current_show_path() 
+        self.show_name = current_show_name() 
+        cprint("Base.init()",self.show_path,self.show_name,color="yellow")
 
-    def _init(self):
-        show_name = "" #DemoShow #"ErrorRead-init.txt"
-        self.show_path0 = HOME +"/LibreLight/"
-        self.show_path  = self.show_path0 
-        self.show_path1 = self.show_path0 + "show/"
-        
-        msg = " X "
-        self.show_name,msg = _read_init_txt(self.show_path)
+        msg = "<msg>"
+
+
         if not self.show_name:
-            #r=tkinter.messagebox.showwarning(message=msg,parent=None)
-            r=tkinter.messagebox.showwarning(message=msg,title="Error",parent=None)
+            r=tkinter.messagebox.showwarning(message=msg,title="444 Error",parent=None)
             sys.exit()
         
-        fpath = self.show_path1 +show_name 
-        if not os.path.isdir(fpath):
-            cprint(fpath)
-            cprint( os.path.isdir(fpath))
-
-            msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
+        if not os.path.isdir(self.show_path):
+            msg += "Show does not exist\n\n"
             msg += "please check\n"
-            msg += "-{}init.txt\n".format(self.show_path0)
-            msg += "-{}".format(self.show_path1)
-
-            #showwarning(msg=msg,title="Show Error")
+            msg += "-{} init.txt\n".format(BASE_PATH)
+            msg += "-{}".format(self.show_path)
+            cprint(msg,color="red")
             r=tkinter.messagebox.showwarning(message=msg,title="Show Error",parent=None)
             exit()
 
         self._check()
-    def _set(self,fname):
-        ok= os.path.isdir(self.show_path1+"/"+fname)
-        ini = self.show_path0+"init.txt"
-        cprint("SET SHOW NAME",fname,ok,ini)
-        try:
-            f = open( ini ,"r")
-            lines = f.readlines()
-            f.close()
-            if len(lines) >= 10: # cut show history
-                cprint("_set",ini,len(lines))
-                lines = lines[-10:]
-                f = open( ini ,"w")
-                f.writelines(lines)
-                f.close()
-                exit()
 
-        except:pass
-        if ok:
-            #self.show_name = fname
-            f = open( ini ,"a")
-            f.write(fname+"\n")
-            f.close()
-            return 1
-        
+    def _set(self,fname):
+        set_current_show_name(fname)
+
     def _check(self):
         if not os.path.isdir(self.show_path):
             os.mkdir(self.show_path)
-        self.show_path += "/show/"
-        if not os.path.isdir(self.show_path):
-            os.mkdir(self.show_path)
-        self.show_path += "/" +self.show_name +"/"
-        if not os.path.isdir(self.show_path):
-            os.mkdir(self.show_path)
-        pass
-    def _list(self):
-        cprint("BASE._list()")
-        out = _listdir(self.show_path1)
-        return out
+
 
     def _load(self,filename):
         xpath = self.show_path+"/"+str(filename)+".sav"
         if not os.path.isfile(xpath):
-            msg = ""#"Exception: {}".format(e)
-            msg += "\n\ncheck\n-init.txt"
+            msg = ""
+            msg += "\n"*2
+            msg += "check init.txt"
+            msg += "\n"*2
+            msg += xpath
             cprint(msg,color="red")
-            #showwarning(msg=msg,title="load Error")
-            r=tkinter.messagebox.showwarning(message=msg,title="Error",parent=None)
+            r=tkinter.messagebox.showwarning(message=msg,title="123 Error",parent=None)
             return
         return _read_sav_file(xpath)
 
 
-
-    def build_path(self,save_as):
-        save_as = _clean_path(save_as)
-        path = self.show_path.split("/")
-        path = "/".join(path[:-2])
-        fpath = path+"/"+save_as
-        return fpath,save_as
-
     def _create_path(self,fpath):
-        if os.path.isdir(fpath):
+        if not create_new_show_path(fpath):
             msg="STOP SHOW EXIST !"
             cprint(msg,color="red")
-            #showwarning(msg=msg,title="Error")
-            r=tkinter.messagebox.showwarning(message=msg,title="Error",parent=None)
-            #r=tkinter.messagebox.showwarning(message=msg,parent=None)
+            r=tkinter.messagebox.showwarning(message=msg,title="333 Error",parent=None)
             return 0
-        else:
-            cprint("CREATE DIR ",fpath,color="green")
-            os.mkdir(fpath)
-        #self._set(save_as)
         return fpath
 
     def _backup(self,filename,data,labels,save_as):
+        try:
+            fpath = self.show_path
+            if save_as:
+                fpath = save_as 
 
-        if save_as:
-            xfname = save_as +"/"+str(filename)+".sav"
-        else:
-            xfname = self.show_path+"/"+str(filename)+".sav"
+            fpath += "/"+str(filename)+".sav"
 
-        cprint("backup",xfname)
-        f = open(xfname,"w")
-        for key in data:
-            line = data[key]
-            #print(line)
-            label = "label" 
-            if key in labels:
-                label = labels[key]
-            if label == "Name-"+str(key):
-                label = ""
-            #print(xfname,"load",key,label,len(line))
+            f = open(fpath,"w")
+            for key in data:
+                line = data[key]
+                label = "label" 
+                if key in labels:
+                    label = labels[key]
+                if label == "Name-"+str(key):
+                    label = ""
 
-            f.write( "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) )
-        f.close()
+                nline = "{}\t{}\t{}\n".format( key,label,json.dumps(line) ) 
+                f.write( nline )
+
+            f.close()
+            cprint("  Base._backup",[fpath],len(data),"OK",color="green")
+        except Exception as e:
+            cprint("  Base._backup",[fpath],len(data),"FAIL !",color="red")
+            raise e
 
         return 1
+
+def test():
+    print()
+    print("-- "*40)
+    print("HOME        ",HOME)
+    print("BASE_PATH   ",BASE_PATH)
+    print("SHOW_DIR    ",SHOW_DIR)
+    print()
+
+    print("-- "*20)
+    print("TEST  ")
+    print("current_show_path",current_show_path())
+    print()
+
+    print("-- "*20)
+    dl = list_shows()
+    for i in dl:
+        print(" - ",i)
+
+    print("-- "*20)
+    xpath = SHOW_DIR + "/" + dl[0][1] +"/presets.sav"
+    print(xpath)
+    x= _read_sav_file(xpath)
+    print("len.x",len(x))
+
+
+    base = Base()
+    print("::")
+    #x=base.build_path("TOST")
+    #print(x)
+
+    x=build_path("TEST")
+    print(x)
+
+    show_name = "tEsT"
+    x= generate_show_path(show_name)
+    print("generate_show_path",x)
+
+    #x=base.build_path(show_name)
+    #print("build_path",[show_name,x])
+
+
+if __name__ == "__main__":
+    test()
+
+
+
 

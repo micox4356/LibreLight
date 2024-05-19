@@ -17,14 +17,14 @@ class on_focus():
         self.name = name
         self.mode = mode
     def cb(self,event=None):
-        print("on_focus",event,self.name,self.mode)
+        #print("on_focus",event,self.name,self.mode)
         try:
             e = MAIN.master.commands.elem["."]
         except:pass
 
         if self.mode == "Out":
             cmd="xset -display :0.0 r rate 240 20"
-            print(cmd)
+            #print(cmd)
             os.system(cmd)
             try:
                 e["bg"] = "#aaa"
@@ -32,7 +32,7 @@ class on_focus():
             except:pass
         if self.mode == "In":
             cmd = "xset -display :0.0 r off"
-            print(cmd)
+            #print(cmd)
             os.system(cmd)
             try:
                 e["bg"] = "#fff"
@@ -51,8 +51,9 @@ class Window():
         self.args = {"title":"title","master":0,"width":100,"height":100,"left":None,"top":None,"exit":0,"cb":None,"resize":1}
         self.args.update(args)
         
-        cprint("Window.init()",id(self.args),color="yellow")
-        cprint("  ",self.args,color="yellow")
+        cprint("Window.init()",self.args["title"],color="yellow")
+        #cprint("Window.init()",id(self.args),color="yellow")
+        #cprint("  ",self.args,color="yellow")
 
         ico_path="./icon/"
         self.cb = MAIN.cb
@@ -73,7 +74,7 @@ class Window():
             try:
                 self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
             except Exception as e:
-                cprint("Exception GUIWindow.__init__",e)
+                cprint(" Exception GUIWindow.__init__",e)
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
@@ -94,8 +95,8 @@ class Window():
                 else:
                     self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"scribble.png"))
             except Exception as e:
-                cprint("Exception on load window icon",self.args["title"])
-                cprint("Exception:",e)
+                cprint(" Exception on load window icon",self.args["title"])
+                cprint(" Exception:",e)
             #time.sleep(3)
             self.tk.deiconify()
 
@@ -120,6 +121,7 @@ class Window():
         #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
         self.show()
+
     def update_idle_task(self):
         if MAIN.INIT_OK:
             tkinter.Tk.update_idletasks(MAIN.gui_menu_gui.tk)
@@ -154,7 +156,7 @@ class Window():
         finally:
             self.tk.quit()
             cmd="xset -display :0.0 r rate 240 15"
-            print(cmd)
+            #print(cmd)
             os.system(cmd)
 
     def callback(self,event,data={}):#value=255):
@@ -175,24 +177,15 @@ class Window():
             #print([event.state,event.keysym,event.type])
             if event.state == 4  and str(2) == str(event.type): # strg + s
                 if str(event.keysym) == "s":
-                    cprint("tTtT ReW "*20)
-                    #print("numbersign !!")
-                    MAIN.PRESETS.backup_presets()
-                    MAIN.FIXTURES.backup_patch()
-                    libwin.save_window_position()
+                    MAIN.save_show()
 
-                    e =  MAIN.master.setup_elem["SAVE\nSHOW"]
-                    #print(e)
+                    e = MAIN.master.setup_elem["SAVE\nSHOW"]
                     b = MAIN.BLINKI(e)
                     b.blink()
                 if str(event.keysym) == "c":
-                    MAIN.PRESETS.backup_presets()
-                    MAIN.FIXTURES.backup_patch()
+                    if MAIN.save_show():
+                        MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
 
-                    libwin.save_window_position()
-                    #self.elem.config(activebackground="lightgrey")
-                    MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
-                #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
                 return
 
         if "keysym" in dir(event):
@@ -256,10 +249,7 @@ class Window():
                 MAIN.master.preset_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
                 cprint("numbersign !!")
-                MAIN.PRESETS.backup_presets()
-                MAIN.FIXTURES.backup_patch()
-
-                libwin.save_window_position()
+                MAIN.save_show()
 
                 for e in MAIN.master.setup_cmd:
                     cprint(e)
@@ -278,7 +268,7 @@ class Window():
                 if value:
                     MAIN.modes.val("DEL",1)
 
-        cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
+        #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
  
 
 class PopupList():
@@ -352,11 +342,6 @@ def showwarning(msg="<ERROR>",title="<TITLE>"):
             time.sleep(1/10)
             _main.quit()
         thread.start_new_thread(_main.mainloop,())
-        #_main.quit()
 
-        #msg="'{}'\n Show Does Not Exist\n\n".format(show_name)
-        #msg += "please check\n"
-        #msg += "-{}init.txt\n".format(self.show_path0)
-        #msg += "-{}".format(self.show_path1)
 
         r=tkinter.messagebox.showwarning(message=msg,title=title,parent=None)

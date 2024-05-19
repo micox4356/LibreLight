@@ -19,7 +19,8 @@ import os
 
 import _thread as thread
 
-
+for i in range(30):
+    print() # boot space
 
 IS_GUI = 0
 if __name__ == "__main__":
@@ -1173,6 +1174,47 @@ class BLINKI():
         e.after(d, lambda: e.config(bg='white')) # after 1000ms
         e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
 
+
+def save_show(fpath=None,new=0):
+    if fpath:
+        a=PRESETS.backup_presets(save_as=fpath,new=new)
+        b=FIXTURES.backup_patch(save_as=fpath,new=new)
+        c=libwin.save_window_position(save_as=fpath)
+        d=movewin.store_all_sdl()
+    else:
+        print()
+        print()
+        cprint("SAVE SHOW ..",color="yellow")
+        a=PRESETS.backup_presets()
+        b=FIXTURES.backup_patch()
+        c=libwin.save_window_position() 
+        d=movewin.store_all_sdl()
+
+    if a and b and c and d:
+        cprint("SAVE SHOW OK",[fpath,new],[a,b,c,d],color="green")
+        print()
+        print()
+        print()
+        return 1
+    cprint("SAVE SHOW FAIL",[fpath,new],[a,b,c,d],color="red")
+    print()
+    print()
+    print()
+
+def save_show_as(fname,new=0):
+    print()
+    print()
+    fpath = baselib.generate_show_path(fname)
+
+    info = "SAVE SHOW AS"
+    if new:
+        info = "SAVE (NEW) SHOW AS"
+
+    cprint(info,fpath,fname,color="green")
+
+    if baselib.create_new_show_path(fpath):
+        return save_show(fpath,new)
+
 class Xevent():
     """ global input event Handeler for short cut's ... etc
     """
@@ -1183,34 +1225,31 @@ class Xevent():
         self.elem = elem
         self.mode = mode
 
-    def _save_show(self):
-        self.elem["bg"] = "orange"
-        self.elem["text"] = "SAVING..."
-        self.elem["bg"] = "red"
-        self.elem.config(activebackground="orange")
-        modes.val(self.attr,1)
-        PRESETS.backup_presets()
-        FIXTURES.backup_patch()
-        libwin.save_window_position()
-        movewin.store_all_sdl()
-        self.elem["bg"] = "lightgrey"
-        self.elem.config(activebackground="lightgrey")
-        b = BLINKI(self.elem)
-        b.blink()
-        self.elem["text"] = "SAVE\nSHOW"
-
     def setup(self,event):       
         cprint("xevent.SETUP",[self.mode,self.attr],color="red")
         if self.mode != "SETUP":
             return 0
 
         if self.attr == "SAVE\nSHOW":
-            self._save_show()
+            self.elem["bg"] = "orange"
+            self.elem["text"] = "SAVING..."
+            self.elem["bg"] = "red"
+            self.elem.config(activebackground="orange")
+
+            modes.val(self.attr,1)
+
+            save_show()
+
+            self.elem["bg"] = "lightgrey"
+            self.elem.config(activebackground="lightgrey")
+            b = BLINKI(self.elem)
+            b.blink()
+            self.elem["text"] = "SAVE\nSHOW"
         elif self.attr == "LOAD\nSHOW":
             name = "LOAD-SHOW"
-            base = baselib.Base()
-            line1 = "PATH: "+base.show_path1 +base.show_name
-            line2 = "DATE: "+ time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
+            line1 = "PATH: " + baselib.current_show_path()
+            line2 = "DATE: " + time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
+
             class cb():
                 def __init__(self,name=""):
                     self.name=name
@@ -1225,27 +1264,23 @@ class Xevent():
             print(line1,line2)
             frame = pw.sframe(line1=line1,line2=line2)
             r = frame_of_show_list(frame,cb=cb)
-        elif self.attr == "NEW\nSHOW":
-            base = baselib.Base()
 
-            #def _cb(fname):
+        elif self.attr == "NEW\nSHOW":
+
             def _cb(data):
                 if not data:
                     cprint("err443",self,"_cb",data)
                     return None
                 fname = data["Value"]
-                cprint(self,"save_show._cb()",fname)
-                fpath,fname = base.build_path(fname)
+                fpath = baselib.generate_show_path(fname)
                 cprint("SAVE NEW SHOW",fpath,fname)
-                if base._create_path(fpath):
-                    a=PRESETS.backup_presets(save_as=fpath,new=1)
-                    b=FIXTURES.backup_patch(save_as=fpath,new=1)
-                    #base._set(fname)
-                    
-                    libwin.save_window_position(save_as=fpath)
+
+                if save_show_as(fname,new=1):
                     LOAD_SHOW_AND_RESTART(fname).cb() 
+
             dialog._cb = _cb
             dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
+
         elif self.attr == "SAVE\nSHOW AS":
             base = baselib.Base()
 
@@ -1255,29 +1290,23 @@ class Xevent():
                     cprint("err443",self,"_cb",data)
                     return None
                 fname = data["Value"]
-                cprint(self,"save_show._cb()",fname)
-                fpath,fname = base.build_path(fname)
-                cprint("SAVE AS",fpath,fname)
-                if base._create_path(fpath):
-                    a=PRESETS.backup_presets(save_as=fpath)
-                    b=FIXTURES.backup_patch(save_as=fpath)
-                    #base._set(fname)
-                    
-                    libwin.save_window_position(save_as=fpath)
+
+                if save_show_as(fname):
                     LOAD_SHOW_AND_RESTART(fname).cb() 
+
+
             dialog._cb = _cb
             dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
+
         elif self.attr == "SAVE &\nRESTART":
             self.elem["bg"] = "orange"
             self.elem["text"] = "SAVING..."
             self.elem["bg"] = "red"
             self.elem.config(activebackground="orange")
             modes.val(self.attr,1)
-            PRESETS.backup_presets()
-            FIXTURES.backup_patch()
 
-            movewin.store_all_sdl()
-            libwin.save_window_position()
+            save_show()
+
             self.elem["text"] = "RESTARTING..."
             self.elem["bg"] = "lightgrey"
             self.elem.config(activebackground="lightgrey")
@@ -1365,8 +1394,9 @@ class Xevent():
 
         elif self.attr == "SAVE":
             modes.val(self.attr,1)
-            PRESETS.backup_presets()
-            FIXTURES.backup_patch()
+            save_show()
+            #PRESETS.backup_presets()
+            #FIXTURES.backup_patch()
             #time.sleep(1)
             modes.val(self.attr,0)
         elif self.attr == "S-KEY":
@@ -1414,7 +1444,6 @@ class Xevent():
 
         cprint("-- Xevent","_ENC",self.fix,self.attr,self.mode)
         cprint("-- SHIFT_KEY",_shift_key,"??????????")
-        #cprint(self.data)
         val=""
         if event.num == 1:
             val ="click"
@@ -1840,7 +1869,7 @@ class MASTER():
             if not data:
                 cprint("err443",self,"_cb",data)
                 return None
-            cprint(self,"btn_cfg._cb()",data)
+            cprint("btn_cfg._cb()",data)
             if data:
 
                 if "Button" in  data and type(data["Button"]) is str:
@@ -1896,7 +1925,7 @@ class MASTER():
                 cprint("err443",self,"_cb",data)
                 return None
             txt = data["Value"]
-            cprint(self,"label._cb()",nr,txt)
+            cprint("label._cb()",nr,txt)
             if txt:
                 PRESETS.label(nr,txt) 
                 self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
@@ -1909,7 +1938,6 @@ class MASTER():
 
     def xcb(self,mode,value=None):
         cprint("MODE CALLBACK",mode,value,color="green",end="")
-        #cprint(self,"xcb","MODE CALLBACK",mode,value,color="green")
         if value:
             cprint("===== ON  ======",color="red")
             txt = ""
@@ -1932,12 +1960,11 @@ class MASTER():
 
     def load(self,fname=""):
         pass
+
     def exit(self):
         cprint("__del__",self)
-        PRESETS.backup_presets()
-        #print("********************************************************")
-        FIXTURES.backup_patch()
-        #print("*********del",self,"***********************************************")
+        save_show()
+        
     def refresh_exec(self):
         refresher_exec.reset() # = Refresher()
 
@@ -1967,7 +1994,7 @@ class MASTER():
     def refresh_fix(self):
         refresher_fix.reset() # = Refresher()
     def _refresh_fix(self):
-        cprint(self,"_refresh_fix")
+        cprint("_refresh_fix")
         s=time.time(); _XXX=0
 
         menu_buff = {"DIM":0,"DIM-SUB":0,"FIX":0,"FIX-SUB":0}
@@ -2337,7 +2364,7 @@ def frame_of_show_list(frame,cb=None):
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
     r+=1
-    blist = base._list()
+    blist = baselib.list_shows()
     for i in range(10):
         blist.append(["",""])
 
@@ -2414,17 +2441,13 @@ def PRESET_CFG_CHECKER(sdata):
 
 class Presets():
     def __init__(self):
-        #super().__init__() 
         self.base = baselib.Base()
-        #self.load()
         self._last_copy = None
         self._last_move = None
         self.fx_buffer = {}
 
     def load_presets(self): 
-        #self._load()
         filename="presets"
-        #self.base._init()
         d,l = self.base._load(filename)
         for i in d:
             sdata = d[i]
@@ -2462,16 +2485,10 @@ class Presets():
         data   = self.val_presets
         labels = self.label_presets
         if new:
-            #a = []
-            #for i in range(512):
-            #    e = PRESET_CFG_CHECKER({})
-            #    e["NAME"] = str(i)
-            #    a.append(e)
-            #data = a 
-            data = []#*512
+            data  = [] #*512
             labls = [""]*512
-        #self.base._init()
-        self.base._backup(filename,data,labels,save_as)
+        r=self.base._backup(filename,data,labels,save_as)
+        return r
         
 
     def get_cfg(self,nr):
@@ -2789,7 +2806,7 @@ class WindowManager():
         self.windows[self.first].mainloop()
 
     def get_win(self,name):
-        cprint(self,".get_win(name) =",name)
+        cprint(".get_win(name) =",name)
         name = str(name)
         if name in self.windows:
             out = self.windows[name]
@@ -2806,7 +2823,7 @@ class WindowManager():
             return out
 
     def create(self,name):
-        cprint( "create Window",name)
+        #cprint( "create Window",name)
 
         if name in self.window_init_buffer:
             c = self.window_init_buffer[name] 
@@ -2833,11 +2850,13 @@ class WindowManager():
 
     def _check(self,name):
         try:
+            if "tk" not in dir(self.windows[name]):
+                return 0
             self.windows[name].tk.state(newstate='normal')
             return 1
         except Exception as e:
             cprint("exception",e,color="red")
-            cprint("info",name,self.windows[name],color="red")
+            cprint(" info",name,self.windows[name],color="red")
 
     def top(self,name):
         name = str(name)
@@ -2850,7 +2869,7 @@ class WindowManager():
         
         w = self.windows[name]
         #def get_lineno():
-        print(" 2.1- ln",movewin.get_lineno(),w,str(type(w)))
+        #print(" on TOP: 2.1- ln",movewin.get_lineno(),w,str(type(w)))
         #if type(w) is type(window_create_buffer):
         if not str(type(w)).startswith("<class 'function'>"): 
             w.tk.attributes('-topmost',True)
@@ -2919,7 +2938,7 @@ class Refresher():
         self.name = "name" # exec
         self.cb = None #self.dummy_cb
     def dummy_cb(self):
-        cprint(self,"dummy_cd()",time.time()-self.time)
+        cprint("dummy_cd()",time.time()-self.time)
 
     def reset(self):
         self.time = time.time() 
@@ -3026,9 +3045,9 @@ class window_create_buffer():
         self.gui    = gui
 
     def create(self,hidde=0):
-        cprint()
-        cprint()
-        cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
+        #cprint()
+        #cprint()
+        #cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
 
         obj = None
         w = libtk.Window(self.args)

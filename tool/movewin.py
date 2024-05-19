@@ -1,22 +1,25 @@
 #!/usr/bin/python3
+
 import os
-import sys
 import time
+import sys
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+
+
 import psutil
 import json    
 import inspect
 import _thread as thread
 
-HOME = os.getenv('HOME')
-show_path = HOME+"/LibreLight/"
-show_path2 = HOME+"/LibreLight/show/"
+import lib.baselib as baselib
+from lib.cprint import cprint
+
+
+SHOW_PATH = baselib.current_show_path() #SHOW_PATH 
+
 
 # python3 movewin.py window-title x y
 # python3 movewin.py COMMA 723 943
-
-sys.path.insert(0,"/opt/LibreLight/Xdesk/")
-print(sys.path)
-from lib.cprint import cprint
 
 class Control():
     def __init__(self):
@@ -108,11 +111,11 @@ def parse_winfo_line(line):
                 return _line 
 
 def winfo2(name="WinfoWinName"):
-    print("--------------")
+    #print("--------------")
     search = name
     cmd = "xwininfo -root -children -all | grep '{}'"
     cmd = cmd.format(search)
-    print(cmd)
+    #print(cmd)
 
     r = os.popen(cmd)
     lines = r.readlines()
@@ -122,12 +125,12 @@ def winfo2(name="WinfoWinName"):
         if a:
             _data.append(a)
 
-    print("--------------")
+    #print("--------------")
     return _data
 
 def get_store_sdl_line():
-    print()
-    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
+    #print()
+    #print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     lines = winfo2(name="SDL-")
     out_lines=[]
     for line in lines:
@@ -144,14 +147,13 @@ def get_store_sdl_line():
     return out_lines
 
 def load_all_sdl(title="X"):
-    fname ="/home/user/gui-sdl.txt"
-    fname = show_path2+ _read_init_txt()[0]+ "/gui-sdl.txt"
+    fname = SHOW_PATH + "/gui-sdl.txt"
     if os.path.isfile(fname):
         f=open(fname,"r")
         lines = f.readlines()
         f.close()
 
-        print("  read",fname)
+        print("  load_all_sdl fname:",fname)
         for line in lines:
             if title in line:
                 return json.loads(line)
@@ -171,27 +173,31 @@ def _start_sub(cmd,name,mute=0):
     #BrokenPipeError: [Errno 32] Broken pipe
 
 def start_sub(cmd,name="<PROCESS>",mute=0):
+    cprint("  start_sub",cmd,name,"mute-stdout:",mute,color="green")
     thread.start_new_thread(_start_sub,(cmd,name,mute)) # SERVER
 
 def startup_all_sdl():
-    print()
-    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
-    fname ="/home/user/gui-sdl.txt"
-    fname = show_path2+ _read_init_txt()[0]+ "/gui-sdl.txt"
+    #print()
+    #print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
+
+    fname = SHOW_PATH + "/gui-sdl.txt"
     if os.path.isfile(fname):
         f=open(fname,"r")
         xlines = f.readlines()
         f.close()
 
-        print("  read",fname)
+        print()
+        cprint("startup_all_sdl() ",fname,color="yellow")
         for line in xlines:
             line = line.strip()
             if line.startswith("#-- history"):
                 break
             elif line.startswith("#"):
                 continue
+            if not line:
+                continue
             else:
-                print("    line >> ",[line])
+                #print("    line >> ",[line])
                 try:
                     line = json.loads(line)
                     cmd = "python3 /opt/LibreLight/Xdesk/tksdl/{}"
@@ -210,45 +216,15 @@ def startup_all_sdl():
                 except json.decoder.JSONDecodeError as e:
                     cprint("ERR",e,color="red")
             time.sleep(0.3)
-def _read_init_txt():#show_path):
-    fname = show_path+"init.txt"
-    show_name = None
-    msg = ""
 
-    if not os.path.isfile( fname ):
-        msg = "_read_init_txt Errror: " +fname +"\n NOT FOUND !"
-        return [None,msg]
+        print()
 
-    try:
-        f = open(fname,"r")
-        for line in f.readlines():
-            line = line.strip()
-            print("  init.txt:",[line])
-            if line.startswith("#"):
-                continue
-            if not line:
-                continue
 
-            show_name = line
-            show_name = show_name.replace(".","")
-            show_name = show_name.replace("\\","")
-            show_name = show_name.replace("/","")
-    except Exception as e:
-        cprint("show name exception",color="red")
-        msg="read_init_txt Error:{}".format(e)
-    finally:
-        f.close()
-
-    return [show_name,msg]
-#example test use
-#python3 -i -c "import tool.movewin as w;d=w.Control();d.title='SDL-DMX';d.winfo()"
-#w.store_all_sdl()
-#d.get_winfo2()
-#d.move(100,100)
 def store_all_sdl():
-    print()
-    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
-    fname = show_path2+ _read_init_txt()[0]+ "/gui-sdl.txt"
+    #print()
+    #print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
+    error = 0   
+    fname = SHOW_PATH + "/gui-sdl.txt"
     in_lines = []
 
     if os.path.isfile(fname):
@@ -256,14 +232,14 @@ def store_all_sdl():
         xlines = f.readlines()
         f.close()
 
-        print("  read",fname)
+        #print("  store_all_sdl fname",fname)
         for line in xlines:
             line = line.strip()
             if not line.startswith("#") and line:
                 in_lines.append(line)
         #in_lines.append('[0,"xx aa",0,0,0,0]')
-        for line in in_lines:
-            print(" R:",[line])
+        #for line in in_lines:
+        #    print(" R:",[line])
 
     lines = get_store_sdl_line()
     ap_line = []
@@ -275,13 +251,14 @@ def store_all_sdl():
             if line[1] in iline:
                 if j not in pop:
                     pop.append(j)
-                print(" del ",j,line)
+                #print(" del ",j,line)
 
     for i in pop[::-1]:
         try:
             in_lines.pop(i)
         except Exception as e:
-            print("ERR:",e) 
+            cprint("  ERR:",e,color="red") 
+            error += 0   
     temp = {}
     for i in in_lines:
         k = json.loads(i)[1]
@@ -296,20 +273,25 @@ def store_all_sdl():
     f.write("\n")
     f.write("#-- history \n")
     for k,line in temp.items(): #in_lines:
-        print("+++>",line)
+        #print("+++>",line)
         f.write(line+"\n")
     f.write("\n")
     f.close()
 
+    if not error:
+        cprint("  store_all_sdl OK fname:",fname,color="green")
+        return 1
+    cprint("  store_all_sdl FAIL fname:",fname,color="red")
+
 def movewin(_id="0xWinId",x=None,y=None):
     print()
-    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
+    #print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     cmd="xdotool windowmove {} {} {}".format(_id,x,y)
     return cmd
 
 def sizewin(_id="0xWinId",x=None,y=None):
     print()
-    print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
+    #print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     cmd="xdotool windowsize {} {} {}".format(_id,x,y)
     return cmd
 
@@ -340,8 +322,8 @@ def search_process(_file_path,exact=1):
         if "python" not in ps[0]:
             continue
 
-        print(" ",[ps[1]])
-        print("exact_search",exact)
+        #print(" ",[ps[1]])
+        #print("exact_search",exact)
         if exact:
             if str(_file_path) == str(ps[1]):
                 print(ps)
@@ -359,12 +341,19 @@ def search_process(_file_path,exact=1):
 def process_kill(path):
     pids = search_process(path,exact=0)
     for pid in pids:
-        print("process_kill:",pid)
-        p = psutil.Process(pid)   
-        #p.name()
-        #p.cmdline()
-        p.terminate()
-        p.wait()
+        print("process_kill:",[path,pid])
+        cmd="kill -kill {} ".format(pid)
+
+        os.system(cmd)
+    time.sleep(0.2)
+    #for pid in pids:
+    #    print("process_kill:",path,pid)
+    #    p = psutil.Process(pid)   
+    #    #p.name()
+    #    #p.cmdline()
+    #    p.terminate()
+    #    p.wait()
+    print("process_kill OK")
 
 def get_lineno():
   callerframerecord = inspect.stack()[1]    # 0 represents this line

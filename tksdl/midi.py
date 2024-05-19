@@ -233,6 +233,7 @@ while 1:
             msgs = []
         except Exception as e:
             time.sleep(1)
+            print("EXC",e)
             pass#print("MIDI INI",e)
 
     try:
@@ -249,6 +250,7 @@ while 1:
                 buf_exec.append(b)
         apc_main.buf = []
     except Exception as e:
+        print("EXC",e)
         pass #print("midi",e)
 
 

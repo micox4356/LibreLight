@@ -43,7 +43,7 @@ def _fixture_repair_nr0(jdata):
     #return jdata
 
 def FIXTURE_CHECK_SDATA(ID,sdata):
-    print("FIXTURE_CHECK_SDATA",ID)
+    #print("FIXTURE_CHECK_SDATA",ID)
     new_f = OrderedDict()
     #print("++++")
     for k,j in sdata.items():
@@ -94,7 +94,7 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
             _tmp =  {"NR": 0, "MASTER": "0", "MODE": "F", "VALUE": 255, "ACTIVE": 0, "FX": "", "FX2": {}}
             _tmp = OrderedDict(_tmp)
             sdata["ATTRIBUT"]["DIM"] =_tmp 
-        print("ADD ---- VDIM",vdim_count,_tmp)
+        print("   ADD ---- VDIM",vdim_count,_tmp)
         #input("STOP")
 
     for attr in sdata["ATTRIBUT"]:
@@ -324,8 +324,8 @@ class Fixtures():
 
 
     def load_patch(self):
+        cprint("FIXTURES.load_patch ..")
         filename="patch"
-        #self.base._init()
         d,l = self.base._load(filename)
         self.fixtures = OrderedDict()
         for i in l:
@@ -364,8 +364,7 @@ class Fixtures():
         if new:
             data = []
             labels = {}
-        #self.base._init()
-        self.base._backup(filename,data,labels,save_as)
+        return self.base._backup(filename,data,labels,save_as)
 
     def fx_get(self,fix=None):
         out={}

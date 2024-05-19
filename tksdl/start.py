@@ -6,15 +6,9 @@ boot = time.time()
 import random
 import os
 import sys
-#sys.path.insert(0,os.path.realpath(os.getcwd() + '/..'))
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
-print(sys.path)
-print()
-
 
 import pathlib
-
-BASE_PATH = "/opt/LibreLight/Xdesk/"
 
 _file_path=pathlib.Path(__file__)
 print("__file__ =",_file_path)
@@ -80,7 +74,6 @@ x = 80
 y = 120
 import os
 import lib.fork as fork
-BASE_PATH = "/opt/LibreLight/Xdesk/"
 
 import lib.baselib as baselib
 SHOW_NAME = baselib.current_show_name()

@@ -125,19 +125,19 @@ class Window():
     def update_idle_task(self):
         if MAIN.INIT_OK:
             tkinter.Tk.update_idletasks(MAIN.gui_menu_gui.tk)
-        pass
+
     def close_app_win(self,event=None):
-        cprint("close_app_win",self,event,self.args["title"],color="red")
-        if exit:
-            if self.title == "MAIN":
-               libwib.save_window_position()
-            libwin.save_window_position()
-            
+        cprint("close_app_win",event,self.args["title"],color="red")
+        cprint("  ",self.title)
+        cprint("  ",self.args)
+
+        if self.args["title"] == "MAIN":
+            MAIN.save_show()
             self.tk.destroy()
         try:
-            self.cb("<exit>").cb()
+            self.tk.destroy()
         except Exception as e:
-            cprint("EXCETPION: close_app_win",e,self,color="red")
+            cprint("close_app_win exc",e,color="red")
 
     def title(self,title=None):
         if title is None:

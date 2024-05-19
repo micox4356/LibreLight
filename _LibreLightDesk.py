@@ -94,7 +94,8 @@ if "--easy" in sys.argv:
 from lib.cprint import *
 cprint("________________________________")
  
-
+def cb(**args):
+    cprint("MAIN.cb DUMMY",**args,color="red")
 
 
 import lib.zchat as chat
@@ -1245,6 +1246,7 @@ class Xevent():
             b = BLINKI(self.elem)
             b.blink()
             self.elem["text"] = "SAVE\nSHOW"
+
         elif self.attr == "LOAD\nSHOW":
             name = "LOAD-SHOW"
             line1 = "PATH: " + baselib.current_show_path()
@@ -1311,6 +1313,7 @@ class Xevent():
             self.elem["bg"] = "lightgrey"
             self.elem.config(activebackground="lightgrey")
             LOAD_SHOW_AND_RESTART("").cb(force=1)
+
         elif self.attr == "DRAW\nGUI":
             old_text = self.elem["text"]
             window_manager.top("PATCH")
@@ -1319,12 +1322,14 @@ class Xevent():
             window_manager.top("FIXTURES")
             master._refresh_exec()
             self.elem["text"] = old_text  
+
         elif self.attr == "PRO\nMODE":
-            self._save_show()
+            save_show()
             import lib.restart as restart
             restart.pro()
+
         elif self.attr == "EASY\nMODE":
-            self._save_show()
+            save_show()
             import lib.restart as restart
             restart.easy()
         else:
@@ -1391,7 +1396,6 @@ class Xevent():
                     master._refresh_fix()
                 modes.val(self.attr,0)
 
-
         elif self.attr == "SAVE":
             modes.val(self.attr,1)
             save_show()
@@ -1399,6 +1403,7 @@ class Xevent():
             #FIXTURES.backup_patch()
             #time.sleep(1)
             modes.val(self.attr,0)
+
         elif self.attr == "S-KEY":
             global _global_short_key
             if _global_short_key:
@@ -1410,6 +1415,7 @@ class Xevent():
                 master.commands.elem["S-KEY"]["bg"] = "green"
                 master.commands.elem["S-KEY"]["activebackground"] = "green"
             cprint("s-key",_global_short_key)
+
         else:
             if event.num == 1:
                 cprint("ELSE",self.attr)
@@ -1568,7 +1574,7 @@ class Xevent():
                             self.data.preset_go(nr,event=event,val=255)
                     else:
                         self.data.preset_go(nr,xfade=0,event=event,val=0)
-                        cprint(" == "*10)
+                        #cprint(" == "*10)
                         master.refresh_fix()
                         refresher_fix.reset() # = Refresher()
 
@@ -1607,10 +1613,6 @@ class Element():
 
 
         
-
-
-
-#import lib.base as _base
 import lib.baselib as baselib
 
 def hex_to_rgb(hex):
@@ -1963,7 +1965,6 @@ class MASTER():
 
     def exit(self):
         cprint("__del__",self)
-        save_show()
         
     def refresh_exec(self):
         refresher_exec.reset() # = Refresher()
@@ -2076,29 +2077,25 @@ class MASTER():
             menu_buff["FIX"] += FIX
             menu_buff["DIM"] += DIM
 
-        cprint(" =+= "*10,"refresh_fix")
         try:
             for row in elem_buffer:
                 elem = row["elem"]
                 if not elem:
                      continue
-                #print("<elem>",elem)
                 for e in row:
                     if e == "elem":
                         continue
                     v = row[e]
-                    #print("confg:",["key:",e,"val:",v])
 
                     if e == "abg":
                         elem.config(activebackground=v)
                     else:
                         elem[e] = v
             w = window_manager.get_win("FIXTURES")
-            #print(dir(w))
-            w.update_idle_task()
-            #tkinter.Tk.update_idletasks(w)
+            if w:
+                w.update_idle_task()
         except Exception as e:
-            cprint("exc434",e)
+            cprint("exc434",e,color="red")
 
         cprint("fix:",_XXX,round(time.time()-s,2),color="red");_XXX += 1
         cprint(gui_menu)
@@ -2315,7 +2312,12 @@ class LOAD_SHOW_AND_RESTART():
         self.base = baselib.Base()
 
     def cb(self,event=None,force=0):
-        cprint("LOAD_SHOW_AND_RESTART.cb force={} name={}".format(force,self.fname) )
+        print()
+        print()
+        print()
+
+
+        cprint("LOAD_SHOW_AND_RESTART.cb force={} name={}".format(force,self.fname),color="red" )
         if not self.fname and not force:
             return 0
         if self.base.show_name == self.fname and not force:
@@ -2806,11 +2808,11 @@ class WindowManager():
         self.windows[self.first].mainloop()
 
     def get_win(self,name):
-        cprint(".get_win(name) =",name)
+        #cprint(".get_win(name) =",name)
         name = str(name)
         if name in self.windows:
             out = self.windows[name]
-            cprint(out)
+            #cprint(out)
             return out
 
     def get(self,name):
@@ -3082,7 +3084,8 @@ class window_create_buffer():
 def open_sdl_window():
     cprint("open_sdl_window ... delay 1sec",color="yellow")
     time.sleep(1)
-    movewin.startup_all_sdl()
+    if "--easy" not in sys.argv:
+        movewin.startup_all_sdl()
 
 if __run_main:
     cprint("main")
@@ -3683,6 +3686,9 @@ if __run_main:
     try:
         window_manager.mainloop()
     finally:
+        print()
+        print()
+        cprint(" - EXIT -",color="red")
         BASE_PATH = "/opt/LibreLight/Xdesk/"
         movewin.process_kill(BASE_PATH+"tksdl/")
         master.exit()

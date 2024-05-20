@@ -66,6 +66,11 @@ def JSCB(x,sock=None):
                     MAIN.modes.val("LABEL",1)
                 elif "REC" == msg["event"]:
                     MAIN.modes.val("REC",1)
+                elif "SAVE\nSHOW" == msg["event"]:
+                    MAIN.save_show()
+                elif "RESTART" == msg["event"]:
+                    print("OK OK")
+                    MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
                 elif "REC-FX" == msg["event"]:
                     MAIN.modes.val("REC-FX",1)
                 elif "EXEC" == msg["event"]:

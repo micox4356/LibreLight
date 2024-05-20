@@ -724,14 +724,25 @@ while 1:
                     print("ESC",msg)
                     cmd_client.send(msg)
 
-                keycode = {27:"REC",39:"SELECT",46:"LABEL",54:"CFG-BTN",56:"BLIND",41:"FLASH",26:"EDIT"}
-                print( event.scancode in keycode,event.scancode)
-                if event.scancode in keycode: # r
-                    if event.type == 2: # press
-                            
-                        msg=json.dumps([{"event":keycode[event.scancode]}]).encode("utf-8")
-                        print("SPCIAL-KEY",msg)
-                        cmd_client.send(msg)
+                if event.mod == 0:
+                    keycode = {27:"REC",39:"SELECT",46:"LABEL",54:"CFG-BTN",56:"BLIND",41:"FLASH",26:"EDIT"}
+                    print( event.scancode in keycode,event.scancode)
+                    if event.scancode in keycode: # r
+                        if event.type == 2: # press
+                                
+                            msg=json.dumps([{"event":keycode[event.scancode]}]).encode("utf-8")
+                            print("SPCIAL-KEY",msg)
+                            cmd_client.send(msg)
+                if event.mod == 64:
+                    keycode = {39:"SAVE\nSHOW",54:"RESTART"}
+                    print( event.scancode in keycode,event.scancode)
+                    if event.scancode in keycode: # r
+                        if event.type == 2: # press
+                                
+                            msg=json.dumps([{"event":keycode[event.scancode]}]).encode("utf-8")
+                            print("SPCIAL-KEY",msg)
+                            cmd_client.send(msg)
+
                 if event.scancode in range(10,20+1):
                     if event.type in [2,3]: # press
                         v = 1-event.type+2

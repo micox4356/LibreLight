@@ -198,7 +198,7 @@ class tk_event():
         elif self.attr == "SAVE":
             MAIN.modes.val(self.attr,1)
             MAIN.save_show()
-            #PRESETS.backup_presets()
+            #MAIN.PRESETS.backup_presets()
             #MAIN.FIXTURES.backup_patch()
             #time.sleep(1)
             MAIN.modes.val(self.attr,0)
@@ -336,18 +336,18 @@ class tk_event():
                             time.sleep(0.05)
                             MAIN.master._refresh_exec(nr=nr)
                         elif MAIN.modes.val("DEL"):
-                            ok=PRESETS.delete(nr)
+                            ok=MAIN.PRESETS.delete(nr)
                             if ok:
                                 MAIN.modes.val("DEL",0)
                                 #MAIN.master.refresh_exec()
                                 MAIN.master._refresh_exec(nr=nr)
                         elif MAIN.modes.val("COPY"):
-                            ok=PRESETS.copy(nr)
+                            ok=MAIN.PRESETS.copy(nr)
                             if ok:
                                 MAIN.modes.val("COPY",0)
                                 MAIN.master._refresh_exec(nr=nr)
                         elif MAIN.modes.val("MOVE"):
-                            ok,cnr,bnr=PRESETS.move(nr)
+                            ok,cnr,bnr=MAIN.PRESETS.move(nr)
                             if ok:
                                 #MAIN.modes.val("MOVE",0) # keep MOVE on
                                 MAIN.master._refresh_exec(nr=nr)

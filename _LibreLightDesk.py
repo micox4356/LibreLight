@@ -38,6 +38,14 @@ rnd_id3 = ""
 _ENCODER_WINDOW = None
 
 
+__run_main = 0
+if __name__ == "__main__":
+    __run_main = 1
+else:
+    import __main__ 
+    if "unittest" not in dir(__main__):
+        __run_main = 1
+
 import tool.git as git
 rnd_id += git.get_all()
 
@@ -2085,14 +2093,6 @@ class Refresher():
 print("main",__name__)
 
 
-__run_main = 0
-if __name__ == "__main__":
-    __run_main = 1
-else:
-    import __main__ 
-    if "unittest" not in dir(__main__):
-        __run_main = 1
-
 
 
 refresher_fix = Refresher()
@@ -2178,6 +2178,27 @@ def open_sdl_window():
     time.sleep(1)
     if "--easy" not in sys.argv:
         movewin.startup_all_sdl()
+
+thread.start_new_thread(loops,())
+mc_fix = MC_FIX()
+def mc_fix_loop():
+    time.sleep(5)
+    while 1:
+        try:
+            #print(1)
+            data = FIXTURES.fixtures 
+            mc_fix.set(index="fix",data=data)
+        except Exception as e:
+            print("MC_FIX EXCEPTION",e)
+        time.sleep(1/10)
+
+thread.start_new_thread(mc_fix_loop,())
+thread.start_new_thread(open_sdl_window,())
+
+#while 1:
+#    time.sleep(1)
+#    if not __run_main:
+#        break
 
 if __run_main:
     cprint("main")
@@ -2756,21 +2777,6 @@ if __run_main:
 
 
 
-    thread.start_new_thread(loops,())
-    mc_fix = MC_FIX()
-    def mc_fix_loop():
-        time.sleep(5)
-        while 1:
-            try:
-                #print(1)
-                data = FIXTURES.fixtures 
-                mc_fix.set(index="fix",data=data)
-            except Exception as e:
-                print("MC_FIX EXCEPTION",e)
-            time.sleep(1/10)
-
-    thread.start_new_thread(mc_fix_loop,())
-    thread.start_new_thread(open_sdl_window,())
     
     try:
         window_manager.mainloop()

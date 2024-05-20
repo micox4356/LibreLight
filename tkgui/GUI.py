@@ -144,11 +144,11 @@ class _TableFrame():
             c=0
             r=0
             b = tk.Button(xframe,bg="lightblue", text="ID",width=6,anchor="e")
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(xframe,bg="lightblue", text="NAME",width=14,anchor="w")
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(xframe,bg="#ddd", text="TYPE",width=3)
@@ -317,25 +317,25 @@ def draw_sub_dim(gui,fix,data,c=0,r=0,frame=None):
         v= data["ATTRIBUT"][attr]["VALUE"]
         b = tk.Button(frame,bg="lightblue", text=""+str(fix),width=3,anchor="w")
         b.config(padx=1)
-        b.bind("<Button>",MAIN.Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        b.bind("<Button>",tkevent.tk_event(fix=fix,mode="D-SELECT",elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
         b = tk.Button(frame,bg="lightblue", text=data["NAME"],width=10,anchor="w")
         b.config(padx=1)
-        b.bind("<Button>",MAIN.Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        b.bind("<Button>",tkevent.tk_event(fix=fix,mode="D-SELECT",elem=b).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
         b = tk.Button(frame,bg="grey", text="S",width=2,anchor="c")
         b.config(padx=1)
         myTip = Hovertip(b,'SELECT')
-        b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b,attr="_ACTIVE",mode="ENCODER",data=data).cb)
+        b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b,attr="_ACTIVE",mode="ENCODER",data=data).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         gui.elem_attr[fix]["S"] = b
         c+=1
         b = tk.Button(frame,bg="grey", text=str(round(v,2)),width=10,anchor="w")
         b.config(padx=1)
         gui.elem_attr[fix][attr] = b
-        b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
+        b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
         if c >=12:
@@ -439,18 +439,18 @@ class GUI_FIX():
             frame = fix_frame
         
             b = tk.Button(frame,bg="lightblue", text="ID:"+str(fix),width=6,anchor="w")
-            b.bind("<Button>",MAIN.Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b.bind("<Button>",tkevent.tk_event(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(frame,bg="#55f", text=data["NAME"],width=10,anchor="w")
-            b.bind("<Button>",MAIN.Xevent(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
+            b.bind("<Button>",tkevent.tk_event(fix=fix,attr="ALL",mode="ENCODER",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
 
             b = tk.Button(frame,bg="grey", text="S",width=2,anchor="c")
             b.config(padx=1)
             myTip = Hovertip(b,'SELECT')
-            b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b,attr="_ACTIVE",mode="ENCODER",data=data).cb)
+            b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b,attr="_ACTIVE",mode="ENCODER",data=data).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             gui.elem_attr[fix]["S"] = b
             c+=1
@@ -487,7 +487,7 @@ class GUI_FIX():
                 else:
                     b = tk.Button(frame,bg="grey", text=str(attr)+' '+str(round(v,2)),width=12, anchor="w")
                 gui.elem_attr[fix][attr] = b
-                b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
+                b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b,attr=attr,mode="ENCODER",data=data).cb)
                 b.grid(row=r, column=c, sticky=tk.W+tk.E,ipadx=0,ipady=0,padx=0,pady=0)
                 c+=1
                 if c >=8:
@@ -604,11 +604,11 @@ class GUI_PATCH():
         r=0
         def head(i,c,r,xframe=None):
             b = tk.Button(xframe,bg="grey", text="Z:{} ID".format(z+1),width=6,anchor="e")
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(xframe,bg="grey", text="NAME",width=14,anchor="w")
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             rgb  = "#aaa"
@@ -674,14 +674,14 @@ class GUI_PATCH():
             data = FIXTURES.fixtures[fix]
                             
             b = tk.Button(xframe,bg="lightblue", text=""+str(fix),width=6,anchor="e")
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
 
             command = _SET_PATCH("NAME",data["NAME"],fix,data)
             b = tk.Button(xframe,bg="grey", text=data["NAME"],width=14,anchor="w",command=command.attr)
             command.set_button(b)
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             LABEL = ""
@@ -704,16 +704,16 @@ class GUI_PATCH():
 
                     
             b = tk.Button(xframe,bg="#aaa", text=LABEL,width=8,anchor="w")
-            #b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             b["activebackground"] = "#aaa"
             c+=1
             b = tk.Button(xframe,bg="#ddd", text="EDIT",width=3)
-            b.bind("<Button>",MAIN.Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b.bind("<Button>",tkevent.tk_event(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             b = tk.Button(xframe,bg="#ddd", text="[ ][x]",width=1)
-            b.bind("<Button>",MAIN.Xevent(fix=fix,mode="SELECT",elem=b).cb)
+            b.bind("<Button>",tkevent.tk_event(fix=fix,mode="SELECT",elem=b).cb)
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=1
             #r+=1
@@ -1331,7 +1331,7 @@ class GUI_FixtureEditor():
         line3="CHOOS to EDIT >> DEMO MODUS"
 
         cb = None #LOAD_FIXTURE(self,"USER").cb 
-        self.pw = libtk.PopupList(name,width=600,cb=cb,left=MAIN._POS_LEFT+620,bg="#333")
+        self.pw = libtk.PopupList(name,width=600,cb=cb,left=libtk._POS_LEFT+620,bg="#333")
         frame = self.pw.sframe(line1=line1,line2=line2) #,line3=line3)
 
 
@@ -1570,7 +1570,7 @@ class GUI_grid():
         for row in data:
 
             self.b = tk.Button(self.frame,bg="lightblue", text=row["text"],width=11,height=4)
-            #self.b.bind("<Button>",MAIN.Xevent(fix=fix,elem=b).cb)
+            #self.b.bind("<Button>",tkevent.tk_event(fix=fix,elem=b).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             c+=1
             if c % 8 == 0:
@@ -1860,8 +1860,8 @@ class EXEC_FADER():
             #b = self.b
             #k = ""
             #gui = MAIN.master
-            #self.b.bind("<Button>",MAIN.Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
-            #self.b.bind("<ButtonRelease>",MAIN.Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+            #self.b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+            #self.b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
             self.attr=self.b
             self.b.pack(fill=tk.BOTH, side=tk.TOP)
             self.elem.append(self.b)
@@ -2190,7 +2190,7 @@ class GUI_menu():
             else:
                 self.b = tk.Button(self.frame,bg="lightgrey", text=row["text"],width=8,height=h)
 
-            self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.callback).cb)
+            self.b.bind("<Button>",BEvent({"NR":i,"text":row["text"]},self.on_top).cb)
             self.b.grid(row=r, column=c, sticky=tk.W+tk.E)#,anchor="w")
             row["elem"] = self.b
             self.elem[row["text"]] = row
@@ -2204,11 +2204,10 @@ class GUI_menu():
         print(self,"--- start_bg_loop ----- xxxx")
         thread.start_new_thread(mytklib.tk_btn_bg_loop,(self.TITLE,))
 
-    def callback(self,event,data={}):
-        #print("callback543",self,event,data)
-        print("callback543",self,event) #,data)
-        import __main__ as m
-        m.window_manager.top(data["text"])
+    def on_top(self,event,data={}):
+        print("menue.on_top",data)
+        MAIN.window_manager.top(data["text"])
+
     def update(self,button,text):
         #print(self,button,text)
         for k in self.elem:
@@ -2216,6 +2215,7 @@ class GUI_menu():
             #print(self,k,v)
             if button == k:
                 v["elem"]["text"] = k+"\n"+text
+
     def config(self,button,attr,value):
         #print("config",self,button,attr,value)
         for k in self.elem:

@@ -1,11 +1,26 @@
 
+import time
+import sys
 
 import tkinter as tk
 import traceback
+import _thread as thread
 
-from __main__ import *
+import __main__ as MAIN
+
 import lib.mytklib as mytklib
+import lib.libtk as tklib
+import lib.tkevent as tkevent
 
+from lib.cprint import cprint
+
+if MAIN.IS_GUI:
+    import tkinter
+    import tkinter as tk
+    from tkinter import font
+
+    import tkinter.simpledialog
+    from idlelib.tooltip import Hovertip
 
 
 
@@ -49,23 +64,23 @@ def draw_command(gui,xframe,data):
         if comm == "FX OFF":
             b["bg"] = "magenta"
         if comm == "SIZE:":
-            b["text"] = "SIZE:{:0.0f}".format(fx_prm["SIZE"])
+            b["text"] = "SIZE:{:0.0f}".format(MAIN.fx_prm["SIZE"])
         if comm == "SPEED:":
-            b["text"] = "SPEED:{:0.0f}".format(fx_prm["SPEED"])
+            b["text"] = "SPEED:{:0.0f}".format(MAIN.fx_prm["SPEED"])
         if comm == "DELAY":
-            b["text"] = "FADE:\n{:0.02f}".format(DELAY.val())
+            b["text"] = "FADE:\n{:0.02f}".format(MAIN.DELAY.val())
         if comm == "FADE":
-            b["text"] = "FADE:\n{:0.02f}".format(FADE.val())
+            b["text"] = "FADE:\n{:0.02f}".format(MAIN.FADE.val())
         if comm == "START:":
-            b["text"] = "START:{:0.0f}".format(fx_prm["START"])
+            b["text"] = "START:{:0.0f}".format(MAIN.fx_prm["START"])
         if comm == "OFFSET:":
-            b["text"] = "OFFSET:{:0.0f}".format(fx_prm["OFFSET"])
+            b["text"] = "OFFSET:{:0.0f}".format(MAIN.fx_prm["OFFSET"])
         if comm == "FX-X:":
-            b["text"] = "FX-X:{}".format(fx_prm["FX-X"])
+            b["text"] = "FX-X:{}".format(MAIN.fx_prm["FX-X"])
         if comm == "BASE:":
-            b["text"] = "BASE:{}".format(fx_prm["BASE"])
+            b["text"] = "BASE:{}".format(MAIN.fx_prm["BASE"])
 
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="COMMAND").cb)
+        b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=comm,data=gui,mode="COMMAND").cb)
         if comm:
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
@@ -121,8 +136,8 @@ def draw_preset(gui,xframe,PRESETS):
 
         b = mytklib.ExecButton(frame,text=txt)
 
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
-        b.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+        b.bind("<Button>",       tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+        b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
         
         if k not in gui.elem_presets:
             gui.elem_presets[k] = b
@@ -159,25 +174,25 @@ def draw_input(gui,root2):
     
     b = tk.Entry(frame,bg="grey", text="",width=50)
     gui.entry = b
-    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
-    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
+    b.bind("<Key>"   ,tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT").cb)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     b.insert("end","d0:127,fx241:sinus:50:50:10,fx243:cosinus:50:50:10,d201:127,fx201:sinus:50:300:10")
     r+=1
     
     b = tk.Entry(frame,bg="grey", text="",width=20)
     gui.entry2 = b
-    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
-    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+    b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
+    b.bind("<Key>"   ,tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT2").cb)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     b.insert("end","d1:0:4")
     r+=1
 
     b = tk.Entry(frame,bg="grey", text="",width=20)
     gui.entry3 = b
-    b.bind("<Button>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    #b.bind("<B1-Motion>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
-    b.bind("<Key>",Xevent(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    #b.bind("<B1-Motion>",tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
+    b.bind("<Key>"   ,tkevent.tk_event(fix=0,elem=b,attr="INPUT",data=gui,mode="INPUT3").cb)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     b.insert("end","fx:alloff:::")
 
@@ -205,7 +220,7 @@ def draw_colorpicker(gui,xframe,data):
             try:
                 print("e.state",event.state)
             except:pass
-            set_fade = FADE.val() #fade
+            set_fade = MAIN.FADE.val() #fade
 
             event_ok = 0
             event_num = 0
@@ -236,8 +251,8 @@ def draw_colorpicker(gui,xframe,data):
                 set_fade=0
 
                 if event_num == 1: 
-                    if FADE._is():
-                        set_fade=FADE.val() #fade
+                    if MAIN.FADE._is():
+                        set_fade=MAIN.FADE.val() #fade
                     cr = color[0]
                     cg = color[1]
                     cb = color[2]
@@ -448,7 +463,7 @@ def draw_enc(gui,xframe,data=[]):
         b = tk.Button(frame,bg="#6e6e6e", text=str(attr)+'',width=7)#, anchor="w")
         if attr == "DIM":
             b = tk.Button(frame,bg="#ff7f00", text=str(attr)+'',width=7)#, anchor="w")
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER2").cb)
+        b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=attr,data=gui,mode="ENCODER2").cb)
         b.grid(row=r, column=c, sticky=tk.W+tk.E ,ipadx=0,ipady=0,padx=0,pady=0)#,expand=True)
         c+=1
         if c >=8:
@@ -457,26 +472,26 @@ def draw_enc(gui,xframe,data=[]):
 
     b = tk.Button(frame,bg="#bfff00", text="INV-ATTR",width=6)
     myTip = Hovertip(b,'INVERT ATTRIBUT SELECTION')
-    b.bind("<Button>",Xevent(fix="SEL",elem=b,attr="INV-ATTR",data=gui,mode="INVERT").cb)
+    b.bind("<Button>",tkevent.tk_event(fix="SEL",elem=b,attr="INV-ATTR",data=gui,mode="INVERT").cb)
     b.grid(row=r, column=c, sticky=tk.W+tk.E)
     c+=1
 
 def _draw_fx(frame,c,r,gui,mode="FX"):
     if mode=="FX-MAIN":
         ct  = gui.fx_main
-        prm = fx_prm_main
+        prm = MAIN.fx_prm_main
     elif mode=="FX-MOVE":
         ct  = gui.fx_moves
-        prm = fx_prm_move
+        prm = MAIN.fx_prm_move
     elif mode=="FX":
         ct  = gui.fx
-        prm = fx_prm
+        prm = MAIN.fx_prm
     elif mode=="FX-GENERIC":
         ct  = gui.fx_generic
-        prm = fx_prm #_generic
+        prm = MAIN.fx_prm #_generic
     elif mode=="FX-COLOR":
         ct  = gui.fx_color
-        prm = fx_color #_generic
+        prm = MAIN.fx_color #_generic
     else:
         ct = Elem_Container()
         ct.commands =["err"]
@@ -502,7 +517,7 @@ def _draw_fx(frame,c,r,gui,mode="FX"):
             #comm = comm.replace("\n","")
             ct.elem[comm] = b
             ct.val[comm] = 0
-        b.bind("<Button>",Xevent_fx(fix=0,elem=b,attr=comm,data=gui,mode=mode).cb)
+        b.bind("<Button>",tkevent.tk_event_fx(fix=0,elem=b,attr=comm,data=gui,mode=mode).cb)
         if comm == "REC-FX":
             b["bg"] = "grey"
         elif comm == "FX OFF":
@@ -649,7 +664,7 @@ def draw_setup(gui,xframe,data):
             #gui.setup_elem.val[comm] = 0
 
         if ok:
-            b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
+            b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=comm,data=gui,mode="SETUP").cb)
 
         if comm == "BASE:":
             b["text"] = "BASE:{}".format(prm["BASE"])
@@ -694,14 +709,14 @@ def draw_live(gui,xframe,data):
         if comm not in gui.commands.elem:
             gui.commands.elem[comm] = b
             gui.commands.val[comm] = 0
-        b.bind("<Button>",Xevent(fix=0,elem=b,attr=comm,data=gui,mode="LIVE").cb)
+        b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=comm,data=gui,mode="LIVE").cb)
 
         if "FADE" == comm:
-            b["text"] = "FADE:\n{:0.2}".format(FADE.val())
+            b["text"] = "FADE:\n{:0.2}".format(MAIN.FADE.val())
         if "DELAY" == comm:
-            b["text"] = "DELAY:\n{:0.2}".format(DELAY.val())
+            b["text"] = "DELAY:\n{:0.2}".format(MAIN.DELAY.val())
         if "PAN/TILT\nFADE" == comm:
-            b["text"] = "PAN/TILT\nFADE:{:0.2}".format(FADE_move.val())
+            b["text"] = "PAN/TILT\nFADE:{:0.2}".format(MAIN.FADE_move.val())
 
         if "FADE" in comm:
             b["bg"] = "green"

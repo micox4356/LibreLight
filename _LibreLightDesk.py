@@ -29,6 +29,7 @@ if __name__ == "__main__":
 import tool.movewin as movewin
 import lib.fixlib as  fixlib
 import lib.libwin as libwin
+import lib.libtk as libtk
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
@@ -91,7 +92,7 @@ if "--easy" in sys.argv:
         os.system(cmd)
     # check if EASY show exist !
 
-from lib.cprint import *
+from lib.cprint import cprint
 cprint("________________________________")
  
 def cb(**args):
@@ -104,43 +105,6 @@ import lib.motion as motion
 from collections import OrderedDict
 
 _FIX_FADE_ATTR = ["PAN","TILT","DIM","RED","GREEN","BLUE","WHITE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]
-
-
-_POS_LEFT = 0
-_POS_TOP  = 15
-_config = []
-try: 
-    h = os.environ["HOME"]
-    lines = [{}]
-    try: 
-        f = open(h +"/LibreLight/config.json")
-        lines = f.readlines()
-
-    except FileNotFoundError as e: #Exception as e:
-        f = open(h +"/LibreLight/config.json","w")
-        f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
-        f.close()
-        cprint("Exception:",e)
-
-    cprint("config read")
-    for line in lines:
-        line=line.strip()
-        print("   config:",line)
-        row = json.loads(line) 
-        _config.append(row)
-
-except Exception as e:
-    cprint("Exception:",e)
-
-try: 
-    for row in _config:
-        #print("   config:",row)
-        if "POS_LEFT" in row:
-           _POS_LEFT = int(row["POS_LEFT"]) 
-        if "POS_TOP" in row:
-           _POS_TOP = int(row["POS_TOP"]) 
-except Exception as e:
-    cprint("Exception:",e)
 
 
 
@@ -265,21 +229,23 @@ def set_exec_fader_cfg(nr,val,label="",color=""):
             if cfg:
                 exec_wing.fader_elem[nr].attr["bg"] = cfg["bg"]
                 exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
-                exec_wing.fader_elem[nr].attr["fx"] = cfg["fx"]
+
+                #exec_wing.fader_elem[nr].attr["fx"] = cfg["fx"]
     except Exception as e:
-        cprint("- exception:",e)
-        print(nr,val,label)
+        cprint("  set_exec_fader_cfg err:",e,color="red")
+        print("  ",nr,val,label)
+        raise e
 
 def set_exec_fader(nr,val,label="",color="",info="info",change=0):
     exec_wing = window_manager.get_obj(name="EXEC-WING") 
     if not exec_wing: 
         return
+
     try:
         exec_wing.set_fader(nr,val,color=color,info=info,change=change)
     except Exception as e:
-        pass
-        cprint("- exception:",e)
-        print(nr,val,label)
+        cprint(" - set_exec_fader err:",e,color="red")
+        print("    ",nr,val,label)
         raise e
    
 
@@ -288,7 +254,7 @@ def set_exec_fader_all():
     cprint( "set_exec_fader_all()",color="green")
     for nr in range(10):
         _label = PRESETS.label_presets[nr+80] # = label
-        print("  _label",_label)
+        print("  set_exec_fader_all._label =",_label)
         set_exec_fader(nr,0,label=_label) 
         set_exec_fader_cfg(nr,0,label=_label)
 
@@ -768,412 +734,6 @@ def _process_matrix(xfixtures,fx_x,fx_mod):
 
     return xfixtures
 
-class Xevent_fx():
-    """ global input event Handeler for short cut's ... etc
-    """
-    def __init__(self,fix,elem,attr=None,data=None,mode=None):
-        self.fix = fix
-        self.data = data
-        self.attr = attr
-        self.elem = elem
-        self.mode = mode
-
-    def fx(self,event):
-        cprint("Xevent.fx",self.attr,self.fix,event)
-        fx2 = {}
-
-        if self.attr == "FX:RED":
-            if event.num == 4:
-                cprint("FX:COLOR CHANGE",fx_prm,color="red")
-                txt = "FX:RED" 
-                fx_prm["MODE"] += 1
-                if fx_prm["MODE"] >= len(fx_modes):
-                    fx_prm["MODE"]=0
-                txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
-
-                master.fx_color.elem["FX:RED"]["text"] = txt
-            elif event.num == 5:
-                cprint("FX:COLOR CHANGE",fx_prm,color="red")
-                txt = "FX:RED" 
-                fx_prm["MODE"] -= 1
-                if fx_prm["MODE"] < 0:
-                    fx_prm["MODE"]= len(fx_modes)-1
-                txt = "FX:\n"+fx_modes[fx_prm["MODE"]]
-                master.fx_color.elem["FX:RED"]["text"] = txt
-
-        if self.attr.startswith("2D"):
-            if event.num == 4:
-                cprint("2D-X: CHANGE",fx_prm,color="red")
-                txt = "2D-X:" 
-                fx_prm["2D:MODE"] += 1
-                if fx_prm["2D:MODE"] >= len(fx_x_modes):
-                    fx_prm["2D:MODE"]=0
-                txt = "2D:MODE\n"+fx_x_modes[fx_prm["2D:MODE"]]
-
-                master.fx.elem["2D:MODE"]["text"] = txt
-            elif event.num == 5:
-                cprint("2D-X: CHANGE",fx_prm,color="red")
-                txt = "2D-X:" 
-                fx_prm["2D:MODE"] -= 1
-                if fx_prm["2D:MODE"] < 0:
-                    fx_prm["2D:MODE"]= len(fx_x_modes)-1
-                txt = "2D:MODE\n"+fx_x_modes[fx_prm["2D:MODE"]]
-                master.fx.elem["2D:MODE"]["text"] = txt
-
-        elif event.num == 1:
-            xfixtures = []
-            fix_active =FIXTURES.get_active() 
-            for fix in fix_active:
-                if fix == "CFG":
-                    continue
-                xfixtures.append(fix)
-
-            if not xfixtures:
-                cprint("470 fx() ... init no fixture selected",color="red")
-                return 0
-            
-            
-            xfixtures   = process_matrix(xfixtures)
-            wing_buffer = fxlib.process_wings(xfixtures,fx_prm)
-            fxlib.process_effect(wing_buffer,fx_prm,fx_prm_move,modes,jclient_send,master,FIXTURES,fx_name=self.attr)
-
-
-
-
-    def command(self,event,mode=""):       
-        cprint("fx_command",self.mode)
-        if self.mode == "FX":
-            prm = fx_prm
-            ct = self.data.fx 
-        if self.mode == "FX-MOVE":
-            prm = fx_prm_move
-            ct = self.data.fx_moves 
-
-        if 1:
-            if self.attr.startswith("SIZE:"):#SIN":
-                #global fx_prm
-                k = "SIZE"
-                if event.num == 1:
-                    _stats = [0,30,100,255]
-                    if prm[k] in _stats:
-                        idx = _stats.index(prm[k])+1
-                        if idx > len(_stats)-1: #rotate
-                            idx = 0
-                        prm[k] = _stats[idx]
-                    else:
-                        prm[k] = _stats[1]
-                elif event.num == 3:
-                    prm[k] =100
-                elif event.num == 4:
-                    if prm[k] <= 0:
-                        prm[k] = 1
-                    prm[k] +=5
-                elif event.num == 5:
-                    prm[k] -=5
-                #prm[k] =int(prm[k])
-                
-                if prm[k] > 4000:
-                    prm[k] = 4000
-                if prm[k] < 0:
-                    prm[k] =0
-                if prm[k] == 6: #bug
-                    prm[k] =5
-                ct.elem[self.attr]["text"] = "SIZE:\n{:0.0f}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("SPEED:"):#SIN":
-                #global prm
-                k = "SPEED"
-                if event.num == 1:
-                    _stats = [0,5,25,30,100,255]
-                    if prm[k] in _stats:
-                        idx = _stats.index(prm[k])+1
-                        if idx > len(_stats)-1: #rotate
-                            idx = 0
-                        prm[k] = _stats[idx]
-                    else:
-                        prm[k] = 0
-                elif event.num == 3:
-                    prm[k] = 10
-                elif event.num == 4:
-                    if prm[k] <= 0:
-                        prm[k] = 0.06
-                    elif prm[k] < 5:
-                        prm[k] *=1.2
-                    else:
-                        prm[k] +=5 #1.1
-                elif event.num == 5:
-                    if prm[k] <= 5:
-                        prm[k] *=0.8
-                    else:
-                        prm[k] -= 5 #1.1
-                #prm[k] =int(prm[k])
-                
-                if prm[k] > 4000:
-                    prm[k] = 4000
-                if prm[k] < 0.05:
-                    prm[k] =0
-                if prm[k] > 5 and prm[k] < 10: #bug
-                    prm[k] =5
-
-                if prm[k] < 0:
-                    ct.elem[self.attr]["text"] = "SPEED:\noff".format(prm[k])
-                else:
-                    ct.elem[self.attr]["text"] = "SPEED:\n{:0.02f}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("START:"):#SIN":
-                #global prm
-                k = "START"
-                if event.num == 1:
-                    pass
-                elif event.num == 2:
-                    pass
-                elif event.num == 4:
-                    if prm[k] <= 0:
-                        prm[k] = 1
-                    prm[k] += 5 #1.1
-                elif event.num == 5:
-                    prm[k] -= 5 #1.1
-                #prm[k] =int(prm[k])
-                
-                if prm[k] > 4000:
-                    prm[k] = 4000
-                if prm[k] < 5:
-                    prm[k] =0
-                if prm[k] == 6: #bug
-                    prm[k] =5
-
-                ct.elem[self.attr]["text"] = "START:\n{:0.0f}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("WIDTH:"):#SIN":
-                #global prm
-                k = "WIDTH"
-                if event.num == 1:
-                    _stats = [0,25,50,75,10]
-                    if prm[k] in _stats:
-                        idx = _stats.index(prm[k])+1
-                        if idx > len(_stats)-1: #rotate
-                            idx = 0
-                        prm[k] = _stats[idx]
-                    else:
-                        prm[k] = 25
-                elif event.num == 2:
-                    prm[k] = 50
-                elif event.num == 3:
-                    prm[k] = 100
-                elif event.num == 4:
-                    if prm[k] <= 0:
-                        prm[k] = 1
-                    elif prm[k] == 50:
-                        prm[k] = 100
-                    elif prm[k] == 5:
-                        prm[k] = 25
-                    elif prm[k] == 25:
-                        prm[k] = 50
-                    else:
-                        prm[k] += 5 #*=1.1
-                elif event.num == 5:
-                    if prm[k] == 10:
-                        prm[k] = 5
-                    elif prm[k] == 25:
-                        prm[k] = 10
-                    elif prm[k] == 50:
-                        prm[k] = 25
-                    elif prm[k] == 100:
-                        prm[k] = 50
-                    #else:
-                    #    prm[k] -=5 #/=1.1
-                    
-                #prm[k] =int(prm[k])
-                
-                if prm[k] < 0:
-                    prm[k] = 0
-                if prm[k] > 100:
-                    prm[k] = 100
-                if prm[k] == 6: #bug
-                    prm[k] =5
-                if prm[k] > 25 and prm[k] < 50: #bug
-                    prm[k] =50
-                if prm[k] > 50 and prm[k] < 75: #bug
-                    prm[k] =75
-                if prm[k] > 75 and prm[k] < 100: #bug
-                    prm[k] =100
-
-                ct.elem[self.attr]["text"] = "WIDTH:\n{:0.0f}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("DIR:"):#SIN":
-                #global prm
-                k = "DIR"
-                if event.num == 1:
-                    prm[k] = 1
-                elif event.num == 3:
-                    prm[k] = -1
-                elif event.num == 4:
-                    prm[k] = 1
-                elif event.num == 5:
-                    prm[k] =-1
-                txt = prm[k] 
-                ct.elem[self.attr]["text"] = "DIR:\n{}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("SHUFFLE:"):#SIN":
-                #global prm
-                k = "SHUFFLE"
-                if event.num == 1:
-                    prm[k] = 0
-                elif event.num == 3:
-                    prm[k] = 1
-                elif event.num == 4:
-                    prm[k] = 1
-                elif event.num == 5:
-                    prm[k] =0
-                if prm[k] == 6: #bug ?
-                    prm[k] =5
-                ct.elem[self.attr]["text"] = k+":\n{}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("INVERT:"):#SIN":
-                #global prm
-                k = "INVERT"
-                if event.num == 1:
-                    prm[k] = 0
-                elif event.num == 3:
-                    prm[k] = 1
-                elif event.num == 4:
-                    prm[k] = 1
-                elif event.num == 5:
-                    prm[k] =0
-                if prm[k] == 6: #bug ?
-                    prm[k] =5
-                ct.elem[self.attr]["text"] = k+":\n{}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("2D-X:"):#SIN":
-                #global prm
-                k = "2D-X"
-                if event.num == 1:
-                    prm[k] = 1
-                elif event.num == 3:
-                    prm[k] = 2
-                elif event.num == 4:
-                    prm[k] += 1
-                elif event.num == 5:
-                    prm[k] -=1
-                if prm[k] > 100:
-                    prm[k] = 100
-                if prm[k] < 1:
-                    prm[k] =1
-                    
-                txt = prm[k] 
-                ct.elem[self.attr]["text"] = "2D-X:\n{}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("WING:"):#SIN":
-                #global prm
-                k = "WING"
-                if event.num == 1:
-                    prm[k] = 1
-                elif event.num == 3:
-                    prm[k] = 2
-                elif event.num == 4:
-                    prm[k] += 1
-                elif event.num == 5:
-                    prm[k] -=1
-                if prm[k] > 100:
-                    prm[k] = 100
-                if prm[k] < 1:
-                    prm[k] =1
-                    
-                txt = prm[k] 
-                ct.elem[self.attr]["text"] = "WING:\n{}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("OFFSET:"):#SIN":
-                #global prm
-                k = "OFFSET"
-                if event.num == 1:
-                    prm[k] = 50
-                elif event.num == 2:
-                    prm[k] *= 2
-                elif event.num == 3:
-                    prm[k] = 100
-                elif event.num == 4:
-                    if prm[k] <= 0:
-                        prm[k] = 1
-                    prm[k] +=5 #*=1.1
-                elif event.num == 5:
-                    prm[k] -=5 #/=1.1
-                #prm[k] =int(prm[k])
-                
-                #if prm[k] > 512:
-                #    prm[k] = 512
-                if prm[k] < 5:
-                    prm[k] =0
-                if prm[k] == 6: #bug
-                    prm[k] =5
-
-                ct.elem[self.attr]["text"] = "OFFSET:\n{:0.0f}".format(prm[k])
-                cprint(prm)
-            elif self.attr.startswith("BASE:"):
-                k = "BASE"
-                if event.num == 1:
-                    prm[k] = "-"
-                elif event.num == 3:
-                    prm[k] = "0"
-                elif event.num == 4:
-                    prm[k] = "+"
-                elif event.num == 5:
-                    prm[k] = "0"
-                ct.elem[self.attr]["text"] = "BASE:\n{}".format(prm[k])
-            elif self.attr.startswith("2D:"):#SIN":
-                self.fx(event)
-            elif self.attr.startswith("FX:"):#SIN":
-                self.fx(event)
-
-            elif self.attr == "FX OFF":
-                if event.num == 1:
-                    FIXTURES.fx_off("all")
-                    CONSOLE.fx_off("all")
-                    CONSOLE.flash_off("all")
-                    master._refresh_fix()
-                    return 0
-
-                #if event.num == 1:
-            elif self.attr == "REC-FX":
-                cprint("ELSE",self.attr)
-                modes.val(self.attr,1)
-
-            return 0
-            
-    def cb(self,event):
-        cprint("EVENT_fx cb",self.attr,self.mode,event,color='yellow')
-        cprint(["type",event.type,"num",event.num])
-        try:
-            change = 0
-
-            if self.mode.startswith("FX"):
-                self.command(event)
-                return 0
-
-        except Exception as e:
-            cprint("== cb EXCEPT",e,color="red")
-            cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
-            cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-        return 1 
- 
-class BLINKI():
-    def __init__(self,e):
-        self.e = e
-    def blink(self):
-        e = self.e
-        e.config(bg='green')
-        duration = 150
-        for i in range(8):
-            d = i * duration
-            if i % 2 == 0:
-                e.after(d, lambda: e.config(bg='white')) # after 1000ms
-                e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
-            else:
-                e.after(d, lambda: e.config(bg='orange')) # after 1000ms
-                e.after(d, lambda: e.config(activebackground='orange')) # after 1000ms
-        i+=1
-        duration = 150
-        e.after(d, lambda: e.config(bg='white')) # after 1000ms
-        e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
 
 
 def save_show(fpath=None,new=0):
@@ -1191,7 +751,7 @@ def save_show(fpath=None,new=0):
         c=libwin.save_window_position() 
         d=movewin.store_all_sdl()
 
-    if a and b and c and d:
+    if a and b and d: # and c
         cprint("SAVE SHOW OK",[fpath,new],[a,b,c,d],color="green")
         print()
         print()
@@ -1216,388 +776,6 @@ def save_show_as(fname,new=0):
     if baselib.create_new_show_path(fpath):
         return save_show(fpath,new)
 
-class Xevent():
-    """ global input event Handeler for short cut's ... etc
-    """
-    def __init__(self,fix,elem,attr=None,data=None,mode=None):
-        self.fix = fix
-        self.data=data
-        self.attr = attr
-        self.elem = elem
-        self.mode = mode
-
-    def setup(self,event):       
-        cprint("xevent.SETUP",[self.mode,self.attr],color="red")
-        if self.mode != "SETUP":
-            return 0
-
-        if self.attr == "SAVE\nSHOW":
-            self.elem["bg"] = "orange"
-            self.elem["text"] = "SAVING..."
-            self.elem["bg"] = "red"
-            self.elem.config(activebackground="orange")
-
-            modes.val(self.attr,1)
-
-            save_show()
-
-            self.elem["bg"] = "lightgrey"
-            self.elem.config(activebackground="lightgrey")
-            b = BLINKI(self.elem)
-            b.blink()
-            self.elem["text"] = "SAVE\nSHOW"
-
-        elif self.attr == "LOAD\nSHOW":
-            name = "LOAD-SHOW"
-            line1 = "PATH: " + baselib.current_show_path()
-            line2 = "DATE: " + time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
-
-            class cb():
-                def __init__(self,name=""):
-                    self.name=name
-                    cprint("   LOAD-SHOW.init",name)
-                def cb(self,event=None,**args):
-                    cprint("   LOAD-SHOW.cdb",self.name,event,args)
-                    if self.name != "<exit>":
-                        cprint("-----------------------:")
-                        LOAD_SHOW_AND_RESTART(self.name).cb()
-
-            pw = libtk.PopupList(name,cb=cb)
-            print(line1,line2)
-            frame = pw.sframe(line1=line1,line2=line2)
-            r = frame_of_show_list(frame,cb=cb)
-
-        elif self.attr == "NEW\nSHOW":
-
-            def _cb(data):
-                if not data:
-                    cprint("err443",self,"_cb",data)
-                    return None
-                fname = data["Value"]
-                fpath = baselib.generate_show_path(fname)
-                cprint("SAVE NEW SHOW",fpath,fname)
-
-                if save_show_as(fname,new=1):
-                    LOAD_SHOW_AND_RESTART(fname).cb() 
-
-            dialog._cb = _cb
-            dialog.askstring("CREATE NEW SHOW","CREATE NEW SHOW:")
-
-        elif self.attr == "SAVE\nSHOW AS":
-            base = baselib.Base()
-
-            #def _cb(fname):
-            def _cb(data):
-                if not data:
-                    cprint("err443",self,"_cb",data)
-                    return None
-                fname = data["Value"]
-
-                if save_show_as(fname):
-                    LOAD_SHOW_AND_RESTART(fname).cb() 
-
-
-            dialog._cb = _cb
-            dialog.askstring("SAVE SHOW AS","SAVE SHOW AS:")
-
-        elif self.attr == "SAVE &\nRESTART":
-            self.elem["bg"] = "orange"
-            self.elem["text"] = "SAVING..."
-            self.elem["bg"] = "red"
-            self.elem.config(activebackground="orange")
-            modes.val(self.attr,1)
-
-            save_show()
-
-            self.elem["text"] = "RESTARTING..."
-            self.elem["bg"] = "lightgrey"
-            self.elem.config(activebackground="lightgrey")
-            LOAD_SHOW_AND_RESTART("").cb(force=1)
-
-        elif self.attr == "DRAW\nGUI":
-            old_text = self.elem["text"]
-            window_manager.top("PATCH")
-            gui_patch.draw(FIXTURES)
-            gui_fix.draw(FIXTURES)
-            window_manager.top("FIXTURES")
-            master._refresh_exec()
-            self.elem["text"] = old_text  
-
-        elif self.attr == "PRO\nMODE":
-            save_show()
-            import lib.restart as restart
-            restart.pro()
-
-        elif self.attr == "EASY\nMODE":
-            save_show()
-            import lib.restart as restart
-            restart.easy()
-        else:
-            if IS_GUI:
-                r=tkinter.messagebox.showwarning(message="{}\nnot implemented".format(self.attr.replace("\n"," ")),parent=None)
-        return 1
-
-    def live(self,event):       
-        if self.mode != "LIVE":
-            return 0
-                
-        if "FADE" in self.attr or "DELAY" in self.attr:
-           
-            if self.attr == "FADE":
-                ct = FADE
-            if self.attr == "DELAY":
-                ct = DELAY
-            if "PAN/TILT\nFADE" in self.attr:
-                ct = FADE_move
-
-            value = ct.val()
-            #print("EVENT CHANGE ",[self.attr])
-            cprint("EVENT CHANGE:",self.mode,value,self.attr)
-            if value < 0:
-                value = 1
-            if event.num == 4:
-                value += 0.1 
-            elif event.num == 5:
-                value -= 0.1
-            elif event.num == 1:
-                if ct._is():
-                    ct.off()# = 0
-                    self.data.commands.elem[self.attr]["bg"] = "grey"
-                    self.elem.config(activebackground="grey")
-                else:
-                    ct.on()# = 1
-                    self.data.commands.elem[self.attr]["bg"] = "green"
-                    self.elem.config(activebackground="lightgreen")
-            elif event.num == 2:
-                value += 1
-
-            if value > 10:
-                value = 1
-            value = round(value,1)
-            value = ct.val(value)
-
-            if self.attr == "FADE":
-                self.data.commands.elem[self.attr]["text"] = "FADE:\n{:0.2f}".format(value)
-            if self.attr == "DELAY":
-                self.data.commands.elem[self.attr]["text"] = "DELAY:\n{:0.3f}".format(value)
-            if "PAN/TILT\nFADE" in self.attr:
-                self.data.commands.elem[self.attr]["text"] = "PAN/TILT\nFADE:{:0.2f}".format(value)
-
-
-
-    def command(self,event):       
-        if self.mode != "COMMAND":
-            return 0
-
-        if self.attr == "CLEAR":
-            if event.num == 1:
-                ok = FIXTURES.clear()
-                if ok:
-                    master._refresh_fix()
-                modes.val(self.attr,0)
-
-        elif self.attr == "SAVE":
-            modes.val(self.attr,1)
-            save_show()
-            #PRESETS.backup_presets()
-            #FIXTURES.backup_patch()
-            #time.sleep(1)
-            modes.val(self.attr,0)
-
-        elif self.attr == "S-KEY":
-            global _global_short_key
-            if _global_short_key:
-                _global_short_key = 0
-                master.commands.elem["S-KEY"]["bg"] = "red"
-                master.commands.elem["S-KEY"]["activebackground"] = "red"
-            else:
-                _global_short_key = 1
-                master.commands.elem["S-KEY"]["bg"] = "green"
-                master.commands.elem["S-KEY"]["activebackground"] = "green"
-            cprint("s-key",_global_short_key)
-
-        else:
-            if event.num == 1:
-                cprint("ELSE",self.attr)
-                modes.val(self.attr,1)
-
-        return 0
-
-
-    def encoder(self,event):
-        global _shift_key
-        cprint("Xevent","ENC",self.fix,self.attr,self.mode)
-        cprint("SHIFT_KEY",_shift_key,"??????????")
-
-        if self.mode == "ENCODER":
-            if self._encoder(event):
-                master.refresh_fix() # delayed
-                refresher_fix.reset() # = Refresher()
-
-        if self.mode == "ENCODER2":
-            if self._encoder(event):
-                master.refresh_fix() # delayed
-                refresher_fix.reset() # = Refresher()
-
-        if self.mode == "INVERT":
-            cprint("INVERT",event)
-            if self._encoder(event):
-                master.refresh_fix() # delayed
-                refresher_fix.reset() # = Refresher()
-
-    def _encoder(self,event):
-        global _shift_key
-
-        cprint("-- Xevent","_ENC",self.fix,self.attr,self.mode)
-        cprint("-- SHIFT_KEY",_shift_key,"??????????")
-        val=""
-        if event.num == 1:
-            val ="click"
-        elif event.num == 4:
-            val ="++"
-            if _shift_key:
-                val = "+"
-        elif event.num == 5:
-            val ="--"
-            if _shift_key:
-                val = "-"
-        #print("SHIFT",val,_shift_key)
-        if val:
-            FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
-            return 1       
-
-
-            
-    def cb(self,event):
-        cprint("EVENT cb",self.attr,self.mode,event,color='yellow')
-        cprint(["type",event.type,"num",event.num])
-
-        global INIT_OK
-        INIT_OK = 1
-        try:
-            change = 0
-            if "keysym" in dir(event):
-                if "Escape" == event.keysym:
-                    ok = FIXTURES.clear()
-                    master._refresh_fix()
-                    cprint()
-                    return 0
-
-            if self.mode == "SETUP":
-                self.setup(event)
-            elif self.mode == "COMMAND":
-                self.command(event)
-            elif self.mode == "LIVE":
-                self.live(event)
-            elif self.mode == "ENCODER":
-                self.encoder(event)
-                master.refresh_fix()
-
-            elif self.mode == "ENCODER2":
-                self.encoder(event)
-            elif self.mode == "INVERT":
-                self.encoder(event)
-            elif self.mode == "FX":
-                cprint("Xevent CALLING FX WRONG EVENT OBJECT !!",color="red")
-            elif self.mode == "ROOT":
-                if event.keysym=="Escape":
-                    pass
-
-            elif self.mode == "INPUT":
-                cprint("INP",self.data.entry.get())
-                if event.keycode == 36:
-                    x=self.data.entry.get()
-                    #client.send(x)
-
-            elif self.mode == "INPUT2":
-                cprint("INP2",self.data.entry2.get())
-                if event.keycode == 36:
-                    x=self.data.entry2.get()
-                    #client.send(x)
-
-            elif self.mode == "INPUT3":
-                cprint("INP3",self.data.entry3.get())
-                if event.keycode == 36:
-                    x=self.data.entry3.get()
-                    #client.send(x)
-
-            elif self.mode == "PRESET":
-                nr = self.attr #int(self.attr.split(":")[1])-1
-
-                if event.num == 3: # right click for testing
-                    if str(event.type) == '4': #4 ButtonPress
-                        if modes.val("CFG-BTN"):
-                            master.btn_cfg(nr,testing=1)
-
-                if event.num == 1:
-                    if str(event.type) == '4': #4 ButtonPress
-                        if modes.val("REC"):
-                            self.data.preset_rec(nr)
-                            modes.val("REC",0)
-                            time.sleep(0.05)
-                            master._refresh_exec(nr=nr)
-                        elif modes.val("DEL"):
-                            ok=PRESETS.delete(nr)
-                            if ok:
-                                modes.val("DEL",0)
-                                #master.refresh_exec()
-                                master._refresh_exec(nr=nr)
-                        elif modes.val("COPY"):
-                            ok=PRESETS.copy(nr)
-                            if ok:
-                                modes.val("COPY",0)
-                                master._refresh_exec(nr=nr)
-                        elif modes.val("MOVE"):
-                            ok,cnr,bnr=PRESETS.move(nr)
-                            if ok:
-                                #modes.val("MOVE",0) # keep MOVE on
-                                master._refresh_exec(nr=nr)
-                                master._refresh_exec(nr=bnr)
-                        elif modes.val("CFG-BTN"):
-                            master.btn_cfg(nr)
-                            #master._refresh_exec(nr=nr)
-                        elif modes.val("LABEL"):#else:
-                            master.label(nr)
-                            #master._refresh_exec(nr=nr)
-
-                        elif modes.val("EDIT"):
-                            FIXTURES.clear()
-                            self.data.preset_select(nr)
-                            self.data.preset_go(nr,xfade=0,event=event,val=255,button="go")
-                            modes.val("EDIT", 0)
-                            master.refresh_fix()
-                            refresher_fix.reset() # = Refresher()
-
-                        elif modes.val("SELECT"):
-                            self.data.preset_select(nr)
-                        else:
-                            self.data.preset_go(nr,event=event,val=255)
-                    else:
-                        self.data.preset_go(nr,xfade=0,event=event,val=0)
-                        #cprint(" == "*10)
-                        master.refresh_fix()
-                        refresher_fix.reset() # = Refresher()
-
-                        
-                if event.num == 3:
-                    if not modes.val("REC"):
-                        if str(event.type) == '4': #4 ButtonPress
-                            self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=255)
-                        else:
-                            self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=0)
-                        
-                cprint()
-                return 0
-            elif self.mode == "INPUT":
-                cprint()
-                return 0
-
-        except Exception as e:
-            cprint("== cb EXCEPT",e,color="red")
-            cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
-            cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-        cprint()
-        return 1 
         
 def wheel(event,d=None):
     cprint("wheel",event,d)
@@ -1640,8 +818,6 @@ class cb():
         cprint( hex_to_rgb(color[1:]))
 
 def get_exec_btn_cfg(nr):
-    #b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
-    #for k in PRESETS.val_presets: 
     k = nr
     if 1:
         
@@ -1651,23 +827,14 @@ def get_exec_btn_cfg(nr):
         _text = "N/V"
 
         if nr >= 0:
-            #if self._nr_ok:
-            #    return #pass#abreak
             if nr != k:
                 return #continue
-            #else:
-            #    self._nr_ok = 1
 
 
         label = ""
 
-        #if k not in self.elem_presets:
-        #    cprint("ERROR",k ,"not in elem_presets continue")
-        #    return #continue
         if k in PRESETS.label_presets:
             label = PRESETS.label_presets[k]
-            #print([label])
-        #b = self.elem_presets[k]
         
         ifval = 0
         fx_only = 0
@@ -1675,20 +842,12 @@ def get_exec_btn_cfg(nr):
         if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
             sdata = PRESETS.val_presets[k]
 
-            #print("sdata7654",sdata)
             BTN="go"
             if "CFG" in sdata:#["BUTTON"] = "GO"
                 if "BUTTON" in sdata["CFG"]:
                     BTN = sdata["CFG"]["BUTTON"]
-            #txt=str(k+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+label
             txt="{} {} {}\n{}".format(k+1,BTN,len(sdata)-1,label)
             _text = txt
-            #if b.text != txt: # TODO
-            #    #txt+=str(self._XX)
-            #    #b.configure(text= txt)
-            #    _text = txt
-            #    _bg="yellow"
-            #    _ba="yellow"
 
             if len(sdata) > 1:
                 ifval = 1
@@ -1696,7 +855,6 @@ def get_exec_btn_cfg(nr):
                 for fix in sdata:
                     if fix == "CFG":
                         continue
-                    #print( "$$$$",fix,sdata[fix])
                     for attr in sdata[fix]:
                         if "FX2" in sdata[fix][attr]:
                             if sdata[fix][attr]["FX2"]:
@@ -1708,8 +866,6 @@ def get_exec_btn_cfg(nr):
                             if sdata[fix][attr]["VALUE"] is not None:
                                 val_color = 1
 
-                #try:b.configure(fg= "black")
-                #except:pass
                 if val_color:
                     _bg = "gold"
                     _ba = "#ffaa55"
@@ -1733,7 +889,6 @@ def get_exec_btn_cfg(nr):
                 _ba = "#55d4ff"
 
             if "SEL" in txt1:
-                #b.configure(bg="#77f")
                 _bg = "#77f"
         else: 
             _bg = "grey"
@@ -1755,12 +910,9 @@ def get_exec_btn_cfg(nr):
         out["bg"] = _bg
         out["ba"] = _ba
         out["fg"] = _fg
-        #if fx_color:
-        #    out["fg"] = "red"
         out["text"] = _text
         
         return out
-        #b.configure(fg=_fg,bg=_bg,activebackground=_ba,text=_text)
 
 class Elem_Container():
     def __init__(self):
@@ -1773,7 +925,6 @@ import lib.execlib as execlib
 
 class MASTER():
     def __init__(self):
-        #super().__init__() 
         self.base = baselib.Base ()
         self.load()
         self._XX = 0
@@ -1829,8 +980,6 @@ class MASTER():
 
     def button_refresh(self,name,color,color2=None,text="",fg=None):
         cprint("button_refresh",name,color)
-        #if color == "gold":
-        #    color2 = "yellow"
         try:
             if color2 is None:
                 color2 = color
@@ -1906,7 +1055,6 @@ class MASTER():
                     txt = data["out-Fade"]
                     try:
                         txt = float(txt) 
-                        #if "OUT-FADE" in cfg:
                         cfg["OUT-FADE"] = round(txt,2)
                     except e as Exception:
                         print("out-Fade Exception",e)
@@ -2288,7 +1436,7 @@ class MASTER():
             jclient_send(cmd)
 
     def render(self):
-        #Xroot.bind("<Key>",Xevent(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
+        #Xroot.bind("<Key>",tk_event(fix=0,elem=None,attr="ROOT",data=self,mode="ROOT").cb)
         #self.draw_input()
         pass
         
@@ -2357,49 +1505,6 @@ class BaseCallback():
             else:
                 self._cb() 
 
-def frame_of_show_list(frame,cb=None):
-    c=0
-    r=0
-    base = baselib.Base()
-    for i in ["name","stamp"]: #,"create"]:
-        b = tk.Label(frame,bg="grey",text=i)
-        b.grid(row=r, column=c, sticky=tk.W+tk.E)
-        c+=1
-    r+=1
-    blist = baselib.list_shows()
-    for i in range(10):
-        blist.append(["",""])
-
-    if cb is None: 
-        cb = DummyCallback #("load_show_list.cb")
-
-    for i in blist:
-        #print(i)
-        c=0
-        for j in i:
-            bg="lightgrey"
-            dbg="lightgrey"
-            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
-                dbg = "lightgreen"
-            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
-                dbg = "green"
-
-
-            if c > 0:
-                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
-                b.config(activebackground=dbg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            else:
-                if base.show_name == i[0]:
-                    bg="green"
-                _cb = cb(j)
-                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb.cb)
-
-                if base.show_name == i[0]:
-                    b.config(activebackground=bg)
-                b.grid(row=r, column=c, sticky=tk.W+tk.E)
-            c+=1
-        r+=1
 
 
 
@@ -2829,8 +1934,6 @@ class WindowManager():
 
         if name in self.window_init_buffer:
             c = self.window_init_buffer[name] 
-            #print("",c)
-            #print(dir(c))
             w,obj,cb_ok = c.create()
             window_manager.update(w,name,obj)
 
@@ -2850,29 +1953,27 @@ class WindowManager():
             if name in ["DIMMER","FIXTURES"]:
                 refresher_fix.reset() # = Refresher()
 
-    def _check(self,name):
+    def _check_window_is_open(self,name):
         try:
-            if "tk" not in dir(self.windows[name]):
+            win = self.windows[name]
+            if "tk" not in dir(win):
                 return 0
-            self.windows[name].tk.state(newstate='normal')
-            return 1
+            return win.tk.winfo_exists()
         except Exception as e:
-            cprint("exception",e,color="red")
-            cprint(" info",name,self.windows[name],color="red")
+            cprint("_check_window_is_open err",e,color="red")
 
     def top(self,name):
         name = str(name)
         if name not in self.windows:
-            cprint(name,"not in self.windows",self.windows.keys())
+            cprint(name," not in self.windows",self.windows.keys())
             return 
 
-        if not self._check(name):
+        if not self._check_window_is_open(name):
+            cprint(" ",name," window is closed ! ")
             self.create(name)
         
         w = self.windows[name]
-        #def get_lineno():
-        #print(" on TOP: 2.1- ln",movewin.get_lineno(),w,str(type(w)))
-        #if type(w) is type(window_create_buffer):
+
         if not str(type(w)).startswith("<class 'function'>"): 
             w.tk.attributes('-topmost',True)
             w.tk.attributes('-topmost',False)
@@ -2887,12 +1988,11 @@ class Console():
         pass
 
     def flash_off(self,fix):
-        pass#client.send("df0:alloff:::,")
+        pass
+
     def fx_off(self,fix):
         cprint("Console.fx_off()",fix)
         if not fix or fix == "all":
-            #client.send("fx0:alloff:,fxf:alloff:,")
-            #client.send("df0:alloff:::,")
             j = []
             if 0:
                 jdata = {'VALUE': None, 'args': [], 'FX': 'alloff::::', 'FADE': 2, 'DMX': '0'}
@@ -2907,9 +2007,6 @@ class Console():
                 jclient_send(j)
             return 0
 
-def test_1():
-    #LibreLight --no-gui --show=unitest --dmx-out=on --exec="sel fix 1-10; go preset 2; encoder DIM sel; encoder DIM ++"
-    pass
 
 
 
@@ -2924,8 +2021,6 @@ FIXTURES.gui = GUIHandler()
 def LOAD_SHOW():
     PRESETS.load_presets()
     FIXTURES.load_patch()
-    #master._refresh_fix()
-    #master._refresh_exec()
 LOAD_SHOW()
 
 master = MASTER()
@@ -3047,9 +2142,6 @@ class window_create_buffer():
         self.gui    = gui
 
     def create(self,hidde=0):
-        #cprint()
-        #cprint()
-        #cprint("window_create_buffer.create()",id(self),self.args["title"],color="green")
 
         obj = None
         w = libtk.Window(self.args)
@@ -3089,14 +2181,11 @@ def open_sdl_window():
 
 if __run_main:
     cprint("main")
-    #thread.start_new_thread(refresher_fix.loop,())
-    #thread.start_new_thread(refresher_exec.loop,())
-    
 
-    TOP = _POS_TOP + 15
-    L0 = _POS_LEFT 
-    L1 = _POS_LEFT + 95
-    L2 = _POS_LEFT + 920 
+    TOP = libtk._POS_TOP + 15
+    L0 = libtk._POS_LEFT 
+    L1 = libtk._POS_LEFT + 95
+    L2 = libtk._POS_LEFT + 920 
     W1 = 810
     H1 = 550
     HTB = 23 # hight of the titlebar from window manager

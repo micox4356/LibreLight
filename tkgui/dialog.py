@@ -8,7 +8,7 @@ tk = tkinter
 from idlelib.tooltip import Hovertip
 
 import __main__ as MAIN
-from lib.cprint import *
+from lib.cprint import cprint
 
 
 class InputEventBlocker():
@@ -535,7 +535,7 @@ class Dialog():
 
         self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
         self.b.config(padx=1)
-        #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        #self.b.bind("<Button>",tkevent.tk_event(fix=fix,mode="D-SELECT",elem=b).cb)
         self.b.pack(side="left")
 
         self.fxx = tk.Frame(self.f,width=20) #, highlightbackground = "lightgrey", highlightthickness = 1, bd=0)
@@ -627,7 +627,7 @@ class Dialog():
 
         self.b = tk.Button(self.f,bg="lightgrey", text="OK",width=10,command=self.ok)
         self.b.config(padx=1)
-        #self.b.bind("<Button>",Xevent(fix=fix,mode="D-SELECT",elem=b).cb)
+        #self.b.bind("<Button>",tkevent.tk_event(fix=fix,mode="D-SELECT",elem=b).cb)
         self.b.pack(side="left")
 
         self.b = tk.Button(self.f,bg="lightgrey", text="Cancel",width=10,command=self.close)

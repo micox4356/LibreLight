@@ -38,21 +38,29 @@ def save_window_position(save_as=""):
             if "tk" not in dir(win):
                 continue
 
-            geo = win.tk.geometry()
-            data = [1,k,geo]
-            if k not in  window_list_buffer:
-                cprint("  -- new:win:pos",k.ljust(15," "),data)
-            elif window_list_buffer[k][2] != geo:
-                cprint("  -- update:win:pos",k.ljust(15," "),data)
+            data = [0,k,'']
+            if win.tk.winfo_exists():
+                data[2] = win.tk.geometry()
+                data[0] = 1
+                if k not in  window_list_buffer:
+                    cprint("  -- new:win:pos",k.ljust(15," "),data) #,color="yellow")
+                elif window_list_buffer[k][2] != data[2] and data[2]: #geo
+                    cprint("  -- update:win:pos",k.ljust(15," "),data) #,color="yellow")
+                else:
+                    cprint("  -- ok:win:pos",k.ljust(15," "),data )#,color="green")
+            else:
+                if k in window_list_buffer:
+                    data = window_list_buffer[k]
+                    data[0] = 0
+                cprint("  -- close:win:pos",0,k.ljust(15," "),data,color="red")
+
             window_list_buffer[k] = data
 
             if k in ["PATCH","FIXTURES","DIMMER","FIXTURE-EDITOR","CONFIG"]:
-                window_list_buffer[k][0] = 0   
+                window_list_buffer[k][0] = 0  # overwrite, default is closed. 
 
         except Exception as e:
             cprint("  -1 Exception:",[k,e],color="red")
-            cprint("  --- ",[win],color="red")
-            error += 1
 
     lines = ""
     for k,data in window_list_buffer.items():
@@ -102,6 +110,7 @@ def get_window_position(_filter="",win=None):
     #cprint("get_window_position",[_filter])
     if _filter in window_list_buffer:
         show,k,geo  = window_list_buffer[_filter]
+        cprint("   get_window_position",[show,k,geo],color="yellow")
         if win:
             win.tk.geometry(geo)
     return show,k,geo

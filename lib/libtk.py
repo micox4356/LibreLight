@@ -2,15 +2,124 @@
 
 import os
 import time
+import sys
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 
 import tkinter
 tk = tkinter
 
 import __main__ as MAIN
-from lib.cprint import *
 
+from lib.cprint import cprint
 import lib.libwin as libwin
+import lib.baselib as baselib
 
+import json
+
+
+_config = []
+try: 
+    h = os.environ["HOME"]
+    lines = [{}]
+    try: 
+        f = open(h +"/LibreLight/config.json")
+        lines = f.readlines()
+
+    except FileNotFoundError as e: #Exception as e:
+        f = open(h +"/LibreLight/config.json","w")
+        f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
+        f.close()
+        cprint("Exception:",e)
+
+    cprint("config read")
+    for line in lines:
+        line=line.strip()
+        print("   config:",line)
+        row = json.loads(line) 
+        _config.append(row)
+
+except Exception as e:
+    cprint("Exception:",e)
+
+
+
+_POS_LEFT = 0
+_POS_TOP  = 15
+try: 
+    for row in _config:
+        #print("   config:",row)
+        if "POS_LEFT" in row:
+           _POS_LEFT = int(row["POS_LEFT"]) 
+        if "POS_TOP" in row:
+           _POS_TOP = int(row["POS_TOP"]) 
+except Exception as e:
+    cprint("Exception:",e)
+
+
+def frame_of_show_list(frame,cb=None):
+    c=0
+    r=0
+    base = baselib.Base()
+    for i in ["name","stamp"]: #,"create"]:
+        b = tk.Label(frame,bg="grey",text=i)
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+        c+=1
+    r+=1
+    blist = baselib.list_shows()
+    for i in range(10):
+        blist.append(["",""])
+
+    if cb is None: 
+        cb = DummyCallback #("load_show_list.cb")
+
+    for i in blist:
+        #print(i)
+        c=0
+        for j in i:
+            bg="lightgrey"
+            dbg="lightgrey"
+            if i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*4)):
+                dbg = "lightgreen"
+            elif i[1] > time.strftime("%Y-%m-%d %X",  time.localtime(time.time()-3600*24*7)):
+                dbg = "green"
+
+
+            if c > 0:
+                b = tk.Button(frame,text=j,anchor="w",bg=dbg,relief="sunken")
+                b.config(activebackground=dbg)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            else:
+                if base.show_name == i[0]:
+                    bg="green"
+                _cb = cb(j)
+                b = tk.Button(frame,text=j,anchor="w",height=1,bg=bg,command=_cb.cb)
+
+                if base.show_name == i[0]:
+                    b.config(activebackground=bg)
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+        r+=1
+
+
+class BLINKI():
+    def __init__(self,e):
+        self.e = e
+    def blink(self):
+        e = self.e
+        e.config(bg='green')
+        duration = 150
+        for i in range(8):
+            d = i * duration
+            if i % 2 == 0:
+                e.after(d, lambda: e.config(bg='white')) # after 1000ms
+                e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
+            else:
+                e.after(d, lambda: e.config(bg='orange')) # after 1000ms
+                e.after(d, lambda: e.config(activebackground='orange')) # after 1000ms
+        i+=1
+        duration = 150
+        e.after(d, lambda: e.config(bg='white')) # after 1000ms
+        e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
 
 class on_focus():
     def __init__(self,name,mode):
@@ -60,7 +169,7 @@ class Window():
 
         if self.args["master"]: 
             self.tk = tkinter.Tk()
-            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            self.tk.protocol("WM_DELETE_WINDOW", self.close)
             self.tk.withdraw() # do not draw
             self.tk.resizable(self.args["resize"],self.args["resize"])
             self.tk.tk_setPalette(background='#bbb', foreground='black', activeBackground='#aaa', activeForeground="black")
@@ -80,7 +189,7 @@ class Window():
             self.tk = tkinter.Toplevel()
             self.tk.iconify()
             #self.tk.withdraw() # do not draw
-            self.tk.protocol("WM_DELETE_WINDOW", self.close_app_win)
+            self.tk.protocol("WM_DELETE_WINDOW", self.close)
             self.tk.resizable(self.args["resize"],self.args["resize"])
             
             try:
@@ -118,7 +227,7 @@ class Window():
             if self.args["top"] is not None:
                 geo += "+{}".format(self.args["top"])
 
-        #self._event_clear = Xevent(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
+        #self._event_clear = MAIN.tk_event(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
         self.show()
 
@@ -126,10 +235,10 @@ class Window():
         if MAIN.INIT_OK:
             tkinter.Tk.update_idletasks(MAIN.gui_menu_gui.tk)
 
-    def close_app_win(self,event=None):
-        cprint("close_app_win",event,self.args["title"],color="red")
-        cprint("  ",self.title)
-        cprint("  ",self.args)
+    def close(self,event=None):
+        cprint("Window.close",self.args["title"],color="red")
+        #cprint("  ",self.title)
+        #cprint("  ",self.args)
 
         if self.args["title"] == "MAIN":
             MAIN.save_show()
@@ -137,7 +246,7 @@ class Window():
         try:
             self.tk.destroy()
         except Exception as e:
-            cprint("close_app_win exc",e,color="red")
+            cprint("Window.close err",e,color="red")
 
     def title(self,title=None):
         if title is None:
@@ -180,7 +289,7 @@ class Window():
                     MAIN.save_show()
 
                     e = MAIN.master.setup_elem["SAVE\nSHOW"]
-                    b = MAIN.BLINKI(e)
+                    b = BLINKI(e)
                     b.blink()
                 if str(event.keysym) == "c":
                     if MAIN.save_show():
@@ -255,9 +364,9 @@ class Window():
                     cprint(e)
                 e =  MAIN.master.setup_elem["SAVE\nSHOW"]
                 cprint(e)
-                b = MAIN.BLINKI(e)
+                b = BLINKI(e)
                 b.blink()
-                #e = Xevent(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
+                #e = MAIN.tk_event(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
                 #e.cb(event=event)
             elif "End" == event.keysym:
                 MAIN.FIXTURES.fx_off("all")
@@ -272,7 +381,7 @@ class Window():
  
 
 class PopupList():
-    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=MAIN._POS_LEFT+400,top=MAIN._POS_TOP+100,cb=None,bg="black"):
+    def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=_POS_LEFT+400,top=_POS_TOP+100,cb=None,bg="black"):
         self.name = name
         self.frame = None
         self.bg=bg

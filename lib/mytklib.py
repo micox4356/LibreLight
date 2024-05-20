@@ -144,7 +144,7 @@ class MiniButton:
     def config(self,**args):
         self._configure(**args)
     def bind(self,etype="<Button>",cb=None):
-        #bb.bind("<ButtonRelease>",Xevent(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
+        #bb.bind("<ButtonRelease>",MAIN.tk_event(fix=0,elem=b,attr=k,data=self,mode="PRESET").cb)
         if cb:
             self.bb.bind(etype,cb)
     def grid(self,row=0, column=0, sticky=""):

@@ -36,8 +36,8 @@ def JSCB(x,sock=None):
                         VAL=msg["VAL"]
                     if "ATTR" in msg:
                         ATTR=msg["ATTR"]
-                    print("  Xevent",FIX,VAL,ATTR)
-                    #cb = Xevent(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
+                    print("  MAIN.tk_event",FIX,VAL,ATTR)
+                    #cb = MAIN.tk_event(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
                     #MAIN.FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
                     MAIN.FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
 

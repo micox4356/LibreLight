@@ -198,7 +198,7 @@ class tk_event():
         elif self.attr == "SAVE":
             MAIN.modes.val(self.attr,1)
             MAIN.save_show()
-            #MAIN.PRESETS.backup_presets()
+            #MAIN.EXEC.backup_exec()
             #MAIN.FIXTURES.backup_patch()
             #time.sleep(1)
             MAIN.modes.val(self.attr,0)
@@ -224,9 +224,8 @@ class tk_event():
 
 
     def encoder(self,event):
-        global _shift_key
         cprint("tk_event","ENC",self.fix,self.attr,self.mode)
-        cprint("SHIFT_KEY",_shift_key,"??????????")
+        cprint("SHIFT_KEY",MAIN._shift_key,"??????????")
 
         if self.mode == "ENCODER":
             if self._encoder(event):
@@ -245,22 +244,21 @@ class tk_event():
                 MAIN.refresher_fix.reset() # = Refresher()
 
     def _encoder(self,event):
-        global _shift_key
 
         cprint("-- tk_event","_ENC",self.fix,self.attr,self.mode)
-        cprint("-- SHIFT_KEY",_shift_key,"??????????")
+        cprint("-- SHIFT_KEY",MAIN._shift_key,"??????????")
         val=""
         if event.num == 1:
             val ="click"
         elif event.num == 4:
             val ="++"
-            if _shift_key:
+            if MAIN._shift_key:
                 val = "+"
         elif event.num == 5:
             val ="--"
-            if _shift_key:
+            if MAIN._shift_key:
                 val = "-"
-        #print("SHIFT",val,_shift_key)
+        #print("SHIFT",val,MAIN._shift_key)
         if val:
             MAIN.FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
             return 1       
@@ -271,8 +269,7 @@ class tk_event():
         cprint("EVENT cb",self.attr,self.mode,event,color='yellow')
         cprint(["type",event.type,"num",event.num])
 
-        global INIT_OK
-        INIT_OK = 1
+        MAIN.INIT_OK = 1
         try:
             change = 0
             if "keysym" in dir(event):
@@ -320,7 +317,7 @@ class tk_event():
                     x=self.data.entry3.get()
                     #client.send(x)
 
-            elif self.mode == "PRESET":
+            elif self.mode == "EXEC":
                 nr = self.attr #int(self.attr.split(":")[1])-1
 
                 if event.num == 3: # right click for testing
@@ -331,23 +328,23 @@ class tk_event():
                 if event.num == 1:
                     if str(event.type) == '4': #4 ButtonPress
                         if MAIN.modes.val("REC"):
-                            self.data.preset_rec(nr)
+                            self.data.exec_rec(nr)
                             MAIN.modes.val("REC",0)
                             time.sleep(0.05)
                             MAIN.master._refresh_exec(nr=nr)
                         elif MAIN.modes.val("DEL"):
-                            ok=MAIN.PRESETS.delete(nr)
+                            ok=MAIN.EXEC.delete(nr)
                             if ok:
                                 MAIN.modes.val("DEL",0)
                                 #MAIN.master.refresh_exec()
                                 MAIN.master._refresh_exec(nr=nr)
                         elif MAIN.modes.val("COPY"):
-                            ok=MAIN.PRESETS.copy(nr)
+                            ok=MAIN.EXEC.copy(nr)
                             if ok:
                                 MAIN.modes.val("COPY",0)
                                 MAIN.master._refresh_exec(nr=nr)
                         elif MAIN.modes.val("MOVE"):
-                            ok,cnr,bnr=MAIN.PRESETS.move(nr)
+                            ok,cnr,bnr=MAIN.EXEC.move(nr)
                             if ok:
                                 #MAIN.modes.val("MOVE",0) # keep MOVE on
                                 MAIN.master._refresh_exec(nr=nr)
@@ -361,18 +358,18 @@ class tk_event():
 
                         elif MAIN.modes.val("EDIT"):
                             MAIN.FIXTURES.clear()
-                            self.data.preset_select(nr)
-                            self.data.preset_go(nr,xfade=0,event=event,val=255,button="go")
+                            self.data.exec_select(nr)
+                            self.data.exec_go(nr,xfade=0,event=event,val=255,button="go")
                             MAIN.modes.val("EDIT", 0)
                             MAIN.master.refresh_fix()
                             MAIN.refresher_fix.reset() # = Refresher()
 
                         elif MAIN.modes.val("SELECT"):
-                            self.data.preset_select(nr)
+                            self.data.exec_select(nr)
                         else:
-                            self.data.preset_go(nr,event=event,val=255)
+                            self.data.exec_go(nr,event=event,val=255)
                     else:
-                        self.data.preset_go(nr,xfade=0,event=event,val=0)
+                        self.data.exec_go(nr,xfade=0,event=event,val=0)
                         #cprint(" == "*10)
                         MAIN.master.refresh_fix()
                         MAIN.refresher_fix.reset() # = Refresher()
@@ -381,9 +378,9 @@ class tk_event():
                 if event.num == 3:
                     if not MAIN.modes.val("REC"):
                         if str(event.type) == '4': #4 ButtonPress
-                            self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=255)
+                            self.data.exec_go(nr,xfade=0,ptfade=0,event=event,val=255)
                         else:
-                            self.data.preset_go(nr,xfade=0,ptfade=0,event=event,val=0)
+                            self.data.exec_go(nr,xfade=0,ptfade=0,event=event,val=0)
                         
                 cprint()
                 return 0

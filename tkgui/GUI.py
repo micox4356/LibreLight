@@ -16,25 +16,15 @@ import __main__ as MAIN
 
 from lib.cprint import *
 
-import lib.mytklib as mytklib
-import lib.fixlib as fixlib
-import lib.baselib as baselib
-import lib.libtk as libtk
 
-class Event():
-    def __init__(self,name):
-        self.name=name
-        #print("init",self)
-    def event(self,event):
-        print(self.name,event)
+import lib.mytklib as mytklib
+import lib.fixlib  as fixlib
+import lib.baselib as baselib
+import lib.libtk   as libtk
+import lib.tkevent as tkevent
+
         
 
-class scroll():
-    def __init__(self,canvas):
-        self.canvas=canvas
-    def config(self,event):
-        canvas = self.canvas
-        canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
 
 
 class LOAD_FIXTURE():
@@ -100,9 +90,9 @@ class _TableFrame():
         self.canvas.pack(side="left",expand=1,fill="both")
         self.canvas.create_window((0,0),window=self.bframe,anchor='nw')
         self.bframe.bind("<Configure>",scroll(self.canvas).config)
-        self.canvas.bind("<Button>",Event("XXX").event)
-        self.canvas.bind("<Key>",Event("XXX").event)
-        self.canvas.bind("<KeyRelease>",Event("XXX").event)
+        self.canvas.bind("<Button>",libtk.Event("XXX").event)
+        self.canvas.bind("<Key>",libtk.Event("XXX").event)
+        self.canvas.bind("<KeyRelease>",libtk.Event("XXX").event)
 
         
         #self.bframe=tk.Frame(self.frame,relief=tk.GROOVE,bg="magenta")#,width=width,height=height,bd=bd)
@@ -178,51 +168,6 @@ class _TableFrame():
         return self.bframe
 
 
-def ScrollFrame(root,width=50,height=100,bd=1,bg="black",head=None,foot=None):
-    rframe=tk.Frame(root) 
-    rframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
-
-    # frame grid start =========
-    if head:
-        height -= 25
-        hframe=tk.Frame(rframe) 
-        #l = tk.Label(hframe,text="frame")
-        #l.pack()
-        hframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
-
-    aframe=tk.Frame(rframe) 
-    aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
-
-    if foot:
-        height -= 25
-        fframe=tk.Frame(rframe) 
-        #l = tk.Label(fframe,text="frame")
-        #l.pack()
-        fframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
-        # frame grid end ==========
-
-
-    canvas=tk.Canvas(aframe,width=width-24,height=height)
-    if bg == "":
-        bg="orange"
-    canvas["bg"] = bg # "black" #"green"
-    bframe=tk.Frame(canvas,width=width,height=height,relief=tk.GROOVE)
-    bframe["bg"] = "blue"
-    scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    scrollbar.pack(side="right",fill="y")
-    canvas.pack(side="left",expand=1,fill="both")
-    canvas.create_window((0,0),window=bframe,anchor='nw')
-    bframe.bind("<Configure>",scroll(canvas).config)
-
-    canvas.bind("<Button>",Event("XXX").event)
-    canvas.bind("<Key>",Event("XXX").event)
-    canvas.bind("<KeyRelease>",Event("XXX").event)
-    if head or foot:
-        return [hframe,bframe,fframe]
-
-    return bframe
 
 class GUIHandler():
     def __init__(self):
@@ -811,6 +756,22 @@ class GUI_PATCH():
             r+=1
 
 
+class BaseCallback():
+    def __init__(self,cb=None,args={}):
+        self._cb=cb
+        self.args = args
+
+    def cb(self,**args):
+        print("BaseCallback.cb()")
+        print("  ",self.args)
+        print("  ",self._cb)
+        if self._cb:
+            if self.args:
+                self._cb(args=self.args) 
+            else:
+                self._cb() 
+
+
 
 
 def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
@@ -863,7 +824,7 @@ def GUI_LOAD_FIXTURE_LIST(frame,data={"EMPTY":"None"},cb=None,bg="black"):
             if c == 3:
                 bg="grey"
                 dbg="grey"
-                _cb2 = MAIN.BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
+                _cb2 = BaseCallback(cb=cb,args={"key":k,"val":v,"data":row}).cb
                 b = tk.Button(frame,text=v,anchor="w",height=1,bg=bg,command=_cb2)
             else: 
                 b = tk.Button(frame,text=v,anchor="w",bg=dbg,relief="flat",height=1)
@@ -1030,7 +991,7 @@ class GUI_FixtureEditor():
         self.b_info = tk.Label(self.frame,bg="#fff",text="") #,font=self.font8 )
         self.b_info.pack(fill=None, side=tk.LEFT)
         # DATA
-        self.frame = ScrollFrame(root,bg="#003",width=2000 ,height=1000,bd=2) # fader frame
+        self.frame = libtk.ScrollFrame(root,bg="#003",width=2000 ,height=1000,bd=2) # fader frame
 
 
         self.r=0
@@ -1647,7 +1608,7 @@ class ELEM_FADER():
                 return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
-            #w = MAIN.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w = MAIN.WindowContainer("config",master=1,width=200,height=140,left=L1,top=TOP)
             #w.pack()
             self._set_mode(txt)
             #w.show()
@@ -1806,7 +1767,7 @@ class EXEC_FADER():
                 return None
             txt = data["Value"]
             print(self,"set_mode._cb()",txt)
-            #w = MAIN.Window("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w = MAIN.WindowContainer("config",master=1,width=200,height=140,left=L1,top=TOP)
             #w.pack()
             self._set_mode(txt)
             #w.show()
@@ -1828,12 +1789,10 @@ class EXEC_FADER():
         nr = self.id+80
         if event.state > 0:
             value = 0
-            #PRESETS.go(self.id+80)
-            MAIN.master.preset_go(nr-1,xfade=None,val=value)
+            MAIN.master.exec_go(nr-1,xfade=None,val=value)
         else:
             value = 1
-            #PRESETS.go(self.id+80)
-            MAIN.master.preset_go(nr-1,xfade=None,val=value)
+            MAIN.master.exec_go(nr-1,xfade=None,val=value)
 
     def pack(self,init=None,from_=255,to=0,**args):
         width=11
@@ -1860,8 +1819,8 @@ class EXEC_FADER():
             #b = self.b
             #k = ""
             #gui = MAIN.master
-            #self.b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
-            #self.b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+            #self.b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="EXEC").cb)
+            #self.b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="EXEC").cb)
             self.attr=self.b
             self.b.pack(fill=tk.BOTH, side=tk.TOP)
             self.elem.append(self.b)

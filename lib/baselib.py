@@ -277,7 +277,7 @@ def test():
         print(" - ",i)
 
     print("-- "*20)
-    xpath = SHOW_DIR + "/" + dl[0][1] +"/presets.sav"
+    xpath = SHOW_DIR + "/" + dl[0][1] +"/presets.sav" # exec.sav
     print(xpath)
     x= _read_sav_file(xpath)
     print("len.x",len(x))

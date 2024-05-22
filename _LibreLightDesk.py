@@ -65,14 +65,6 @@ HOME = os.getenv('HOME')
 
 space_font = None
 
-if IS_GUI:
-    import tkinter
-    import tkinter as tk
-    from tkinter import font
-
-    import tkinter.simpledialog
-    from idlelib.tooltip import Hovertip
-
 INIT_OK = 0
 _global_short_key = 1
 
@@ -157,9 +149,9 @@ class Modes():
             for m in self.modes:
                 cprint("ESC",m)
                 if m == "COPY":
-                    PRESETS.clear_copy()
+                    EXEC.clear_copy()
                 if m == "MOVE":
-                    PRESETS.clear_move()
+                    EXEC.clear_move()
                 if m != "BLIND":
                     self.modes[m] = 0
                     self.callback(m)
@@ -174,18 +166,18 @@ class Modes():
                         self.callback(m)
             if self.modes[mode] and value == 1:
                 if modes == "MOVE":
-                    PRESETS.clear_move()
+                    EXEC.clear_move()
                 if modes == "COPY":
-                    PRESETS.clear_copy()
+                    EXEC.clear_copy()
                 self.modes[mode] = 0 # value
             else:
                 self.modes[mode] = value #1 #value
         else:
             self.modes[mode] = 0 #value
             if modes == "COPY":
-                PRESETS.clear_copy()
+                EXEC.clear_copy()
             if modes == "MOVE":
-                PRESETS.clear_move()
+                EXEC.clear_move()
         self.callback(mode)
         return value
     def set_cb(self,cb):
@@ -261,7 +253,7 @@ def set_exec_fader_all():
     print()
     cprint( "set_exec_fader_all()",color="green")
     for nr in range(10):
-        _label = PRESETS.label_presets[nr+80] # = label
+        _label = EXEC.label_exec[nr+80] # = label
         print("  set_exec_fader_all._label =",_label)
         set_exec_fader(nr,0,label=_label) 
         set_exec_fader_cfg(nr,0,label=_label)
@@ -269,7 +261,7 @@ def set_exec_fader_all():
 def refresh_exec_fader_cfg():
     cprint( "set_exec_fader_all()",color="green")
     for nr in range(10):
-        _label = PRESETS.label_presets[nr+80] # = label
+        _label = EXEC.label_exec[nr+80] # = label
         #print("_label",_label)
         set_exec_fader_cfg(nr,0,label=_label)
 
@@ -354,7 +346,7 @@ if __name__ == "__main__":
                         if "VAL" in jdata:
                             val = jdata["VAL"]
 
-                        master.preset_go(exec_nr-1,xfade=None,val=val)
+                        master.exec_go(exec_nr-1,xfade=None,val=val)
                 else:
                     time.sleep(0.02)
             except KeyboardInterrupt as e:
@@ -376,29 +368,14 @@ class MC_FIX():
     def __init__(self,server="127.0.0.1",port=11211):
         cprint("MC.init() ----------" ,server,port,color="red")
         try:
-            #self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
             self.mc = memcache.Client(['{}:{}'.format(server,port)], debug=0)
-            #self.init()
         except Exception as e:
             cprint("-- Exception",e)
 
     def set(self,index="fix",data=[]):
-        #time.sleep(5)
+        index = self.mc.get("index")
+        self.mc.set("fix", data)
 
-        if 1: #while 1:
-            #print("MC.send",index) #,data) 
-            index = self.mc.get("index")
-            #if index:
-            #    for i in index:
-            #        print("  key",i)
-
-            self.mc.set("fix", data)
-
-        #examles
-        #self.mc.set("some_key", "Some value")
-        #self.value = mc.get("some_key")
-        #self.mc.set("another_key", 3)
-        #self.mc.delete("another_key")
 
 
 class MC():
@@ -746,7 +723,7 @@ def _process_matrix(xfixtures,fx_x,fx_mod):
 
 def save_show(fpath=None,new=0):
     if fpath:
-        a=PRESETS.backup_presets(save_as=fpath,new=new)
+        a=EXEC.backup_exec(save_as=fpath,new=new)
         b=FIXTURES.backup_patch(save_as=fpath,new=new)
         c=libwin.save_window_position(save_as=fpath)
         d=movewin.store_all_sdl()
@@ -754,7 +731,7 @@ def save_show(fpath=None,new=0):
         print()
         print()
         cprint("SAVE SHOW ..",color="yellow")
-        a=PRESETS.backup_presets()
+        a=EXEC.backup_exec()
         b=FIXTURES.backup_patch()
         c=libwin.save_window_position() 
         d=movewin.store_all_sdl()
@@ -841,14 +818,14 @@ def get_exec_btn_cfg(nr):
 
         label = ""
 
-        if k in PRESETS.label_presets:
-            label = PRESETS.label_presets[k]
+        if k in EXEC.label_exec:
+            label = EXEC.label_exec[k]
         
         ifval = 0
         fx_only = 0
         fx_color = 0
-        if k in PRESETS.val_presets and len(PRESETS.val_presets[k]) :
-            sdata = PRESETS.val_presets[k]
+        if k in EXEC.val_exec and len(EXEC.val_exec[k]) :
+            sdata = EXEC.val_exec[k]
 
             BTN="go"
             if "CFG" in sdata:#["BUTTON"] = "GO"
@@ -931,6 +908,7 @@ class Elem_Container():
 
 import lib.execlib as execlib
 
+
 class MASTER():
     def __init__(self):
         self.base = baselib.Base ()
@@ -969,15 +947,15 @@ class MASTER():
                 ,"SELECT","FLASH","GO","-","MOVE","S-KEY","\n"
                 ,"BLIND","CLEAR","REC","EDIT","COPY",".","\n" 
                 ]
-        self.elem_presets = {}
+        self.elem_exec = {}
         
         for i in range(8*8*8):
-            if i not in PRESETS.val_presets:
+            if i not in EXEC.val_exec:
                 name = "Preset:"+str(i+1)+":\nXYZ"
-                #self.presets[i] = [i]
-                PRESETS.val_presets[i] = OrderedDict() # FIX 
-                PRESETS.val_presets[i]["CFG"] =  OrderedDict() # CONFIG 
-                PRESETS.label_presets[i] = "-"
+                #self.exec[i] = [i]
+                EXEC.val_exec[i] = OrderedDict() # FIX 
+                EXEC.val_exec[i]["CFG"] =  OrderedDict() # CONFIG 
+                EXEC.label_exec[i] = "-"
 
         modes.set_cb(self.xcb)
 
@@ -1020,9 +998,9 @@ class MASTER():
         except Exception as e:cprint("exc",self,e)
 
     def btn_cfg(self,nr,testing=0):
-        cfg    = PRESETS._btn_cfg(nr) 
-        button = PRESETS.btn_cfg(nr) 
-        label  = PRESETS.label(nr) 
+        cfg    = EXEC._btn_cfg(nr) 
+        button = EXEC.btn_cfg(nr) 
+        label  = EXEC.label(nr) 
 
         def _cb(data):
             if not data:
@@ -1033,13 +1011,13 @@ class MASTER():
 
                 if "Button" in  data and type(data["Button"]) is str:
                     txt = data["Button"]
-                    PRESETS.btn_cfg(nr,txt)
-                    self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
+                    EXEC.btn_cfg(nr,txt)
+                    self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
 
                 if "Label" in  data and type(data["Label"]) is str:
                     txt = data["Label"]
-                    PRESETS.label(nr,txt) 
-                    self.elem_presets[nr].configure(text= PRESETS.get_btn_txt(nr))
+                    EXEC.label(nr,txt) 
+                    self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
 
                 if "Delay" in  data and type(data["Delay"]) is str:
                     txt = data["Delay"]
@@ -1077,7 +1055,7 @@ class MASTER():
             dialog.askstring("CFG-BTN","GO=GO FL=FLASH\nSEL=SELECT EXE:"+str(nr+1),initialvalue=txt)
 
     def label(self,nr):
-        txt = PRESETS.label(nr) 
+        txt = EXEC.label(nr) 
         def _cb(data):
             if not data:
                 cprint("err443",self,"_cb",data)
@@ -1085,8 +1063,8 @@ class MASTER():
             txt = data["Value"]
             cprint("label._cb()",nr,txt)
             if txt:
-                PRESETS.label(nr,txt) 
-                self.elem_presets[nr].configure(text = PRESETS.get_btn_txt(nr))
+                EXEC.label(nr,txt) 
+                self.elem_exec[nr].configure(text = EXEC.get_btn_txt(nr))
             modes.val("LABEL", 0)
 
             master._refresh_exec(nr=nr)
@@ -1127,13 +1105,13 @@ class MASTER():
 
     def _refresh_exec(self,nr=-1):
         s = time.time()
-        cprint("PRESET.refresh_exec()")
+        cprint("EXEC.refresh_exec()")
         refresher_exec.reset() # = Refresher()
         
         self._XX +=1
         self._nr_ok = 0
 
-        for nr in PRESETS.val_presets: 
+        for nr in EXEC.val_exec: 
             cfg = get_exec_btn_cfg(nr)
             if not cfg:
                 out = {}
@@ -1143,7 +1121,7 @@ class MASTER():
                 out["text"] = "?"
                 cfg = out
 
-            b = self.elem_presets[nr]
+            b = self.elem_exec[nr]
             b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
 
 
@@ -1285,25 +1263,25 @@ class MASTER():
 
         cprint("fix:",_XXX,round(time.time()-s),color="red"); _XXX += 1
 
-    def preset_rec(self,nr):
-        cprint("------- STORE PRESET")
+    def exec_rec(self,nr):
+        cprint("------- STORE EXEC")
         data = FIXTURES.get_active()
         if modes.val("REC-FX"):
-            PRESETS.rec(nr,data,"REC-FX")
+            EXEC.rec(nr,data,"REC-FX")
             modes.val("REC-FX",0)
         else:
-            PRESETS.rec(nr,data)
+            EXEC.rec(nr,data)
             
         sdata=data
-        PRESETS.val_presets[nr] = sdata
+        EXEC.val_exec[nr] = sdata
         
         master._refresh_exec()
         return 1
 
 
-    def preset_select(self,nr):
-        cprint("SELECT PRESET")
-        sdata = PRESETS.val_presets[nr]
+    def exec_select(self,nr):
+        cprint("SELECT EXEC")
+        sdata = EXEC.val_exec[nr]
         cmd = ""
         for fix in sdata:
             if fix == "CFG":
@@ -1319,7 +1297,7 @@ class MASTER():
                 FIXTURES.fixtures[fix]["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
                 #elem["bg"] = "yellow"
 
-    def preset_go(self,nr,val=None,xfade=None,event=None,button="",ptfade=None):
+    def exec_go(self,nr,val=None,xfade=None,event=None,button="",ptfade=None):
         s=time.time()
         t_start = time.time()
         if xfade is None and FADE._is():
@@ -1328,13 +1306,13 @@ class MASTER():
         if ptfade is None and FADE_move._is():
             ptfade = FADE_move.val()
 
-        cprint("GO PRESET FADE",nr,val)
+        cprint("GO EXEC FADE",nr,val)
 
-        rdata = PRESETS.get_raw_map(nr)
+        rdata = EXEC.get_raw_map(nr)
         if not rdata:
             return 0
         cprint("???????")
-        cfg   = PRESETS.get_cfg(nr)
+        cfg   = EXEC.get_cfg(nr)
         cprint("''''''''")
         #virtcmd  = FIXTURES.get_virtual(rdata)
         if not cfg:
@@ -1343,9 +1321,9 @@ class MASTER():
 
         xFLASH = 0
         value=None
-        cprint("preset_go",nr,cfg)
+        cprint("exec_go",nr,cfg)
         if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val and not button: #FLASH
-            self.preset_select(nr)
+            self.exec_select(nr)
         elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL") and not button: #FLASH
             xFLASH = 1
             xfade = 0
@@ -1362,23 +1340,23 @@ class MASTER():
                         xfade=cfg["OUT-FADE"]
 
 
-            cprint("preset_go() FLUSH",value,color="red")
+            cprint("exec_go() FLUSH",value,color="red")
             #print(";",rdata)
             print(";",cfg)
             fcmd  = FIXTURES.update_raw(rdata,update=0)
             #print(":",fcmd) # raw dmx
-            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,nr=nr)
+            self._exec_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,nr=nr)
                 
         elif not val:
-            cprint("preset_go() STOP",value,color="red")
+            cprint("exec_go() STOP",value,color="red")
         elif button == "on" or ( modes.val("ON") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["on","ON"])):
             fcmd  = FIXTURES.update_raw(rdata)
-            self._preset_go(rdata,cfg,fcmd,value,xfade=0,xFLASH=xFLASH)
+            self._exec_go(rdata,cfg,fcmd,value,xfade=0,xFLASH=xFLASH)
         elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
             e=time.time()
             print("_GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
-            self._preset_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade,nr=nr)
+            self._exec_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade,nr=nr)
             e=time.time()
             print("GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
         return
@@ -1388,30 +1366,30 @@ class MASTER():
             self.refresh_fix()
         
         #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
-        #print(len(self.elem_presets) )
-        if len(self.elem_presets) > nr: # RED BUTTON IF PRESSED
+        #print(len(self.elem_exec) )
+        if len(self.elem_exec) > nr: # RED BUTTON IF PRESSED
             #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
             if val:# or value:
-                #self.elem_presets[nr].config(borderwidth=1)
-                self.elem_presets[nr].config(bg="red")
+                #self.elem_exec[nr].config(borderwidth=1)
+                self.elem_exec[nr].config(bg="red")
             else:
                 self._refresh_exec()
-        cprint("preset_go",time.time()-t_start)
+        cprint("exec_go",time.time()-t_start)
 
-    def _preset_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0,nr=None):
+    def _exec_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0,nr=None):
         if xfade is None and FADE._is():
             xfade = FADE.val()
 
         if ptfade is None and FADE_move._is():
             ptfade = FADE_move.val()
-        cprint("PRESETS._preset_go() len=",len(rdata),cfg)
+        cprint("EXEC._exec_go() len=",len(rdata),cfg)
         if xfade is None:
             xfade = cfg["FADE"]
         if ptfade is None:
             ptfade = cfg["FADE"]
-        #vcmd = reshape_preset( rdata ,value,[],xfade=xfade,fx=1) 
+        #vcmd = reshape_exec( rdata ,value,[],xfade=xfade,fx=1) 
         #cprint(rdata,color="red")
-        vcmd = execlib.reshape_preset( rdata ,value,xfade=xfade,ptfade=ptfade) 
+        vcmd = execlib.reshape_exec( rdata ,value,xfade=xfade,ptfade=ptfade) 
 
         cmd = []
         delay=0
@@ -1498,375 +1476,6 @@ class LOAD_SHOW_AND_RESTART():
 
 
 
-class BaseCallback():
-    def __init__(self,cb=None,args={}):
-        self._cb=cb
-        self.args = args
-
-    def cb(self,**args):
-        print("BaseCallback.cb()")
-        print("  ",self.args)
-        print("  ",self._cb)
-        if self._cb:
-            if self.args:
-                self._cb(args=self.args) 
-            else:
-                self._cb() 
-
-
-
-
-
-
-
-
-def PRESET_CFG_CHECKER(sdata):
-    "repair CFG  "
-    ok = 0
-    if "CFG" not in sdata:
-        sdata["CFG"] = OrderedDict()
-        ok += 1
-    if "FADE" not in sdata["CFG"]:
-        sdata["CFG"]["FADE"] = 4
-        ok += 1
-    if "DELAY" not in sdata["CFG"]:
-        sdata["CFG"]["DELAY"] = 0
-        ok += 1
-    if "BUTTON" not in sdata["CFG"]:
-        sdata["CFG"]["BUTTON"] = "GO"
-        ok += 1
-    if "HTP-MASTER" not in sdata["CFG"]:
-        sdata["CFG"]["HTP-MASTER"] = 100 #%
-        ok += 1
-    if "SIZE-MASTER" not in sdata["CFG"]:
-        sdata["CFG"]["SIZE-MASTER"] = 100 #%
-        ok += 1
-    if "SPEED-MASTER" not in sdata["CFG"]:
-        sdata["CFG"]["SPEED-MASTER"] = 100 #%
-        ok += 1
-    if "OFFSET-MASTER" not in sdata["CFG"]:
-        sdata["CFG"]["OFFSET-MASTER"] = 100 #%
-        ok += 1
-
-    #try:del sdata["CFG"]["SPEED-MASTER"] #= 100 #%
-    #except:pass
-
-    return ok
-
-
-class Presets():
-    def __init__(self):
-        self.base = baselib.Base()
-        self._last_copy = None
-        self._last_move = None
-        self.fx_buffer = {}
-
-    def load_presets(self): 
-        filename="presets"
-        d,l = self.base._load(filename)
-        for i in d:
-            sdata = d[i]
-            ok = PRESET_CFG_CHECKER(sdata)
-
-        self.val_presets = d
-        self.label_presets = l
-
-    def check_cfg(self,nr=None):
-        cprint("PRESETS.check_cfg()",nr)#,color="red")
-        ok = 0
-        if nr is not None:
-            if nr in self.val_presets:
-                sdata = self.val_presets[nr]
-                ok += self._check_cfg(sdata)
-            else:
-                cprint("nr not in data ",nr,color="red")
-        else:
-            for nr in self.val_presets:
-                sdata = self.val_presets[nr]
-                ok += self._check_cfg(sdata)
-        return ok
-
-    def _check_cfg(self,sdata):
-        cprint("PRESETS._check_cfg()")#,color="red")
-
-        ok = PRESET_CFG_CHECKER(sdata)
-
-        if ok:
-            cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")
-        return ok
-        
-    def backup_presets(self,save_as="",new=0):
-        filename = "presets"
-        data   = self.val_presets
-        labels = self.label_presets
-        if new:
-            data  = [] #*512
-            labls = [""]*512
-        r=self.base._backup(filename,data,labels,save_as)
-        return r
-        
-
-    def get_cfg(self,nr):
-        cprint("PRESETS.get_cfg()",nr)
-        self.check_cfg(nr)
-        if nr not in self.val_presets:
-            cprint("get_cfg",self,"error get_cfg no nr:",nr,color="red")
-            return {}
-        if "CFG" in self.val_presets[nr]:
-            return self.val_presets[nr]["CFG"]
-
-    def clean(self,nr):
-        
-        if nr not in self.val_presets:
-            self.val_presets[nr] = OrderedDict()
-            #self.val_presets[nr]["VALUE"] = 0
-            #self.val_presets[nr]["FX"] = ""
-
-
-        sdata = self.val_presets[nr]
-        for fix in sdata:
-            #print("exec.clear()",nr,fix,sdata[fix])
-            for attr in sdata[fix]:
-                row = sdata[fix][attr]
-                if fix == "CFG":
-                    continue
-
-                if "VALUE" not in row:
-                    row["VALUE"] = None
-                if "FX" not in row:
-                    row["FX"] = "" 
-                if "FX2" not in row:
-                    row["FX2"] = OrderedDict()
-                elif row["FX2"]:
-                    for k in ["SIZE","SPEED","START","OFFSET"]:
-                        row["FX2"][k] = int( row["FX2"][k] )
-                    row["FX"] = "" 
-
-
-                if "FX" in row and row["FX"] and not row["FX2"]: # rebuild old FX to Dict-FX2
-                    #"off:0:0:0:16909:-:"
-                    x = row["FX"].split(":")
-                    cprint("-fx",x,len(x))
-                    #'FX2': {'TYPE': 'sinus', 'SIZE': 200, 'SPEED': 30, 'START': 0, 'OFFSET': 2805, 'BASE': '-'}}
-                    if len(x) >= 6:
-                        row["FX2"]["TYPE"] = x[0] 
-                        row["FX2"]["SIZE"] =  int(x[1])
-                        row["FX2"]["SPEED"] = int(x[2]) 
-                        row["FX2"]["START"] = int(x[3]) 
-                        row["FX2"]["OFFSET"] = int(x[4]) 
-                        row["FX2"]["BASE"] = x[5] 
-                    row["FXOLD"] = row["FX"]
-                    row["FX"] = ""
-                #cprint("exec.clear()",nr,fix,row)
-
-            
-    def get_raw_map(self,nr):
-        self.clean(nr)
-
-        cprint("get_raw_map",nr)
-        sdata = self.val_presets[nr]
-        cmd = ""
-        out = []
-        dmx=-1
-        for fix in sdata:
-            if fix == "CFG":
-                #print("CFG",nr,sdata[fix])
-                continue
-
-            for attr in sdata[fix]:
-                x = {}
-                #print("RAW",attr)
-                x["FIX"]   = fix
-                x["ATTR"]  = attr
-
-                x["VALUE"] = sdata[fix][attr]["VALUE"]
-                x["FX"]    = sdata[fix][attr]["FX"]
-                x["FX2"]    = sdata[fix][attr]["FX2"]
-                #x["DMX"]  = sdata[fix][attr]["NR"] 
-
-                out.append(x)
-        return out
-
-    def get_btn_txt(self,nr):
-        sdata=self.val_presets[nr]
-        BTN="go"
-        if "CFG" in sdata:
-            if "BUTTON" in sdata["CFG"]:
-                BTN = sdata["CFG"]["BUTTON"]
-        _label = self.label_presets[nr] # = label
-        #txt=str(nr+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+_label
-        #txt=str(nr+1)+" "+str(BTN)+" "+str(len(sdata)-1)+"\n"+_label
-        txt="{} {} {}\n{}".format(nr+1,BTN,len(sdata)-1,_label)
-        cprint("get_btn_txt",nr,[txt])
-        return txt
-
-    def _btn_cfg(self,nr,txt=None):
-        if nr not in self.val_presets:
-            return ""
-        if "CFG" not in self.val_presets[nr]:
-            self.val_presets[nr]["CFG"] = OrderedDict()
-        return self.val_presets[nr]["CFG"]
-
-    def btn_cfg(self,nr,txt=None):
-        if nr not in self.val_presets:
-            return ""
-        if "CFG" not in self.val_presets[nr]:
-            self.val_presets[nr]["CFG"] = OrderedDict()
-        if "BUTTON" not in self.val_presets[nr]["CFG"]:
-            self.val_presets[nr]["CFG"]["BUTTON"] = ""
-
-        if type(txt) is str:
-            self.val_presets[nr]["CFG"]["BUTTON"] = txt
-        if self.val_presets[nr]["CFG"]["BUTTON"] is None:
-            self.val_presets[nr]["CFG"]["BUTTON"] = ""
-
-        master._refresh_exec(nr=nr)
-        cprint("EEE", self.val_presets[nr]["CFG"]["BUTTON"] )
-        return self.val_presets[nr]["CFG"]["BUTTON"] 
-
-    def label(self,nr,txt=None):
-        if nr not in self.label_presets:
-            return ""
-        if type(txt) is str:
-            self.label_presets[nr] = txt
-            cprint("set label",nr,[txt])
-        cprint("??? ?? set label",nr,[txt])
-        return self.label_presets[nr] 
-
-    def clear_move(self):
-        cprint("PRESETS.clear_move()",end=" ")
-        self.clear_copy()
-        
-    def clear_copy(self):
-        cprint("PRESETS.clear_copy()",end=" ")
-        if self._last_copy is not None:
-            cprint("=OK=",color="red")
-            self._last_copy = None
-        else:
-            cprint("=NONE=",color="green")
-
-    def copy(self,nr,overwrite=1):
-        cprint("PRESETS._copy",nr,"last",self._last_copy)
-        if nr >= 0:
-            if self._last_copy is not None:
-                if modes.val("COPY"):
-                    modes.val("COPY",3)
-                ok = self._copy(self._last_copy,nr,overwrite=overwrite)
-                return ok #ok
-            else:
-                if modes.val("COPY"):
-                    modes.val("COPY",2)
-                self._last_copy = nr
-                cprint("PRESETS.copy START ",color="red")
-                return 0
-        return 1 # on error reset move
-    def _copy(self,nr_from,nr_to,overwrite=1):
-        cprint("PRESETS._copy",nr_from,"to",nr_to)
-        self.check_cfg(nr_from)
-        if type(self._last_copy) is None:
-            cprint("PRESETS._copy last nr is None",color="red")
-            return 0
-        cprint("------ PRESETS._copy", nr_from in self.val_presets , nr_to in self.val_presets)
-        if nr_from in self.val_presets and nr_to in self.val_presets:
-            fdata = self.val_presets[nr_from]
-            tdata = self.val_presets[nr_to]
-            #cprint(fdata)
-            flabel = self.label_presets[nr_from]
-            tlabel = self.label_presets[nr_to]
-            self.val_presets[nr_to] = copy.deepcopy(fdata)
-            self.label_presets[nr_to] = flabel
-            if not overwrite: #default
-                cprint("overwrite",overwrite)
-                self.val_presets[nr_from] = copy.deepcopy(tdata)
-                self.label_presets[nr_from] = tlabel
-            #self.label_presets[nr_from] = "MOVE"
-            self.clear_copy()
-            cprint("PRESETS.copy OK",color="green")
-            return 1
-
-    def move(self,nr):
-        cprint("PRESETS.move",self._last_copy,"to",nr)
-        if nr >= 0: 
-            last = self._last_copy
-
-            if modes.val("MOVE"):
-                modes.val("MOVE",2)
-            ok= self.copy(nr,overwrite=0)
-            if ok and last >= 0:
-                if modes.val("MOVE"):
-                    modes.val("MOVE",3)
-                cprint("PRESETS.move OK",color="red")
-                #self.delete(last)
-                return ok,nr,last #ok
-            
-        return 0,nr,last # on error reset move
-    def delete(self,nr):
-        cprint("PRESETS.delete",nr)
-        ok=0
-        if nr in self.val_presets:
-            self.val_presets[nr] = OrderedDict()
-            self.label_presets[nr] = "-"
-            ok = 1
-        self.check_cfg(nr)
-        return ok
-
-    def rec(self,nr,data,arg=""):
-        cprint("rec",self,"rec()",len(data),arg)
-        self.check_cfg(nr)
-        self._check_cfg(data) #by ref
-
-        odata=self.val_presets[nr]
-        #print("odata",odata)
-        if "CFG" in odata:
-            if "BUTTON" in odata["CFG"]:
-                data["CFG"]["BUTTON"] = odata["CFG"]["BUTTON"]  
-        self.val_presets[nr] = data
-        return 1
-           
-
-class FixtureEditor():
-    def __init__(self,dmx=1):
-        pass
-        self.elem=[]
-        self.dmx=dmx
-        cprint("init FixtureEditor",dmx)
-    def event(self,a1="",a2=""):
-        cprint([self.dmx,a1,a2])
-        j=[]
-        jdata = {'VALUE': int(a1), 'args': [] , 'FADE': 0,'DMX': str(self.dmx)}
-        j.append(jdata)
-
-        jclient_send(j)
-
-class MasterWingX():
-    def __init__(self,dmx=1):
-        pass
-        self.elem=[]
-        self.dmx=dmx
-        cprint("init MasterWing",dmx)
-    def event(self,a1="",a2=""):
-        cprint([self.dmx,a1,a2])
-        jdata = {'CMD': "MASTER", 'NAME': str(a1),'VALUE':str(a2) }
-
-        j=[]
-        j.append(jdata)
-        jclient_send(j)
-
-class BufferVar():
-    def __init__(self,elem):
-        self.elem = elem
-    def change_dmx(self,event=""):
-        nr=1
-        txt=""
-        def cb(data):
-            txt = data["Value"]
-        dialog._cb = _cb
-        dialog.askstring("FADER-DMX-START",""+str(nr+1),initialvalue=txt)
-        cprint("change_dmx",[event,self])
-
-
-            
-
 
 
 lf_nr = 0
@@ -1938,7 +1547,7 @@ class WindowManager():
             return out
 
     def create(self,name):
-        #cprint( "create Window",name)
+        #cprint( "create WindowContainer",name)
 
         if name in self.window_init_buffer:
             c = self.window_init_buffer[name] 
@@ -2021,13 +1630,13 @@ class Console():
 window_manager = WindowManager()
 
 CONSOLE = Console()
-PRESETS = Presets()
+EXEC = execlib.EXEC()
 
 FIXTURES = fixlib.Fixtures()
 FIXTURES.gui = GUIHandler()
 
 def LOAD_SHOW():
-    PRESETS.load_presets()
+    EXEC.load_exec()
     FIXTURES.load_patch()
 LOAD_SHOW()
 
@@ -2132,46 +1741,6 @@ class window_create_sdl_buffer():
         cprint()
         return [self.cls,self.cls,None] #w,obj,cb_ok
 
-class window_create_buffer():
-    def __init__(self,args,cls,data,cb_ok=None,scroll=0,gui=None):
-        self.args   = args.copy()
-        self.cls    = cls
-        self.cb_ok  = cb_ok
-        self.data   = data
-        self.scroll = scroll
-        self.gui    = gui
-
-    def create(self,hidde=0):
-
-        obj = None
-        w = libtk.Window(self.args)
-        out = []
-        f = None
-        h = None
-
-        if self.scroll:
-            head = None
-            foot = None
-            if "head" in self.args:
-                head = self.args["head"]
-            if "foot" in self.args:
-                foot = self.args["foot"]
-            w1 = ScrollFrame(w.tk,width=self.args["width"],height=self.args["height"],foot=foot,head=head)
-            if type(w1) is list:
-                try:
-                    h = w1[0]
-                    f = w1[2]
-                except:pass
-
-                w1 = w1[1]
-        else:
-            w1 = tk.Frame(w.tk,width=self.args["width"],height=self.args["height"])
-            w1.pack()
-        try:
-            obj=self.cls(self.gui,w1,self.data,foot=f,head=h) 
-        except:
-            obj=self.cls(self.gui,w1,self.data) 
-        return w,obj,self.cb_ok
 
 def open_sdl_window():
     cprint("open_sdl_window ... delay 1sec",color="yellow")
@@ -2195,10 +1764,6 @@ def mc_fix_loop():
 thread.start_new_thread(mc_fix_loop,())
 thread.start_new_thread(open_sdl_window,())
 
-#while 1:
-#    time.sleep(1)
-#    if not __run_main:
-#        break
 
 if __run_main:
     cprint("main")
@@ -2259,7 +1824,7 @@ if __run_main:
     cls = GUI_menu 
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     window_manager.top(name)
 
@@ -2275,12 +1840,12 @@ if __run_main:
     if geo:
         args.update(geo)
 
-    data  = PRESETS
+    data  = EXEC
     cls   = draw_exec #GUI_ExecWingLayout
     cb_ok = None #set_exec_fader_all
     
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2516,7 +2081,7 @@ if __run_main:
     cls = GUI_CONF
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2533,7 +2098,7 @@ if __run_main:
     data = FIXTURES
     ok_cb=None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2550,7 +2115,7 @@ if __run_main:
     ok_cb=None
     data = FIXTURES
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2571,7 +2136,7 @@ if __run_main:
     #cls = GUI_FaderLayout
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     #window_manager.top(name)
 
@@ -2590,7 +2155,7 @@ if __run_main:
     cls = GUI_MasterWingLayout #(w1,data)
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2609,7 +2174,7 @@ if __run_main:
     cls   = GUI_ExecWingLayout
     cb_ok = set_exec_fader_all
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2625,7 +2190,7 @@ if __run_main:
     cb_ok = None
     data = FIXTURES #master
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2648,7 +2213,7 @@ if __run_main:
     data = []
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2664,7 +2229,7 @@ if __run_main:
     data = []
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2679,7 +2244,7 @@ if __run_main:
     data = []
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2695,7 +2260,7 @@ if __run_main:
     data = []
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2710,7 +2275,7 @@ if __run_main:
     data = []
     cb_ok = None
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2725,7 +2290,7 @@ if __run_main:
     cls = GUI_PATCH
     data = FIXTURES
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
     window_manager.new(None,name,wcb=c) #,obj)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
@@ -2737,20 +2302,20 @@ if __run_main:
     geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
-    #w = libtk.Window(args)
+    #w = libtk.WindowContainer(args)
     #draw_colorpicker(master,w.tk,FIXTURES,master)
     cls = draw_colorpicker #(master,w.tk,FIXTURES,master)
     data = [FIXTURES,master]
     cb_ok = None #FIXTURES
 
-    c = window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
     if libwin.split_window_show(pos_list,_filter=name):
         window_manager.top(name)
 
     # =======================================================================
     name="TableA"
-    #w = libtk.Window(name,master=0,width=W1,height=H1,left=L1,top=TOP)
+    #w = libtk.WindowContainer(name,master=0,width=W1,height=H1,left=L1,top=TOP)
     #space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
     #x=TableFrame(root=w.tk)#,left=80,top=620)
     #w.show()
@@ -2767,7 +2332,7 @@ if __run_main:
 
     master.render()
     window_manager.top("Table")
-    #w = frame_fix #Window("OLD",master=0,width=W1,height=500,left=130,top=TOP)
+    #w = frame_fix #WindowContainer("OLD",master=0,width=W1,height=500,left=130,top=TOP)
     #window_manager.new(w,name)
 
 
@@ -2776,15 +2341,23 @@ if __run_main:
     #load_window_position()
 
 
+    def wm_mainloop():
+        try:
+            window_manager.mainloop()
+        finally:
+            print()
+            print()
+            cprint(" - EXIT -",color="red")
+            BASE_PATH = "/opt/LibreLight/Xdesk/"
+            movewin.process_kill(BASE_PATH+"tksdl/")
+            master.exit()
+            sys.exit()
 
+    wm_mainloop() #window_manager.mainloop()
+    # thread.start_new_thread(wm_mainloop,()) # break TKINTER !!!
     
-    try:
-        window_manager.mainloop()
-    finally:
-        print()
-        print()
-        cprint(" - EXIT -",color="red")
-        BASE_PATH = "/opt/LibreLight/Xdesk/"
-        movewin.process_kill(BASE_PATH+"tksdl/")
-        master.exit()
+    while 1:
+        print("loop..")
+        time.sleep(1)
+
 

@@ -88,11 +88,11 @@ def draw_command(gui,xframe,data):
             c=0
             r+=1
 
-def draw_exec(gui,xframe,PRESETS):
-    draw_preset(gui,xframe,PRESETS)
+def draw_exec(gui,xframe,EXEC):
+    draw_exec(gui,xframe,EXEC)
 
 
-def draw_preset(gui,xframe,PRESETS):
+def draw_exec(gui,xframe,EXEC):
     
     i=0
     c=0
@@ -102,9 +102,9 @@ def draw_preset(gui,xframe,PRESETS):
     frame = tk.Frame(root,bg="black")
     frame.pack(fill=tk.X, side=tk.TOP)
 
-    gui.elem_presets = {}
+    gui.elem_exec = {}
     i=0
-    for k in PRESETS.val_presets:
+    for k in EXEC.val_exec:
         if i%(10*8)==0 or i ==0:
             c=0
             b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
@@ -125,7 +125,7 @@ def draw_preset(gui,xframe,PRESETS):
         v=0
         label = ""
 
-        sdata=PRESETS.val_presets[k]
+        sdata=EXEC.val_exec[k]
         BTN="go"
         if "CFG" in sdata:#["BUTTON"] = "GO"
             if "BUTTON" in sdata["CFG"]:
@@ -136,11 +136,11 @@ def draw_preset(gui,xframe,PRESETS):
 
         b = mytklib.ExecButton(frame,text=txt)
 
-        b.bind("<Button>",       tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
-        b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="PRESET").cb)
+        b.bind("<Button>",       tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="EXEC").cb)
+        b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="EXEC").cb)
         
-        if k not in gui.elem_presets:
-            gui.elem_presets[k] = b
+        if k not in gui.elem_exec:
+            gui.elem_exec[k] = b
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
         b.config(text="xx")

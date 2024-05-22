@@ -56,6 +56,69 @@ except Exception as e:
     cprint("Exception:",e)
 
 
+
+class Event():
+    def __init__(self,name):
+        self.name=name
+        #print("init",self)
+    def event(self,event):
+        print(self.name,event)
+
+class scroll():
+    def __init__(self,canvas):
+        self.canvas=canvas
+    def config(self,event):
+        canvas = self.canvas
+        canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
+
+
+def ScrollFrame(root,width=50,height=100,bd=1,bg="black",head=None,foot=None):
+    rframe=tk.Frame(root) 
+    rframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+
+    # frame grid start =========
+    if head:
+        height -= 25
+        hframe=tk.Frame(rframe) 
+        #l = tk.Label(hframe,text="frame")
+        #l.pack()
+        hframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
+
+    aframe=tk.Frame(rframe) 
+    aframe.pack(side="top",fill="both",expand=1) #x=0,y=0)
+
+    if foot:
+        height -= 25
+        fframe=tk.Frame(rframe) 
+        #l = tk.Label(fframe,text="frame")
+        #l.pack()
+        fframe.pack(side="top",fill="x",expand=0) #x=0,y=0)
+        # frame grid end ==========
+
+
+    canvas=tk.Canvas(aframe,width=width-24,height=height)
+    if bg == "":
+        bg="orange"
+    canvas["bg"] = bg # "black" #"green"
+    bframe=tk.Frame(canvas,width=width,height=height,relief=tk.GROOVE)
+    bframe["bg"] = "blue"
+    scrollbar=tk.Scrollbar(aframe,orient="vertical",command=canvas.yview,width=20)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    scrollbar.pack(side="right",fill="y")
+    canvas.pack(side="left",expand=1,fill="both")
+    canvas.create_window((0,0),window=bframe,anchor='nw')
+    bframe.bind("<Configure>",scroll(canvas).config)
+
+    canvas.bind("<Button>",Event("XXX").event)
+    canvas.bind("<Key>",Event("XXX").event)
+    canvas.bind("<KeyRelease>",Event("XXX").event)
+    if head or foot:
+        return [hframe,bframe,fframe]
+
+    return bframe
+
+
 def frame_of_show_list(frame,cb=None):
     c=0
     r=0
@@ -154,14 +217,14 @@ class DummyCallback():
     def cb(self,event=None):
         cprint("DummyCallback.cb",[self.name,event])
 
-class Window():
+class WindowContainer():
     def __init__(self,args): #title="title",master=0,width=100,height=100,left=None,top=None,exit=0,cb=None,resize=1):
         global MAIN #lf_nr
         self.args = {"title":"title","master":0,"width":100,"height":100,"left":None,"top":None,"exit":0,"cb":None,"resize":1}
         self.args.update(args)
         
-        cprint("Window.init()",self.args["title"],color="yellow")
-        #cprint("Window.init()",id(self.args),color="yellow")
+        cprint("WindowContainer.init()",self.args["title"],color="yellow")
+        #cprint("WindowContainer.init()",id(self.args),color="yellow")
         #cprint("  ",self.args,color="yellow")
 
         ico_path="./icon/"
@@ -183,7 +246,7 @@ class Window():
             try:
                 self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
             except Exception as e:
-                cprint(" Exception GUIWindow.__init__",e)
+                cprint(" Exception GUIWindowContainer.__init__",e)
         else:
             # addtional WINDOW
             self.tk = tkinter.Toplevel()
@@ -236,7 +299,7 @@ class Window():
             tkinter.Tk.update_idletasks(MAIN.gui_menu_gui.tk)
 
     def close(self,event=None):
-        cprint("Window.close",self.args["title"],color="red")
+        cprint("WindowContainer.close",self.args["title"],color="red")
         #cprint("  ",self.title)
         #cprint("  ",self.args)
 
@@ -246,7 +309,7 @@ class Window():
         try:
             self.tk.destroy()
         except Exception as e:
-            cprint("Window.close err",e,color="red")
+            cprint("WindowContainer.close err",e,color="red")
 
     def title(self,title=None):
         if title is None:
@@ -340,7 +403,7 @@ class Window():
                 elif "m" == event.keysym:
                     x=MAIN.modes.val("MOVE",1)
                     if not x:
-                        MAIN.PRESETS.clear_move()
+                        MAIN.EXEC.clear_move()
                 elif "s" == event.keysym:
                     MAIN.modes.val("SELECT",1)
             elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
@@ -348,14 +411,14 @@ class Window():
                 nr = nr-1+81  
                 cprint("F-KEY",value,nr,event.keysym)
                 #print(event)
-                MAIN.master.preset_go(nr-1,xfade=None,val=value)
+                MAIN.master.exec_go(nr-1,xfade=None,val=value)
             elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
                 nr = int( event.keysym)
                 if nr == 0:
                     nr = 10
                 nr = nr-1+161  
                 cprint("NUM-KEY",value,nr)
-                MAIN.master.preset_go(nr-1,xfade=None,val=value)
+                MAIN.master.exec_go(nr-1,xfade=None,val=value)
             elif "numbersign" == event.keysym and value: # is char "#"
                 cprint("numbersign !!")
                 MAIN.save_show()
@@ -373,12 +436,54 @@ class Window():
                 CONSOLE.fx_off("all")
                 CONSOLE.flash_off("all")
             elif "Delete" == event.keysym:
-                #MAIN.PRESETS.delete(nr)
+                #MAIN.EXEC.delete(nr)
                 if value:
                     MAIN.modes.val("DEL",1)
 
         #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
  
+class window_create_buffer():
+    # könnte auch direkt im WindowContainer object eingebaut werden !?
+
+    def __init__(self,args,cls,data,cb_ok=None,scroll=0,gui=None):
+        self.args   = args.copy()
+        self.cls    = cls
+        self.cb_ok  = cb_ok
+        self.data   = data
+        self.scroll = scroll
+        self.gui    = gui
+
+    def create(self,hidde=0):
+
+        obj = None
+        w = WindowContainer(self.args)
+        out = []
+        f = None
+        h = None
+
+        if self.scroll:
+            head = None
+            foot = None
+            if "head" in self.args:
+                head = self.args["head"]
+            if "foot" in self.args:
+                foot = self.args["foot"]
+            w1 = ScrollFrame(w.tk,width=self.args["width"],height=self.args["height"],foot=foot,head=head)
+            if type(w1) is list:
+                try:
+                    h = w1[0]
+                    f = w1[2]
+                except:pass
+
+                w1 = w1[1]
+        else:
+            w1 = tk.Frame(w.tk,width=self.args["width"],height=self.args["height"])
+            w1.pack()
+        try:
+            obj=self.cls(self.gui,w1,self.data,foot=f,head=h) 
+        except:
+            obj=self.cls(self.gui,w1,self.data) 
+        return w,obj,self.cb_ok
 
 class PopupList():
     def __init__(self,name="<NAME>",master=0,width=400,height=450,exit=1,left=_POS_LEFT+400,top=_POS_TOP+100,cb=None,bg="black"):
@@ -388,9 +493,9 @@ class PopupList():
         self.cb = cb
         if cb is None: 
             cb = DummyCallback #("load_show_list.cb")
-        #w = Window(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
+        #w = WindowContainer(self.name,master=master,width=width,height=height,exit=exit,left=left,top=top,cb=cb)
         args = {"title":self.name,"master":master,"width":width,"height":height,"exit":exit,"left":left,"top":top,"cb":cb}
-        w = Window(args)
+        w = WindowContainer(args)
         self.w = w
         w.show()
     def sframe(self,line1="<line1>",line2="<line2>",data=[]):
@@ -424,7 +529,7 @@ class PopupList():
         #frame = tk.Frame(xframe,heigh=2800)
         #frame.pack(fill=tk.BOTH,expand=1, side=tk.TOP)
 
-        frame = MAIN.ScrollFrame(xframe,width=300,height=500,bd=1,bg=self.bg)
+        frame = ScrollFrame(xframe,width=300,height=500,bd=1,bg=self.bg)
         #frame.pack(side="left") #fill=tk.BOTH,expand=1, side=tk.TOP) 
         #self.frame = frame
         self.w.tk.state(newstate='normal')

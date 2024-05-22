@@ -4,6 +4,7 @@ import os
 import time
 
 import tkinter
+import tkinter.simpledialog
 tk = tkinter 
 from idlelib.tooltip import Hovertip
 

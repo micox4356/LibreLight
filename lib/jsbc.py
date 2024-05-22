@@ -83,9 +83,9 @@ def JSCB(x,sock=None):
                         if "EXEC" in msg:
                             exec_nr = int(msg["EXEC"])
                         if val >= 0 and exec_nr > 0:
-                            print("PRESET_GOOO",exec_nr,val)
+                            print("EXEC_GOOO",exec_nr,val)
                             s = time.time()
-                            MAIN.master.preset_go(exec_nr-1,xfade=None,val=val)
+                            MAIN.master.exec_go(exec_nr-1,xfade=None,val=val)
                             e = time.time()
                             #print("time:",e-s,e)
                             #print("TIME:",int((e-s)*1000),int(e*10)-1_703_800_000)

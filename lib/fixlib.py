@@ -334,7 +334,6 @@ class Fixtures():
             sdata = FIXTURE_CHECK_SDATA(i,sdata)
 
             self.fixtures[str(i)] = sdata
-        #PRESETS.label_presets = l
         self._re_sort()
         self.fx_off("all")
 

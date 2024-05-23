@@ -2,6 +2,7 @@
 
 import os
 import time
+import json
 import sys
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 
@@ -14,7 +15,8 @@ from lib.cprint import cprint
 import lib.libwin as libwin
 import lib.baselib as baselib
 
-import json
+import tkgui.dialog  as dialoglib
+dialog = dialoglib.Dialog()
 
 
 _config = []
@@ -70,6 +72,191 @@ class scroll():
     def config(self,event):
         canvas = self.canvas
         canvas.configure(scrollregion=canvas.bbox("all"))#,width=400,height=200)
+
+def test_command(a1="",a2=""):
+    print([a1,a2])
+
+def online_help(page):
+    print("INIT:online_help",page)
+
+    try:
+        #page = page.replace("&","")
+        #page = page.replace("=","")
+        page = page.replace("/","")
+        import webbrowser
+        def _cb():
+            print("online_help",page)
+            webbrowser.open("http://librelight.de/wiki/doku.php?id="+page )
+        return _cb
+    except Exception as e:
+        print("online_help Exception",e)
+        raise e
+
+    def _cb():
+        print("error online_help",page)
+    return _cb 
+
+class ELEM_FADER():
+    def __init__(self,frame,nr,cb=None,fader_cb=None,**args):
+        self.frame = frame
+        self.nr= nr
+        self.id=nr
+        self.elem = []
+        self._cb = cb
+        self._fader_cb = fader_cb
+        width=11
+        frameS = tk.Frame(self.frame,bg="#005",width=width)
+        frameS.pack(fill=tk.Y, side=tk.LEFT)
+        self.frame=frameS
+
+    def fader_event(self,a1="",a2=""):
+        if self._fader_cb:
+            self._fader_cb(a1,a2,nr=self.nr)
+
+    def event(self,a1="",a2=""):
+        if self._cb:
+            self._cb([self,"event",a1,a2])
+
+    def set_nr(self,_event=None):
+        txt= self.elem_nr["text"]
+        def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
+            txt = data["Value"]
+            self._set_nr(txt)
+            if self._cb:
+                self._cb([self,"set_nr",txt])
+        dialog._cb = _cb
+        dialog.askstring("ATTR","set NR:",initialvalue=txt)
+
+    def set_attr(self,_event=None):
+        txt= self.attr["text"]
+        def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
+            txt = data["Value"]
+            #print(self,"set_attr._cb()",txt)
+            self._set_attr(txt)
+            if self._cb:
+                self._cb([self,"set_attr",txt])
+        dialog._cb = _cb
+        dialog.askstring("ATTR","set attr:",initialvalue=txt)
+        
+    def set_label(self,name=""):
+        #print("set_label",self.b,name)
+        self.label["text"] = name
+        if self._cb:
+            self._cb([self,"set_label",name])
+
+    def set_mode(self,_event=None):
+        txt= self.mode["text"]
+        def _cb(data):
+            if not data:
+                print("err443",self,"_cb",data)
+                return None
+            txt = data["Value"]
+            print(self,"set_mode._cb()",txt)
+            #w = MAIN.WindowContainer("config",master=1,width=200,height=140,left=L1,top=TOP)
+            #w.pack()
+            self._set_mode(txt)
+            #w.show()
+            if self._cb:
+                self._cb([self,"set_mode",txt])
+        dialog._cb = _cb
+        dialog.askstring("MODE S/F:","SWITCH or FADE",initialvalue=txt)
+
+    def _set_nr(self,txt=""):
+        if type(txt) is str:
+            try: 
+                x = int(txt)
+                if x <= 0:
+                    txt = "off"
+                    self.attr["bg"] = "#fa0"
+                    self.elem_nr["bg"] = "#fa0"
+                else:
+                    self.attr["bg"] = "lightblue"
+                    self.elem_nr["bg"] = "lightblue"
+            except:pass
+            self.elem_nr["text"] = "{}".format(txt)
+        if self._cb:
+            self._cb([self,"_set_nr",txt])
+
+    def _set_attr(self,txt=""):
+        self._set_mode("-")
+        if type(txt) is str:
+            self.attr["text"] = "{}".format(txt)
+            if txt.startswith("EMPTY"):
+                self.attr["bg"] = "#fa0"
+            else:
+                if txt in MAIN._FIX_FADE_ATTR:
+                    self._set_mode("F")
+                else:
+                    self._set_mode("S")
+
+        if self._cb:
+            self._cb([self,"_set_attr",txt])
+
+
+    def _set_mode(self,txt=""):
+        if type(txt) is str:
+            txt = txt[0].upper()
+            self.mode["text"] = "{}".format(txt)
+            #print("_set_mode",[self])
+        if self._cb:
+            self._cb([self,"_set_mode",txt])
+
+    def _refresh(self):
+        pass
+
+    def pack(self,init=None,from_=255,to=0,**args):
+        width=11
+        r=0
+        c=0
+        j=0
+        self.font8 = ("FreeSans",8)
+        frameS=self.frame
+
+        self.b = tk.Button(frameS,bg="#ffa",text="{}".format(self.nr), width=4,command=test_command,font=self.font8 )
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.label = self.b
+        self.elem.append(self.b)
+        
+        self.b = tk.Scale(frameS,bg="#ffa", width=28,from_=from_,to=to,command=self.fader_event)
+        self.elem_fader = self.b
+        self.b.pack(fill=tk.Y, side=tk.TOP)
+        if init is not None:
+            self.b.set(init)
+        self.elem.append(self.b)
+        
+        self.b = tk.Button(frameS,bg="lightblue",text="0", width=4,command=self.set_nr,font=self.font8 )
+        self.elem_nr=self.b
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.elem.append(self.b)
+
+        self.b = tk.Button(frameS,bg="lightblue",text="", width=5,command=self.set_attr,font=self.font8 )
+        self.attr=self.b
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.elem.append(self.b)
+        f = tk.Frame(frameS)
+        #f.pack()
+
+
+        self.b = tk.Button(frameS,bg="lightblue",text="", width=4,command=self.set_mode,font=self.font8 )
+        self.mode=self.b
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        #self.b.pack(fill=tk.BOTH, side=tk.LEFT)
+        self.elem.append(self.b)
+
+        #self.b = tk.Button(frameS,bg="lightblue",text="+>", width=4,command=self.set_mode,font=self.font8 )
+        #self.xmode=self.b
+        #self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        #self.elem.append(self.b)
+
+        self.b = tk.Label(frameS,bg="black",text="", width=4,font=self.font8 )
+        self.b.pack(fill=tk.BOTH, side=tk.TOP)
+        self.elem.append(self.b)
 
 
 def ScrollFrame(root,width=50,height=100,bd=1,bg="black",head=None,foot=None):

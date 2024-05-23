@@ -42,7 +42,6 @@ def JSCB(x,sock=None):
                     MAIN.FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
 
                     #print(dir(cb))
-                    #event =  DEVENT()
                     #event.num = enum
 
                     #MAIN.master.refresh_fix() # delayed

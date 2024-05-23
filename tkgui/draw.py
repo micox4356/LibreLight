@@ -9,7 +9,7 @@ import _thread as thread
 import __main__ as MAIN
 
 import lib.mytklib as mytklib
-import lib.libtk as tklib
+import lib.libtk as libtk
 import lib.tkevent as tkevent
 
 from lib.cprint import cprint
@@ -119,6 +119,10 @@ def draw_exec(gui,xframe,EXEC):
             c+=1
             b = tk.Button(frame,bg="lightblue", text="NAME"  )
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=7
+            if i == 0:
+                b = tk.Button(frame,bg="darkgrey", text="HELP",command=libtk.online_help("0&do=index"))
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
             r+=1
             c=0
         i+=1

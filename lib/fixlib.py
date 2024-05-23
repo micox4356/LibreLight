@@ -130,25 +130,6 @@ def _parse_fixture_name(name):
         out = {"name":name}
     return out
 
-def online_help(page):
-    print("INIT:online_help",page)
-
-    try:
-        page = page.replace("&","")
-        page = page.replace("=","")
-        page = page.replace("/","")
-        import webbrowser
-        def _cb():
-            print("online_help",page)
-            webbrowser.open("http://librelight.de/wiki/doku.php?id="+page )
-        return _cb
-    except Exception as e:
-        print("online_help Exception",e)
-        raise e
-
-    def _cb():
-        print("error online_help",page)
-    return _cb 
 
 
 

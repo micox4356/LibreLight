@@ -205,18 +205,13 @@ modes.modes["SELECT"] = 0
 modes.modes["CFG-BTN"] = 0
 modes.modes["LABEL"] = 0
 
-def xcb(mode,value=None):
-    cprint("xcb","MODE CALLBACK",mode,value)
-    if mode == "REC-FX":
-        cprint("xcb",modes.val("REC-FX"))
-#modes.set_cb(xcb)
 
 POS   = ["PAN","TILT","MOTION"]
 COLOR = ["RED","GREEN","BLUE","COLOR"]
 BEAM  = ["GOBO","G-ROT","PRISMA","P-ROT","FOCUS","SPEED"]
 INT   = ["DIM","SHUTTER","STROBE","FUNC"]
-#client = chat.tcp_sender(port=50001)
 
+#client = chat.tcp_sender(port=50001)
 
 def set_exec_fader_cfg(nr,val,label="",color=""):
     exec_wing = window_manager.get_obj(name="EXEC-WING") 
@@ -292,35 +287,21 @@ if __name__ == "__main__":
             r1_server.poll(cb=JCB)
             time.sleep(1/90)
     thread.start_new_thread(server1_loop,()) # SERVER
-# remote input - end
-#chat.dbg=1
 
-class DEVENT():
-    def __init__(self):
-        #if "keysym" in dir(event):
-        #if "Escape" == 
-        #event.keysym:
-        #event.num == 1:
-        self.keysym = ""
-        self.num = 1
-        self.type = ""
 
 import lib.jsbc as JSBC
 
 if __name__ == "__main__":
-    # external GUI
     r_server = chat.Server(port=30003,cb=JSBC.JSCB)
     def server_loop():
         while 1:
             r_server.poll(cb=JSBC.JSCB)
-            #time.sleep(1/90)
     thread.start_new_thread(server_loop,()) # SERVER
 
 
 import lib.fifo as FIFO
 
 if __name__ == "__main__":
-    # external GUI
     f_server = FIFO.read_loop() #chat.Server(port=30003,cb=JSBC.JSCB)
     f_server.loop(sleep=1)
 
@@ -761,25 +742,9 @@ def save_show_as(fname,new=0):
     if baselib.create_new_show_path(fpath):
         return save_show(fpath,new)
 
-        
-def wheel(event,d=None):
-    cprint("wheel",event,d)
-    
 
 
-
-class Element():
-    def __init__(self):
-        self.__data = {}
-    def set(self,key,val):
-        self.__data[key] = val
-
-
-        
 import lib.baselib as baselib
-
-def hex_to_rgb(hex):
-  return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) 
 
 class cb():
     def __init__(self,win):
@@ -1728,6 +1693,8 @@ def loops(**args):
     thread.start_new_thread(refresher_fix.loop,())
     thread.start_new_thread(refresher_exec.loop,())
 
+thread.start_new_thread(loops,())
+
 class window_create_sdl_buffer():
     def __init__(self,args,cls,data,cb_ok=None,scroll=0,gui=None):
         self.args   = args.copy()
@@ -1748,13 +1715,14 @@ def open_sdl_window():
     if "--easy" not in sys.argv:
         movewin.startup_all_sdl()
 
-thread.start_new_thread(loops,())
+thread.start_new_thread(open_sdl_window,())
+
+
 mc_fix = MC_FIX()
 def mc_fix_loop():
     time.sleep(5)
     while 1:
         try:
-            #print(1)
             data = FIXTURES.fixtures 
             mc_fix.set(index="fix",data=data)
         except Exception as e:
@@ -1762,7 +1730,6 @@ def mc_fix_loop():
         time.sleep(1/10)
 
 thread.start_new_thread(mc_fix_loop,())
-thread.start_new_thread(open_sdl_window,())
 
 
 if __run_main:
@@ -1811,6 +1778,7 @@ if __run_main:
     data.append({"text":"---"})
     data.append({"text":"SDL-STAGE"})
     data.append({"text":"SDL-Shader"})
+    data.append({"text":"TABLE"})
 
     #data.append({"text":"MASTER-WING"})
 
@@ -1884,17 +1852,13 @@ if __run_main:
     # =======================================================================
     name="SDL-VPU"
     def sdl_config():
-        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
-        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/dmx.py " #&"
         cmd="python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single"
         print(cmd)
-        #os.popen(cmd)
 
         def xyz123(cmd):
             os.system(cmd)
         thread.start_new_thread(xyz123,(cmd,))
         return [None,None,None]
-    #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
     if geo:
@@ -1910,7 +1874,6 @@ if __run_main:
         window_manager.top(name)
 
     # =======================================================================
-    #python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single
     name="SDL-OSZI"
     def sdl_config():
         cmd="python3 /opt/LibreLight/ASP/monitor/oszi_grid.py" 
@@ -1935,19 +1898,15 @@ if __run_main:
         window_manager.top(name)
 
     # =======================================================================
-    #python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single
     name="SDL-DMX"
     def sdl_config():
-        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/dmx.py " #&"
         print(cmd)
-        #os.popen(cmd)
 
         def xyz123(cmd):
             os.system(cmd)
         thread.start_new_thread(xyz123,(cmd,))
         return [None,None,None]
-    #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
     if geo:
@@ -1963,19 +1922,15 @@ if __run_main:
         window_manager.top(name)
 
     # =======================================================================
-    #python3 /opt/LibreLight/Xdesk/vpu/watchdog_vpu.py -single
     name="RAY-DMX"
     def sdl_config():
-        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tksdl/config.py &"
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkray/dmx.py " #&"
         print(cmd)
-        #os.popen(cmd)
 
         def xyz123(cmd):
             os.system(cmd)
         thread.start_new_thread(xyz123,(cmd,))
         return [None,None,None]
-    #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
     if geo:
@@ -1995,13 +1950,11 @@ if __run_main:
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk//3d/stage_3d.py " #&"
         print(cmd)
-        #os.popen(cmd)
 
         def xyz123(cmd):
             os.system(cmd)
         thread.start_new_thread(xyz123,(cmd,))
         return [None,None,None]
-    #class window_create_sdl_buffer():
     args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
     geo = libwin.split_window_position(pos_list,name)
     if geo:
@@ -2131,14 +2084,14 @@ if __run_main:
     data=[]
     for i in range(12*6):
         data.append({"text"+str(i):"test"})
-    
-    cls = GUI_FixtureEditor
-    #cls = GUI_FaderLayout
+
+    import tkgui.fix as guifix
+
+    cls = guifix.GUI_FixtureEditor
     cb_ok = None
 
     c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
     window_manager.new(None,name,wcb=c)
-    #window_manager.top(name)
 
     
     # =======================================================================
@@ -2302,8 +2255,6 @@ if __run_main:
     geo = libwin.split_window_position(pos_list,name)
     if geo:
         args.update(geo)
-    #w = libtk.WindowContainer(args)
-    #draw_colorpicker(master,w.tk,FIXTURES,master)
     cls = draw_colorpicker #(master,w.tk,FIXTURES,master)
     data = [FIXTURES,master]
     cb_ok = None #FIXTURES
@@ -2314,31 +2265,21 @@ if __run_main:
         window_manager.top(name)
 
     # =======================================================================
-    name="TableA"
-    #w = libtk.WindowContainer(name,master=0,width=W1,height=H1,left=L1,top=TOP)
-    #space_font = tk.font.Font(family="FreeSans", size=1 ) #, weight="bold")
-    #x=TableFrame(root=w.tk)#,left=80,top=620)
-    #w.show()
-    #data =[]
-    #for a in range(40):
-    #    data.append(["E","E{}".format(a+1)])
+    name="TABLE"
+    args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+    #cls = draw_colorpicker #(master,w.tk,FIXTURES,master)
+    cls = TableFrame #(root=w.tk)#,left=80,top=620)
+    data = [FIXTURES,master]
+    cb_ok = None #FIXTURES
 
-    #x.draw(data=data,head=["E","C"],config=[12,5,5])
-    #w=x.bframe
+    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=0)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
 
-    #window_manager.new(w,name)
-
-
-
-    master.render()
-    window_manager.top("Table")
-    #w = frame_fix #WindowContainer("OLD",master=0,width=W1,height=500,left=130,top=TOP)
-    #window_manager.new(w,name)
-
-
-
-    #if "--easy" in sys.argv:
-    #load_window_position()
 
 
     def wm_mainloop():

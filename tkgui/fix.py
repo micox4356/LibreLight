@@ -164,8 +164,12 @@ class GUI_FixtureEditor():
         self.b = tk.Label(self.frame,bg="black",text="") # spacer
         self.b.pack(fill=tk.Y, side=tk.LEFT)
 
-        self.b = tk.Button(self.frame,bg=bg,text="HELP", width=5)#,command=self.event) #bv.change_dmx)
+        self.b = tk.Button(self.frame,bg="grey",text="HELP", width=5)#,command=self.event) #bv.change_dmx)
         self.b["command"] = libtk.online_help("librelight:80-fixture-editor" ) #""fixture-editor")
+        self.b.pack( side=tk.LEFT)
+
+        self.b = tk.Button(self.frame,bg="grey",text="VDIM", width=5)#,command=self.event) #bv.change_dmx)
+        self.b["command"] = libtk.online_help("librelight:05-virtueller-attribute" ) #""fixture-editor")
         self.b.pack( side=tk.LEFT)
         # HEAD 2
         

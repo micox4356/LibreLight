@@ -121,7 +121,7 @@ def draw_exec(gui,xframe,EXEC):
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
             c+=7
             if i == 0:
-                b = tk.Button(frame,bg="darkgrey", text="HELP",command=libtk.online_help("0&do=index"))
+                b = tk.Button(frame,bg="darkgrey", text="HELP",command=libtk.online_help("librelight:20-exec")) #"0&do=index"))
                 b.grid(row=r, column=c, sticky=tk.W+tk.E)
             r+=1
             c=0

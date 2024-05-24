@@ -182,6 +182,21 @@ btn1_press = [] #["10.10.10.13:0"]
 
 font0 = pygame.font.SysFont("freesans-bold",15)
 
+
+# -------------------
+x=200
+y=5
+bx = sdl_elm.Button(window,pos=[x,y,50,20])
+bx.text = " HELP "
+import lib.libtk as libtk
+def xhelp(event=None):
+    #print(event)
+    libtk.online_help("librelight:90-dmx-sheet")()
+bx.btn1.cb_on.set(xhelp)
+#bx.draw()
+btn_help=bx
+# -------------------
+
 while 1:
     fps +=1
     t = time.time()
@@ -254,6 +269,8 @@ while 1:
         fr = font15.render(str(i*20+1) ,1, rgb) #(200,200,200))
         window.blit(fr,(jjjj,10+iiii))
         iiii+=15
+
+    btn_help.draw()
 
     r=40
     if 1:
@@ -358,6 +375,7 @@ while 1:
 
     resize_changed = 0
     for event in pygame.event.get(): 
+        x_change=btn_help.event(event)
          
         if "scancode" in event.dict:
             if event.scancode == 9:

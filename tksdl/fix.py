@@ -358,6 +358,21 @@ def draw_frame(window):
     fr = font22.render("DEMO / TEST - MODE ! "  ,1, (200,200,200))
     #window.blit(fr,(10,30 ))
 
+
+# -------------------
+x=200
+y=5
+bx = sdl_elm.Button(window,pos=[x,y,50,20])
+bx.text = " HELP "
+import lib.libtk as libtk
+def xhelp(event=None):
+    #print(event)
+    libtk.online_help("librelight:20-exec")()
+bx.btn1.cb_on.set(xhelp)
+#bx.draw()
+btn_help=bx
+# -------------------
+
 while 1:
 
     try:
@@ -377,7 +392,7 @@ while 1:
         #window.fill((2,2,2))
         window.fill((0,0,0))
         pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
-
+        
 
         draw_frame(window)
 
@@ -438,6 +453,7 @@ while 1:
 
         active_fix = 0
         active_attr = 0
+
 
         i = 0
         r=40
@@ -698,8 +714,11 @@ while 1:
                 bxc.font0 = bx_font0
                 bxc.draw()
 
+        btn_help.draw()
         resize_changed = 0
         for event in pygame.event.get(): 
+            x_change=btn_help.event(event)
+
             if "scancode" in event.dict:
                 print(event.dict,event.type)
                 if event.scancode == 50:
@@ -837,6 +856,8 @@ while 1:
                                 cmd_client.send(msg)
                             if "release" in change[key]:
                                 pass
+
+
             if not event_lock:
                 for k3 in table_grid_draw:
                     row = table_grid[k3]

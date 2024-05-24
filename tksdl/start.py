@@ -130,6 +130,20 @@ bx.btn1.cb_on.set(exit)
 bx.font0 = pygame.font.SysFont("freesans-bold",80)
 table.append(bx)
 
+#-----------------------------------------------------------------
+#b = tk.Button(frame,bg="darkgrey", text="HELP",command=libtk.online_help("librelight:20-exec")) #"0&do=index"))
+x=450
+y=10
+bx = sdl_elm.Button(window,pos=[x,y,50,20])
+bx.text = " HELP "
+import lib.libtk as libtk
+def xhelp(event=None):
+    libtk.online_help("librelight:10-pro-easy-mode")()
+bx.btn1.cb_on.set(xhelp)
+
+bx.font0 = pygame.font.SysFont("freesans-bold",20)
+table.append(bx)
+
 
 mouse_down = 0
 mouse_pos1 = [0,0]

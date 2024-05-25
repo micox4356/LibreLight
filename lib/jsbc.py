@@ -44,8 +44,6 @@ def JSCB(x,sock=None):
                     #print(dir(cb))
                     #event.num = enum
 
-                    #MAIN.master.refresh_fix() # delayed
-                    #refresher_fix.reset() # = Refresher()
                     #cb.cb(event)
                 if "CLEAR" == msg["event"]:
                     MAIN.FIXTURES.clear()

@@ -12,6 +12,7 @@ import lib.baselib as baselib
 import lib.fxlib as fxlib
 import lib.libtk as libtk
 import tkgui.dialog as dialoglib
+import lib.tkrefresh as tkrefresh
 
 dialog = dialoglib.Dialog()
 
@@ -230,18 +231,18 @@ class tk_event():
         if self.mode == "ENCODER":
             if self._encoder(event):
                 MAIN.master.refresh_fix() # delayed
-                MAIN.refresher_fix.reset() # = Refresher()
+                MAIN.refresher_fix.reset() # = tkrefresh.Refresher()
 
         if self.mode == "ENCODER2":
             if self._encoder(event):
                 MAIN.master.refresh_fix() # delayed
-                MAIN.refresher_fix.reset() # = Refresher()
+                MAIN.refresher_fix.reset() # = tkrefresh.Refresher()
 
         if self.mode == "INVERT":
             cprint("INVERT",event)
             if self._encoder(event):
                 MAIN.master.refresh_fix() # delayed
-                MAIN.refresher_fix.reset() # = Refresher()
+                MAIN.refresher_fix.reset() # = tkrefresh.Refresher()
 
     def _encoder(self,event):
 
@@ -362,7 +363,7 @@ class tk_event():
                             self.data.exec_go(nr,xfade=0,event=event,val=255,button="go")
                             MAIN.modes.val("EDIT", 0)
                             MAIN.master.refresh_fix()
-                            MAIN.refresher_fix.reset() # = Refresher()
+                            MAIN.refresher_fix.reset() # = tkrefresh.Refresher()
 
                         elif MAIN.modes.val("SELECT"):
                             self.data.exec_select(nr)
@@ -372,7 +373,7 @@ class tk_event():
                         self.data.exec_go(nr,xfade=0,event=event,val=0)
                         #cprint(" == "*10)
                         MAIN.master.refresh_fix()
-                        MAIN.refresher_fix.reset() # = Refresher()
+                        MAIN.refresher_fix.reset() # = tkrefresh.Refresher()
 
                         
                 if event.num == 3:

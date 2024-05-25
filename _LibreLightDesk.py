@@ -1066,12 +1066,12 @@ class MASTER():
         cprint("__del__",self)
         
     def refresh_exec(self):
-        refresher_exec.reset() # = Refresher()
+        refresher_exec.reset() # = tkrefresh.Refresher()
 
     def _refresh_exec(self,nr=-1):
         s = time.time()
         cprint("EXEC.refresh_exec()")
-        refresher_exec.reset() # = Refresher()
+        refresher_exec.reset() # = tkrefresh.Refresher()
         
         self._XX +=1
         self._nr_ok = 0
@@ -1092,7 +1092,7 @@ class MASTER():
 
         time.sleep(0.01)
     def refresh_fix(self):
-        refresher_fix.reset() # = Refresher()
+        refresher_fix.reset() # = tkrefresh.Refresher()
     def _refresh_fix(self):
         cprint("_refresh_fix")
         s=time.time(); _XXX=0
@@ -1533,7 +1533,7 @@ class WindowManager():
                 global _ENCODER_WINDOW 
                 _ENCODER_WINDOW = w
             if name in ["DIMMER","FIXTURES"]:
-                refresher_fix.reset() # = Refresher()
+                refresher_fix.reset() # = tkrefresh.Refresher()
 
     def _check_window_is_open(self,name):
         try:
@@ -1608,80 +1608,25 @@ LOAD_SHOW()
 master = MASTER()
 
 
-class Refresher():
-    def __init__(self):
-        self.time = time.time()
-        self.time_max = time.time()
-        self.time_delta = 15
-        self.update = 1
-        self.name = "name" # exec
-        self.cb = None #self.dummy_cb
-    def dummy_cb(self):
-        cprint("dummy_cd()",time.time()-self.time)
-
-    def reset(self):
-        self.time = time.time() 
-        self.update = 1
-
-    def refresh(self):
-        if self.update: 
-            if self.time+self.time_delta < time.time():
-                self._refresh()
-        else:
-            self.time = time.time() 
-
-    def _refresh(self):
-        cprint("_refresh()",self.name,self)
-        if not INIT_OK:
-            return
-
-        self.time_max = time.time()
-        self.time     = time.time()
-        self.update = 0
-        try:
-            if self.cb:
-                self.cb()
-            else:
-                self.dummy_cb()
-        except Exception as e:
-            cprint("_refresh except:",e,"cb:",self.cb)
-            traceback.print_exc()
-            cprint()
-        cprint("t=",self.time_max- time.time())
-
-    def loop(self,args={}):
-        while 1:
-            try:
-                if INIT_OK:
-                    self.refresh()
-                    #tkinter.Tk.update_idletasks(gui_menu_gui.tk)
-            except Exception as e:
-                cprint("loop exc",e)
-                traceback.print_exc()
-                cprint("== cb EXCEPT",e,color="red")
-                cprint("Error on line {}".format(sys.exc_info()[-1].tb_lineno),color="red")
-                cprint(''.join(traceback.format_exception(None, e, e.__traceback__)),color="red")
-
-            time.sleep(0.2)
 
 print("main",__name__)
 
+import lib.tkrefresh as tkrefresh
 
 
-
-refresher_fix = Refresher()
+refresher_fix = tkrefresh.Refresher()
 refresher_fix.time_delta = 0.50 
 refresher_fix.name = "fix"
 refresher_fix.reset() 
 refresher_fix.cb = master._refresh_fix
 
-refresher_exec = Refresher()
+refresher_exec = tkrefresh.Refresher()
 refresher_exec.time_delta = 10 #0
 refresher_exec.name = "exec"
 refresher_exec.reset() 
 refresher_exec.cb = master._refresh_exec
 
-refresher_exec = Refresher()
+refresher_exec = tkrefresh.Refresher()
 refresher_exec.time_delta = 10 #0
 refresher_exec.name = "exec-fader"
 refresher_exec.reset() 
@@ -1799,6 +1744,12 @@ if __run_main:
     gui_menu_gui = window_manager.get_win(name)
     gui_menu = window_manager.get_obj(name)
     master._refresh_fix()
+
+
+
+
+
+
 
 
     # =======================================================================

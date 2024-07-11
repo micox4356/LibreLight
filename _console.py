@@ -1158,7 +1158,9 @@ def _parse_cmds(cmds,clock=0,master_fx=None):
                     #print(" ",[ids, exec_id],"GO")
 
             if v == "off":
-                if "FLASH" in x:
+                # flash bug if lot's of virtual dimmer are  RELEASED-FROM-FLASH ("FLASH off") 
+                # the V-MASTER FLASH ist HANGING ... no ENCODER change possible !!! ???
+                if 0: # "FLASH" in x:
                     ids = Admx.exec_ids()
                     stop = 0
                     #print(" ",[ids, exec_id])

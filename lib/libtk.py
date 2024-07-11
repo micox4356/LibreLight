@@ -620,8 +620,8 @@ class WindowContainer():
                 #e.cb(event=event)
             elif "End" == event.keysym:
                 MAIN.FIXTURES.fx_off("all")
-                CONSOLE.fx_off("all")
-                CONSOLE.flash_off("all")
+                MAIN.CONSOLE.fx_off("all")
+                MAIN.CONSOLE.flash_off("all")
             elif "Delete" == event.keysym:
                 #MAIN.EXEC.delete(nr)
                 if value:

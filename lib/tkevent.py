@@ -144,11 +144,11 @@ class tk_event():
         if "FADE" in self.attr or "DELAY" in self.attr:
            
             if self.attr == "FADE":
-                ct = FADE
+                ct = MAIN.FADE
             if self.attr == "DELAY":
-                ct = DELAY
+                ct = MAIN.DELAY
             if "PAN/TILT\nFADE" in self.attr:
-                ct = FADE_move
+                ct = MAIN.FADE_move
 
             value = ct.val()
             #print("EVENT CHANGE ",[self.attr])

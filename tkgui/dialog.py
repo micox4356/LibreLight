@@ -31,8 +31,7 @@ class InputEventBlocker():
             except Exception as e:
                 pirnt("init() exception",e)
     def _lock(self):
-        global _global_short_key
-        _global_short_key = 0
+        MAIN._global_short_key = 0
         try:MAIN.master.commands.elem["S-KEY"]["bg"] = "red"
         except Exception as e:cprint("exc",self,e)
         cmd="xset -display :0.0 r rate 240 15"
@@ -40,8 +39,7 @@ class InputEventBlocker():
         os.system(cmd)
 
     def _unlock(self):
-        global _global_short_key
-        _global_short_key = 1
+        MAIN._global_short_key = 1
         try:MAIN.master.commands.elem["S-KEY"]["bg"] = "green"
         except Exception as e:cprint("exc",self,e)
         cmd = "xset -display :0.0 r off"
@@ -80,9 +78,9 @@ class InputEventBlocker():
             if event.keysym == "Return" or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
                 self.unlock() 
                 #self.e_txt.set(t)
-            cprint("filter: get()",_global_short_key,t)
+            cprint("filter: get()",MAIN._global_short_key,t)
             t2 = t
-            if _global_short_key == 0:
+            if MAIN._global_short_key == 0:
                 if event.keysym == "BackSpace":
                     if len(t) > 1:
                         t2 = t[:-1]
@@ -99,7 +97,6 @@ class InputEventBlocker():
             
                 #self.e_txt.set(t2+"<")
         #time.sleep(0.2)
-        #_global_short_key = 1
 
 input_event_blocker = InputEventBlocker()
 
@@ -195,14 +192,13 @@ class Dialog():
             if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
                 self.ok()
 
-            if 1:# _global_short_key == 0:
+            if 1: # MAIN._global_short_key == 0:
                 if event.keysym == "Escape":
                     self.close()
 
     def event(self,event,**args):
         print(self,"event",event)
 
-        #global _global_short_key 
 
         if 1:#else:
             input_event_blocker.set( self.e , self.e_txt)
@@ -211,7 +207,7 @@ class Dialog():
             if event.keysym == "Return":# or event.keysym == "Tab" or event.keysym == "ISO_Left_Tab":
                 self.ok()
 
-            if 1: #_global_short_key == 0:
+            if 1: # MAIN._global_short_key == 0:
                 if event.keysym == "Escape":
                     self.close()
 

@@ -519,7 +519,6 @@ class WindowContainer():
             os.system(cmd)
 
     def callback(self,event,data={}):#value=255):
-        #global MAIN._global_short_key
         sstart = time.time()
         #time.sleep(0.1)
         if not MAIN._global_short_key:

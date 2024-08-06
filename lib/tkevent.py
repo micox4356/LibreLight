@@ -205,16 +205,15 @@ class tk_event():
             MAIN.modes.val(self.attr,0)
 
         elif self.attr == "S-KEY":
-            global _global_short_key
-            if _global_short_key:
-                _global_short_key = 0
+            if MAIN._global_short_key:
+                MAIN._global_short_key = 0
                 MAIN.master.commands.elem["S-KEY"]["bg"] = "red"
                 MAIN.master.commands.elem["S-KEY"]["activebackground"] = "red"
             else:
-                _global_short_key = 1
+                MAIN._global_short_key = 1
                 MAIN.master.commands.elem["S-KEY"]["bg"] = "green"
                 MAIN.master.commands.elem["S-KEY"]["activebackground"] = "green"
-            cprint("s-key",_global_short_key)
+            cprint("s-key",MAIN._global_short_key)
 
         else:
             if event.num == 1:

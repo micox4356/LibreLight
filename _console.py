@@ -58,7 +58,8 @@ import lib.zchat as chat
 import lib.ArtNetNode as ANN
 import _thread as thread  
 #thread.start_new_thread
-import lib.motion as motion
+
+#import lib.motion as motion
 
 #idmx = [0]*512 # incremental dmx
 dmx  = [0]*512 # absolute dmx data

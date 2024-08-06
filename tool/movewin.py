@@ -11,11 +11,11 @@ import json
 import inspect
 import _thread as thread
 
-import lib.baselib as baselib
+import lib.showlib as showlib
 from lib.cprint import cprint
 
 
-SHOW_PATH = baselib.current_show_path() #SHOW_PATH 
+SHOW_PATH = showlib.current_show_path() #SHOW_PATH 
 
 
 # python3 movewin.py window-title x y

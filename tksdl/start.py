@@ -50,7 +50,7 @@ pygame.display.set_icon(icon)
 
 import tool.movewin as movewin
 import tool.sdl_elm as sdl_elm
-import lib.baselib as baselib
+import lib.showlib as showlib
 
 
 CAPTION = 'LibreLight Start '
@@ -87,8 +87,8 @@ y = 120
 import os
 import lib.fork as fork
 
-import lib.baselib as baselib
-SHOW_NAME = baselib.current_show_name()
+import lib.showlib as showlib
+SHOW_NAME = showlib.current_show_name()
 print([SHOW_NAME])
                 
 def exit(args=None):

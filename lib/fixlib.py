@@ -293,12 +293,12 @@ def _load_fixture_list(mode="None"):
     return blist
 
 
-import lib.baselib as baselib
+import lib.showlib as showlib
 
 class Fixtures():
     def __init__(self):
         #super().__init__() 
-        self.base=baselib.Base()
+        self.base=showlib.Base()
         #self.load()
         self.fixtures = OrderedDict()
         self.gui = None # GUIHandler()

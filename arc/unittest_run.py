@@ -89,7 +89,7 @@ class Test_Fixture(unittest.TestCase):
 
 class Test_Desk(unittest.TestCase):
     def test_file_list(self):
-        _list =  = baselib.list_shows()
+        _list =  = showlib.list_shows()
         for i in _list: 
             print(i)
         self.assertTrue(len(_list))

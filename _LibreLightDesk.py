@@ -740,7 +740,7 @@ def save_show(fpath=None,new=0):
 def save_show_as(fname,new=0):
     print()
     print()
-    fpath = baselib.generate_show_path(fname)
+    fpath = showlib.generate_show_path(fname)
 
     info = "SAVE SHOW AS"
     if new:
@@ -748,12 +748,12 @@ def save_show_as(fname,new=0):
 
     cprint(info,fpath,fname,color="green")
 
-    if baselib.create_new_show_path(fpath):
+    if showlib.create_new_show_path(fpath):
         return save_show(fpath,new)
 
 
 
-import lib.baselib as baselib
+import lib.showlib as showlib
 
 class cb():
     def __init__(self,win):
@@ -892,7 +892,7 @@ import lib.execlib as execlib
 
 class MASTER():
     def __init__(self):
-        self.base = baselib.Base ()
+        self.base = showlib.Base ()
         self.load()
         self._XX = 0
 
@@ -1417,7 +1417,7 @@ from tkgui.GUI import *
 class LOAD_SHOW_AND_RESTART():
     def __init__(self,fname=""):
         self.fname=fname
-        self.base = baselib.Base()
+        self.base = showlib.Base()
 
     def cb(self,event=None,force=0):
         print()

@@ -4,7 +4,7 @@ import os
 HOME = os.getenv('HOME')
 
 from lib.cprint import *
-import lib.baselib as baselib
+import lib.showlib as showlib
 import __main__ as MAIN
 
 window_list_buffer = {}
@@ -18,8 +18,8 @@ def save_window_position(save_as=""):
         fname = save_as 
         fpath=fname
     else:
-        fname = baselib.current_show_name() 
-        fpath = baselib.SHOW_DIR + fname
+        fname = showlib.current_show_name() 
+        fpath = showlib.SHOW_DIR + fname
     if not os.path.isdir(fpath):
         cprint("  -0 save_window_position no dir:",fpath,color="red")
         error += 1
@@ -118,7 +118,7 @@ def get_window_position(_filter="",win=None):
 
 def read_window_position():
     try:
-        fname = baselib.current_show_path() + "/gui.txt"
+        fname = showlib.current_show_path() + "/gui.txt"
 
         cprint("- fname:",fname)
         f = open(fname,"r")

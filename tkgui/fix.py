@@ -18,7 +18,7 @@ from lib.cprint import *
 
 
 import lib.fixlib  as fixlib
-import lib.baselib as baselib
+import lib.showlib as showlib
 import lib.libtk   as libtk
 
 
@@ -577,7 +577,7 @@ class GUI_FixtureEditor():
             self.name["text"] = data["name"] #"load_MH2"
             self.name["text"] = data["name"] #"load_MH2"
             xpath = data["xpath"] + "/" + data["xfname"]
-            fdata = baselib._read_sav_file(xpath)
+            fdata = showlib._read_sav_file(xpath)
             n = []
             a = []
             m = []

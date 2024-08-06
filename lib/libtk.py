@@ -13,7 +13,7 @@ import __main__ as MAIN
 
 from lib.cprint import cprint
 import lib.libwin as libwin
-import lib.baselib as baselib
+import lib.showlib as showlib
 import lib.libconfig as libconfig
 
 import tkgui.dialog  as dialoglib
@@ -290,13 +290,13 @@ def ScrollFrame(root,width=50,height=100,bd=1,bg="black",head=None,foot=None):
 def frame_of_show_list(frame,cb=None):
     c=0
     r=0
-    base = baselib.Base()
+    base = showlib.Base()
     for i in ["name","stamp"]: #,"create"]:
         b = tk.Label(frame,bg="grey",text=i)
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
     r+=1
-    blist = baselib.list_shows()
+    blist = showlib.list_shows()
     for i in range(10):
         blist.append(["",""])
 

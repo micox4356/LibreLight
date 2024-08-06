@@ -77,7 +77,7 @@ def reshape_exec(data ,value=None,xfade=0,flash=0,ptfade=0,DELAY=None):
     return out
 
 
-import lib.baselib as baselib
+import lib.showlib as showlib
 
 
 
@@ -117,7 +117,7 @@ def EXEC_CFG_CHECKER(sdata):
 
 class EXEC(): #Presets():
     def __init__(self):
-        self.base = baselib.Base()
+        self.base = showlib.Base()
         self._last_copy = None
         self._last_move = None
         self.fx_buffer = {}

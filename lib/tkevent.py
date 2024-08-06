@@ -8,7 +8,7 @@ import traceback
 from lib.cprint import cprint
 import __main__ as MAIN
 
-import lib.baselib as baselib
+import lib.showlib as showlib
 import lib.fxlib as fxlib
 import lib.libtk as libtk
 import tkgui.dialog as dialoglib
@@ -49,7 +49,7 @@ class tk_event():
 
         elif self.attr == "LOAD\nSHOW":
             name = "LOAD-SHOW"
-            line1 = "PATH: " + baselib.current_show_path()
+            line1 = "PATH: " + showlib.current_show_path()
             line2 = "DATE: " + time.strftime("%Y-%m-%d %X",  time.localtime(time.time()))
 
             class cb():
@@ -74,7 +74,7 @@ class tk_event():
                     cprint("err443",self,"_cb",data)
                     return None
                 fname = data["Value"]
-                fpath = baselib.generate_show_path(fname)
+                fpath = showlib.generate_show_path(fname)
                 cprint("SAVE NEW SHOW",fpath,fname)
 
                 if MAIN.save_show_as(fname,new=1):

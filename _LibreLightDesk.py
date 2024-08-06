@@ -221,11 +221,11 @@ def set_exec_fader_cfg(nr,val,label="",color=""):
         if len(exec_wing.fader_elem) > nr:
             exec_wing.fader_elem[nr].attr["text"] =  label
             cfg = get_exec_btn_cfg(nr+80)
-            if cfg:
-                exec_wing.fader_elem[nr].attr["bg"] = cfg["bg"]
-                exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
+            exec_wing.fader_elem[nr].attr["bg"] = cfg["bg"]
+            exec_wing.fader_elem[nr].attr["fg"] = cfg["fg"]
 
-                #exec_wing.fader_elem[nr].attr["fx"] = cfg["fx"]
+            #exec_wing.fader_elem[nr].attr["fx"] = cfg["fx"]
+
     except Exception as e:
         cprint("  set_exec_fader_cfg err:",e,color="red")
         print("  ",nr,val,label)
@@ -775,6 +775,8 @@ def get_exec_btn_cfg(nr):
         _ba = "grey"
         _fg = "lightgrey"
         _text = "N/V"
+        txt = "None/nNone"
+        txt1 = "None/nNone"
 
         if nr >= 0:
             if nr != k:
@@ -854,7 +856,12 @@ def get_exec_btn_cfg(nr):
         if "FL" in txt1:
             _fg = "#00e"
         
-        out = {}
+        out = {} # default
+        out["fx"] = ""
+        out["bg"] = "lightgrey"
+        out["ba"] = "grey"
+        out["fg"] = "grey"
+        out["text"] = "?"
         
         out["fx"] = fx_color
         out["bg"] = _bg
@@ -1078,13 +1085,6 @@ class MASTER():
 
         for nr in EXEC.val_exec: 
             cfg = get_exec_btn_cfg(nr)
-            if not cfg:
-                out = {}
-                out["bg"] = "lightgrey"
-                out["ba"] = "grey"
-                out["fg"] = "grey"
-                out["text"] = "?"
-                cfg = out
 
             b = self.elem_exec[nr]
             b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])

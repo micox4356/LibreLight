@@ -13,6 +13,18 @@ import pathlib
 _file_path=pathlib.Path(__file__)
 print("__file__ =",_file_path)
 
+
+import lib.restart as restart
+import lib.libconfig as libconfig
+
+r = libconfig.check_pro_easy()
+if r == "PRO":
+    restart.pro()
+if r == "EASY":
+    restart.easy()
+
+
+
 import tool.movewin as movewin
 
 CAPTION = 'LibreLight Start XX'
@@ -79,34 +91,13 @@ import lib.baselib as baselib
 SHOW_NAME = baselib.current_show_name()
 print([SHOW_NAME])
                 
-import lib.restart as restart
-
 def exit(args=None):
     pygame.quit()
     sys.exit()
 
-def check_default():
-    try:
-        f = open("/home/user/LibreLight/config.json")
-        lines = f.readlines()
-        f.close()
-        for line in lines:
-            if '{"START_MODE":"PRO"}' in line:
-                restart.pro()
-                print(" PRO")
-                #pygame.quit()
-                return 0
-            elif '{"START_MODE":"EASY"}' in line:
-                restart.easy()
-                print(" EASY")
-                #pygame.quit()
-                return 0
-            print(line)
 
-    except Exception as e:
-        print("Exception",e)
 
-    return 1
+
 
 bx = sdl_elm.Button(window,pos=[x,y,400,60])
 bx.text = "       EASY" 
@@ -154,7 +145,8 @@ fps_t = time.time()
 fps = 0
 fps_old = 0
 
-run = check_default()
+
+run = 1
 while run:
     fps +=1
     t = time.time()

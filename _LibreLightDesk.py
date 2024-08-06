@@ -30,6 +30,7 @@ import tool.movewin as movewin
 import lib.fixlib as  fixlib
 import lib.libwin as libwin
 import lib.libtk as libtk
+import lib.libconfig as libconfig
 
 rnd_id  = str(random.randint(100,900))
 rnd_id += " beta"
@@ -358,7 +359,6 @@ class MC_FIX():
         self.mc.set("fix", data)
 
 
-
 class MC():
     def __init__(self,server="127.0.0.1",port=11211):
         cprint("MC.init() ----------" ,server,port,color="red")
@@ -416,13 +416,40 @@ class MC():
         if not self.ok():
             return 
 
+    def _exec_fader_loop(self,x):
+        for i, line in enumerate(self.fader_map):
+            try:
+                #print(i,line)
+                dmx = int(line["DMX"])
+                if dmx > 0:
+                    val = x[dmx-1]
+                    #print("mc val",val)
+                    #print("dmx_in change:",[i,val])
+                    change = 0
+                    if i < len(self.last_fader_val):
+                        if self.last_fader_val[i] != val:
+                            self.last_fader_val[i] = val
+                            print("dmx_in change:",[i,val])
+                            change = 1
+                    set_exec_fader(nr=i,val=val,color="#aaa",info="dmx_in",change=change)
+            except Exception as e:
+                cprint("MC exc:",e,color="red")
+                traceback.print_exc()
+                pass
+
     def _loop(self):
+        time.sleep(20)
         cprint("++++++++++ start.memcachd read loop",self )
+        
+        ip = libconfig.load_remote_ip()
+
+        print("IP:",ip)
+        input()
         while 1:
             send = 0
             #print("+")
             try:
-                ip="10.10.10.13:0"
+                #ip="10.10.10.13:0"
                 #ip="ltp-out:0"
                 #print(ip)
                 x=self.mc.get(ip)
@@ -431,25 +458,7 @@ class MC():
                     #print(ip,x)
                     #val = x[501-1]
                     #val = x[141-1]
-                    for i, line in enumerate(self.fader_map):
-                        try:
-                            #print(i,line)
-                            dmx = int(line["DMX"])
-                            if dmx > 0:
-                                val = x[dmx-1]
-                                #print("mc val",val)
-                                #print("dmx_in change:",[i,val])
-                                change = 0
-                                if i < len(self.last_fader_val):
-                                    if self.last_fader_val[i] != val:
-                                        self.last_fader_val[i] = val
-                                        print("dmx_in change:",[i,val])
-                                        change = 1
-                                set_exec_fader(nr=i,val=val,color="#aaa",info="dmx_in",change=change)
-                        except Exception as e:
-                            cprint("MC exc:",e,color="red")
-                            traceback.print_exc()
-                            pass
+                    self._exec_fader_loop(x)
 
                 time.sleep(1/10)
             except Exception as e:

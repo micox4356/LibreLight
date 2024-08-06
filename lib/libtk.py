@@ -14,36 +14,17 @@ import __main__ as MAIN
 from lib.cprint import cprint
 import lib.libwin as libwin
 import lib.baselib as baselib
+import lib.libconfig as libconfig
 
 import tkgui.dialog  as dialoglib
 dialog = dialoglib.Dialog()
 
 
-_config = []
-try: 
-    h = os.environ["HOME"]
-    lines = [{}]
-    try: 
-        f = open(h +"/LibreLight/config.json")
-        lines = f.readlines()
+for i in dir(MAIN):
+    print(i)
 
-    except FileNotFoundError as e: #Exception as e:
-        f = open(h +"/LibreLight/config.json","w")
-        f.write('{"POS_TOP":0}\n{"POS_LEFT":0}')
-        f.close()
-        cprint("Exception:",e)
-
-    cprint("config read")
-    for line in lines:
-        line=line.strip()
-        print("   config:",line)
-        row = json.loads(line) 
-        _config.append(row)
-
-except Exception as e:
-    cprint("Exception:",e)
-
-
+#_config = MAIN._load_config()
+_config = libconfig._load_config()
 
 _POS_LEFT = 0
 _POS_TOP  = 15

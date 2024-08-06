@@ -900,7 +900,7 @@ while 1:
                     if event.type in [5,1025]:#press
                         mouse_down = 1
                         mouse_pos1 = [event.pos[0],event.pos[1]]
-                    if event.type in [6,1025]:#release
+                    if event.type in [6,1026]:#release
                         mouse_down = 0
 
                 mouse_pos2 = [event.pos[0],event.pos[1]]

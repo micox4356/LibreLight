@@ -32,7 +32,7 @@ def _fixture_decode_sav_line(line):
 
 def _fixture_repair_nr0(jdata):
     nrnull = 0
-    if "ATTRIBUT" in jdata:  # translate old FIXTURES.fixtures start with 0 to 1          
+    if "ATTRIBUT" in jdata:  # translate old Fixtures.fixtures start with 0 to 1          
         if nrnull:
             cprint("DMX NR IS NULL",attr,"CHANGE +1")
             for attr in jdata["ATTRIBUT"]:
@@ -305,7 +305,7 @@ class Fixtures():
 
 
     def load_patch(self):
-        cprint("FIXTURES.load_patch ..")
+        cprint("Fixtures.load_patch ..")
         filename="patch"
         d,l = self.base._load(filename)
         self.fixtures = OrderedDict()
@@ -441,7 +441,7 @@ class Fixtures():
 
             #print(sdata)
             #print("FIX",fix,attr)
-            sDMX = MAIN.FIXTURES.get_dmx(fix,attr)
+            sDMX = self.get_dmx(fix,attr)
             #print(sDMX)
             xcmd["DMX"] = str(sDMX)
 
@@ -466,7 +466,7 @@ class Fixtures():
             _blind = 1
         
         if not _blind:
-            cprint("FIXTURES.encoder",fix,attr,xval,xfade,color="yellow")
+            cprint("Fixtures.encoder",fix,attr,xval,xfade,color="yellow")
 
         if attr == "CLEAR":
             self.clear()
@@ -576,10 +576,10 @@ class Fixtures():
         jdata["FADE"]     = 0
         jdata["DELAY"]    = 0
         jdata["ATTR"]     = attr
-        dmx               = MAIN.FIXTURES.get_dmx(fix,attr)
+        dmx               = self.get_dmx(fix,attr)
         jdata["DMX"]      = dmx
 
-        dmx_fine = MAIN.FIXTURES.get_dmx(fix,attr+"-FINE")
+        dmx_fine = self.get_dmx(fix,attr+"-FINE")
         if dmx_fine != jdata["DMX"] and dmx > 0:
             jdata["DMX-FINE"] = dmx_fine
 
@@ -642,7 +642,7 @@ class Fixtures():
         return sdata
 
     def _deselect_all(self,fix=None):
-        cprint("FIXTURES._deselect_all()",fix,"ALL",color="yellow")
+        cprint("Fixtures._deselect_all()",fix,"ALL",color="yellow")
         c=0
         if fix in self.fixtures:
             data = self.fixtures[fix]
@@ -658,7 +658,7 @@ class Fixtures():
 
     def _select_all(self,fix=None,mode="toggle",mute=0):
         if not mute:
-            cprint("FIXTURES._select_all()",fix,"ALL",mode,color="yellow")
+            cprint("Fixtures._select_all()",fix,"ALL",mode,color="yellow")
         c=0
         if fix in self.fixtures:
             data = self.fixtures[fix]
@@ -679,7 +679,7 @@ class Fixtures():
 
     def select(self,fix=None,attr=None,mode="on",mute=0):
         if not mute:
-            cprint("FIXTURES.select() >>",fix,attr,mode,color="yellow")
+            cprint("Fixtures.select() >>",fix,attr,mode,color="yellow")
         out = 0
     
         if fix == "SEL":

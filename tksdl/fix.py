@@ -897,10 +897,10 @@ while 1:
 
             if "pos" in event.dict:
                 if "button" in event.dict:
-                    if event.type == 5:#press
+                    if event.type in [5,1025]:#press
                         mouse_down = 1
                         mouse_pos1 = [event.pos[0],event.pos[1]]
-                    if event.type == 6:#release
+                    if event.type in [6,1025]:#release
                         mouse_down = 0
 
                 mouse_pos2 = [event.pos[0],event.pos[1]]
@@ -911,7 +911,7 @@ while 1:
                 pass
 
             elif "button" in event.dict:
-                if event.type == 6:
+                if event.type in [6,1026]:
                     #print("grab DOOOO",event)
                     #print("grab2", event.dict["button"],len(mouse_grab) )
                     if event.dict["button"] == 1:

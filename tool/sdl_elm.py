@@ -464,9 +464,9 @@ class Button():
 
             if "button" in event.dict:
                 mode = ""
-                if event.type == 5:
+                if event.type in [5,1025]:
                     mode = "press"
-                if event.type == 6: 
+                if event.type in [6,1026]: 
                     mode = "release"
 
                 e = [event.button,mode]

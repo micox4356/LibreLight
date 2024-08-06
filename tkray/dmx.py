@@ -3,7 +3,7 @@ import pyray
 ConfigFlags(FLAG_MSAA_4X_HINT) #|FLAG_WINDOW_RESIZABLE  )
 #ConfigFlags(FLAG_WINDOW_RESIZABLE  )
 ConfigFlags(FLAG_WINDOW_HIGHDPI )
-init_window(800, 450, "RAY-DMX",10,10,10,10)
+init_window(800, 450, "RAY-DMX")#,10,10,10,10)
 #pyray.TextureFilter(font1,1)
 
 import sys
@@ -58,17 +58,17 @@ pyray.TextureFilter(3)
 
 while not window_should_close():
     begin_drawing()
-    for o in dir(font1):
-        print(o)
-    print()
-    print(font1.texture) # (3)
+    #for o in dir(font1):
+    #    print(o)
+    #print()
+    #print(font1.texture) # (3)
 
     clear_background(BLACK)
     Color(255,0,0,0)
     rl_enable_smooth_lines()
     if 0: # font test
         draw_line(2, 2, 100, 2, (255,225,0,220))
-        print(load_font_ex.__doc__) #("resources/pixantiqua.ttf", 32, 0, 250);
+        #print(load_font_ex.__doc__) #("resources/pixantiqua.ttf", 32, 0, 250);
 
         i = 20
         

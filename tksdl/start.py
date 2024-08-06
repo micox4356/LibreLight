@@ -87,7 +87,6 @@ y = 120
 import os
 import lib.fork as fork
 
-import lib.showlib as showlib
 SHOW_NAME = showlib.current_show_name()
 print([SHOW_NAME])
                 

@@ -966,7 +966,8 @@ class Main():
             time.sleep(1/30)
             if fps >= stop_fps:
                 fps_t = time.time()
-                print(round(stop_fps/(fps_t-fps_start),2),"core/fps") 
+                FPS = round(stop_fps/(fps_t-fps_start),2)
+                print("{:0.0f} core/fps".format(FPS) ) 
                 fps = 0
                 fps_start = time.time()
 

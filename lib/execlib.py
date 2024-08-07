@@ -4,6 +4,12 @@ import copy
 import __main__ as MAIN
 from lib.cprint import cprint
 from collections import OrderedDict
+import json
+try:
+    import memcache
+    mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+except:
+    mc = None
 
 def reshape_exec(data ,value=None,xfade=0,flash=0,ptfade=0,DELAY=None):
 
@@ -113,7 +119,7 @@ def EXEC_CFG_CHECKER(sdata):
     #except:pass
 
     return ok
-
+import time
 
 class EXEC(): #Presets():
     def __init__(self):
@@ -129,6 +135,15 @@ class EXEC(): #Presets():
         for i in d:
             sdata = d[i]
             ok = EXEC_CFG_CHECKER(sdata)
+        start = time.time()
+        if mc:
+            index=[]
+            for i,v in enumerate(l):
+                key="EXEC-"+str(i) 
+                mc.set(key,json.dumps(d[v]))
+                index.append(key)
+            mc.set("EXEC-INDEX",json.dumps(index))
+            print("---------------------------------------",start - time.time())
 
         self.val_exec = d
         self.label_exec = l

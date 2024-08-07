@@ -501,7 +501,8 @@ def jclient_send(data):
                     if "ATTR" in jdata:    
                         attr = jdata["ATTR"]
 
-                    dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+                    #dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+                    dmx_fine = fixlib.get_dmx(FIXTURES.fixtures,fix,attr+"-FINE")
                     if jdata["DMX"] != dmx_fine and dmx > 0 and dmx_fine > 0:
                         jdata["DMX-FINE"] = dmx_fine
                     if "DMX-FINE" in jdata:
@@ -1239,7 +1240,7 @@ class MASTER():
 
     def exec_rec(self,nr):
         cprint("------- STORE EXEC")
-        data = FIXTURES.get_active()
+        data = fixlib.get_active(FIXTURES.fixtures)
         if modes.val("REC-FX"):
             EXEC.rec(nr,data,"REC-FX")
             modes.val("REC-FX",0)

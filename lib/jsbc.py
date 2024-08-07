@@ -6,6 +6,8 @@ import json
 
 import __main__ as MAIN
 from lib.cprint import *
+import lib.fixlib as fixlib
+
 
 def JSCB(x,sock=None):
     i = ""
@@ -22,7 +24,6 @@ def JSCB(x,sock=None):
 
             for msg in msgs:
                 print("  ",msg)
-                # MAIN.FIXTURES.encoder
                 if "event" not in msg:
                     continue
 
@@ -38,8 +39,7 @@ def JSCB(x,sock=None):
                         ATTR=msg["ATTR"]
                     print("  MAIN.tk_event",FIX,VAL,ATTR)
                     #cb = MAIN.tk_event(fix=FIX,elem=None,attr=ATTR,mode="ENCODER",data=[]) #data)
-                    #MAIN.FIXTURES.encoder(str(FIX),ATTR,xval="click",xfade=0,xdelay=0)#,blind=0)
-                    MAIN.FIXTURES.encoder(str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
+                    fixlib.encoder(MAIN.FIXTURES.fixtures,str(FIX),ATTR,xval=VAL,xfade=0,xdelay=0)#,blind=0)
 
                     #print(dir(cb))
                     #event.num = enum

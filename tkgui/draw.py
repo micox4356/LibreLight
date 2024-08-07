@@ -11,6 +11,7 @@ import __main__ as MAIN
 import lib.mytklib as mytklib
 import lib.libtk as libtk
 import lib.tkevent as tkevent
+import lib.fixlib as fixlib
 
 from lib.cprint import cprint
 
@@ -206,7 +207,7 @@ def draw_colorpicker(gui,xframe,data):
     import lib.colorpicker as colp
 
     class _CB():
-        def __init__(gui,FIXTURES,master):
+        def __init__(gui,master):
             gui.old_color = (0,0,0)
         def cb(gui,event,data):
             print("CB.cb",gui,event,data)
@@ -276,28 +277,23 @@ def draw_colorpicker(gui,xframe,data):
                     cb = color[2]
 
                 rr,rg,rb = "","",""
+
                 if cr is not None:
-                    rr = FIXTURES.encoder(fix=0,attr="RED",xval=cr,xfade=set_fade,blind=1)
+                    rr = fixlib.encoder(MAIN.FIXTURES.fixtures,fix=0,attr="RED",xval=cr,xfade=set_fade,blind=1)
                 else:
                     print("RED   ERR ---"*10)
                 if cg is not None:
-                    rg = FIXTURES.encoder(fix=0,attr="GREEN",xval=cg,xfade=set_fade,blind=1)
+                    rg = fixlib.encoder(MAIN.FIXTURES.fixtures,fix=0,attr="GREEN",xval=cg,xfade=set_fade,blind=1)
                 else:
                     print("GREEN ERR ---"*10)
                 if cb is not None:
-                    rb = FIXTURES.encoder(fix=0,attr="BLUE",xval=cb,xfade=set_fade,blind=1)
+                    rb = fixlib.encoder(MAIN.FIXTURES.fixtures,fix=0,attr="BLUE",xval=cb,xfade=set_fade,blind=1)
                 else:
                     print("BLUE  ERR ---"*10,event_num)
 
                 #print(" COLOR PICK:",cr,cg,cb)
-                rw = FIXTURES.encoder(fix=0,attr="WHITE",xval=cw,xfade=set_fade,blind=1)
-                ra = FIXTURES.encoder(fix=0,attr="AMBER",xval=ca,xfade=set_fade,blind=1)
-                #print(dir())
-                #print((rr))
-                #print((rg))
-                #print((rb))
-                #print((rw))
-                #print((ra))
+                rw = fixlib.encoder(MAIN.FIXTURES.fixtures,fix=0,attr="WHITE",xval=cw,xfade=set_fade,blind=1)
+                ra = fixlib.encoder(MAIN.FIXTURES.fixtures,fix=0,attr="AMBER",xval=ca,xfade=set_fade,blind=1)
                 jdata = []
                 jdata.extend(rr)
                 jdata.extend(rg)
@@ -311,7 +307,7 @@ def draw_colorpicker(gui,xframe,data):
                  
                 print("PICK COLOR:",data["color"])
 
-    _cb=_CB(FIXTURES,master)
+    _cb=_CB(master)
     colp.colorpicker(xframe,width=580,height=113, xcb=_cb.cb)
     return 0
 

@@ -13,6 +13,7 @@ import lib.fxlib as fxlib
 import lib.libtk as libtk
 import tkgui.dialog as dialoglib
 import lib.tkrefresh as tkrefresh
+import lib.fixlib as fixlib
 
 dialog = dialoglib.Dialog()
 
@@ -191,7 +192,7 @@ class tk_event():
 
         if self.attr == "CLEAR":
             if event.num == 1:
-                ok = MAIN.FIXTURES.clear()
+                ok = fixlib.clear(MAIN.FIXTURES.fixtures)
                 if ok:
                     MAIN.master._refresh_fix()
                 MAIN.modes.val(self.attr,0)
@@ -260,7 +261,7 @@ class tk_event():
                 val = "-"
         #print("SHIFT",val,MAIN._shift_key)
         if val:
-            MAIN.FIXTURES.encoder(fix=self.fix,attr=self.attr,xval=val)
+            fixlib.encoder(MAIN.FIXTURES.fixtures,fix=self.fix,attr=self.attr,xval=val)
             return 1       
 
 
@@ -274,7 +275,7 @@ class tk_event():
             change = 0
             if "keysym" in dir(event):
                 if "Escape" == event.keysym:
-                    ok = MAIN.FIXTURES.clear()
+                    ok = fixlib.clear(MAIN.FIXTURES.fixtures)
                     MAIN.master._refresh_fix()
                     cprint()
                     return 0
@@ -357,7 +358,7 @@ class tk_event():
                             #MAIN.master._refresh_exec(nr=nr)
 
                         elif MAIN.modes.val("EDIT"):
-                            MAIN.FIXTURES.clear()
+                            fixlib.clear(MAIN.FIXTURES.fixtures)
                             self.data.exec_select(nr)
                             self.data.exec_go(nr,xfade=0,event=event,val=255,button="go")
                             MAIN.modes.val("EDIT", 0)
@@ -449,7 +450,7 @@ class tk_event_fx():
 
         elif event.num == 1:
             xfixtures = []
-            fix_active =MAIN.FIXTURES.get_active() 
+            fix_active =fixlib.get_active(MAIN.FIXTURES.fixtures) 
             for fix in fix_active:
                 if fix == "CFG":
                     continue

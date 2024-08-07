@@ -292,6 +292,321 @@ def _load_fixture_list(mode="None"):
     blist.extend( _r )
     return blist
 
+def get_attr(fixtures,fix,attr):
+    if fix in fixtures:
+        data = fixtures[fix]
+        if "ATTRIBUT" in data:
+            if attr in data["ATTRIBUT"]:
+                return data["ATTRIBUT"][attr]
+
+
+def get_dmx(fixtures,fix,attr):
+    #cprint("get_dmx",[fix,attr], fix in self.fixtures)
+    DMX = -99
+    if attr.startswith("_"):
+        return -88
+
+    if fix in fixtures:
+        data = fixtures[fix]
+        if "DMX" in data:
+            DMX = int(data["DMX"])
+        
+        if DMX <= 0:
+            return DMX # VIRTUAL FIX
+
+        if "UNIVERS" in data:
+            DMX += int(data["UNIVERS"])*512
+
+        #adata = self.get_attr(fix,attr)
+        adata = get_attr(fixtures,fix,attr)
+
+        if adata:
+            if "NR" in adata:
+                NR = adata["NR"] 
+                if NR <= 0:
+                    return -12 # not a VIRTUAL ATTR
+                else:
+                    DMX+=NR-1
+                return DMX
+    return -199
+
+def get_active(fixtures):
+    cprint("get_active",id(fixtures))
+    CFG = OrderedDict()
+
+    sdata = OrderedDict()
+    sdata["CFG"] = CFG # OrderedDict()
+    sdata["CFG"]["FADE"] = MAIN.FADE.val()
+    sdata["CFG"]["DEALY"] = 0
+
+    for fix in fixtures:                            
+        data = fixtures[fix]
+
+        for attr in data["ATTRIBUT"]:
+            if not data["ATTRIBUT"][attr]["ACTIVE"]:
+                continue
+
+            if fix not in sdata:
+                sdata[fix] = {}
+
+            if attr not in sdata[fix]:
+                sdata[fix][attr] = OrderedDict()
+
+                if not MAIN.modes.val("REC-FX"):
+                    sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
+                else:
+                    sdata[fix][attr]["VALUE"] = None 
+
+                if "FX" not in data["ATTRIBUT"][attr]: 
+                     data["ATTRIBUT"][attr]["FX"] = ""
+
+                if "FX2" not in data["ATTRIBUT"][attr]: 
+                     data["ATTRIBUT"][attr]["FX2"] = {}
+                
+                sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
+                sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
+
+    return sdata
+
+def _deselect_all(fixtures,fix=None):
+    cprint("fixlib._deselect_all()",fix,"ALL",color="yellow")
+    c=0
+    if fix in fixtures:
+        data = fixtures[fix]
+
+        for attr in data["ATTRIBUT"]:
+            #print("SELECT ALL",fix,attr)
+            if "-FINE" in attr.upper():
+                pass
+            else:
+                c+=select(fixtures,fix,attr,mode="off",mute=1)
+    
+    return c
+
+def _select_all(fixtures,fix=None,mode="toggle",mute=0):
+    if not mute:
+        cprint("fixlib._select_all()",fix,"ALL",mode,color="yellow")
+    c=0
+    if fix in fixtures:
+        data = fixtures[fix]
+        for attr in data["ATTRIBUT"]:
+            #print("SELECT ALL",fix,attr)
+            if "-FINE" in attr.upper():
+                continue
+            
+            if mode == "toggle":
+                c+=select(fixtures,fix,attr,mode="on",mute=mute)
+            elif mode == "swap":
+                if not attr.startswith("_"):
+                    c+=select(fixtures,fix,attr,mode="toggle",mute=mute)
+
+        if not c and mode == "toggle": # unselect all
+            c= _deselect_all(fixtures,fix=fix)
+    return c 
+
+def select(fixtures,fix=None,attr=None,mode="on",mute=0):
+    if not mute:
+        cprint("fixlib.select() >>",fix,attr,mode,color="yellow")
+    out = 0
+
+    if fix == "SEL":
+        if attr.upper() == "INV-ATTR":
+            fixs = get_active(fixtures)
+            cprint("selected:",len(fixs))
+            for fix in fixs:
+                x=_select_all(fixtures,fix=fix,mode=mode,mute=1)
+            return None 
+
+    if fix in fixtures:
+        if attr.upper() == "ALL":
+            x=_select_all(fixtures,fix=fix,mode=mode)
+            return x
+
+        data = fixtures[fix]
+        if attr in data["ATTRIBUT"]:
+            if mode == "on":
+                if not data["ATTRIBUT"][attr]["ACTIVE"]:
+                    data["ATTRIBUT"][attr]["ACTIVE"] = 1
+                    data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+                    out = 1
+            elif mode == "off":
+                if data["ATTRIBUT"][attr]["ACTIVE"]:
+                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                    out = 1
+            elif mode == "toggle":
+                if data["ATTRIBUT"][attr]["ACTIVE"]:
+                    data["ATTRIBUT"][attr]["ACTIVE"] = 0
+                else:
+                    data["ATTRIBUT"][attr]["ACTIVE"] = 1
+                    data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+                out = 1
+    return out
+
+def clear(fixtures):
+    out = 0
+    for fix in fixtures:
+        data = fixtures[fix]
+        for attr in data["ATTRIBUT"]:
+            #if attr.endswith("-FINE"):
+            #    continue
+            if data["ATTRIBUT"][attr]["ACTIVE"]:
+                out +=1
+            data["ATTRIBUT"][attr]["ACTIVE"] = 0
+    return out
+
+
+
+def encoder(fixtures,fix,attr,xval="",xfade=0,xdelay=0,blind=0):
+
+    _blind = 0
+    if MAIN.modes.val("BLIND"):
+        _blind = 1 
+    if blind:
+        _blind = 1
+    
+    if not _blind:
+        cprint("fixlib.encoder",fix,attr,xval,xfade,color="yellow")
+
+    if attr == "CLEAR":
+        clear(fixtures)
+        return 0
+
+    if attr == "ALL":
+        x=select(fixtures,fix,attr,mode="toggle")
+        return x
+
+    if attr == "INV-ATTR":
+        cprint("-x-x-x-x-x-x-x-X-")
+        x=select(fixtures,fix,attr,mode="swap")
+        master.refresh_fix()
+        return x
+    if attr == "INV-FIX":
+        cprint("-x-x-x-x-x-x-x-x-")
+        x=select(fixtures,fix,attr,mode="swap")
+        return x
+    out = []
+
+    #cprint("Fixture.Encoder(...)",fix,attr)
+    if fix not in fixtures: 
+        #cprint(" activate Fixture in fixture list on encoder click ")
+
+        ii =0
+        delay=0
+        sstart = time.time()
+        #cprint("  encoder fix  <--")
+        sub_data = []
+        for _fix in fixtures:
+            #print([fix,"_fix",_fix])
+            #print(fixtures)
+            #print(type(fixtures),len(fixtures))
+            ii+=1
+            data = fixtures[_fix]
+            if "-FINE" in attr.upper():
+                continue
+
+            elif (attr in data["ATTRIBUT"] ) and "-FINE" not in attr.upper()   :
+                if xval == "click":
+                    select(fixtures,_fix,attr,mode="on")
+                elif data["ATTRIBUT"][attr]["ACTIVE"]:
+                    if _fix:
+                        sub_data.append([_fix,attr,xval,xfade,delay])
+            if MAIN.DELAY._is():
+                delay += MAIN.DELAY.val()/100
+
+        sub_jdata = []
+        for dd in sub_data:
+            #print("---",len(sub_data),end="")
+            #encoder(fix,attr,xval,xfade,delay)
+            _x123 = encoder(fixtures,dd[0],dd[1],dd[2],dd[3],dd[4],blind=1)
+            sub_jdata.append(_x123)
+
+        if sub_jdata:
+            cprint("  SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
+            if not _blind:
+                MAIN.jclient_send(sub_jdata) 
+
+        jdata=[{"MODE":ii}]
+        #cprint("  ENCODER j send <--")
+
+        if not _blind:
+           MAIN.jclient_send(jdata)
+        return sub_jdata  #len(sub_data)
+
+    data = fixtures[fix]
+
+    if xval == "click":
+        #cprint(data)
+        return select(fixtures,fix,attr,mode="toggle")
+
+
+    v2=data["ATTRIBUT"][attr]["VALUE"]
+    change=0
+    increment = 5 #4.11
+    jdata = {"MODE":"ENC"}
+    if xval == "++":
+        v2+= increment
+        jdata["INC"] = increment
+        change=1
+    elif xval == "--":
+        jdata["INC"] = increment*-1
+        v2-= increment
+        change=1
+    elif xval == "+":
+        increment = 0.25 #.5
+        v2+= increment
+        jdata["INC"] = increment
+        change=1
+    elif xval == "-":
+        increment = 0.25 #.5
+        jdata["INC"] = increment*-1
+        v2-= increment
+        change=1
+    elif type(xval) is int or type(xval) is float:
+        v2 = xval 
+        change=1
+
+        
+    if v2 < 0:
+        v2=0
+    elif v2 > 256:
+        v2=256
+
+    jdata["VALUE"]    = round(v2,4)
+    jdata["FIX"]      = fix
+    jdata["FADE"]     = 0
+    jdata["DELAY"]    = 0
+    jdata["ATTR"]     = attr
+    #dmx               = get_dmx(fix,attr)
+    dmx               = get_dmx(fixtures,fix,attr)
+    jdata["DMX"]      = dmx
+
+    #dmx_fine = get_dmx(fix,attr+"-FINE")
+    dmx_fine = get_dmx(fixtures,fix,attr+"-FINE")
+    if dmx_fine != jdata["DMX"] and dmx > 0:
+        jdata["DMX-FINE"] = dmx_fine
+
+    out = {} 
+    if 1: #change:
+        data["ATTRIBUT"][attr]["ACTIVE"] = 1
+        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
+        data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
+
+        if xfade:
+            jdata["FADE"] = xfade
+
+        if xdelay:
+            #if attr not in ["PAN","TILT"] and 1:
+            jdata["DELAY"] = xdelay
+
+        if not _blind:
+            jdata = [jdata]
+            MAIN.jclient_send(jdata)
+            time.sleep(0.001)
+
+    return jdata
+
+
+
 
 import lib.showlib as showlib
 
@@ -366,13 +681,6 @@ class Fixtures():
                     data["ATTRIBUT"][attr]["FX"] = ""
                     data["ATTRIBUT"][attr]["FX2"] = OrderedDict()
 
-    def get_attr(self,fix,attr):
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-            if "ATTRIBUT" in data:
-                if attr in data["ATTRIBUT"]:
-                    return data["ATTRIBUT"][attr]
-
     def get_max_dmx_nr(self,fix):
         max_dmx = 0
         used_dmx = 0
@@ -391,34 +699,6 @@ class Fixtures():
                 except ValueError:pass
         return (used_dmx,max_dmx)
 
-    def get_dmx(self,fix,attr):
-        #cprint("get_dmx",[fix,attr], fix in self.fixtures)
-        DMX = -99
-        if attr.startswith("_"):
-            return -88
-
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-            if "DMX" in data:
-                DMX = int(data["DMX"])
-            
-            if DMX <= 0:
-                return DMX # VIRTUAL FIX
-
-            if "UNIVERS" in data:
-                DMX += int(data["UNIVERS"])*512
-
-            adata = self.get_attr(fix,attr)
-
-            if adata:
-                if "NR" in adata:
-                    NR = adata["NR"] 
-                    if NR <= 0:
-                        return -12 # not a VIRTUAL ATTR
-                    else:
-                        DMX+=NR-1
-                    return DMX
-        return -199
 
     def update_raw(self,rdata,update=1):
         #cprint("update_raw",len(rdata))
@@ -441,7 +721,8 @@ class Fixtures():
 
             #print(sdata)
             #print("FIX",fix,attr)
-            sDMX = self.get_dmx(fix,attr)
+            #sDMX = self.get_dmx(fix,attr)
+            sDMX = get_dmx(self.fixtures,fix,attr)
             #print(sDMX)
             xcmd["DMX"] = str(sDMX)
 
@@ -458,271 +739,7 @@ class Fixtures():
         return cmd
 
 
-    def encoder(self,fix,attr,xval="",xfade=0,xdelay=0,blind=0):
-        _blind = 0
-        if MAIN.modes.val("BLIND"):
-            _blind = 1 
-        if blind:
-            _blind = 1
-        
-        if not _blind:
-            cprint("Fixtures.encoder",fix,attr,xval,xfade,color="yellow")
 
-        if attr == "CLEAR":
-            self.clear()
-            return 0
 
-        if attr == "ALL":
-            x=self.select(fix,attr,mode="toggle")
-            return x
 
-        if attr == "INV-ATTR":
-            cprint("-x-x-x-x-x-x-x-X-")
-            x=self.select(fix,attr,mode="swap")
-            #x=self.select(fix,"ALL",mode="swap")
-            master.refresh_fix()
-            return x
-        if attr == "INV-FIX":
-            cprint("-x-x-x-x-x-x-x-x-")
-            x=self.select(fix,attr,mode="swap")
-            #x=self.select(fix,"ALL",mode="swap")
-            return x
-        out = []
 
-        #cprint("Fixture.Encoder(...)",fix,attr)
-        if fix not in self.fixtures: 
-            #cprint(" activate Fixture in fixture list on encoder click ")
-
-            ii =0
-            delay=0
-            sstart = time.time()
-            #cprint("  encoder fix  <--")
-            sub_data = []
-            for _fix in self.fixtures:
-                ii+=1
-                data = self.fixtures[_fix]
-                if "-FINE" in attr.upper():
-                    continue
-
-                elif (attr in data["ATTRIBUT"] ) and "-FINE" not in attr.upper()   :
-                    if xval == "click":
-                        self.select(_fix,attr,mode="on")
-                    elif data["ATTRIBUT"][attr]["ACTIVE"]:
-                        if _fix:
-                            sub_data.append([_fix,attr,xval,xfade,delay])
-                if MAIN.DELAY._is():
-                    delay += MAIN.DELAY.val()/100
-
-            sub_jdata = []
-            for dd in sub_data:
-                #print("---",len(sub_data),end="")
-                #self.encoder(fix,attr,xval,xfade,delay)
-                _x123 = self.encoder(dd[0],dd[1],dd[2],dd[3],dd[4],blind=1)
-                sub_jdata.append(_x123)
-
-            if sub_jdata:
-                cprint("  SEND MASTER ENCODER:",len(sub_data),sub_data[0],"... _blind:",_blind)#,end="")
-                if not _blind:
-                    MAIN.jclient_send(sub_jdata) 
-
-            jdata=[{"MODE":ii}]
-            #cprint("  ENCODER j send <--")
-
-            if not _blind:
-               MAIN.jclient_send(jdata)
-            return sub_jdata  #len(sub_data)
-
-        data = self.fixtures[fix]
-
-        if xval == "click":
-            #cprint(data)
-            return self.select(fix,attr,mode="toggle")
-
-    
-        v2=data["ATTRIBUT"][attr]["VALUE"]
-        change=0
-        increment = 5 #4.11
-        jdata = {"MODE":"ENC"}
-        if xval == "++":
-            v2+= increment
-            jdata["INC"] = increment
-            change=1
-        elif xval == "--":
-            jdata["INC"] = increment*-1
-            v2-= increment
-            change=1
-        elif xval == "+":
-            increment = 0.25 #.5
-            v2+= increment
-            jdata["INC"] = increment
-            change=1
-        elif xval == "-":
-            increment = 0.25 #.5
-            jdata["INC"] = increment*-1
-            v2-= increment
-            change=1
-        elif type(xval) is int or type(xval) is float:
-            v2 = xval 
-            change=1
-
-            
-        if v2 < 0:
-            v2=0
-        elif v2 > 256:
-            v2=256
-
-        jdata["VALUE"]    = round(v2,4)
-        jdata["FIX"]      = fix
-        jdata["FADE"]     = 0
-        jdata["DELAY"]    = 0
-        jdata["ATTR"]     = attr
-        dmx               = self.get_dmx(fix,attr)
-        jdata["DMX"]      = dmx
-
-        dmx_fine = self.get_dmx(fix,attr+"-FINE")
-        if dmx_fine != jdata["DMX"] and dmx > 0:
-            jdata["DMX-FINE"] = dmx_fine
-
-        out = {} 
-        if 1: #change:
-            data["ATTRIBUT"][attr]["ACTIVE"] = 1
-            data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-            data["ATTRIBUT"][attr]["VALUE"] = round(v2,4)
-
-            if xfade:
-                jdata["FADE"] = xfade
-
-            if xdelay:
-                #if attr not in ["PAN","TILT"] and 1:
-                jdata["DELAY"] = xdelay
-
-            if not _blind:
-                jdata = [jdata]
-                MAIN.jclient_send(jdata)
-                time.sleep(0.001)
-
-        return jdata
-
-    def get_active(self):
-        cprint("get_active",self)
-        CFG = OrderedDict()
-
-        sdata = OrderedDict()
-        sdata["CFG"] = CFG # OrderedDict()
-        sdata["CFG"]["FADE"] = MAIN.FADE.val()
-        sdata["CFG"]["DEALY"] = 0
-
-        for fix in self.fixtures:                            
-            data = self.fixtures[fix]
-
-            for attr in data["ATTRIBUT"]:
-                if not data["ATTRIBUT"][attr]["ACTIVE"]:
-                    continue
-
-                if fix not in sdata:
-                    sdata[fix] = {}
-
-                if attr not in sdata[fix]:
-                    sdata[fix][attr] = OrderedDict()
-
-                    if not MAIN.modes.val("REC-FX"):
-                        sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                    else:
-                        sdata[fix][attr]["VALUE"] = None 
-
-                    if "FX" not in data["ATTRIBUT"][attr]: 
-                         data["ATTRIBUT"][attr]["FX"] = ""
-
-                    if "FX2" not in data["ATTRIBUT"][attr]: 
-                         data["ATTRIBUT"][attr]["FX2"] = {}
-                    
-                    sdata[fix][attr]["FX"] = data["ATTRIBUT"][attr]["FX"] 
-                    sdata[fix][attr]["FX2"] = data["ATTRIBUT"][attr]["FX2"] 
-    
-        return sdata
-
-    def _deselect_all(self,fix=None):
-        cprint("Fixtures._deselect_all()",fix,"ALL",color="yellow")
-        c=0
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-
-            for attr in data["ATTRIBUT"]:
-                #print("SELECT ALL",fix,attr)
-                if "-FINE" in attr.upper():
-                    pass
-                else:
-                    c+=self.select(fix,attr,mode="off",mute=1)
-        
-        return c
-
-    def _select_all(self,fix=None,mode="toggle",mute=0):
-        if not mute:
-            cprint("Fixtures._select_all()",fix,"ALL",mode,color="yellow")
-        c=0
-        if fix in self.fixtures:
-            data = self.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-                #print("SELECT ALL",fix,attr)
-                if "-FINE" in attr.upper():
-                    continue
-                
-                if mode == "toggle":
-                    c+=self.select(fix,attr,mode="on",mute=mute)
-                elif mode == "swap":
-                    if not attr.startswith("_"):
-                        c+=self.select(fix,attr,mode="toggle",mute=mute)
-
-            if not c and mode == "toggle": # unselect all
-                c= self._deselect_all(fix=fix)
-        return c 
-
-    def select(self,fix=None,attr=None,mode="on",mute=0):
-        if not mute:
-            cprint("Fixtures.select() >>",fix,attr,mode,color="yellow")
-        out = 0
-    
-        if fix == "SEL":
-            if attr.upper() == "INV-ATTR":
-                fixs = self.get_active()
-                cprint("selected:",len(fixs))
-                for fix in fixs:
-                    x=self._select_all(fix=fix,mode=mode,mute=1)
-                return None 
-
-        if fix in self.fixtures:
-            if attr.upper() == "ALL":
-                x=self._select_all(fix=fix,mode=mode)
-                return x
-
-            data = self.fixtures[fix]
-            if attr in data["ATTRIBUT"]:
-                if mode == "on":
-                    if not data["ATTRIBUT"][attr]["ACTIVE"]:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 1
-                        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-                        out = 1
-                elif mode == "off":
-                    if data["ATTRIBUT"][attr]["ACTIVE"]:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                        out = 1
-                elif mode == "toggle":
-                    if data["ATTRIBUT"][attr]["ACTIVE"]:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 0
-                    else:
-                        data["ATTRIBUT"][attr]["ACTIVE"] = 1
-                        data["ATTRIBUT"]["_ACTIVE"]["ACTIVE"] = 1
-                    out = 1
-        return out
-
-    def clear(self):
-        out = 0
-        for fix in self.fixtures:
-            data = self.fixtures[fix]
-            for attr in data["ATTRIBUT"]:
-                #if attr.endswith("-FINE"):
-                #    continue
-                if data["ATTRIBUT"][attr]["ACTIVE"]:
-                    out +=1
-                data["ATTRIBUT"][attr]["ACTIVE"] = 0
-        return out

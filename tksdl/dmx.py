@@ -46,9 +46,12 @@ pg = pygame
 pygame.init()
 pygame.mixer.quit()
 clock = pygame.time.Clock()
-icon = pygame.image.load('icon/scribble.png')
-pygame.display.set_icon(icon)
-
+try:
+    icon = pygame.image.load('icon/scribble.png')
+    pygame.display.set_icon(icon)
+except Exception as e:
+    print("      ERROR:",os.getcwd())
+    print("      ERROR:set_icon ",e) #,color="red")
 import tool.sdl_elm as sdl_elm
 
 

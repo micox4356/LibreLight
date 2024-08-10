@@ -43,24 +43,24 @@ echo ""
 echo "-- update pip"
 su -- user <<EOF
 id
-pip install pip --upgrade
+pip install pip --upgrade --break-system-packages
 EOF
 
 echo ""
 echo "-- python-pip pkg's"
 su -- user <<EOF
-pip install pyopengltk
-pip install moderngl
-pip install moderngl-window
+pip install pyopengltk --break-system-packages
+pip install moderngl --break-system-packages
+pip install moderngl-window --break-system-packages
 echo ""
-pip install glfw
-pip install glwindow
-pip install glnext
-#pip install glnext_compiler
-pip install glcontext
-pip3 install pyopengltk
-pip install imutils
-pip install raylib
+pip install glfw --break-system-packages
+pip install glwindow --break-system-packages
+pip install glnext --break-system-packages
+#pip install glnext_compiler --break-system-packages
+pip install glcontext --break-system-packages
+pip install pyopengltk --break-system-packages
+pip install imutils --break-system-packages
+pip install raylib --break-system-packages
 EOF
 
 echo ""

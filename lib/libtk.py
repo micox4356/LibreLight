@@ -15,6 +15,7 @@ from lib.cprint import cprint
 import lib.libwin as libwin
 import lib.showlib as showlib
 import lib.libconfig as libconfig
+import lib.fixlib as fixlib
 
 import tkgui.dialog  as dialoglib
 dialog = dialoglib.Dialog()
@@ -529,7 +530,8 @@ class WindowContainer():
 
         if "keysym" in dir(event):
             if "Escape" == event.keysym:
-                MAIN.FIXTURES.clear()
+                #MAIN.FIXTURES.clear()
+                fixlib.clear(MAIN.FIXTURES.fixtures)
                 MAIN.modes.val("ESC",1)
                 MAIN.master.refresh_fix()
             elif event.keysym in ["Shift_L","Shift_R"]:

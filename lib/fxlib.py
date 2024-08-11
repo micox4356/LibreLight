@@ -2,6 +2,10 @@
 
 import random
 
+import sys
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+import lib.fixlib as fixlib
+
 def cprint(*args):
     print(args)
 
@@ -72,10 +76,12 @@ def process_effect(wing_buffer,fx_prm,fx_prm_move,modes,jclient_send,master,FIXT
                 jdata["WING"] = wi
                 jdata["VALUE"]    = None
                 jdata["FIX"]      = fix
-                dmx               = FIXTURES.get_dmx(fix,attr)
+                #dmx               = FIXTURES.get_dmx(fix,attr)
+                dmx               = fixlib.get_dmx(FIXTURES.fixtures,fix,attr)
                 jdata["DMX"]      = dmx
 
-                dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+                #dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
+                dmx_fine = fixlib.get_dmx(FIXTURES.fixtures,fix,attr+"-FINE")
                 if dmx_fine != jdata["DMX"] and dmx > 0:
                     jdata["DMX-FINE"] = dmx_fine
 

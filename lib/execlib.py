@@ -142,6 +142,9 @@ class EXEC(): #Presets():
                 key="EXEC-"+str(i) 
                 mc.set(key,json.dumps(d[v]))
                 index.append(key)
+
+                key2="EXEC-LABEL-"+str(i) 
+                mc.set(key2,l[i] )
             mc.set("EXEC-INDEX",json.dumps(index))
             print("---------------------------------------",start - time.time())
 

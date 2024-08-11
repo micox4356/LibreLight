@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import tkinter as tk
+from tkinter import font
+
 import time
 #import _thread as thread
 import os

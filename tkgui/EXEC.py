@@ -165,5 +165,5 @@ defaultFont.configure(family="FreeSans",
 xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,foot=None)
 draw.draw_exec(gui,xframe,EXEC)
 #xframe.pack()
-
+root.title("DEMO TK-EXEC 2")
 root.mainloop()

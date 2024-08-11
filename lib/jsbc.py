@@ -46,7 +46,8 @@ def JSCB(x,sock=None):
 
                     #cb.cb(event)
                 if "CLEAR" == msg["event"]:
-                    MAIN.FIXTURES.clear()
+                    #MAIN.FIXTURES.clear()
+                    fixlib.clear(MAIN.FIXTURES.fixtures)
                     MAIN.modes.val("REC",0)
                     #MAIN.master.xcb("CLEAR",1)
                 elif "REC" == msg["event"]:

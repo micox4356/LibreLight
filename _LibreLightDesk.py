@@ -501,7 +501,6 @@ def jclient_send(data):
                     if "ATTR" in jdata:    
                         attr = jdata["ATTR"]
 
-                    #dmx_fine = FIXTURES.get_dmx(fix,attr+"-FINE")
                     dmx_fine = fixlib.get_dmx(FIXTURES.fixtures,fix,attr+"-FINE")
                     if jdata["DMX"] != dmx_fine and dmx > 0 and dmx_fine > 0:
                         jdata["DMX-FINE"] = dmx_fine

@@ -576,11 +576,9 @@ def encoder(fixtures,fix,attr,xval="",xfade=0,xdelay=0,blind=0):
     jdata["FADE"]     = 0
     jdata["DELAY"]    = 0
     jdata["ATTR"]     = attr
-    #dmx               = get_dmx(fix,attr)
     dmx               = get_dmx(fixtures,fix,attr)
     jdata["DMX"]      = dmx
 
-    #dmx_fine = get_dmx(fix,attr+"-FINE")
     dmx_fine = get_dmx(fixtures,fix,attr+"-FINE")
     if dmx_fine != jdata["DMX"] and dmx > 0:
         jdata["DMX-FINE"] = dmx_fine
@@ -719,9 +717,6 @@ class Fixtures():
             if attr not in ATTR:
                 continue
 
-            #print(sdata)
-            #print("FIX",fix,attr)
-            #sDMX = self.get_dmx(fix,attr)
             sDMX = get_dmx(self.fixtures,fix,attr)
             #print(sDMX)
             xcmd["DMX"] = str(sDMX)

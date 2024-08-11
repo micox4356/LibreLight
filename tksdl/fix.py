@@ -724,16 +724,18 @@ while 1:
             x_change=btn_help.event(event)
 
             if "scancode" in event.dict:
-                print(event.dict,event.type)
-                if event.scancode == 50:
-                    if event.type == 2: # press
+                print()
+                print("scan",event.scancode,"type",event.type) 
+                print(" ",event.dict)
+                if event.scancode in [50,225]: # shift old/new
+                    if event.type in [2,768]: # press
                         #pg.display.set_caption(CAPTION+ " SHIFT/FINE")
                         SHIFT_FINE = 1
-                    if event.type == 3: # release
+                    if event.type in [3,769]: # release
                         #pg.display.set_caption(CAPTION)
                         SHIFT_FINE = 0
 
-                if event.scancode == 9:
+                if event.scancode in [9,41]:
                     for k in table_draw:
                         t = table[k]
                         #t.btn2.clean()

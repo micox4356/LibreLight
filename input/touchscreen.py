@@ -115,7 +115,7 @@ def disable_xinput_touch(name):
 def cleanup_multipointer(prefix="multipointer_"):
     import os
     cmd="xinput list | grep '{}'".format(prefix)
-    print("cleanup xinput", cmd)
+    print(" cleanup multipointer:", cmd)
     r=os.popen(cmd )
 
     lines = r.readlines()
@@ -128,12 +128,12 @@ def cleanup_multipointer(prefix="multipointer_"):
         
         if "id=" in line and "pointer" in line:
             line = line.split()
-            print("LINE",[line])
+            print(" LINE",[line])
             _id = line[-4]
             _id = _id.replace("id=","")
             cmd= "xinput remove-master '{}'".format(_id)
-            print(cmd)
-            print(" kill X11 ")
+            print(" ",cmd)
+            print("  kill X11 ")
             os.system(cmd)
         """traps: xfce4-terminal[283904] trap int3 ip:7f784386cabb sp:7ffebb961c10 error:0 in libglib-2.0.so.0.6600.8[7f784382e000+88000]
          [24187.974998] xfce4-terminal[306138]: segfault at 90 ip 00007f1b725ac838 sp 00007ffd8e83b940 error 4 in libgdk-3.so.0.2404.20[7f1b72573000+7f000]
@@ -175,10 +175,24 @@ class Action():
 
         self.refresh_multipointer_config(cleanup=1)
 
-
-
+    def check_monitor(self):
+        if self.screen not in self.screen_config:
+            #for k,v in self.screen_config.items():
+            #    print(k,v)
+            #print("x() key ",self.screen," not in CONFIG")
+            return 0
+        return 1 
+    def system(self,cmd):
+        if self.check_monitor():
+            #print("my_system CMD:",cmd)
+            os.system(cmd)
+        else:
+            pass
+            #print("my_system CMD:",cmd ,"NO MONITOR:",self.screen,"!!!!!")
     def refresh_multipointer_config(self,cleanup=0):
-        print("==============")
+        print()
+        print("refresh_multipointer_config")
+
         self.pointer_config = []
         prefix = "multipointer_"
         prefix = "librelight_pointer_z"
@@ -186,8 +200,10 @@ class Action():
              cleanup_multipointer(prefix=prefix)
 
         cmd = "xinput list | grep '{}' | grep 'XTEST pointer'".format(prefix)
+        print(" CMD:",cmd)
         r = os.popen(cmd)
         lines = r.readlines()
+
         for line in lines:
             cfg = {}
             line = line.strip().split()
@@ -210,27 +226,27 @@ class Action():
 
         # creat 5 pointer on screen for Mutlitouch input
         # pointer jump's around on X11 
-        print()
+        #print()
         create = []
         for i in [1]: #range(1,5+1):
             ok = 0
             n = "{}{}".format(prefix,i)
             for j in self.pointer_config:
-                print("pt",i,j)
-                print("pt",n, j["name"]) 
+                print(" pt",i,j)
+                print(" pt",n, j["name"]) 
                 if n == j["name"]: 
                     ok = 1
                     if multipointer_off:
                         j["id"] = "xx"
                     cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(j["id"],4000,4000)
-                    print(cmd)
-                    os.system(cmd)
+                    print(" ",cmd)
+                    self.system(cmd)
                     #cmd = "xinput list-props {} ".format(j["id"])
                     #print(cmd)
-                    #os.system(cmd)
+                    #self.system(cmd)
                     #cmd = "xinput set-prop {} \"Device Enabled\" 1".format(j["id"])
                     #print(cmd)
-                    #os.system(cmd)
+                    #self.system(cmd)
                     break
 
 
@@ -241,12 +257,15 @@ class Action():
         for i in create:
             if not multipointer_off:
                 cmd = "xinput create-master '{}'".format(i)
-                print("CMD:",cmd)
-                os.system(cmd)
+                print(" CMD:",cmd)
+                self.system(cmd)
 
+        if multipointer_off:
+            print(" multipointer ist OFF !")
+            #return
 
         if len(create) and self.pointer_create_count < 10: # recursion !!
-            print("self.refresh_multipointer_config() # recursion !!!")
+            print(" self.refresh_multipointer_config() # recursion !!!")
             self.pointer_create_count += 1
             #print(self.pointer_create_count)
 
@@ -255,7 +274,7 @@ class Action():
         #for p in range(12):
         #for p in self.pointer_config:
         #     cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(p,10,20)
-        #     os.system(cmd)
+        #     self.system(cmd)
 
 
     def refresh_screen_config(self):
@@ -263,7 +282,8 @@ class Action():
         cmd = "xrandr --listmonitors"
         r = os.popen(cmd)
         lines = r.readlines()
-        for line in lines[1:]:
+        lines = lines[1:] # remove header
+        for line in lines:
             cfg = {}
             line = line.strip().split()
             #print("scr_cfg",[line])
@@ -293,15 +313,18 @@ class Action():
                     cfg[k] = int(v)
                 except ValueError:
                     pass
-            print("cfg:",cfg)
+            print("  cfg:",cfg)
 
             self.screen_config[ output] = cfg 
-            print()
         #exit()
 
 
     def x(self):
         v = self._X
+        if not self.check_monitor():
+            return v
+
+
         if self.mode == "touchpad":
             scr = self.screen_config[self.screen]
             v = mapFromTo(self._X,0,self.touch_config["ABS_X"]["Max"],scr["x_pos"],scr["x_pos"]+scr["x"])
@@ -311,6 +334,9 @@ class Action():
 
     def y(self):
         v = self._Y
+        if not self.check_monitor():
+            return v
+
         if self.mode == "touchpad":
             scr = self.screen_config[self.screen]
             v = mapFromTo(self._Y,0,self.touch_config["ABS_Y"]["Max"],scr["y_pos"],scr["y_pos"]+scr["y"])
@@ -321,7 +347,8 @@ class Action():
                                  
 
     def _parse_config(self):
-        print("_parse_config")
+        print()
+        print("_parse_config",[self.screen,self.touch])
         code = ""
         lines = self._config_data
         for i,line in enumerate(lines):
@@ -352,7 +379,7 @@ class Action():
                         pass
                     cfg[k] = v
                     #print("  ADD CFG",key,[k,v])
-                print("t_cfg",cfg)
+                print(" t_cfg",cfg)
                 self.touch_config[key] = cfg
 
         
@@ -360,7 +387,7 @@ class Action():
 
         if not self._config_ok:
             self._config_data.append( line)
-            print("CONFIG:",[line])
+            #print("CONFIG:",[line])
             if "Testing ... (interrupt to exit)" in line:
                 self._config_ok = 1
                 self._parse_config()
@@ -442,7 +469,7 @@ class Action():
                         print( cmd)
                         print( self._Xmin,self._Xmax,self._Ymin,self._Ymax)
                     
-                    #os.system(cmd)
+                    #self.system(cmd)
                 except Exception as e:
                     print( "ERR:",e)
                     print( "E:", [line])
@@ -460,18 +487,18 @@ class Action():
                 #cmd = "xdotool click 1"
                 cmd = "xdotool mouseup 1"
                 p = self.cur_pointer_id()
-                cmd = "xte -i {} mouseup 1".format(p)
+                cmd = "xte -i {} mouseup 1  # Monitor:{}".format(p,self.screen)
                 print("\033[92m{}\033[0m".format( cmd))
                 #print( line,cmd)
-                os.system(cmd)
-                #os.system("ls -l")
+                self.system(cmd)
+                #self.system("ls -l")
             if "a[2]=0" in line:
                 #cmd = "xdotool click 1"
                 cmd = "xdotool mousedown 1"
                 print("\033[95m{}\033[0m".format( cmd))
                 #print( line,cmd)
-                #os.system(cmd)
-                #os.system("ls -l")
+                #self.system(cmd)
+                #self.system("ls -l")
         if "BTN_LEFT" in line or "BTN_TOUCH" in line: #evtest /dev/input/eventX
             " Mouse Button Click "
             
@@ -510,38 +537,52 @@ class Action():
             #time.sleep(0.01)
             cmd = "xdotool mousedown 1"                        
             p = self.cur_pointer_id()
-            cmd = "xte -i {} 'mousedown 1'".format(p)                        
-            print("\033[92m{:30}\033[0m".format( cmd),"{:8} {:8} ".format(self.x(),self.y()) , self.screen ,"MT_SLOT",self.MT_SLOT)
+            cmd = "xte -i {} 'mousedown 1' # MONITOR:{} OK:{}".format(p,self.screen,self.check_monitor())                        
+            msg =""
+            if self.check_monitor():
+                msg = "\033[95m{:33}\033[0m {:8} {:8} "
+            else:
+                msg = "\033[41m{:33}\033[0m {:8} {:8} "
+
+            print(msg.format(cmd,self.x(),self.y()) , self.screen ,"MT_SLOT", self.MT_SLOT)
+            #print("\033[92m{:30}\033[0m".format( cmd),"{:8} {:8} "
+            #.format(self.x(),self.y()) , self.screen ,"MT_SLOT",self.MT_SLOT)
 
             if self.MT_SLOT == 0:
                 pass 
-                os.system(cmd)
+                self.system(cmd)
             self.btn_down = 0
             self._btn_timer = time.time()
         else:            
             cmd = "xdotool mouseup 1"                        
             p = self.cur_pointer_id()
-            cmd = "xte -i {} 'mouseup 1'".format(p)                        
+            cmd = "xte -i {} 'mouseup 1' #MONITOR:{} OK:{}".format(p,self.screen,self.check_monitor())                        
             #print( cmd)
             t = time.time() - self._btn_timer
-            print("\033[95m{:30}\033[0m".format( cmd),"{:8} {:8} ".format(self.x(),self.y()) , self.screen ,"MT_SLOT", self.MT_SLOT,"t:",round(t,2))
-            os.system(cmd)
+            msg =""
+            if self.check_monitor():
+                msg = "\033[95m{:33}\033[0m {:8} {:8} "
+            else:
+                msg = "\033[41m{:33}\033[0m {:8} {:8} "
+
+            print(msg.format(cmd,self.x(),self.y()) , self.screen ,"MT_SLOT", self.MT_SLOT,"t:",round(t,2))
+            self.system(cmd)
             self.btn_up = 0            
             self._btn_timer = time.time()
         time.sleep(0.001)           
         
     def set_pointer(self):
-        cmd = "xdotool mousemove {:8} {:8} ".format(self.x(),self.y())
+        #cmd = "xdotool mousemove {:8} {:8} ".format(self.x(),self.y())
 
         p = self.cur_pointer_id()
-        cmd = "xte -i {} 'mousemove {:8} {:8}' ".format(p,int(self.x()),int(self.y()))
+        cmd = "xte -i {} 'mousemove {:8} {:8}' # MONITOR:{}".format(p,int(self.x()),int(self.y()),self.screen)
 
         t = int((time.time() - self._btn_timer)*10)/10.
         #print(t,"\033[95m{}\033[0m".format( cmd),self.mode)
         
         if self.MT_SLOT == 0:
-            os.system(cmd)
-            #os.system(cmd)
+            self.system(cmd)
+            #self.system(cmd)
             self.motion_changeX =0
             self.motion_changeY =0
             self.motion_change = 0
@@ -601,23 +642,29 @@ def touch_filter(name,lines):
 
 
 
-def main(cmd="",output="",name=""):
+def loop(cmd="",output="",name=""):
     a = Action(output)
     line = ""
     #cmd="evtest /dev/input/event5"
     #cmd="evtest /dev/input/event24"
     while 1:
+        print()
+        print("="*40)
+        print("loop cmd: ",cmd)
         r = os.popen(cmd)
-        print("main cmd: ",cmd)
         while 1:
             line = r.readline() 
             if not line:
-                print("main cmd r.readline return NONE !",int(time.time()))
+                print("loop cmd r.readline return NONE !",int(time.time()))
                 print("losst touchscteen connection",output)
                 print()
                 break
-
-            a.action(line)
+            try:
+                a.action(line)
+            except Exception as e:
+                print("ERROR:a.action EXCEPTION:",[e])
+                print("ERROR: >>",output,name)
+                print("ERROR: >>",line)
 
         time.sleep(1)
 
@@ -636,48 +683,60 @@ if __name__ == "__main__":
     os.system(cmd)
 
     touch_list =  get_touch_list()
+    touch_ok = []
 
     touchscreen_count = 0
 
     #TOUCH 1 a
+    print()
     name = "iSolution multitouch"
     x= touch_filter(name,touch_list)
     print(x)
+    
+    print("TOUCH 0",x)
+    touch_ok.append(x)
+    if len(x):
+        disable_xinput_touch(name)
+        #cmd="evtest /dev/input/event24"
+        cmd="evtest {}".format(x[1])
+        #start_new_thread(loop,(cmd,"DP-2"))
+        start_new_thread(loop,(cmd,"HDMI-1",name))#),name)
+        touchscreen_count +=1
+
+    #TOUCH 1
+    print()
+    name = "iSolution multitouch"
+    x= touch_filter(name,touch_list)
+    print("TOUCH 1",x)
+    touch_ok.append(x)
 
     if len(x):
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event24"
         cmd="evtest {}".format(x[1])
-        #start_new_thread(main,(cmd,"DP-2"))
-        start_new_thread(main,(cmd,"HDMI-1",name))#),name)
-        touchscreen_count +=1
-
-    #TOUCH 1
-    name = "iSolution multitouch"
-    x= touch_filter(name,touch_list)
-    print(x)
-
-    if len(x):
-        disable_xinput_touch(name)
-        #cmd="evtest /dev/input/event24"
-        cmd="evtest {}".format(x[1])
-        start_new_thread(main,(cmd,"DP-2",name))#),name)
-        #start_new_thread(main,(cmd,"HDMI-1"))
+        start_new_thread(loop,(cmd,"DP-2",name))#),name)
+        #start_new_thread(loop,(cmd,"HDMI-1"))
         touchscreen_count +=1
 
 
 
     #TOUCH 1
+    print()
     name="ELAN Touchscreen"
     x= touch_filter(name,touch_list)
-    print(x)
+    print("TOUCH 2",x)
+    touch_ok.append(x)
     if len(x):   
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event5"
         cmd="evtest {}".format(x[1])
-        start_new_thread(main,(cmd,"eDP-1",name))#),name)
-        #start_new_thread(main,(cmd,"HDMI-1"))
+        start_new_thread(loop,(cmd,"eDP-1",name))#),name)
+        #start_new_thread(loop,(cmd,"HDMI-1"))
         touchscreen_count +=1
 
+
+    time.sleep(1)
+    print()
+    print("touch_ok",touch_ok)
     while 1:
         time.sleep(1)

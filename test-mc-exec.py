@@ -35,8 +35,17 @@ if len(sys.argv) >= 2:
         nr=int(sys.argv[1])
     except:pass
 y = mc.get("EXEC-"+str(nr)) #,json.dumps(index))
-
 if y:
     print(len(y))
-    print(json.loads(y))
+    try:
+        print(json.loads(y))
+    except Exception as e:
+        print("ERR",e)
 
+k = "EXEC-META-"+str(nr)
+y = mc.get(k) #,json.dumps(index))
+y = json.loads(y)
+y["LABEL"]=str(int(y["LABEL"])+100)
+print([k,y])
+y = mc.set(k,json.dumps(y)) #,json.dumps(index))
+#y = mc.set("EXEC-META-"+str(nr),y) #,json.dumps(index))

@@ -1605,6 +1605,17 @@ window_manager = WindowManager()
 
 CONSOLE = Console()
 EXEC = execlib.EXEC()
+     
+def refresh_exec_mc():
+    time.sleep(10)
+    while 1:
+        try:
+            execlib.exec_set_mc(EXEC.label_exec,EXEC.val_exec)
+        except Exception as e:
+            print("refresh_exec_mc ERR",e)
+        time.sleep(10)
+
+thread.start_new_thread(refresh_exec_mc,())
 
 FIXTURES = fixlib.Fixtures()
 FIXTURES.gui = GUIHandler()

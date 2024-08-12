@@ -119,7 +119,28 @@ def EXEC_CFG_CHECKER(sdata):
     #except:pass
 
     return ok
+
 import time
+def exec_set_mc(excec_labels,exec_data):
+    l = excec_labels
+    d = exec_data
+    
+    if mc:
+        index=[]
+        for i,v in enumerate(l):
+            key="EXEC-"+str(i) 
+            mc.set(key,json.dumps(d[v]))
+            index.append(key)
+
+            key2="EXEC-META-"+str(i) 
+            cfg = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100, 'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
+            if "CFG" in d[v]:
+                cfg = d[v]["CFG"]
+            mc.set(key2,json.dumps({"LABEL":l[i],"LEN":len(d[v])-1,"CFG":cfg}) )
+        mc.set("EXEC-INDEX",json.dumps(index))
+        print("---------------------------------------")
+        #,start - time.time())
+        #
 
 class EXEC(): #Presets():
     def __init__(self):
@@ -136,20 +157,12 @@ class EXEC(): #Presets():
             sdata = d[i]
             ok = EXEC_CFG_CHECKER(sdata)
         start = time.time()
-        if mc:
-            index=[]
-            for i,v in enumerate(l):
-                key="EXEC-"+str(i) 
-                mc.set(key,json.dumps(d[v]))
-                index.append(key)
 
-                key2="EXEC-LABEL-"+str(i) 
-                mc.set(key2,l[i] )
-            mc.set("EXEC-INDEX",json.dumps(index))
-            print("---------------------------------------",start - time.time())
 
         self.val_exec = d
         self.label_exec = l
+
+        exec_set_mc(self.label_exec,self.val_exec)
 
     def check_cfg(self,nr=None):
         cprint("EXEC.check_cfg()",nr)#,color="red")

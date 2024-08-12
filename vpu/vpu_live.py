@@ -1232,7 +1232,7 @@ def event():
             print("mod    -",_mod)
 
         try:
-            if _type == 5:
+            if _type in [5,1025]:
                 if _button == 1:
                     NR += 1
                     if NR > 1:

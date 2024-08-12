@@ -1613,7 +1613,8 @@ def refresh_exec_mc():
             execlib.exec_set_mc(EXEC.label_exec,EXEC.val_exec)
         except Exception as e:
             print("refresh_exec_mc ERR",e)
-        time.sleep(10)
+            time.sleep(5) # extra time
+        time.sleep(10) # refresh time
 
 thread.start_new_thread(refresh_exec_mc,())
 

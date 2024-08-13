@@ -775,14 +775,18 @@ while 1:
                             print("SPCIAL-KEY",msg)
                             cmd_client.send(msg)
 
-                if event['scancode'] in range(10,20+1):
+                if event['scancode'] in range(10,20+1) or event['scancode'] in range(30,39+1):
                     if event['type'] in [2,3,768,769]: # press
-                        if event['type'] in [2,768]:
+                        if event['type'] in [2,769]:
                             v=0
-                        if event['type'] in [3,769]:
+                        if event['type'] in [3,768]:
                             v=255
+                        btn_nr=-3000
 
-                        btn_nr = event['scancode']-9
+                        if event['scancode'] in range(10,20+1):
+                            btn_nr = event['scancode']-10+1
+                        if event['scancode'] in range(30,39+1):
+                            btn_nr = event['scancode']-30+1
                         btn_nr_raw = btn_nr
                         btn_nr += 161-1
                         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw}]).encode("utf-8")

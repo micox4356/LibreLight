@@ -131,7 +131,7 @@ delta = start
 #bx = sdl_elm.Button(window,pos=[30,r,190,60])
 #bx.text = "FIX:{}\n<val>\nx".format(i+1)
 #bx.font0 = pygame.font.SysFont("freesans-bold",20)
-#bx.btn1.type = "flash"
+#bx.btn1['type'] = "flash"
 #fps_btn.append(bx)
 #r+=bx.get_rect()[3]
 
@@ -720,22 +720,29 @@ while 1:
 
         btn_help.draw()
         resize_changed = 0
-        for event in pygame.event.get(): 
-            x_change=btn_help.event(event)
+        for raw_event in pygame.event.get(): 
+            x_change=btn_help.event(raw_event)
+            event = {'unicode': '', 'key': 0, 'mod': 0, 'scancode': 0, 'window': None,'type':'','button':''}
+            event['type'] = raw_event.type
+            event.update( raw_event.dict)
+            if event['button'] and event["type"] in [1025,1026]:
+                event["type"] -= 1020
 
-            if "scancode" in event.dict:
-                print()
-                print("scan",event.scancode,"type",event.type) 
-                print(" ",event.dict)
-                if event.scancode in [50,225]: # shift old/new
-                    if event.type in [2,768]: # press
+            if event["button"] or event['scancode']:
+                print(" event:",event)
+
+
+            if "scancode" in event:
+                #print(" ",event)
+                if event['scancode'] in [50,225]: # shift old/new
+                    if event['type'] in [2,768]: # press
                         #pg.display.set_caption(CAPTION+ " SHIFT/FINE")
                         SHIFT_FINE = 1
-                    if event.type in [3,769]: # release
+                    if event['type'] in [3,769]: # release
                         #pg.display.set_caption(CAPTION)
                         SHIFT_FINE = 0
 
-                if event.scancode in [9,41]:
+                if event['scancode'] in [9,41]:
                     for k in table_draw:
                         t = table[k]
                         #t.btn2.clean()
@@ -749,95 +756,87 @@ while 1:
                     print("ESC",msg)
                     cmd_client.send(msg)
 
-                if event.mod == 0:
+                if event['mod'] == 0:
                     keycode = {27:"REC",39:"SELECT",46:"LABEL",54:"CFG-BTN",56:"BLIND",41:"FLASH",26:"EDIT"}
-                    print( event.scancode in keycode,event.scancode)
-                    if event.scancode in keycode: # r
-                        if event.type == 2: # press
+                    #print(" 45:", event['scancode'] in keycode,event['scancode'])
+                    if event['scancode'] in keycode: # r
+                        if event['type'] == 2: # press
                                 
-                            msg=json.dumps([{"event":keycode[event.scancode]}]).encode("utf-8")
+                            msg=json.dumps([{"event":keycode[event['scancode']]}]).encode("utf-8")
                             print("SPCIAL-KEY",msg)
                             cmd_client.send(msg)
-                if event.mod == 64:
+                if event['mod'] == 64:
                     keycode = {39:"SAVE\nSHOW",54:"RESTART"}
-                    print( event.scancode in keycode,event.scancode)
-                    if event.scancode in keycode: # r
-                        if event.type == 2: # press
+                    print( " 56:",event['scancode'] in keycode,event['scancode'])
+                    if event['scancode'] in keycode: # r
+                        if event['type'] == 2: # press
                                 
-                            msg=json.dumps([{"event":keycode[event.scancode]}]).encode("utf-8")
+                            msg=json.dumps([{"event":keycode[event['scancode']]}]).encode("utf-8")
                             print("SPCIAL-KEY",msg)
                             cmd_client.send(msg)
 
-                if event.scancode in range(10,20+1):
-                    if event.type in [2,3]: # press
-                        v = 1-event.type+2
-                        if v:
-                            v=255
-                        else:
+                if event['scancode'] in range(10,20+1):
+                    if event['type'] in [2,3,768,769]: # press
+                        if event['type'] in [2,768]:
                             v=0
-                        btn_nr = event.scancode-9
+                        if event['type'] in [3,769]:
+                            v=255
+
+                        btn_nr = event['scancode']-9
                         btn_nr_raw = btn_nr
                         btn_nr += 161-1
                         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw}]).encode("utf-8")
 
                         print("SPCIAL-KEY",msg)
                         cmd_client.send(msg)
-                        #msg=json.dumps({"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw})#.encode("utf-8")
-                        #cmd =  "echo '{}' > ~/backpipe ".format(msg)
-                        #print(":::::::", cmd)
-                        #os.system(cmd)
-                if event.scancode in range(67,76+1) or  event.scancode in [95,96]:
-                    if event.type in [2,3]: # press
-                        v = 1-event.type+2
-                        if v:
-                            v=255
-                        else:
+
+                if event['scancode'] in range(67,76+1) or  event['scancode'] in [95,96]:
+                    if event['type'] in [2,3,768,769]: # press
+                        if event['type'] in [2,768]:
                             v=0
-                        btn_nr = event.scancode
+                        if event['type'] in [3,769]:
+                            v=255
+
+                        btn_nr = event['scancode']
                         if btn_nr == 95:
                             btn_nr = 11
                         elif btn_nr == 96:
                             btn_nr = 12
                         else:
-                            btn_nr = event.scancode-66
+                            btn_nr = event['scancode']-66
                         btn_nr_raw = btn_nr
                         btn_nr += 81-1
                         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"F-KEY":btn_nr_raw}]).encode("utf-8")
                         print("SPCIAL-KEY",msg)
                         cmd_client.send(msg)
 
-                        #msg=json.dumps({"event":"EXEC","EXEC":btn_nr,"VAL":v,"F-KEY":btn_nr_raw})#.encode("utf-8")
-                        #cmd =  "echo '{}' > ~/backpipe ".format(msg)
-                        #print(":::::::", cmd)
-                        #os.system(cmd)
-            if event.type == pygame.QUIT:
-                #movewin.store_all_sdl()
+            if event['type'] == pygame.QUIT:
                 pygame.quit()
                 sys.exit(0)
-            elif event.type == pygame.VIDEORESIZE:
+            elif event['type'] == pygame.VIDEORESIZE:
                 scrsize = event.size
                 width   = event.w
                 hight   = event.h
                 resize_changed = True
 
-            scroll_bar.event(event) #daraw()
+            scroll_bar.event(raw_event) #daraw()
             scroll_change = 0
             if scroll_bar.btn3.val.get(): #scroll_bar focus
                 spos = scroll_bar.rel_pos[1]
                 #print("------------------",spos)
-                if "button" in event.dict:
-                    if event.dict["button"] == 1:
+                if "button" in event:
+                    if event["button"] == 1:
                         scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
 
-                if "buttons" in event.dict:
-                    if event.dict["buttons"][0]:
+                if "buttons" in event:
+                    if event["buttons"][0]:
                         scroll_bar.btn4.val.set(scroll_bar.btn4.val._max*spos)
 
             event_lock = scroll_bar.btn3.val.get() #focus on
 
             if not event_lock:
                 for t in table_draw:
-                    table[t].event(event)
+                    table[t].event(raw_event)
                     if table[t].btn3.get():
                         data = table[t].data
             
@@ -847,7 +846,7 @@ while 1:
                 for k3 in table_draw:
                     #print(t)
                     row = table[k3]
-                    change = table[k3].event(event)
+                    change = table[k3].event(raw_event)
                     if row.btn3.get():
                         # FIXTURE SELECTOR
                         data = row.data
@@ -858,7 +857,7 @@ while 1:
                         if key in change:
                             if "press" in change[key]:
                                 msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
-                                print("   ",msg)
+                                print("  msg:",msg)
                                 cmd_client.send(msg)
                             if "release" in change[key]:
                                 pass
@@ -867,7 +866,7 @@ while 1:
             if not event_lock:
                 for k3 in table_grid_draw:
                     row = table_grid[k3]
-                    change = table_grid[k3].event(event)
+                    change = table_grid[k3].event(raw_event)
                     if row.btn3.get():
                         data = row.data
                         FIX  = row.ID
@@ -901,26 +900,24 @@ while 1:
                                 pass
 
 
-            if "pos" in event.dict:
-                if "button" in event.dict:
-                    if event.type in [5,1025]:#press
+            if "pos" in event:
+                if "button" in event:
+                    if event['type'] in [5,1025]:#press
                         mouse_down = 1
-                        mouse_pos1 = [event.pos[0],event.pos[1]]
-                    if event.type in [6,1026]:#release
+                        mouse_pos1 = [event['pos'][0],event['pos'][1]]
+                    if event['type'] in [6,1026]:#release
                         mouse_down = 0
 
-                mouse_pos2 = [event.pos[0],event.pos[1]]
+                mouse_pos2 = [event['pos'][0],event['pos'][1]]
 
 
 
             if event_lock:
                 pass
 
-            elif "button" in event.dict:
-                if event.type in [6,1026]:
-                    #print("grab DOOOO",event)
-                    #print("grab2", event.dict["button"],len(mouse_grab) )
-                    if event.dict["button"] == 1:
+            elif "button" in event:
+                if event['type'] in [6,1026]:
+                    if event["button"] == 1:
                         mouse_grab_active = 0
                         for mg in mouse_grab:
                             if mg.btn1.val.get():
@@ -933,13 +930,15 @@ while 1:
                             if mouse_grab_active:
                                 if not mg.btn1.val.get():
                                     msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                    print("    send:",msg)
                                     cmd_client.send(msg)
                             else: #no btn is on
                                 msg = json.dumps([{"event":"FIXTURES","TYPE":"ENCODERS","FIX":str(FIX),"VAL":"click","ATTR":ATTR}]).encode("utf-8")
+                                print("    send:",msg)
                                 cmd_client.send(msg)
 
                         mouse_grab = []
-                    if event.dict["button"] == 3:
+                    if event["button"] == 3:
                         mouse_grab_active = 0
                         for mg in mouse_grab:
                             if mg.btn1.val.get():

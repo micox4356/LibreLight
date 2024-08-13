@@ -11,7 +11,8 @@ import time
 
 start = time.time()
 if mc:
-    while 1:
+    #while 1:
+    for i in range(512):
         #index=[]
         #for i,v in enumerate(l):
         #    key=l[v].replace(" ","_")
@@ -21,11 +22,22 @@ if mc:
         #    index.append(key)
         #mc.set("EXEC-INDEX",json.dumps(index))
 
-        x = mc.get("EXEC-INDEX") #,json.dumps(index))
-        for i in json.loads(x):
-            y = mc.get(i) #,json.dumps(index))
-            print(i,len(y))
-        break
+        #x = mc.get("EXEC-INDEX") #,json.dumps(index))
+        x = mc.get("EXEC-META-"+str(i)) #,json.dumps(index))
+        print( i, json.loads(x) )
+
+        #for j in json.loads(x):
+        #    y = mc.get(i) #,json.dumps(index))
+        #   print(i,len(y))
+        #break
+print()
+i=77-1
+x = mc.get("EXEC-META-"+str(i)) #,json.dumps(index))
+print( i, json.loads(x) )
+i=80-1
+x = mc.get("EXEC-META-"+str(i)) #,json.dumps(index))
+print( i, json.loads(x) )
+print()
 
 print(start- time.time())
 import sys
@@ -34,6 +46,7 @@ if len(sys.argv) >= 2:
     try:
         nr=int(sys.argv[1])
     except:pass
+#y = mc.get("EXEC-"+str(nr)) #,json.dumps(index))
 y = mc.get("EXEC-"+str(nr)) #,json.dumps(index))
 if y:
     print(len(y))

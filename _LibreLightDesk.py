@@ -802,6 +802,9 @@ def get_exec_btn_cfg(nr):
         fx_color = 0
         if k in EXEC.val_exec and len(EXEC.val_exec[k]) :
             sdata = EXEC.val_exec[k]
+            sdata["CFG"]["HAVE-FX"] = 0
+            sdata["CFG"]["HAVE-VAL"] = 0
+            sdata["CFG"]["FIX-COUNT"] = 0
 
             BTN="go"
             if "CFG" in sdata:#["BUTTON"] = "GO"
@@ -816,6 +819,9 @@ def get_exec_btn_cfg(nr):
                 for fix in sdata:
                     if fix == "CFG":
                         continue
+
+                    sdata["CFG"]["FIX-COUNT"] += 1
+
                     for attr in sdata[fix]:
                         if "FX2" in sdata[fix][attr]:
                             if sdata[fix][attr]["FX2"]:
@@ -826,6 +832,12 @@ def get_exec_btn_cfg(nr):
                         if "VALUE" in sdata[fix][attr]:
                             if sdata[fix][attr]["VALUE"] is not None:
                                 val_color = 1
+                    
+                if val_color:
+                    sdata["CFG"]["HAVE-VAL"] += 1
+                if fx_color:
+                    sdata["CFG"]["HAVE-FX"] += 1
+
 
                 if val_color:
                     _bg = "gold"
@@ -1614,7 +1626,7 @@ def refresh_exec_mc():
         except Exception as e:
             print("refresh_exec_mc ERR",e)
             time.sleep(5) # extra time
-        time.sleep(10) # refresh time
+        time.sleep(3) # refresh time
 
 thread.start_new_thread(refresh_exec_mc,())
 

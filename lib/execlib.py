@@ -114,6 +114,15 @@ def EXEC_CFG_CHECKER(sdata):
     if "OFFSET-MASTER" not in sdata["CFG"]:
         sdata["CFG"]["OFFSET-MASTER"] = 100 #%
         ok += 1
+    if "HAVE-FX" not in sdata["CFG"]:
+        sdata["CFG"]["HAVE-FX"] = 0  # yes/no
+        ok += 1
+    if "HAVE-VAL" not in sdata["CFG"]:
+        sdata["CFG"]["HAVE-VAL"] = 0  # yes/no
+        ok += 1
+    if "FIX-COUNT" not in sdata["CFG"]:
+        sdata["CFG"]["FIX-COUNT"] = 0  # yes/no
+        ok += 1
 
     #try:del sdata["CFG"]["SPEED-MASTER"] #= 100 #%
     #except:pass
@@ -133,7 +142,8 @@ def exec_set_mc(excec_labels,exec_data):
             index.append(key)
 
             key2="EXEC-META-"+str(i) 
-            cfg = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100, 'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
+            cfg = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100
+                    , 'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
             if "CFG" in d[v]:
                 cfg = d[v]["CFG"]
             mc.set(key2,json.dumps({"LABEL":l[i],"LEN":len(d[v])-1,"CFG":cfg}) )

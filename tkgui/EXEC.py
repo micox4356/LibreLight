@@ -15,25 +15,19 @@ sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 
 INIT_OK = 1
 IS_GUI = 0
-import tkgui.draw as draw
-
-#import lib.mytklib as mytklib
-import lib.libtk as libtk
-#import lib.tkevent as tkevent
-#import lib.fixlib as fixlib
-
 from lib.cprint import cprint
 
+import tkgui.draw as draw
+import lib.libtk as libtk
+import lib.zchat as chat
 
+cmd_client = chat.Client(port=30003)
 
 try:
     import memcache
     mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 except:
     mc = None
-
-
-
 
 
 
@@ -63,9 +57,9 @@ refresher_fix =  Refresher_fix()
 
 class Modes():
     def __init__(self,*arg,**args):
-        print("refresh_fix",arg,args)
+        print("Modes.__init__",arg,args)
     def val(self,*arg,**args):
-        print("val",arg,args)
+        print("Modes.val",arg,args)
 
 master = MASTER() #{}
 modes = Modes()
@@ -81,13 +75,9 @@ EXEC = Exec()
 class Gui():
     def __init__(self):
         self.elem_exec = []
+
     def _refresh_exec(self,*arg,**args):
-        self.A_refresh_exec(arg,args)
-        #self.B_refresh_exec(arg,args)
-
-    def A_refresh_exec(self,*arg,**args):
-        print("Gui",arg,args)
-
+        print("Gui._refresh_exec",arg,args)
 
         nr = 14-1
 
@@ -100,15 +90,6 @@ class Gui():
                 METAS.append(data)
             except Exception as e:
                 print("  ER1R mc...",e)
-
-
-        #try:
-        #    y = mc.get("EXEC-"+str(nr)) #,json.dumps(index))
-        #    _jdata = json.loads(y)
-        #    keys  = _jdata.keys()
-        #except Exception as e:
-        #    print("  ER2R mc...",e,nr)
-
 
 
         for nr,b in enumerate( self.elem_exec): #[nr]
@@ -162,6 +143,9 @@ class Gui():
                     _fg = "#555"
                     _fg = "black"
 
+            if  META["CFG"]["HAVE-FX"] >= 1 and META["CFG"]["HAVE-VAL"] == 0:
+                _bg = "cyan"
+
             if "FL" in txt1:
                 _fg = "#00e"
             
@@ -172,112 +156,16 @@ class Gui():
             b = self.elem_exec[nr]
             b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
 
-    def B_refresh_exec(self,*arg,**args):
-        #def OLD_get_exec_btn_cfg(nr):
-        k = nr
-        if 1:
-            
-            _bg = "grey"
-            _ba = "grey"
-            _fg = "lightgrey"
-            _text = "N/V"
-            txt = "None/nNone"
-            txt1 = "None/nNone"
-
-            if nr >= 0:
-                if nr != k:
-                    return #continue
-
-
-            label = ""
-
-            if k in EXEC.label_exec:
-                label = EXEC.label_exec[k]
-            
-            ifval = 0
-            fx_only = 0
-            fx_color = 0
-            if k in EXEC.val_exec and len(EXEC.val_exec[k]) :
-                sdata = EXEC.val_exec[k]
-
-                BTN="go"
-                if "CFG" in sdata:#["BUTTON"] = "GO"
-                    if "BUTTON" in sdata["CFG"]:
-                        BTN = sdata["CFG"]["BUTTON"]
-                txt="{} {} {}\n{}".format(k+1,BTN,len(sdata)-1,label)
-                _text = txt
-
-                if len(sdata) > 1:
-                    ifval = 1
-                    val_color = 0
-                    for fix in sdata:
-                        if fix == "CFG":
-                            continue
-                        for attr in sdata[fix]:
-                            if "FX2" in sdata[fix][attr]:
-                                if sdata[fix][attr]["FX2"]:
-                                    fx_color = 1
-                            if "FX" in sdata[fix][attr]:
-                                if sdata[fix][attr]["FX"]:
-                                    fx_color = 1
-                            if "VALUE" in sdata[fix][attr]:
-                                if sdata[fix][attr]["VALUE"] is not None:
-                                    val_color = 1
-
-                    if val_color:
-                        _bg = "gold"
-                        _ba = "#ffaa55"
-                        if fx_color:
-                            _fg = "blue"
-                    else:   
-                        if fx_color:
-                            fx_only = 1
-                else:
-                    _bg = "grey"
-                    _ba = "#aaa"
-
-
-            if "\n" in txt:
-                txt1 = txt.split("\n")[0]
-
-            _fg = "black"
-            if ifval:
-                if fx_only:
-                    _bg = "cyan"
-                    _ba = "#55d4ff"
-
-                if "SEL" in txt1:
-                    _bg = "#77f"
-            else: 
-                _bg = "grey"
-                _fg = "darkgrey"
-
-                if "SEL" in txt1:
-                    _fg = "blue"
-                elif "ON" in txt1:
-                    _fg = "#040"
-                elif "GO" in txt1:
-                    _fg = "#555"
-
-            if "FL" in txt1:
-                _fg = "#00e"
-            
-            out = {} # default
-            out["fx"] = ""
-            out["bg"] = "lightgrey"
-            out["ba"] = "grey"
-            out["fg"] = "grey"
-            out["text"] = "?"
-            
-            out["fx"] = fx_color
-            out["bg"] = _bg
-            out["ba"] = _ba
-            out["fg"] = _fg
-            out["text"] = _text
-            
-            return out
-    def exec_go(*arg,**args):
-        print("Gui",arg,args)
+    def exec_go(self,*arg,**args):
+        print("Gui.exec_go",arg,args)
+        #print(" ",dir(arg))
+        #print(" ",self)
+        btn_nr = arg[0]+1
+        btn_nr_raw=0
+        v=args["val"]
+        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw}]).encode("utf-8")
+        print("SPCIAL-KEY",msg)
+        cmd_client.send(msg)
 
 gui  = Gui()
 

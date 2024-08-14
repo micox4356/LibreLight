@@ -183,7 +183,7 @@ class Gui():
                 button = cfg["BUTTON"]
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
             return 
-        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
+        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
         print("SPCIAL-KEY",msg)
         cmd_client.send(msg)
 

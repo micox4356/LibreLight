@@ -147,6 +147,7 @@ def exec_set_mc(excec_labels,exec_data):
             if "CFG" in d[v]:
                 cfg = d[v]["CFG"]
             mc.set(key2,json.dumps({"LABEL":l[i],"LEN":len(d[v])-1,"CFG":cfg}) )
+            #mc.set(key2,json.dumps({"label":l[i],"LEN":len(d[v])-1,"CFG":cfg}) )
         mc.set("EXEC-INDEX",json.dumps(index))
         print("---------------------------------------")
         #,start - time.time())

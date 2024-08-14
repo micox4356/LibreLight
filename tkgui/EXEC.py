@@ -176,7 +176,11 @@ class Gui():
             label = str(btn_nr) #self.elem_meta[nr] = META
 
             if v:
-                cfg = self.elem_meta[btn_nr] 
+                META = self.elem_meta[btn_nr] 
+                print("META",META)
+                cfg = META["CFG"]
+                label = META["LABEL"]
+                button = cfg["BUTTON"]
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
             return 
         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")

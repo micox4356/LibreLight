@@ -7,7 +7,10 @@ import tkinter as tk
 import traceback
 import _thread as thread
 
-
+import dialog
+DIALOG = dialog.Dialog()
+#d = dialog.Dialog()
+#d.ask_exec_config(str(nr+1),button=button,label=label,cfg=cfg)
 
 import __main__ as MAIN
 
@@ -20,6 +23,8 @@ from lib.cprint import cprint
 import tkgui.draw as draw
 import lib.libtk as libtk
 import lib.zchat as chat
+
+root = None
 
 cmd_client = chat.Client(port=30003)
 
@@ -58,6 +63,7 @@ refresher_fix =  Refresher_fix()
 class Modes():
     def __init__(self,*arg,**args):
         print("Modes.__init__",arg,args)
+        self.modes = {}
     def val(self,*arg,**args):
         print("Modes.val",arg,args)
 
@@ -75,6 +81,7 @@ EXEC = Exec()
 class Gui():
     def __init__(self):
         self.elem_exec = []
+        self.elem_meta = [None]*512
 
     def _refresh_exec(self,*arg,**args):
         print("Gui._refresh_exec",arg,args)
@@ -152,6 +159,8 @@ class Gui():
             out["fg"] = _fg #= "#00e"
             out["bg"] = _bg #= "#00e"
             cfg = out 
+            
+            self.elem_meta[nr] = META
 
             b = self.elem_exec[nr]
             b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
@@ -160,16 +169,31 @@ class Gui():
         print("Gui.exec_go",arg,args)
         #print(" ",dir(arg))
         #print(" ",self)
-        btn_nr = arg[0]+1
-        btn_nr_raw=0
+        btn_nr = arg[0]
         v=args["val"]
-        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr_raw}]).encode("utf-8")
+        if "CFG-BTN" in modes.modes:
+            button = self.elem_exec[btn_nr]
+            label = str(btn_nr) #self.elem_meta[nr] = META
+
+            if v:
+                cfg = self.elem_meta[btn_nr] 
+                DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
+            return 
+        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
         print("SPCIAL-KEY",msg)
         cmd_client.send(msg)
 
 gui  = Gui()
+ 
 
 
+#import memcache
+#mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+#import time
+#while 1:
+#    x=mc.get("MODE")
+#    print(x)
+#    time.sleep(1)
 
 
 
@@ -204,6 +228,24 @@ def _refr_loop():
         time.sleep(3)
 thread.start_new_thread(_refr_loop,())
 
+def _refr_loop2():
+    time.sleep(3)
+    while 1:
+        try:
+            global root
+            title = "DEMO TK-EXEC"
+            data = mc.get("MODES")
+            title += "  "+str(data)
+            data = json.loads(data)
+            #print("MODES",data)
+            modes.modes = data
+            if root:
+                root.title(title)
+        except Exception as e:
+            print("  ER7R mc...",e)
+            time.sleep(3)
+        time.sleep(0.5)
 
+thread.start_new_thread(_refr_loop2,())
 
 root.mainloop()

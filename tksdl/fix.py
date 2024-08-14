@@ -815,12 +815,16 @@ while 1:
                         cmd_client.send(msg)
 
             if event['type'] == pygame.QUIT:
+                print()
+                print("quit",event)
                 pygame.quit()
                 sys.exit(0)
             elif event['type'] == pygame.VIDEORESIZE:
-                scrsize = event.size
-                width   = event.w
-                hight   = event.h
+                print()
+                print("resize",event)
+                scrsize = event['size']
+                width   = event['w']
+                hight   = event['h']
                 resize_changed = True
 
             scroll_bar.event(raw_event) #daraw()

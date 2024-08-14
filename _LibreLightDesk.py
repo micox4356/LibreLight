@@ -468,6 +468,34 @@ class MC():
 _mc=MC()
 _mc.loop()
 
+
+def message_buss_loop():
+    while 1:
+        try:
+            mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+            break
+        except Exception as e:
+            cprint("--1 message_buss_loop Exc",[e])
+        time.sleep(2)
+
+    while 1:
+        try:
+            key="MODES" 
+            cfg = {}
+            for k,v in modes.modes.items():
+                if v:
+                    cfg[k] = v
+
+            cfg["S-KEY"] = _global_short_key
+            mc.set(key,json.dumps(cfg))
+
+        except Exception as e:
+            cprint("--2 message_buss_loop Exc:",[e])
+            time.sleep(2)
+        time.sleep(0.5)
+
+thread.start_new_thread(message_buss_loop,())
+
 console = chat.Client() #port=50001)
 
 def jclient_send(data):

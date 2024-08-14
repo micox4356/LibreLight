@@ -9,6 +9,8 @@ tk = tkinter
 from idlelib.tooltip import Hovertip
 
 import __main__ as MAIN
+import sys
+sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 from lib.cprint import cprint
 
 

@@ -233,9 +233,8 @@ class ExecButton(MiniButton):
         if "tilt" in text.lower(): 
             self.l = self.bb.create_line(30,25 ,30,43,fill="black",arrow=tk.BOTH,tag=tag)
         if self.fx: 
-            #self.l = self.bb.create_line(30,25 ,35,45,fill="black",arrow=tk.BOTH,tag=tag)
-            #self.l = self.bb.create_rectangle(3,35,6,38,fill="cyan",tag=tag)
-            self.l = self.bb.create_text(2,33,text="FX",anchor="nw",tag=tag,fill="black",font=self.x5font)
+            #self.l = self.bb.create_rectangle(1,34,12,48,fill="cyan",outline="",tag=tag) # bad contrast !
+            self.l = self.bb.create_text(2,33,text="FX"+str(self.fx),anchor="nw",tag=tag,fill="black",font=self.x5font)
 
         text = txt2
         z = 0

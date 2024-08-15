@@ -10,6 +10,7 @@ import lib.fixlib as fixlib
 
 
 def JSCB(x,sock=None):
+    # REMOTE KEY EVENT's
     i = ""
     msg = ""
     msgs = []
@@ -18,12 +19,13 @@ def JSCB(x,sock=None):
         for i in x:
             #print("i",[i])
             msgs = json.loads(i)
-            print(" JSCB",msgs) #,sock)
+            #print(" JSCB",msgs) #,sock)
             if type(msgs) is not list:
                 continue
 
             for msg in msgs:
-                print("  ",msg)
+                OK = 0
+                #print("  msg",msg)
                 if "event" not in msg:
                     continue
 
@@ -45,32 +47,47 @@ def JSCB(x,sock=None):
                     #event.num = enum
 
                     #cb.cb(event)
+                    OK = 1
                 if "CLEAR" == msg["event"]:
                     #MAIN.FIXTURES.clear()
                     fixlib.clear(MAIN.FIXTURES.fixtures)
                     MAIN.modes.val("REC",0)
                     #MAIN.master.xcb("CLEAR",1)
+                    OK = 1
                 elif "REC" == msg["event"]:
                     MAIN.modes.val("REC",1)
+                    OK = 1
                 elif "EDIT" == msg["event"]:
                     MAIN.modes.val("EDIT",1)
+                    OK = 1
                 elif "BLIND" == msg["event"]:
                     MAIN.modes.val("BLIND",1)
+                    OK = 1
                 elif "FLASH" == msg["event"]:
                     MAIN.modes.val("FLASH",1)
+                    OK = 1
                 elif "CFG-BTN" == msg["event"]:
                     MAIN.modes.val("CFG-BTN",1)
+                    OK = 1
                 elif "LABEL" == msg["event"]:
                     MAIN.modes.val("LABEL",1)
+                    OK = 1
                 elif "REC" == msg["event"]:
                     MAIN.modes.val("REC",1)
+                    OK = 1
+                elif "FX-OFF" == msg["event"]:
+                    MAIN.modes.val("FX-OFF",1)
+                    #OK = 1
                 elif "SAVE\nSHOW" == msg["event"]:
                     MAIN.save_show()
+                    OK = 1
                 elif "RESTART" == msg["event"]:
                     print("OK OK")
                     MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
+                    OK = 1
                 elif "REC-FX" == msg["event"]:
                     MAIN.modes.val("REC-FX",1)
+                    OK = 1
                 elif "EXEC" == msg["event"]:
                     print("  EXEC EXEC")
                     val = -1
@@ -90,10 +107,14 @@ def JSCB(x,sock=None):
                             #print("TIME:",int((e-s)*1000),int(e*10)/10)
                             print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
                             print()
-
+                            OK = 1
                     except Exception as e:
                         print("EXEC ERR:",e)
             
+                if OK:
+                    cprint(" remote-key:",msg ,color="green")
+                else:
+                    cprint(" remote-key:",msg ,color="red")
     except Exception as e:
         cprint("exception JSCB:",e,color="red")
         cprint("- i:",i,color="red")

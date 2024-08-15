@@ -379,6 +379,121 @@ class on_focus():
                 e["bg"] = "#fff"
                 e["activebackground"] = "#fff"
             except:pass
+            time.sleep(0.3)
+            cmd = "xset -display :0.0 r off"
+            os.system(cmd)
+
+def tk_keyboard_callback(event,data={}):#value=255):
+    sstart = time.time()
+    #time.sleep(0.1)
+    if not MAIN._global_short_key:
+        return 1
+
+    #global MAIN #_shift_key
+    #cprint("<GUI>",event,color="yellow")
+    value = 255
+    if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
+        value = 0
+    cprint("<GUI>",event.state,data,value,[event.type,event.keysym],color="yellow")
+    #print(event)
+    if "state" in dir(event) and "keysym" in dir(event):
+        #print([event.state,event.keysym,event.type])
+        if event.state == 4  and str(2) == str(event.type): # strg + s
+            if str(event.keysym) == "s":
+                MAIN.save_show()
+
+                e = MAIN.master.setup_elem["SAVE\nSHOW"]
+                b = BLINKI(e)
+                b.blink()
+            if str(event.keysym) == "c":
+                if MAIN.save_show():
+                    MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
+
+            return
+
+    if "keysym" in dir(event):
+        if "Escape" == event.keysym:
+            #MAIN.FIXTURES.clear()
+            fixlib.clear(MAIN.FIXTURES.fixtures)
+            MAIN.modes.val("ESC",1)
+            MAIN.master.refresh_fix()
+        elif event.keysym in ["Shift_L","Shift_R"]:
+            #cprint(event.type)
+            if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
+                MAIN._shift_key = 0
+            else:
+                MAIN._shift_key = 1
+            #cprint("SHIFT_KEY",_shift_key,"??????????")
+            #cprint("SHIFT_KEY",_shift_key,"??????????")
+            #global MAIN #_ENCODER_WINDOW
+            try:
+                if MAIN._shift_key:
+                    MAIN._ENCODER_WINDOW.title("SHIFT/FINE ")
+                else:
+                    MAIN._ENCODER_WINDOW.title("ENCODER") 
+            except Exception as e:
+                cprint("exc9800",e)
+                #raise e
+
+        elif event.keysym in "ebfclrmsRx" and value: 
+            if "e" == event.keysym:
+                MAIN.modes.val("EDIT",1)
+            elif "b" == event.keysym:
+                MAIN.modes.val("BLIND",1)
+            elif "f" == event.keysym:
+                MAIN.modes.val("FLASH",1)
+            elif "c" == event.keysym:
+                MAIN.modes.val("CFG-BTN",1)
+            elif "l" == event.keysym:
+                MAIN.modes.val("LABEL",1)
+            elif "r" == event.keysym:
+                MAIN.modes.val("REC",1)
+            elif "R" == event.keysym:
+                MAIN.modes.val("REC-FX",1)
+            elif "x" == event.keysym:
+                MAIN.modes.val("REC-FX",1)
+            elif "m" == event.keysym:
+                x=MAIN.modes.val("MOVE",1)
+                if not x:
+                    MAIN.EXEC.clear_move()
+            elif "s" == event.keysym:
+                MAIN.modes.val("SELECT",1)
+        elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
+            nr = int( event.keysym[1:]) # F:1-12
+            nr = nr-1+81  
+            cprint("F-KEY",value,nr,event.keysym)
+            #print(event)
+            MAIN.master.exec_go(nr-1,xfade=None,val=value)
+        elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
+            nr = int( event.keysym)
+            if nr == 0:
+                nr = 10
+            nr = nr-1+161  
+            cprint("NUM-KEY",value,nr)
+            MAIN.master.exec_go(nr-1,xfade=None,val=value)
+        elif "numbersign" == event.keysym and value: # is char "#"
+            cprint("numbersign !!")
+            MAIN.save_show()
+
+            for e in MAIN.master.setup_cmd:
+                cprint(e)
+            e =  MAIN.master.setup_elem["SAVE\nSHOW"]
+            cprint(e)
+            b = BLINKI(e)
+            b.blink()
+            #e = MAIN.tk_event(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
+            #e.cb(event=event)
+        elif "End" == event.keysym:
+            MAIN.FIXTURES.fx_off("all")
+            MAIN.CONSOLE.fx_off("all")
+            MAIN.CONSOLE.flash_off("all")
+        elif "Delete" == event.keysym:
+            #MAIN.EXEC.delete(nr)
+            if value:
+                MAIN.modes.val("DEL",1)
+
+    #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
+
 
 class DummyCallback():
     def __init__(self,name="name"):
@@ -499,117 +614,8 @@ class WindowContainer():
             cmd="xset -display :0.0 r rate 240 15"
             #print(cmd)
             os.system(cmd)
-
     def callback(self,event,data={}):#value=255):
-        sstart = time.time()
-        #time.sleep(0.1)
-        if not MAIN._global_short_key:
-            return 1
-
-        #global MAIN #_shift_key
-        #cprint("<GUI>",event,color="yellow")
-        value = 255
-        if "Release" in str(event.type) or str(event.type) == '5' or str(event.type) == '3':
-            value = 0
-        cprint("<GUI>",event.state,data,value,[event.type,event.keysym],color="yellow")
-        #print(event)
-        if "state" in dir(event) and "keysym" in dir(event):
-            #print([event.state,event.keysym,event.type])
-            if event.state == 4  and str(2) == str(event.type): # strg + s
-                if str(event.keysym) == "s":
-                    MAIN.save_show()
-
-                    e = MAIN.master.setup_elem["SAVE\nSHOW"]
-                    b = BLINKI(e)
-                    b.blink()
-                if str(event.keysym) == "c":
-                    if MAIN.save_show():
-                        MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
-
-                return
-
-        if "keysym" in dir(event):
-            if "Escape" == event.keysym:
-                #MAIN.FIXTURES.clear()
-                fixlib.clear(MAIN.FIXTURES.fixtures)
-                MAIN.modes.val("ESC",1)
-                MAIN.master.refresh_fix()
-            elif event.keysym in ["Shift_L","Shift_R"]:
-                #cprint(event.type)
-                if "KeyRelease" in str(event.type) or str(event.type) in ["3"]:
-                    MAIN._shift_key = 0
-                else:
-                    MAIN._shift_key = 1
-                #cprint("SHIFT_KEY",_shift_key,"??????????")
-                #cprint("SHIFT_KEY",_shift_key,"??????????")
-                #global MAIN #_ENCODER_WINDOW
-                try:
-                    if MAIN._shift_key:
-                        MAIN._ENCODER_WINDOW.title("SHIFT/FINE ")
-                    else:
-                        MAIN._ENCODER_WINDOW.title("ENCODER") 
-                except Exception as e:
-                    cprint("exc9800",e)
-                    #raise e
-
-            elif event.keysym in "ebfclrmsRx" and value: 
-                if "e" == event.keysym:
-                    MAIN.modes.val("EDIT",1)
-                elif "b" == event.keysym:
-                    MAIN.modes.val("BLIND",1)
-                elif "f" == event.keysym:
-                    MAIN.modes.val("FLASH",1)
-                elif "c" == event.keysym:
-                    MAIN.modes.val("CFG-BTN",1)
-                elif "l" == event.keysym:
-                    MAIN.modes.val("LABEL",1)
-                elif "r" == event.keysym:
-                    MAIN.modes.val("REC",1)
-                elif "R" == event.keysym:
-                    MAIN.modes.val("REC-FX",1)
-                elif "x" == event.keysym:
-                    MAIN.modes.val("REC-FX",1)
-                elif "m" == event.keysym:
-                    x=MAIN.modes.val("MOVE",1)
-                    if not x:
-                        MAIN.EXEC.clear_move()
-                elif "s" == event.keysym:
-                    MAIN.modes.val("SELECT",1)
-            elif event.keysym in ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"]:
-                nr = int( event.keysym[1:]) # F:1-12
-                nr = nr-1+81  
-                cprint("F-KEY",value,nr,event.keysym)
-                #print(event)
-                MAIN.master.exec_go(nr-1,xfade=None,val=value)
-            elif event.keysym in ["1","2","3","4","5","6","7","8","9","0"]:
-                nr = int( event.keysym)
-                if nr == 0:
-                    nr = 10
-                nr = nr-1+161  
-                cprint("NUM-KEY",value,nr)
-                MAIN.master.exec_go(nr-1,xfade=None,val=value)
-            elif "numbersign" == event.keysym and value: # is char "#"
-                cprint("numbersign !!")
-                MAIN.save_show()
-
-                for e in MAIN.master.setup_cmd:
-                    cprint(e)
-                e =  MAIN.master.setup_elem["SAVE\nSHOW"]
-                cprint(e)
-                b = BLINKI(e)
-                b.blink()
-                #e = MAIN.tk_event(fix=0,elem=None,attr="SAVE\nSHOW",mode="SETUP")
-                #e.cb(event=event)
-            elif "End" == event.keysym:
-                MAIN.FIXTURES.fx_off("all")
-                MAIN.CONSOLE.fx_off("all")
-                MAIN.CONSOLE.flash_off("all")
-            elif "Delete" == event.keysym:
-                #MAIN.EXEC.delete(nr)
-                if value:
-                    MAIN.modes.val("DEL",1)
-
-        #cprint("oipo "*10,round(int(time.time()-sstart)*1000,2))
+        tk_keyboard_callback(event,data=data) #:#value=255):
  
 class window_create_buffer():
     # könnte auch direkt im WindowContainer object eingebaut werden !?

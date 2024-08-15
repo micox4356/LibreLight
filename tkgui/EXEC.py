@@ -24,6 +24,7 @@ import tkgui.draw as draw
 import lib.libtk as libtk
 import lib.zchat as chat
 
+_global_short_key = 1
 root = None
 
 cmd_client = chat.Client(port=30003)
@@ -36,23 +37,34 @@ except:
 
 
 
-class Refresher():
+class Refresher(): # DUMMY
     def __init__(self,*arg,**args):
         print(self,"__init__",arg,args)
     def reset(*arg,**args):
         print(self,"reset",arg,args)
     
-class MASTER():
+class MASTER(): # DUMMY
     def __init__(self,*arg,**args):
         print(self,"__init__",arg,args)
         #self.refresh_fix = Refresher()
     def refresh_fix(self,*arg,**args):# = Refresher()
         print(self,"refresh_fix",arg,args)
+    def exec_go(self,nr,*arg,**args): #val=None,xfade=None,event=None,button="",ptfade=None):
+        if _global_key_lock:
+            return
+        #def exec_go(nr,xfade=None,val=0):
+        print(self,"MASTER",nr,arg,args)
+        btn_nr = nr
+        v = args["val"]
+        
+        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
+        cprint("SEND MASTER.EXEC_GO:",msg,color="green")
+        cmd_client.send(msg)
 
-def refresh_fix(*arg,**args):
+def refresh_fix(*arg,**args): # DUMMY
     print("refresh_fix",arg,args)
 
-class Refresher_fix():
+class Refresher_fix(): # DUMMY
     def __init__(self,*arg,**args):
         print(self,"init",arg,args)
     def reset(self,*arg,**args):
@@ -60,31 +72,32 @@ class Refresher_fix():
 
 refresher_fix =  Refresher_fix()
 
-class Modes():
+class Modes(): # DUMMY
     def __init__(self,*arg,**args):
         print("Modes.__init__",arg,args)
         self.modes = {}
     def val(self,*arg,**args):
-        print("Modes.val",arg,args)
+        #print("Modes.val",arg,args)
+        pass
 
 master = MASTER() #{}
 modes = Modes()
 
 import tkinter as tk
-class Exec():
+class Exec(): # DUMMY
     def __init__(self):
         self.val_exec = {}
         for i in range(512):
             k=i #"ABC-{}".format(i+1)
             self.val_exec[k] = {"NAME":"XX"}
 EXEC = Exec()
-class Gui():
+class Gui(): # DUMMY
     def __init__(self):
         self.elem_exec = []
         self.elem_meta = [None]*512
 
     def _refresh_exec(self,*arg,**args):
-        print("Gui._refresh_exec",arg,args)
+        print("EXEC_Gui._refresh_exec",arg,args)
 
         nr = 14-1
 
@@ -117,7 +130,8 @@ class Gui():
             out["text"] = _text #"? "+str(nr+1)
 
             META = {'LABEL': 'ERR', 'LEN': 2, 'CFG': {}}
-            META["CFG"] = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100, 'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
+            META["CFG"] = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100,
+                         'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
             
             try: 
                 META = METAS[nr]
@@ -127,6 +141,7 @@ class Gui():
                 if LEN: # >= 3:
                     _bg = "orange" #yellow"
                     _fg = "black" #grey"
+
             except Exception as e:
                 print("  ER4R",e,nr)
                 time.sleep(0.001)
@@ -134,6 +149,7 @@ class Gui():
                 txt1 = META["CFG"]["BUTTON"]
             except:
                 pass
+
                 
             if META["LEN"]:
                 _fg = "black"
@@ -149,6 +165,10 @@ class Gui():
                 elif "GO" in txt1:
                     _fg = "#555"
                     _fg = "black"
+
+            out["fx"] = ""
+            if  META["CFG"]["HAVE-FX"] >= 1:
+                out["fx"] = META["CFG"]["HAVE-FX"] # show FX on EXEC-BTN
 
             if  META["CFG"]["HAVE-FX"] >= 1 and META["CFG"]["HAVE-VAL"] == 0:
                 _bg = "cyan"
@@ -174,7 +194,7 @@ class Gui():
         if "CFG-BTN" in modes.modes:
             button = self.elem_exec[btn_nr]
             label = str(btn_nr) #self.elem_meta[nr] = META
-
+            
             if v:
                 META = self.elem_meta[btn_nr] 
                 print("META",META)
@@ -184,7 +204,7 @@ class Gui():
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
             return 
         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
-        print("SPCIAL-KEY",msg)
+        cprint("SEND GUI.EXEC_GO",msg,color="green")
         cmd_client.send(msg)
 
 gui  = Gui()
@@ -213,16 +233,85 @@ defaultFont.configure(family="FreeSans",
                        size=10,
                        weight="bold")
 # MAIN MENUE
-#try:
-#    self.tk.iconphoto(False, tk.PhotoImage(file=ico_path+"main.png"))
-#except Exception as e:
-#    print(" Exception GUIWindowContainer.__init__",e)
+try:
+    ico_path = "/opt/LibreLight/Xdesk/icon/"
+    root.iconphoto(False, tk.PhotoImage(file=ico_path+"exec.png"))
+except Exception as e:
+    print(" Exception GUIWindowContainer.__init__",e)
 
 #xframe=root
 xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,foot=None)
 draw.draw_exec(gui,xframe,EXEC)
 #xframe.pack()
-root.title("DEMO TK-EXEC 2")
+root.title("TK-EXEC 2")
+
+def serialize_event(event):
+    data = {}
+    for k in dir(event):
+        if k.startswith("_"):
+            continue
+        v = event.__getattribute__(k)
+        if v == '??':
+            continue
+        if type(v) not in [int,str,float]:
+            continue
+        data[k] = v
+    return data
+
+def tk_event(event,data={}):
+    print("tk_event",event,data)
+    if _global_key_lock:
+        return
+    #print("   ",dir(event)) #.dict())
+    data =  serialize_event(event)
+    print("   ",data)
+    ok=0
+    if 'keysym' in data:
+        if data['keysym'] == 'End':
+            ok = 1
+            msg=json.dumps([{"event":"FX-OFF"}]).encode("utf-8")
+            cprint("SEND tk_event",msg,color="green")
+            cmd_client.send(msg)
+
+        if data['keysym'] == 'Escape':
+            ok = 1
+            msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
+            cprint("SEND tk_event",msg,color="green")
+            cmd_client.send(msg)
+
+    if not ok:
+        libtk.tk_keyboard_callback(event,data=data)
+
+root.bind("<Button>",tk_event)#
+root.bind("<Key>",tk_event)#,self.callback)
+root.bind("<KeyRelease>",tk_event)#,self.callback)
+#root.bind("<FocusIn>",tk_event)#, on_focus(self.args["title"],"In").cb)
+#root.bind("<FocusOut>",tk_event)#, on_focus(self.args["title"],"Out").cb)
+
+import os
+
+_global_key_lock = 0
+def focus_in(event=None):
+    _global_short_key = 0 # protect key-press-repeat
+    cmd = "xset -display :0.0 r off"
+    print("FOCUS_IN1", cmd)
+    os.system(cmd)
+    time.sleep(0.3)
+    print("FOCUS_IN2", cmd)
+    os.system(cmd)
+    _global_short_key = 1 # protect key-press-repeat
+    time.sleep(0.3)
+    _global_key_lock = 0
+
+def focus_out(event=None):
+    _global_key_lock = 1
+    _global_short_key = 0
+    cmd="xset -display :0.0 r rate 240 20"
+    print("FOCUS_OUT", cmd)
+    os.system(cmd)
+
+root.bind("<FocusIn>", focus_in)
+root.bind("<FocusOut>", focus_out)
 
 
 def _refr_loop():
@@ -237,12 +326,16 @@ def _refr_loop2():
     while 1:
         try:
             global root
-            title = "DEMO TK-EXEC"
+            title = "TK-EXEC"
             data = mc.get("MODES")
             title += "  "+str(data)
             data = json.loads(data)
             #print("MODES",data)
             modes.modes = data
+            if "S-KEY" in data:
+                _global_short_key = 0
+                if data["S-KEY"]:
+                    _global_short_key = 1
             if root:
                 root.title(title)
         except Exception as e:

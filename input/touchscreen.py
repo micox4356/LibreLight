@@ -262,7 +262,7 @@ class Action():
 
         if multipointer_off:
             print(" multipointer ist OFF !")
-            #return
+            return
 
         if len(create) and self.pointer_create_count < 10: # recursion !!
             print(" self.refresh_multipointer_config() # recursion !!!")

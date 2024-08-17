@@ -228,7 +228,7 @@ class Gui(): # DUMMY
             return #STOP
 
         PREFIX = ""
-        for k in ["REC","EDIT"]: #,"DEL","SELECT","FLASH","GO","EDIT"]:
+        for k in []:#:["REC","EDIT","COPY","MOVE","DEL"]: #,"DEL","SELECT","FLASH","GO","EDIT"]:
             if k in modes.modes:
                 PREFIX = str(k) +"-"
                 
@@ -341,27 +341,67 @@ def serialize_event(event):
         data2[k] = data[k] 
     return data2
 
+Control_L = 0
+Alt_L = 0
 def tk_event(event,data={}):
     #print("tk_event",event,data)
+    global Control_L,Alt_L
     if _global_key_lock:
         return
     #print("   ",dir(event)) #.dict())
     data =  serialize_event(event)
 
+    if 'keysym' in data:
+        keysym = data["keysym"]
+        if keysym == 'Control_L':  
+            if "Press" in data["event"]:
+                Control_L = 1
+            if "Release" in data["event"]:
+                Control_L = 1
+        if keysym == 'Alt_L':  
+            if "Press" in data["event"]:
+                Alt_L = 1
+            if "Release" in data["event"]:
+                Alt_L = 1
+
+        data["Alt_L"] = Alt_L
+        data["Control_L"] = Control_L
+        
     print("tk_event",data)
     ok=0
-    if 'keysym' in data:
-        if data['keysym'] == 'End':
-            ok = 1
-            msg=json.dumps([{"event":"FX-OFF"}]).encode("utf-8")
-            cprint("SEND tk_event",msg,color="green")
-            cmd_client.send(msg)
 
-        if data['keysym'] == 'Escape':
+    # CONTROL + KEY
+    key_code = {"s":"SAVE\nSHOW","c":"RESTART" }
+    if 'keysym' in data:
+        keysym = data["keysym"]
+
+        if keysym in key_code:
+            if "Press" in data['event'] and data["Control_L"]:
+                MOD = key_code[keysym]
+                msg=json.dumps([{"event":MOD}]).encode("utf-8")
+                cprint("SEND tk_event",msg,color="green")
+                cmd_client.send(msg)
             ok = 1
-            msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
-            cprint("SEND tk_event",msg,color="green")
-            cmd_client.send(msg)
+
+        if ok:
+            return
+
+    # NORMAL KEY
+    key_code = {"r":"REC","x":"REC-FX","e":"EDIT","c":"CFG-BTN"
+                ,"m":"MOVE","Delete":"DEL","End":"FX-OFF"
+                ,"Escape":"ESC","s":"SELECT","f":"FLASH"
+                ,"C":"COPY","d":"DEL"
+                }
+    if 'keysym' in data:
+        keysym = data["keysym"]
+
+        if keysym in key_code:
+            if "Press" in data['event']:
+                MOD = key_code[keysym]
+                msg=json.dumps([{"event":MOD}]).encode("utf-8")
+                cprint("SEND tk_event",msg,color="green")
+                cmd_client.send(msg)
+            ok = 1
 
     if not ok:
         libtk.tk_keyboard_callback(event,data=data)

@@ -198,7 +198,7 @@ class EXEC(): #Presets():
         exec_set_mc(self.label_exec,self.val_exec)
 
     def check_cfg(self,nr=None):
-        cprint("EXEC.check_cfg()",nr)#,color="red")
+        #cprint("EXEC.check_cfg()",nr)#,color="red")
         ok = 0
         if nr is not None:
             if nr in self.val_exec:
@@ -213,12 +213,12 @@ class EXEC(): #Presets():
         return ok
 
     def _check_cfg(self,sdata):
-        cprint("EXEC._check_cfg()")#,color="red")
+        #cprint("EXEC._check_cfg()")#,color="red")
 
         ok = EXEC_CFG_CHECKER(sdata)
 
         if ok:
-            cprint("REPAIR CFG's",ok,sdata["CFG"],color="red")
+            pass#cprint("REPAIR CFG's",ok,"count:",sdata["CFG"],color="red")
         return ok
         
     def backup_exec(self,save_as="",new=0):
@@ -234,7 +234,7 @@ class EXEC(): #Presets():
         
 
     def get_cfg(self,nr):
-        cprint("EXEC.get_cfg()",nr)
+        #cprint("EXEC.get_cfg()",nr)
         self.check_cfg(nr)
         if nr not in self.val_exec:
             cprint("get_cfg",self,"error get_cfg no nr:",nr,color="red")
@@ -290,7 +290,7 @@ class EXEC(): #Presets():
     def get_raw_map(self,nr):
         self.clean(nr)
 
-        cprint("get_raw_map",nr)
+        #cprint("EXEC.get_raw_map",nr)
         sdata = self.val_exec[nr]
         cmd = ""
         out = []

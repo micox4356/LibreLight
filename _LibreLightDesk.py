@@ -143,6 +143,13 @@ class Modes():
         elif type(data) is str:
             if data in self.__cfg:
                 return self.__cfg[data]
+    def clear(self,protect=[]):
+        protected = ["BLIND"]
+        protected.extend(protect)
+        for m in self.modes:
+            if m in protected:
+                continue
+            self.modes[m] = 0
 
     def set(self,mode,value):
         protected = ["BLIND","CLEAR","REC-FX"]
@@ -1001,16 +1008,18 @@ class MASTER():
             jclient_send(data)
 
     def button_refresh(self,name,color,color2=None,text="",fg=None):
-        cprint("button_refresh",name,color)
-        try:
-            if color2 is None:
-                color2 = color
-            if text:
-                text = "\n"+str(text)
+        #cprint("button_refresh",name,color)
 
-            for elem in [self.commands.elem,self.fx.elem,self.fx_main.elem]:#,self.fx_moves]:
+        if color2 is None:
+            color2 = color
+        if text:
+            text = "\n"+str(text)
+
+        elem=None
+        for elem in [self.commands.elem,self.fx.elem,self.fx_main.elem,self.fx_moves.elem]:
+            try:
                 if name in elem:
-                    print(" in xx.elem OK ",[name,color,name,text,color2])
+                    #print(" in xx.elem OK ",[name,color,name,text,color2])
                     if name in ["BLIND","CLEAR"] and color == "lightgrey":
                         color = "grey"
                         color2 = "grey"
@@ -1021,19 +1030,9 @@ class MASTER():
                     if fg:
                         elem[name]["fg"] = fg
 
-            # new version
-            for elems in [self.fx_moves]:
-                if name in elems.elem:
-                    print(" in fx_moves_elem OK",name)
-                    elem = elems.elem[name]
-                    cprint("elem",elem)
-                    elem.config(bg = color)
-                    elem.config(text = name+text)
-                    elem.config(activebackground=color2)
-            
-                    if fg and "fg" in elem:
-                        elem["fg"] = fg
-        except Exception as e:cprint("exc",self,e)
+            except Exception as e:
+                cprint(" master.button_refresh",self,e)
+                cprint("  ",elem)
 
     def btn_cfg(self,nr,testing=0):
         cfg    = EXEC._btn_cfg(nr) 
@@ -1109,6 +1108,13 @@ class MASTER():
 
         dialog._cb= _cb #_x(nr)
         dialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
+
+    def button_clear(self):
+        modes.clear()
+        txt=""
+        for m in modes.modes:
+            if not modes.modes[m]:
+                self.button_refresh(m,color="lightgrey",text=txt)
 
     def xcb(self,mode,value=None):
         cprint("  Master.xcb mode:",str(mode).rjust(10," "),value,color="yellow",end="")
@@ -1355,9 +1361,9 @@ class MASTER():
         rdata = EXEC.get_raw_map(nr)
         if not rdata:
             return 0
-        cprint("???????")
+        #cprint("???????")
         cfg   = EXEC.get_cfg(nr)
-        cprint("''''''''")
+        #cprint("''''''''")
         #virtcmd  = FIXTURES.get_virtual(rdata)
         if not cfg:
             cprint("NO CFG",cfg,nr)

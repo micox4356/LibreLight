@@ -745,14 +745,12 @@ while 1:
                 if event['scancode'] in [9,41]:
                     for k in table_draw:
                         t = table[k]
-                        #t.btn2.clean()
                         t.btn1.clean()
                     for k in table_grid_draw:
                         t = table_grid[k]
-                        #t.btn2.clean()
                         t.btn1.clean()
 
-                    msg=json.dumps([{"event":"CLEAR"}]).encode("utf-8")
+                    msg=json.dumps([{"event":"ESC"}]).encode("utf-8")
                     print("ESC",msg)
                     cmd_client.send(msg)
 

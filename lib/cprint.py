@@ -32,5 +32,9 @@ def cprint(*text,color="blue",space=" ",end="\n"):
     txt += '\033[0m'
     print(txt,end=end)
     #return txt
-    sys.stdout.flush() # to grep output
+    try:
+        sys.stdout.flush() # to grep output
+    except BrokenPipeError as e:
+        print("BROKEN PIPE ERROR CPRINT = EXIT")
+        #exit()
 

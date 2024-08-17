@@ -24,24 +24,24 @@ if mc:
 
         #x = mc.get("EXEC-INDEX") #,json.dumps(index))
         x = mc.get("EXEC-META-"+str(i)) #,json.dumps(index))
-        print( i, json.loads(x) )
+        #print( i, json.loads(x) )
 
         #for j in json.loads(x):
         #    y = mc.get(i) #,json.dumps(index))
         #   print(i,len(y))
         #break
-print()
+#print()
 i=77-1
 x = mc.get("EXEC-META-"+str(i)) #,json.dumps(index))
-print( i, json.loads(x) )
+#print( i, json.loads(x) )
 i=80-1
 x = mc.get("EXEC-META-"+str(i)) #,json.dumps(index))
-print( i, json.loads(x) )
-print()
+#print( i, json.loads(x) )
+#print()
 
-print(start- time.time())
+#print(start- time.time())
 import sys
-nr=0
+nr=1
 if len(sys.argv) >= 2:
     try:
         nr=int(sys.argv[1])
@@ -49,16 +49,20 @@ if len(sys.argv) >= 2:
 #y = mc.get("EXEC-"+str(nr)) #,json.dumps(index))
 y = mc.get("EXEC-"+str(nr)) #,json.dumps(index))
 if y:
-    print(len(y))
+    # print(len(y))
     try:
-        print(json.loads(y))
+        pass
+        #print(json.loads(y))
     except Exception as e:
         print("ERR",e)
-
-k = "EXEC-META-"+str(nr)
+print()
+k = "EXEC-META-"+str(nr-1)
 y = mc.get(k) #,json.dumps(index))
+print(y)
+print()
 y = json.loads(y)
-y["LABEL"]=str(int(y["LABEL"])+100)
-print([k,y])
-y = mc.set(k,json.dumps(y)) #,json.dumps(index))
+print(k,y)
+#y["LABEL"]=str(int(y["LABEL"])+100)
+#print([k,y])
+#y = mc.set(k,json.dumps(y)) #,json.dumps(index))
 #y = mc.set("EXEC-META-"+str(nr),y) #,json.dumps(index))

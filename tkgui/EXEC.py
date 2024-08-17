@@ -12,8 +12,12 @@ DIALOG = dialog.Dialog()
 #d = dialog.Dialog()
 #d.ask_exec_config(str(nr+1),button=button,label=label,cfg=cfg)
 
+CAPTION = "TK-EXEC"
+title = CAPTION
+
 import __main__ as MAIN
 
+_file_path = "/opt/LibreLight/Xdesk/"
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 
 INIT_OK = 1
@@ -23,6 +27,10 @@ from lib.cprint import cprint
 import tkgui.draw as draw
 import lib.libtk as libtk
 import lib.zchat as chat
+
+import tool.movewin as movewin
+#movewin.check_is_started(CAPTION,_file_path)
+movewin.check_is_started("EXEC","/opt/LibreLight/Xdesk/tkgui/EXEC.py")
 
 _global_short_key = 1
 root = None
@@ -95,9 +103,12 @@ class Gui(): # DUMMY
     def __init__(self):
         self.elem_exec = []
         self.elem_meta = [None]*512
+        self.METAS = []
+        for i in range(512):
+            self.METAS.append({})
 
     def _refresh_exec(self,*arg,**args):
-        print("EXEC_Gui._refresh_exec",arg,args)
+        #print("EXEC_Gui._refresh_exec",arg,args)
 
         nr = 14-1
 
@@ -111,8 +122,21 @@ class Gui(): # DUMMY
             except Exception as e:
                 print("  ER1R mc...",e)
 
+        self.METAS = METAS
 
         for nr,b in enumerate( self.elem_exec): #[nr]
+            self._refresh_exec_single(nr,b,METAS)
+
+    def _refresh_exec_single(self,nr,b,METAS=None):
+            if not METAS:
+                try:
+                    data = mc.get("EXEC-META-"+str(nr)) #,json.dumps(index))
+                    data = json.loads(data)
+                    self.METAS[nr] = data #.append(data)
+                except Exception as e:
+                    print("  ER1R mc...",e)
+
+                METAS = self.METAS
             _bg = "grey"
             _ba = "grey"
             _bg = "grey"
@@ -129,18 +153,16 @@ class Gui(): # DUMMY
             out["fg"] = _fg
             out["text"] = _text #"? "+str(nr+1)
 
-            META = {'LABEL': 'ERR', 'LEN': 2, 'CFG': {}}
-            META["CFG"] = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100,
-                         'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
+            META = {'LABEL': 'ERR',  'CFG': {}}
+            META["CFG"] = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100
+                           ,'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0
+                           ,'FIX-COUNT':0 ,'HAVE-FX':0,'HAVE-VAL':0
+                         }
             
             try: 
                 META = METAS[nr]
-                label = "{} {} {}\n{}".format(nr+1,META["CFG"]["BUTTON"],META["LEN"],META["LABEL"])
+                label = "{} {} {}\n{}".format(nr+1,META["CFG"]["BUTTON"],META["CFG"]["FIX-COUNT"],META["LABEL"])
                 out["text"] = str(label)
-                LEN = META["LEN"] #int(label.split("\n")[0].split()[-1])
-                if LEN: # >= 3:
-                    _bg = "orange" #yellow"
-                    _fg = "black" #grey"
 
             except Exception as e:
                 print("  ER4R",e,nr)
@@ -150,8 +172,10 @@ class Gui(): # DUMMY
             except:
                 pass
 
+            if  META["CFG"]["FIX-COUNT"]: 
+                _fg = "black"
                 
-            if META["LEN"]:
+            if  META["CFG"]["HAVE-VAL"]: 
                 _fg = "black"
                 _bg = "gold"
                 _ba = "#ffaa55"
@@ -187,8 +211,7 @@ class Gui(): # DUMMY
 
     def exec_go(self,*arg,**args):
         print("Gui.exec_go",arg,args)
-        #print(" ",dir(arg))
-        #print(" ",self)
+
         btn_nr = arg[0]
         v=args["val"]
         if "CFG-BTN" in modes.modes:
@@ -202,10 +225,23 @@ class Gui(): # DUMMY
                 label = META["LABEL"]
                 button = cfg["BUTTON"]
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
-            return 
-        msg=json.dumps([{"event":"EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
+            return #STOP
+
+        PREFIX = ""
+        for k in ["REC","EDIT"]: #,"DEL","SELECT","FLASH","GO","EDIT"]:
+            if k in modes.modes:
+                PREFIX = str(k) +"-"
+                
+
+        msg=json.dumps([{"event":PREFIX+ "EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
         cprint("SEND GUI.EXEC_GO",msg,color="green")
         cmd_client.send(msg)
+        if "REC" in PREFIX:
+            time.sleep(0.2)
+            print("REC REFRESH !?")
+            nr = btn_nr
+            b = self.elem_exec[nr]
+            self._refresh_exec_single(nr,b) #,METAS):
 
 gui  = Gui()
  
@@ -220,8 +256,42 @@ gui  = Gui()
 #    time.sleep(1)
 
 
+import lib.libwin as libwin
+name="EXEC"
+pos_list = libwin.read_window_position()
+geo = libwin.split_window_position(pos_list,name)
+args = {"title":name,"master":0,"width":600,"height":113,"left":30+5,"top":30+5+400*2+10}
+if geo:
+   args.update(geo)
 
 root = tk.Tk()
+
+win_title="TK-EXEC"
+store = movewin.load_all_sdl(win_title)
+print(store)
+W=850
+H=460
+POS=None
+if store:
+    W = store[-4]
+    H = store[-3]
+    POS=[store[-2],store[-1]]
+
+
+root.geometry('%dx%d+%d+%d' % (W, H, POS[0],POS[1]))
+
+#win_con = movewin.Control()
+#win_con.title = win_title
+#def asdf(event=None):
+#    time.sleep(3)
+#    win_con.winfo()
+#    if POS:
+#        #print(" REPOS ---")
+#        win_con.move(POS[0],POS[1])
+#thread.start_new_thread(asdf,())
+#print(POS,win_con.title)
+
+
 
 #root.withdraw() # do not draw
 #root.resizable(1,1)
@@ -243,7 +313,7 @@ except Exception as e:
 xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,foot=None)
 draw.draw_exec(gui,xframe,EXEC)
 #xframe.pack()
-root.title("TK-EXEC 2")
+root.title("TK-EXEC")
 
 def serialize_event(event):
     data = {}
@@ -256,15 +326,29 @@ def serialize_event(event):
         if type(v) not in [int,str,float]:
             continue
         data[k] = v
-    return data
+
+    data["event"] = str(event).split()[0][1:]
+    if "state" in data:
+        del data["state"]
+    if "time" in data:
+        del data["time"]
+    if "serial" in data:
+        del data["serial"]
+    keys = list(data.keys())
+    keys.sort()
+    data2={}
+    for k in keys:
+        data2[k] = data[k] 
+    return data2
 
 def tk_event(event,data={}):
-    print("tk_event",event,data)
+    #print("tk_event",event,data)
     if _global_key_lock:
         return
     #print("   ",dir(event)) #.dict())
     data =  serialize_event(event)
-    print("   ",data)
+
+    print("tk_event",data)
     ok=0
     if 'keysym' in data:
         if data['keysym'] == 'End':
@@ -318,17 +402,16 @@ def _refr_loop():
     time.sleep(3)
     while 1:
         gui._refresh_exec()
-        time.sleep(3)
+        time.sleep(0.2)
 thread.start_new_thread(_refr_loop,())
 
 def _refr_loop2():
     time.sleep(3)
     while 1:
         try:
-            global root
-            title = "TK-EXEC"
+            global root,title
             data = mc.get("MODES")
-            title += "  "+str(data)
+            title2 = title +"  "+str(data)
             data = json.loads(data)
             #print("MODES",data)
             modes.modes = data
@@ -337,7 +420,7 @@ def _refr_loop2():
                 if data["S-KEY"]:
                     _global_short_key = 1
             if root:
-                root.title(title)
+                root.title(title2)
         except Exception as e:
             print("  ER7R mc...",e)
             time.sleep(3)

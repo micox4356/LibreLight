@@ -96,6 +96,17 @@ def EXEC_CFG_CHECKER(sdata):
     if "FADE" not in sdata["CFG"]:
         sdata["CFG"]["FADE"] = 4
         ok += 1
+
+    if "HAVE-FX" not in sdata["CFG"]:
+        sdata["CFG"]["HAVE-FX"] = 0
+    if "HAVE-VAL" not in sdata["CFG"]:
+        sdata["CFG"]["HAVE-VAL"] = 0
+    if "FIX-COUNT" not in sdata["CFG"]:
+        sdata["CFG"]["FIX-COUNT"] = 0
+
+    if "DEALY" in sdata["CFG"]: # REMOVE TYPO ! 
+        del sdata["CFG"]["DEALY"]
+
     if "DELAY" not in sdata["CFG"]:
         sdata["CFG"]["DELAY"] = 0
         ok += 1
@@ -130,28 +141,39 @@ def EXEC_CFG_CHECKER(sdata):
     return ok
 
 import time
+
 def exec_set_mc(excec_labels,exec_data):
     l = excec_labels
     d = exec_data
     
-    if mc:
-        index=[]
-        for i,v in enumerate(l):
-            key="EXEC-"+str(i) 
-            mc.set(key,json.dumps(d[v]))
-            index.append(key)
+    if not mc:
+        #cprint("MC not connected !")
+        return 
 
-            key2="EXEC-META-"+str(i) 
-            cfg = {'FADE': 3.0, 'DEALY': 0, 'DELAY': 4.0, 'BUTTON': 'ON', 'HTP-MASTER': 100
-                    , 'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0}
-            if "CFG" in d[v]:
-                cfg = d[v]["CFG"]
-            mc.set(key2,json.dumps({"LABEL":l[i],"LEN":len(d[v])-1,"CFG":cfg}) )
-            #mc.set(key2,json.dumps({"label":l[i],"LEN":len(d[v])-1,"CFG":cfg}) )
-        mc.set("EXEC-INDEX",json.dumps(index))
-        print("---------------------------------------")
-        #,start - time.time())
-        #
+    index=[]
+    for i,k in enumerate(l):
+        nr = i
+        data = d[k]
+        label=l[nr]
+
+        exec_set_mc_single(nr,label,data)
+    #print("--------------exec_set_mc-------EXEC-META---------------------")
+
+def exec_set_mc_single(nr,label,data):
+    #data = d[v]
+    key="EXEC-"+str(nr) 
+    mc.set(key,json.dumps(data))
+
+    key2="EXEC-META-"+str(nr) 
+    cfg = {'FADE': 2.0, 'DELAY': 0, 'BUTTON': 'GO', 'HTP-MASTER': 100
+            ,'SIZE-MASTER': 100, 'SPEED-MASTER': 100, 'OFFSET-MASTER': 100, 'OUT-FADE': 10.0
+            ,'HAVE-FX': 0, 'HAVE-VAL': 0, 'FIX-COUNT': 11
+          }
+
+    if "CFG" in data:
+        cfg.update(data["CFG"])
+        mc.set(key2,json.dumps({"LABEL":label,"CFG":cfg}) )
+
 
 class EXEC(): #Presets():
     def __init__(self):
@@ -416,7 +438,7 @@ class EXEC(): #Presets():
         return ok
 
     def rec(self,nr,data,arg=""):
-        cprint("rec",self,"rec()",len(data),arg)
+        cprint("rec",self,"rec()",len(data),arg,color="red")
         self.check_cfg(nr)
         self._check_cfg(data) #by ref
 

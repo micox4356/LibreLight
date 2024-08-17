@@ -123,6 +123,9 @@ class Modes():
             return self.set(mode,value)
         elif mode in self.modes:
             return self.modes[mode]
+    def info(self):
+        for m in self.modes:
+            print("modes",m,self.val(m))
     def get(self,mode,value=None):
         return self.val(mode,value)
     def __check(self,mode):
@@ -804,6 +807,9 @@ class cb():
         cprint(color)
         cprint( hex_to_rgb(color[1:]))
 
+
+import copy
+
 def get_exec_btn_cfg(nr):
     k = nr
     if 1:
@@ -830,9 +836,9 @@ def get_exec_btn_cfg(nr):
         fx_color = 0
         if k in EXEC.val_exec and len(EXEC.val_exec[k]) :
             sdata = EXEC.val_exec[k]
-            sdata["CFG"]["HAVE-FX"] = 0
-            sdata["CFG"]["HAVE-VAL"] = 0
-            sdata["CFG"]["FIX-COUNT"] = 0
+            have_fx  = 0
+            have_val = 0
+            fix_count = 0
 
             BTN="go"
             if "CFG" in sdata:#["BUTTON"] = "GO"
@@ -848,23 +854,28 @@ def get_exec_btn_cfg(nr):
                     if fix == "CFG":
                         continue
 
-                    sdata["CFG"]["FIX-COUNT"] += 1
+                    fix_count += 1
 
                     for attr in sdata[fix]:
+                        if attr.startswith("_"):
+                            continue
                         if "FX2" in sdata[fix][attr]:
                             if sdata[fix][attr]["FX2"]:
                                 fx_color = 1
+                                have_fx  += 1
                         if "FX" in sdata[fix][attr]:
                             if sdata[fix][attr]["FX"]:
                                 fx_color = 1
+                                have_fx  += 1
                         if "VALUE" in sdata[fix][attr]:
                             if sdata[fix][attr]["VALUE"] is not None:
                                 val_color = 1
+                                have_val += 1
                     
-                if val_color:
-                    sdata["CFG"]["HAVE-VAL"] += 1
-                if fx_color:
-                    sdata["CFG"]["HAVE-FX"] += 1
+                #if val_color:
+                #    have_val += 1
+                #if fx_color:
+                #    have_fx  += 1
 
 
                 if val_color:
@@ -878,6 +889,10 @@ def get_exec_btn_cfg(nr):
             else:
                 _bg = "grey"
                 _ba = "#aaa"
+
+            sdata["CFG"]["HAVE-FX"]   = have_fx  
+            sdata["CFG"]["HAVE-VAL"]  = have_val 
+            sdata["CFG"]["FIX-COUNT"] = fix_count 
 
 
         if "\n" in txt:
@@ -992,28 +1007,30 @@ class MASTER():
                 color2 = color
             if text:
                 text = "\n"+str(text)
-            if name in self.commands.elem:
-                self.commands.elem[name]["bg"] = color
-                self.commands.elem[name]["text"] = name+ text
-                self.commands.elem[name].config(activebackground=color2)
-                if fg:
-                    self.commands.elem[name]["fg"] = fg
-            elif name in self.fx.elem:
-                #todo
-                self.fx.elem[name]["bg"] = color
-                self.fx.elem[name].config(activebackground=color2)
-                if fg:
-                    self.fx.elem[name]["fg"] = fg
+
+            for elem in [self.commands.elem,self.fx.elem,self.fx_main.elem]:#,self.fx_moves]:
+                if name in elem:
+                    print(" in xx.elem OK ",[name,color,name,text,color2])
+                    if name in ["BLIND","CLEAR"] and color == "lightgrey":
+                        color = "grey"
+                        color2 = "grey"
+
+                    elem[name]["bg"] = color
+                    elem[name]["text"] = name+ text
+                    elem[name].config(activebackground=color2)
+                    if fg:
+                        elem[name]["fg"] = fg
 
             # new version
             for elems in [self.fx_moves]:
                 if name in elems.elem:
+                    print(" in fx_moves_elem OK",name)
                     elem = elems.elem[name]
                     cprint("elem",elem)
                     elem.config(bg = color)
                     elem.config(text = name+text)
                     elem.config(activebackground=color2)
-
+            
                     if fg and "fg" in elem:
                         elem["fg"] = fg
         except Exception as e:cprint("exc",self,e)
@@ -1094,13 +1111,14 @@ class MASTER():
         dialog.askstring("LABEL","EXE:"+str(nr+1),initialvalue=txt)
 
     def xcb(self,mode,value=None):
-        cprint("MODE CALLBACK",mode,value,color="green",end="")
+        cprint("  Master.xcb mode:",str(mode).rjust(10," "),value,color="yellow",end="")
         if value:
-            cprint("===== ON  ======",color="red")
+            cprint("===== ON  ======",color="green")
             txt = ""
             if mode == "REC-FX":
-                modes.val("REC",0)
-                modes.val("REC",1)
+                modes.modes["REC"] = 1 # HACK !
+                self.button_refresh("REC",color="red",text=txt)#,fg="blue")
+                self.button_refresh(mode,color="red",text=txt)#,fg="blue")
             if value == 2:
                 if mode in ["MOVE","COPY"]:
                     txt="to"
@@ -1111,9 +1129,13 @@ class MASTER():
                 self.button_refresh(mode,color="red",text=txt)#,fg="blue",text="from")
         else:
             cprint("===== OFF ======",color="red")
+            if mode == "REC":
+                modes.val("REC-FX",0)
             if mode == "REC-FX":
-                modes.val("REC",0)
+                modes.modes["REC"] = 0 # HACK !
+                self.button_refresh("REC",color="lightgrey")#,fg="black")
             self.button_refresh(mode,color="lightgrey")#,fg="black")
+        #modes.info()
 
     def load(self,fname=""):
         pass
@@ -1131,15 +1153,19 @@ class MASTER():
         
         self._XX +=1
         self._nr_ok = 0
-
+        ERR=""
         for nr in EXEC.val_exec: 
             cfg = get_exec_btn_cfg(nr)
-
-            b = self.elem_exec[nr]
-            b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
-
-
+            try:
+                b = self.elem_exec[nr]
+                b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
+            except Exception as e:
+                ERR="EXEC WINDOW DOES NOT EXIST !"
+                #cprint(" ERR MASTER._refresh_exec:",e,color="red")
+        #if ERR:
+        #    cprint(" ERR MASTER._refresh_exec:",ERR,color="red")
         time.sleep(0.01)
+
     def refresh_fix(self):
         refresher_fix.reset() # = tkrefresh.Refresher()
     def _refresh_fix(self):
@@ -1279,17 +1305,21 @@ class MASTER():
 
     def exec_rec(self,nr):
         cprint("------- STORE EXEC")
-        data = fixlib.get_active(FIXTURES.fixtures)
+        _filter=""
         if modes.val("REC-FX"):
-            EXEC.rec(nr,data,"REC-FX")
-            modes.val("REC-FX",0)
-        else:
-            EXEC.rec(nr,data)
+            _filter="ONLY-FX"
+
+        data = fixlib.get_active(FIXTURES.fixtures,_filter=_filter)
+        EXEC.rec(nr,data)
             
         sdata=data
         EXEC.val_exec[nr] = sdata
         
-        master._refresh_exec()
+        modes.val("REC-FX",0)
+        modes.val("REC",0)
+        
+        cfg = get_exec_btn_cfg(nr)
+        #master._refresh_exec()
         return 1
 
 
@@ -1650,6 +1680,7 @@ def refresh_exec_mc():
     time.sleep(10)
     while 1:
         try:
+            pass#
             execlib.exec_set_mc(EXEC.label_exec,EXEC.val_exec)
         except Exception as e:
             print("refresh_exec_mc ERR",e)
@@ -1723,11 +1754,22 @@ def open_sdl_window():
 
 thread.start_new_thread(open_sdl_window,())
 
-
 mc_fix = MC_FIX()
 def mc_fix_loop():
+    global master
     time.sleep(5)
+    c=0
     while 1:
+        try:
+            if c >= 1:
+                #master._refresh_exec()
+                c=0
+                for nr in EXEC.val_exec: 
+                    cfg = get_exec_btn_cfg(nr)
+        except Exception as e:
+            print("MC_FIX EXCEPTION",e)
+            #raise e
+        c+=1
         try:
             data = FIXTURES.fixtures 
             mc_fix.set(index="fix",data=data)
@@ -1750,6 +1792,11 @@ if __run_main:
     HTB = 23 # hight of the titlebar from window manager
 
     pos_list = libwin.read_window_position()
+    #geo = libwin.split_window_position(pos_list,name)
+    #args = {"title":name,"master":0,"width":600,"height":113,"left":L1+5,"top":TOP+5+HTB*2+H1}
+    #geo = libwin.split_window_position(pos_list,name)
+    #if geo:
+    #   args.update(geo)
     
 
     data = []

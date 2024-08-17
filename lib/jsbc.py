@@ -76,7 +76,8 @@ def JSCB(x,sock=None):
                     MAIN.modes.val("REC",1)
                     OK = 1
                 elif "FX-OFF" == msg["event"]:
-                    MAIN.modes.val("FX-OFF",1)
+                    #MAIN.modes.val("FX-OFF",1)
+                    MAIN.CONSOLE.fx_off("all") #"FX-OFF",1)
                     #OK = 1
                 elif "SAVE\nSHOW" == msg["event"]:
                     MAIN.save_show()
@@ -88,8 +89,29 @@ def JSCB(x,sock=None):
                 elif "REC-FX" == msg["event"]:
                     MAIN.modes.val("REC-FX",1)
                     OK = 1
+                elif "REC-EXEC" == msg["event"]:
+                    print("  JSCB.REC-EXEC")
+                    val = -1
+                    exec_nr = -1
+                    try:
+                        if "VAL" in msg:
+                            val = int(msg["VAL"])
+                        if "EXEC" in msg:
+                            exec_nr = int(msg["EXEC"])
+
+                        if val >= 1 and exec_nr > 0: # VAL >=1 !!!
+                            print(" EXEC_GOOO",exec_nr)
+                            s = time.time()
+                            MAIN.master.exec_rec(exec_nr-1)
+                            e = time.time()
+                            print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
+                            print()
+                            OK = 1
+                    except Exception as e:
+                        print("REC-EXEC ERR:",[e])
+                        raise e
                 elif "EXEC" == msg["event"]:
-                    print("  EXEC EXEC")
+                    print("  JSCB.EXEC")
                     val = -1
                     exec_nr = -1
                     try:
@@ -102,9 +124,6 @@ def JSCB(x,sock=None):
                             s = time.time()
                             MAIN.master.exec_go(exec_nr-1,xfade=None,val=val)
                             e = time.time()
-                            #print("time:",e-s,e)
-                            #print("TIME:",int((e-s)*1000),int(e*10)-1_703_800_000)
-                            #print("TIME:",int((e-s)*1000),int(e*10)/10)
                             print("EXE TIME:","{:0.02f}".format(e-s),int(e*100)/100)
                             print()
                             OK = 1
@@ -113,6 +132,8 @@ def JSCB(x,sock=None):
             
                 if OK:
                     cprint(" remote-key:",msg ,color="green")
+                    if "REC-EXEC" in msg["event"]:
+                        MAIN.execlib.exec_set_mc(MAIN.EXEC.label_exec,MAIN.EXEC.val_exec)
                 else:
                     cprint(" remote-key:",msg ,color="red")
     except Exception as e:

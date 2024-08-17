@@ -434,9 +434,9 @@ class tk_event_fx():
                 cprint("2D-X: CHANGE",MAIN.fx_prm,color="red")
                 txt = "2D-X:" 
                 MAIN.fx_prm["2D:MODE"] += 1
-                if MAIN.fx_prm["2D:MODE"] >= len(fx_x_modes):
+                if MAIN.fx_prm["2D:MODE"] >= len(MAIN.fx_x_modes):
                     MAIN.fx_prm["2D:MODE"]=0
-                txt = "2D:MODE\n"+fx_x_modes[MAIN.fx_prm["2D:MODE"]]
+                txt = "2D:MODE\n"+MAIN.fx_x_modes[MAIN.fx_prm["2D:MODE"]]
 
                 MAIN.master.fx.elem["2D:MODE"]["text"] = txt
             elif event.num == 5:
@@ -444,8 +444,8 @@ class tk_event_fx():
                 txt = "2D-X:" 
                 MAIN.fx_prm["2D:MODE"] -= 1
                 if MAIN.fx_prm["2D:MODE"] < 0:
-                    MAIN.fx_prm["2D:MODE"]= len(fx_x_modes)-1
-                txt = "2D:MODE\n"+fx_x_modes[MAIN.fx_prm["2D:MODE"]]
+                    MAIN.fx_prm["2D:MODE"]= len(MAIN.fx_x_modes)-1
+                txt = "2D:MODE\n"+MAIN.fx_x_modes[MAIN.fx_prm["2D:MODE"]]
                 MAIN.master.fx.elem["2D:MODE"]["text"] = txt
 
         elif event.num == 1:
@@ -473,7 +473,8 @@ class tk_event_fx():
 
 
     def command(self,event,mode=""):       
-        cprint("fx_command",self.mode)
+        cprint("tkevent.tk_event_fx.command")
+        cprint(" ",self.mode)
         if self.mode == "FX":
             prm = MAIN.fx_prm
             ct = self.data.fx 
@@ -511,7 +512,7 @@ class tk_event_fx():
                 if prm[k] == 6: #bug
                     prm[k] =5
                 ct.elem[self.attr]["text"] = "SIZE:\n{:0.0f}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("SPEED:"):#SIN":
                 #global prm
                 k = "SPEED"
@@ -551,7 +552,7 @@ class tk_event_fx():
                     ct.elem[self.attr]["text"] = "SPEED:\noff".format(prm[k])
                 else:
                     ct.elem[self.attr]["text"] = "SPEED:\n{:0.02f}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("START:"):#SIN":
                 #global prm
                 k = "START"
@@ -575,7 +576,7 @@ class tk_event_fx():
                     prm[k] =5
 
                 ct.elem[self.attr]["text"] = "START:\n{:0.0f}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("WIDTH:"):#SIN":
                 #global prm
                 k = "WIDTH"
@@ -631,7 +632,7 @@ class tk_event_fx():
                     prm[k] =100
 
                 ct.elem[self.attr]["text"] = "WIDTH:\n{:0.0f}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("DIR:"):#SIN":
                 #global prm
                 k = "DIR"
@@ -645,7 +646,7 @@ class tk_event_fx():
                     prm[k] =-1
                 txt = prm[k] 
                 ct.elem[self.attr]["text"] = "DIR:\n{}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("SHUFFLE:"):#SIN":
                 #global prm
                 k = "SHUFFLE"
@@ -660,7 +661,7 @@ class tk_event_fx():
                 if prm[k] == 6: #bug ?
                     prm[k] =5
                 ct.elem[self.attr]["text"] = k+":\n{}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("INVERT:"):#SIN":
                 #global prm
                 k = "INVERT"
@@ -675,7 +676,7 @@ class tk_event_fx():
                 if prm[k] == 6: #bug ?
                     prm[k] =5
                 ct.elem[self.attr]["text"] = k+":\n{}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("2D-X:"):#SIN":
                 #global prm
                 k = "2D-X"
@@ -694,7 +695,7 @@ class tk_event_fx():
                     
                 txt = prm[k] 
                 ct.elem[self.attr]["text"] = "2D-X:\n{}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("WING:"):#SIN":
                 #global prm
                 k = "WING"
@@ -713,7 +714,7 @@ class tk_event_fx():
                     
                 txt = prm[k] 
                 ct.elem[self.attr]["text"] = "WING:\n{}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("OFFSET:"):#SIN":
                 #global prm
                 k = "OFFSET"
@@ -739,7 +740,7 @@ class tk_event_fx():
                     prm[k] =5
 
                 ct.elem[self.attr]["text"] = "OFFSET:\n{:0.0f}".format(prm[k])
-                cprint(prm)
+                cprint("  ",prm)
             elif self.attr.startswith("BASE:"):
                 k = "BASE"
                 if event.num == 1:
@@ -766,13 +767,15 @@ class tk_event_fx():
 
                 #if event.num == 1:
             elif self.attr == "REC-FX":
-                cprint("ELSE",self.attr)
+                cprint("  ",self.attr)
                 MAIN.modes.val(self.attr,1)
+                #MAIN.modes.val(self.attr,1)
+                #MAIN.modes.val("REC",1)
 
             return 0
             
     def cb(self,event):
-        cprint("EVENT_fx cb",self.attr,self.mode,event,color='yellow')
+        cprint("tkevent.EVENT_fx.cb:",self.attr,self.mode,event,color='yellow')
         cprint(["type",event.type,"num",event.num])
         try:
             change = 0

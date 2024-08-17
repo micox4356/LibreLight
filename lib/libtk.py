@@ -338,6 +338,7 @@ class BLINKI():
         self.e = e
     def blink(self):
         e = self.e
+        bg = e["bg"]
         e.config(bg='green')
         duration = 150
         for i in range(8):
@@ -350,8 +351,8 @@ class BLINKI():
                 e.after(d, lambda: e.config(activebackground='orange')) # after 1000ms
         i+=1
         duration = 150
-        e.after(d, lambda: e.config(bg='white')) # after 1000ms
-        e.after(d, lambda: e.config(activebackground='white')) # after 1000ms
+        e.after(d, lambda: e.config(bg=bg)) # after 1000ms
+        e.after(d, lambda: e.config(activebackground=bg)) # after 1000ms
 
 class on_focus():
     def __init__(self,name,mode):
@@ -576,6 +577,7 @@ class WindowContainer():
 
         #self._event_clear = MAIN.tk_event(fix=0,elem=None,attr="CLEAR",data=self,mode="ROOT").cb
         self.tk.geometry(geo)
+        print(" INIT.OK?",self.callback,self.args)
         self.show()
 
     def update_idle_task(self):

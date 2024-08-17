@@ -330,7 +330,7 @@ def get_dmx(fixtures,fix,attr):
                 return DMX
     return -199
 
-def get_active(fixtures):
+def get_active(fixtures,_filter=""): #_filter only-fx
     cprint("get_active",id(fixtures))
     CFG = OrderedDict()
 
@@ -352,10 +352,11 @@ def get_active(fixtures):
             if attr not in sdata[fix]:
                 sdata[fix][attr] = OrderedDict()
 
-                if not MAIN.modes.val("REC-FX"):
-                    sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
-                else:
+                if "ONLY-FX" in _filter:
+                    cprint( "          ONLY FX !!!     -------------------- ")
                     sdata[fix][attr]["VALUE"] = None 
+                else:
+                    sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]
 
                 if "FX" not in data["ATTRIBUT"][attr]: 
                      data["ATTRIBUT"][attr]["FX"] = ""

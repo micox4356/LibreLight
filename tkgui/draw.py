@@ -44,7 +44,7 @@ def draw_command(gui,xframe,data):
         v=0
         
         b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        if comm not in gui.commands.elem:
+        if 1:#comm not in gui.commands.elem:
             gui.commands.elem[comm] = b
             gui.commands.val[comm] = 0
         if comm == "BLIND":
@@ -159,7 +159,6 @@ def draw_exec(gui,xframe,EXEC):
 
 
 def draw_input(gui,root2):
-
     i=0
     c=0
     r=0
@@ -513,7 +512,7 @@ def _draw_fx(frame,c,r,gui,mode="FX"):
             b = tk.Button(frame,bg="grey", text=str(comm),width=6,height=2)
         else:
             b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        if comm not in ct.elem:
+        if 1:#comm not in ct.elem:
             #comm = comm.replace("\n","")
             ct.elem[comm] = b
             ct.val[comm] = 0
@@ -659,7 +658,7 @@ def draw_setup(gui,xframe,data):
         else: #empty
             b = tk.Button(frame,bg="grey", text="",width=6,height=2)
 
-        if comm not in gui.commands.elem:
+        if 1:# comm not in gui.commands.elem:
             gui.setup_elem[comm] = b
             #gui.setup_elem.val[comm] = 0
 
@@ -689,6 +688,8 @@ def draw_setup(gui,xframe,data):
 
 
 def draw_live(gui,xframe,data):
+    cprint("CREATE: draw_live")
+    cprint(" ",gui,xframe,data)
     frame_cmd=xframe
     i=0
     c=0
@@ -697,8 +698,9 @@ def draw_live(gui,xframe,data):
     frame = tk.Frame(frame_cmd,bg="black")
     frame.pack(fill="both",expand=1, side="left")#tk.TOP)
    
-    c+=1
-    for comm in ["FADE","DELAY","PAN/TILT\nFADE","PAN/TILT\nDELAY"]:
+    comms=["FADE","DELAY","PAN/TILT\nFADE","PAN/TILT\nDELAY","-","-"]
+
+    for comm in comms:
         if comm == "\n":
             c=0
             r+=1
@@ -706,7 +708,7 @@ def draw_live(gui,xframe,data):
         v=0
         
         b = tk.Button(frame,bg="lightgrey", text=str(comm),width=6,height=2)
-        if comm not in gui.commands.elem:
+        if 1:#comm not in gui.commands.elem:
             gui.commands.elem[comm] = b
             gui.commands.val[comm] = 0
         b.bind("<Button>",tkevent.tk_event(fix=0,elem=b,attr=comm,data=gui,mode="LIVE").cb)
@@ -724,7 +726,7 @@ def draw_live(gui,xframe,data):
         if comm:
             b.grid(row=r, column=c, sticky=tk.W+tk.E)
         c+=1
-        if c >=5:
+        if c >=7:
             c=0
             r+=1
 

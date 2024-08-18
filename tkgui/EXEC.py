@@ -9,12 +9,32 @@ import _thread as thread
 
 import dialog
 DIALOG = dialog.Dialog()
+
+gui=None
+GLOBAL_old_btn_nr = -1
 def Dcb(exec_nr):
     def _Dcb(*args):
+        global GLOBAL_old_btn_nr 
         print("Dcb:",args)
         msg=json.dumps([{"event":"EXEC-CFG","EXEC":exec_nr,"VALUE":255,"DATA":args[0]}]).encode("utf-8")
         cprint("SEND DIALOG.cb",msg,color="green")
         cmd_client.send(msg)
+        if 1:#REFRESH:
+            btn_nr = exec_nr
+            time.sleep(0.8)
+            print()
+            print("CFG CB REFRESH !?",btn_nr)
+            nr = btn_nr-1
+            b = gui.elem_exec[nr]
+
+            gui._refresh_exec_single(nr,b) #,METAS):
+            time.sleep(0.2)
+            nr2= GLOBAL_old_btn_nr
+            if nr2 >= 0 and nr2 != nr:
+                gui._refresh_exec_single(nr2,b) #,METAS):
+                print("CFG CB2 REFRESH ",nr,nr2)
+            if 1:
+                GLOBAL_old_btn_nr = nr
     return _Dcb
 
 DIALOG._cb = Dcb(-3)
@@ -149,6 +169,8 @@ class Gui(): # DUMMY
                     data = mc.get("EXEC-META-"+str(nr)) #,json.dumps(index))
                     data = json.loads(data)
                     self.METAS[nr] = data #.append(data)
+                    print(time.time())
+                    print(" _REFRESH_EXEC_SINGLE",nr,b,data)
                 except Exception as e:
                     print("  ER1R mc...",e)
 
@@ -243,6 +265,7 @@ class Gui(): # DUMMY
                 DIALOG._cb = Dcb(btn_nr+1)
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
                 #print("INFO",master.commands.elem)
+
             return #STOP
 
         PREFIX = ""
@@ -256,11 +279,13 @@ class Gui(): # DUMMY
                 REFRESH = 1
 
         msg=json.dumps([{"event": "EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
-        cmd_client.send(msg)
+        if not _global_key_lock:
+            cmd_client.send(msg)
         cprint("SEND GUI.EXEC_GO",msg,color="green")
 
         if 1:#REFRESH:
             time.sleep(0.2)
+            print()
             print("REC REFRESH !?",PREFIX)
             nr = btn_nr
             b = self.elem_exec[nr]

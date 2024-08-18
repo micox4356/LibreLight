@@ -10,7 +10,9 @@ from lib.cprint import *
 import lib.fixlib as fixlib
 
 
+GLOBAL_old_exec_nr = -1
 def JSCB(x,sock=None):
+    global GLOBAL_old_exec_nr 
     print()
     # REMOTE KEY EVENT's
     i = ""
@@ -40,8 +42,10 @@ def JSCB(x,sock=None):
                     except:
                         exec_nr = -2
                 if "VAL" in msg:
-                    val = msg["VAL"]
-                
+                    try:
+                        val = int(msg["VAL"]) # fix int MIDI
+                    except:pass
+
                 if "FIX" in msg:
                     fix_nr=msg["FIX"]
                 if "ATTR" in msg:
@@ -131,10 +135,11 @@ def JSCB(x,sock=None):
 
 
                             if not OK:
+                                print("MIDI?",val)
                                 if val >= 0: #Press/Release
                                     MAIN.master.exec_go(exec_nr-1,xfade=None,val=val)
                                     OK = 1
-                                    EXEC_REFRESH = 1
+                                    #EXEC_REFRESH = 1
 
                     except Exception as e:
                         print("EXEC ERR:",e)
@@ -146,7 +151,22 @@ def JSCB(x,sock=None):
                     print()
                     if EXEC_REFRESH:
                         def xx():
-                            MAIN.execlib.exec_set_mc(MAIN.EXEC.label_exec,MAIN.EXEC.val_exec)
+                            #MAIN.execlib.exec_set_mc(MAIN.EXEC.label_exec,MAIN.EXEC.val_exec)
+                            nr = exec_nr-1
+                            label = MAIN.EXEC.label_exec[nr] #l[nr]
+                            data  = MAIN.EXEC.val_exec[nr] #d[k]
+                            print(" EXEC_REFRESH ? ",nr,label,"==================")
+                            MAIN.execlib.exec_set_mc_single(nr,label,data)
+                            print(time.time())
+
+                            global GLOBAL_old_exec_nr
+                            nr2 = GLOBAL_old_exec_nr
+                            if nr2 != nr and nr2 >= 0:
+                                label = MAIN.EXEC.label_exec[nr2] #l[nr]
+                                cprint(" GLOBAL_OLD_EXEC_NR",nr2,nr,label,"==================")
+                                data  = MAIN.EXEC.val_exec[nr2] #d[k]
+                                MAIN.execlib.exec_set_mc_single(nr2,label,data)
+                            GLOBAL_old_exec_nr = nr
                         thread.start_new_thread(xx,())
                 else:
                     cprint(" remote-key:",msg ,color="red")

@@ -1049,12 +1049,15 @@ class MASTER():
                 if "Button" in  data and type(data["Button"]) is str:
                     txt = data["Button"]
                     EXEC.btn_cfg(nr,txt)
-                    self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
+
+                    if nr in self.elem_exec: #[nr].configure(text= EXEC.get_btn_txt(nr))
+                        self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
 
                 if "Label" in  data and type(data["Label"]) is str:
                     txt = data["Label"]
                     EXEC.label(nr,txt) 
-                    self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
+                    if nr in self.elem_exec:
+                        self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
 
                 if "Delay" in  data and type(data["Delay"]) is str:
                     txt = data["Delay"]
@@ -2392,6 +2395,8 @@ if __run_main:
         finally:
             print()
             print()
+            cmd="xset -display :0.0 r rate 240 20"
+            os.system(cmd)
             cprint(" - EXIT -",color="red")
             BASE_PATH = "/opt/LibreLight/Xdesk/"
             movewin.process_kill(BASE_PATH+"tksdl/")

@@ -595,7 +595,7 @@ class WindowContainer():
         try:
             self.tk.destroy()
         except Exception as e:
-            cprint("WindowContainer.close err",e,color="red")
+            cprint("WindowContainer.close ERR",[e],color="red")
 
     def title(self,title=None):
         if title is None:

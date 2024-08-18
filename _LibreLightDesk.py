@@ -502,7 +502,7 @@ def message_buss_loop():
         except Exception as e:
             cprint("--2 message_buss_loop Exc:",[e])
             time.sleep(2)
-        time.sleep(0.5)
+        time.sleep(0.2)
 
 thread.start_new_thread(message_buss_loop,())
 
@@ -1034,12 +1034,12 @@ class MASTER():
                 cprint(" master.button_refresh",self,e)
                 cprint("  ",elem)
 
-    def btn_cfg(self,nr,testing=0):
-        cfg    = EXEC._btn_cfg(nr) 
-        button = EXEC.btn_cfg(nr) 
-        label  = EXEC.label(nr) 
-
+    def dialog_cfg_return(self,nr):
+        # buffer nr
         def _cb(data):
+            cfg    = EXEC._btn_cfg(nr) 
+            button = EXEC.btn_cfg(nr) 
+            label  = EXEC.label(nr) 
             if not data:
                 cprint("err443",self,"_cb",data)
                 return None
@@ -1084,7 +1084,14 @@ class MASTER():
 
             modes.val("CFG-BTN",0)
             master._refresh_exec(nr=nr)
-        dialog._cb = _cb
+        return _cb
+
+    def btn_cfg(self,nr,testing=0):
+        cfg    = EXEC._btn_cfg(nr) 
+        button = EXEC.btn_cfg(nr) 
+        label  = EXEC.label(nr) 
+
+        dialog._cb = self.dialog_cfg_return(nr) # return cb()
 
         if 1: # testing:
             dialog.ask_exec_config(str(nr+1),button=button,label=label,cfg=cfg)
@@ -1310,7 +1317,7 @@ class MASTER():
         cprint("fix:",_XXX,round(time.time()-s),color="red"); _XXX += 1
 
     def exec_rec(self,nr):
-        cprint("------- STORE EXEC")
+        cprint("Master.exec_rec","-- EXEC RECORD ------------------------------")
         _filter=""
         if modes.val("REC-FX"):
             _filter="ONLY-FX"
@@ -1327,10 +1334,18 @@ class MASTER():
         cfg = get_exec_btn_cfg(nr)
         #master._refresh_exec()
         return 1
-
+    def exec_edit(self,nr):
+        cprint("Master.exec_edit","-- EXEC EDIT ------------------------------")
+        fixlib.clear(MAIN.FIXTURES.fixtures)
+        self.exec_select(nr)
+        event=None
+        self.exec_go(nr,xfade=0,event=event,val=255,button="go")
+        modes.val("EDIT", 0)
+        master.refresh_fix()
+        refresher_fix.reset() # = tkrefresh.Refresher()
 
     def exec_select(self,nr):
-        cprint("SELECT EXEC")
+        cprint("Master.exec_select","-- EXEC SELECT ------------------------------")
         sdata = EXEC.val_exec[nr]
         cmd = ""
         for fix in sdata:
@@ -1356,22 +1371,21 @@ class MASTER():
         if ptfade is None and FADE_move._is():
             ptfade = FADE_move.val()
 
-        cprint("GO EXEC FADE",nr,val)
+        print()
+        cprint("Master.exec_go","-- EXEC GO FADE -----",nr,val)
 
         rdata = EXEC.get_raw_map(nr)
         if not rdata:
             return 0
-        #cprint("???????")
+
         cfg   = EXEC.get_cfg(nr)
-        #cprint("''''''''")
-        #virtcmd  = FIXTURES.get_virtual(rdata)
         if not cfg:
-            cprint("NO CFG",cfg,nr)
+            cprint(" NO CFG",cfg,nr)
             return 0
 
         xFLASH = 0
         value=None
-        cprint("exec_go",nr,cfg)
+        cprint(" exec_go",nr,cfg)
         if modes.val("SELECT") or ( "BUTTON" in cfg and cfg["BUTTON"] == "SEL") and val and not button: #FLASH
             self.exec_select(nr)
         elif modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL") and not button: #FLASH
@@ -1390,9 +1404,9 @@ class MASTER():
                         xfade=cfg["OUT-FADE"]
 
 
-            cprint("exec_go() FLUSH",value,color="red")
+            cprint(" exec_go() FLUSH",value,color="red")
             #print(";",rdata)
-            print(";",cfg)
+            print(" cfg:",cfg)
             fcmd  = FIXTURES.update_raw(rdata,update=0)
             #print(":",fcmd) # raw dmx
             self._exec_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,nr=nr)
@@ -1405,10 +1419,10 @@ class MASTER():
         elif button == "go" or ( modes.val("GO") or ( "BUTTON" in cfg and cfg["BUTTON"] in ["go","GO"])): 
             fcmd  = FIXTURES.update_raw(rdata)
             e=time.time()
-            print("_GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
+            #print("_GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
             self._exec_go(rdata,cfg,fcmd,value,xfade=xfade,xFLASH=xFLASH,ptfade=ptfade,nr=nr)
             e=time.time()
-            print("GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
+            #print("GO TIME:","{:0.02f}".format(e-s),int(e*10)/10)
         return
 
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH

@@ -11,6 +11,7 @@ import lib.fixlib as fixlib
 
 
 def JSCB(x,sock=None):
+    print()
     # REMOTE KEY EVENT's
     i = ""
     msg = ""
@@ -72,38 +73,62 @@ def JSCB(x,sock=None):
                     MAIN.save_show()
                     OK = 1
                 elif "RESTART" == msg["event"]:
-                    print("OK OK")
+                    print("jsbc.RESTART")
                     MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
                     OK = 1
+                elif "EXEC-CFG" == msg["event"]:
+                    print("EXEC-CFG",msg)
+                    if 1:#val >= 1: # only Press
+                        if "DATA" in msg:
+                            sdata = msg["DATA"]
+                            print("EXEC-CFG",sdata)
+                            if sdata:
+                                MAIN.master.dialog_cfg_return(exec_nr-1)(sdata)
+                                #MAIN.EXEC.set_cfg(exec_nr-1,sdata)
+                                EXEC_REFRESH = 1
+                    msg["OK"] = "SET-CFG"
+                    OK = 1
                 elif "EXEC" == msg["event"]:
-                    print("  JSCB:",msg["event"])
+                    print("jscb.JSCB:",msg["event"])
                     try:
                         if exec_nr > 0:
-                            if val >= 1: # only Press
-                                pass
-                                if MAIN.modes.val("REC"):
+
+                            if MAIN.modes.val("REC"):
+                                if val >= 1: # only Press
                                     MAIN.master.exec_rec(exec_nr-1)
-                                    msg["OK"] = "REC"
                                     EXEC_REFRESH = 1
-                                    OK = 1
-                                elif MAIN.modes.val("COPY"):
+                                msg["OK"] = "REC"
+                                OK = 1
+                            elif MAIN.modes.val("EDIT"):
+                                if val >= 1: # only Press
+                                    MAIN.master.exec_edit(exec_nr-1)
+                                    EXEC_REFRESH = 1
+                                msg["OK"] = "EDIT"
+                                OK = 1
+                            elif MAIN.modes.val("COPY"):
+                                if val >= 1: # only Press
                                     MAIN.EXEC.copy(exec_nr-1)
-                                    msg["OK"] = "COPY"
                                     if MAIN.modes.val("COPY") > 2:
                                         MAIN.modes.val("COPY",0)
                                     EXEC_REFRESH = 1
-                                    OK = 1
-                                elif MAIN.modes.val("MOVE"):
+                                msg["OK"] = "COPY"
+                                OK = 1
+                            elif MAIN.modes.val("MOVE"):
+                                if val >= 1: # only Press
                                     MAIN.EXEC.move(exec_nr-1)
-                                    msg["OK"] = "MOVE"
                                     EXEC_REFRESH = 1
-                                    OK = 1
-                                elif MAIN.modes.val("DEL"):
+                                msg["OK"] = "MOVE"
+                                OK = 1
+                            elif MAIN.modes.val("DEL"):
+                                if val >= 1: # only Press
                                     MAIN.EXEC.delete(exec_nr-1)
                                     MAIN.modes.val("DEL",0)
-                                    msg["OK"] = "DEL"
                                     EXEC_REFRESH = 1
-                                    OK = 1
+                                msg["OK"] = "DEL"
+                                OK = 1
+
+
+
 
                             if not OK:
                                 if val >= 0: #Press/Release
@@ -113,16 +138,19 @@ def JSCB(x,sock=None):
 
                     except Exception as e:
                         print("EXEC ERR:",e)
+                        raise e
 
             
                 if OK:
                     cprint(" remote-key:",msg ,color="green")
+                    print()
                     if EXEC_REFRESH:
                         def xx():
                             MAIN.execlib.exec_set_mc(MAIN.EXEC.label_exec,MAIN.EXEC.val_exec)
                         thread.start_new_thread(xx,())
                 else:
                     cprint(" remote-key:",msg ,color="red")
+                    print()
     except Exception as e:
         cprint("exception JSCB:",e,color="red")
         cprint("- i:",i,color="red")

@@ -367,7 +367,7 @@ class on_focus():
         if self.mode == "Out":
             cmd="xset -display :0.0 r rate 240 20"
             #print(cmd)
-            os.system(cmd)
+            #os.system(cmd) # DISABLE !
             try:
                 e["bg"] = "#aaa"
                 e["activebackground"] = "#aaa"

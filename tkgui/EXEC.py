@@ -9,6 +9,15 @@ import _thread as thread
 
 import dialog
 DIALOG = dialog.Dialog()
+def Dcb(exec_nr):
+    def _Dcb(*args):
+        print("Dcb:",args)
+        msg=json.dumps([{"event":"EXEC-CFG","EXEC":exec_nr,"VALUE":255,"DATA":args[0]}]).encode("utf-8")
+        cprint("SEND DIALOG.cb",msg,color="green")
+        cmd_client.send(msg)
+    return _Dcb
+
+DIALOG._cb = Dcb(-3)
 #d = dialog.Dialog()
 #d.ask_exec_config(str(nr+1),button=button,label=label,cfg=cfg)
 
@@ -50,11 +59,16 @@ class Refresher(): # DUMMY
         print(self,"__init__",arg,args)
     def reset(*arg,**args):
         print(self,"reset",arg,args)
-    
+
+class Command():
+    def __init__(self):
+        self.elem = {}
+
 class MASTER(): # DUMMY
     def __init__(self,*arg,**args):
         print(self,"__init__",arg,args)
         #self.refresh_fix = Refresher()
+        self.commands = Command()
     def refresh_fix(self,*arg,**args):# = Refresher()
         print(self,"refresh_fix",arg,args)
     def exec_go(self,nr,*arg,**args): #val=None,xfade=None,event=None,button="",ptfade=None):
@@ -103,6 +117,7 @@ class Gui(): # DUMMY
     def __init__(self):
         self.elem_exec = []
         self.elem_meta = [None]*512
+        self.old_btn_nr = -1
         self.METAS = []
         for i in range(512):
             self.METAS.append({})
@@ -126,6 +141,7 @@ class Gui(): # DUMMY
 
         for nr,b in enumerate( self.elem_exec): #[nr]
             self._refresh_exec_single(nr,b,METAS)
+            #time.sleep(0.001)
 
     def _refresh_exec_single(self,nr,b,METAS=None):
             if not METAS:
@@ -224,24 +240,40 @@ class Gui(): # DUMMY
                 cfg = META["CFG"]
                 label = META["LABEL"]
                 button = cfg["BUTTON"]
+                DIALOG._cb = Dcb(btn_nr+1)
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
+                #print("INFO",master.commands.elem)
             return #STOP
 
         PREFIX = ""
-        for k in []:#:["REC","EDIT","COPY","MOVE","DEL"]: #,"DEL","SELECT","FLASH","GO","EDIT"]:
+        REFRESH = 0
+        for k in ["REC","EDIT","COPY","MOVE","DEL","REC-FX"]:#,"SELECT","FLASH","GO","EDIT"]:
             if k in modes.modes:
-                PREFIX = str(k) +"-"
-                
+                PREFIX = str(k) #+"-"
 
-        msg=json.dumps([{"event":PREFIX+ "EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
-        cprint("SEND GUI.EXEC_GO",msg,color="green")
+        for k in ["REC","COPY","MOVE","DEL","REC-FX"]:
+            if k in modes.modes:
+                REFRESH = 1
+
+        msg=json.dumps([{"event": "EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
         cmd_client.send(msg)
-        if "REC" in PREFIX:
+        cprint("SEND GUI.EXEC_GO",msg,color="green")
+
+        if 1:#REFRESH:
             time.sleep(0.2)
-            print("REC REFRESH !?")
+            print("REC REFRESH !?",PREFIX)
             nr = btn_nr
             b = self.elem_exec[nr]
+
             self._refresh_exec_single(nr,b) #,METAS):
+            time.sleep(0.4)
+            if self.old_btn_nr >= 0 and self.old_btn_nr  != nr:
+                self._refresh_exec_single(self.old_btn_nr,b) #,METAS):
+                print(" REFRESH EXEC ",nr,self.old_btn_nr)
+            #time.sleep(0.2)
+            #self._refresh_exec()
+            if v:
+                self.old_btn_nr = nr
 
 gui  = Gui()
  
@@ -357,12 +389,12 @@ def tk_event(event,data={}):
             if "Press" in data["event"]:
                 Control_L = 1
             if "Release" in data["event"]:
-                Control_L = 1
+                Control_L = 0
         if keysym == 'Alt_L':  
             if "Press" in data["event"]:
                 Alt_L = 1
             if "Release" in data["event"]:
-                Alt_L = 1
+                Alt_L = 0
 
         data["Alt_L"] = Alt_L
         data["Control_L"] = Control_L
@@ -381,7 +413,9 @@ def tk_event(event,data={}):
                 msg=json.dumps([{"event":MOD}]).encode("utf-8")
                 cprint("SEND tk_event",msg,color="green")
                 cmd_client.send(msg)
-            ok = 1
+                if MOD in ["RESTART"]:
+                    exit()
+                ok = 1
 
         if ok:
             return
@@ -432,7 +466,7 @@ def focus_out(event=None):
     _global_short_key = 0
     cmd="xset -display :0.0 r rate 240 20"
     print("FOCUS_OUT", cmd)
-    os.system(cmd)
+    #os.system(cmd) # DISABLED 
 
 root.bind("<FocusIn>", focus_in)
 root.bind("<FocusOut>", focus_out)
@@ -442,7 +476,8 @@ def _refr_loop():
     time.sleep(3)
     while 1:
         gui._refresh_exec()
-        time.sleep(0.2)
+        time.sleep(10)
+
 thread.start_new_thread(_refr_loop,())
 
 def _refr_loop2():
@@ -464,7 +499,7 @@ def _refr_loop2():
         except Exception as e:
             print("  ER7R mc...",e)
             time.sleep(3)
-        time.sleep(0.5)
+        time.sleep(0.1)
 
 thread.start_new_thread(_refr_loop2,())
 

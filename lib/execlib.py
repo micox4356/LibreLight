@@ -241,6 +241,26 @@ class EXEC(): #Presets():
             return {}
         if "CFG" in self.val_exec[nr]:
             return self.val_exec[nr]["CFG"]
+    def set_cfg(self,nr,sdata):
+        cprint("EXEC.set_cfg()",nr,color="yellow")
+        cprint(" ",sdata,color="yellow")
+        #self.check_cfg(nr)
+        if nr < 0:
+            return {}
+        if nr not in self.val_exec:
+            cprint(" get_cfg",self,"error get_cfg no nr:",nr,color="red")
+            return {}
+        if "CFG" in self.val_exec[nr]:
+            print("   ",self.val_exec[nr]["CFG"] )
+            print("   ",sdata)
+            # OrderedDict([('FADE', 4), ('HAVE-FX', 0), ('HAVE-VAL', 0), ('FIX-COUNT', 0), ('DELAY', 0), 
+            #('BUTTON', 'GO'), ('HTP-MASTER', 100), ('SIZE-MASTER', 100), ('SPEED-MASTER', 100), ('OFFSET-MASTER', 100)])
+
+            r=EXEC_CFG_CHECKER(sdata)
+            print("   ",sdata)
+            self.val_exec[nr]["CFG"] = sdata
+            if "Label" in sdata:
+                self.label_exec[nr] = sdata["Label"]
 
     def clean(self,nr):
         

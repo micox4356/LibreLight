@@ -331,7 +331,7 @@ def get_dmx(fixtures,fix,attr):
     return -199
 
 def get_active(fixtures,_filter=""): #_filter only-fx
-    cprint("get_active",id(fixtures))
+    cprint("fixlib.get_active",_filter)
     CFG = OrderedDict()
 
     sdata = OrderedDict()
@@ -353,7 +353,7 @@ def get_active(fixtures,_filter=""): #_filter only-fx
                 sdata[fix][attr] = OrderedDict()
 
                 if "ONLY-FX" in _filter:
-                    cprint( "          ONLY FX !!!     -------------------- ")
+                    #cprint( "          ONLY FX !!!     -------------------- ")
                     sdata[fix][attr]["VALUE"] = None 
                 else:
                     sdata[fix][attr]["VALUE"] = data["ATTRIBUT"][attr]["VALUE"]

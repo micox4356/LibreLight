@@ -148,7 +148,7 @@ def draw_exec(gui,xframe,EXEC):
             gui.elem_exec[k] = b
         b.grid(row=r, column=c, sticky=tk.W+tk.E)
 
-        b.config(text="xx")
+        b.config(text="xx"+str(i))
         c+=1
         if c >=10:
             c=0

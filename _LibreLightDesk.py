@@ -999,7 +999,6 @@ class MASTER():
                 ,"SELECT","FLASH","GO","-","MOVE","S-KEY","\n"
                 ,"BLIND","CLEAR","REC","EDIT","COPY",".","\n" 
                 ]
-        self.elem_exec = {}
         
         for i in range(8*8*8):
             if i not in EXEC.val_exec:
@@ -1010,6 +1009,7 @@ class MASTER():
                 EXEC.label_exec[i] = "-"
 
         modes.set_cb(self.xcb)
+
 
     def jclient_send(self,data):
         # namespace wraper
@@ -1043,13 +1043,6 @@ class MASTER():
                 cprint(" master.button_refresh",self,e)
                 cprint("  ",elem)
 
-    def config_exec_update_text(self,nr):
-        if nr in self.elem_exec:
-            try:
-                self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
-            except: # _tkinter.TclError as e:
-                pass
-
     def dialog_cfg_return(self,nr):
         # buffer nr
         def _cb(data):
@@ -1065,12 +1058,10 @@ class MASTER():
                 if "Button" in  data and type(data["Button"]) is str:
                     txt = data["Button"]
                     EXEC.btn_cfg(nr,txt)
-                    self.config_exec_update_text(nr)
 
                 if "Label" in  data and type(data["Label"]) is str:
                     txt = data["Label"]
                     EXEC.label(nr,txt) 
-                    self.config_exec_update_text(nr)
 
                 if "Delay" in  data and type(data["Delay"]) is str:
                     txt = data["Delay"]
@@ -1124,7 +1115,6 @@ class MASTER():
             cprint("label._cb()",nr,txt)
             if txt:
                 EXEC.label(nr,txt) 
-                self.elem_exec[nr].configure(text = EXEC.get_btn_txt(nr))
             modes.val("LABEL", 0)
 
             master._refresh_exec(nr=nr)
@@ -1185,14 +1175,6 @@ class MASTER():
         ERR=""
         for nr in EXEC.val_exec: 
             cfg = get_exec_btn_cfg(nr)
-            try:
-                b = self.elem_exec[nr]
-                b.configure(fg=cfg["fg"],bg=cfg["bg"],activebackground=cfg["ba"],text=cfg["text"],fx=cfg["fx"])
-            except Exception as e:
-                ERR="EXEC WINDOW DOES NOT EXIST !"
-                #cprint(" ERR MASTER._refresh_exec:",e,color="red")
-        #if ERR:
-        #    cprint(" ERR MASTER._refresh_exec:",ERR,color="red")
         time.sleep(0.01)
 
     def refresh_fix(self):
@@ -1444,16 +1426,7 @@ class MASTER():
         if not (modes.val("FLASH") or ( "BUTTON" in cfg and cfg["BUTTON"] == "FL")): #FLASH
             self.refresh_exec()
             self.refresh_fix()
-        
-        #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
-        #print(len(self.elem_exec) )
-        if len(self.elem_exec) > nr: # RED BUTTON IF PRESSED
-            #print("IIIIIIIIIIIiiiiiiiiiiiiiiiiiii",nr,val)
-            if val:# or value:
-                #self.elem_exec[nr].config(borderwidth=1)
-                self.elem_exec[nr].config(bg="red")
-            else:
-                self._refresh_exec()
+
         cprint("exec_go",time.time()-t_start)
 
     def _exec_go(self,rdata,cfg,fcmd,value=None,xfade=None,event=None,xFLASH=0,ptfade=0,nr=None):
@@ -1843,7 +1816,8 @@ if __run_main:
     data.append({"text":"DIMMER"})
     data.append({"text":"FIXTURES"})
     data.append({"text":"FIX-LIST"})
-    data.append({"text":"EXEC","name":"EXEC-BTN"})
+    #data.append({"text":"EXEC-BTN","name":"EXEC-BTN"})
+    data.append({"text":"TK-EXEC","name":"EXEC-BTN"})
     data.append({"text":"EXEC-WING"})
     data.append({"text":"---"})
     data.append({"text":"SETUP"})
@@ -1865,7 +1839,8 @@ if __run_main:
     data.append({"text":"---"})
     data.append({"text":"- DEMO -"})
     data.append({"text":"---"})
-    data.append({"text":"TK-EXEC"})
+    #data.append({"text":"TK-EXEC"})
+    #data.append({"text":"EXEC-BTN","name":"EXEC-BTN"})
     data.append({"text":"SDL-STAGE"})
     data.append({"text":"SDL-Shader"})
     data.append({"text":"TABLE"})
@@ -1898,26 +1873,27 @@ if __run_main:
 
 
     # =======================================================================
-    name="EXEC"
-    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
-    geo = libwin.split_window_position(pos_list,name)
-    if geo:
-        args.update(geo)
+    if 0:
+        name="EXEC-BTN"
+        args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+        geo = libwin.split_window_position(pos_list,name)
+        if geo:
+            args.update(geo)
 
-    data  = EXEC
-    cls   = draw_exec #GUI_ExecWingLayout
-    cb_ok = None #set_exec_fader_all
-    
+        data  = EXEC
+        cls   = draw_exec #GUI_ExecWingLayout
+        cb_ok = None #set_exec_fader_all
+        
 
-    c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
-    window_manager.new(None,name,wcb=c)
-    if libwin.split_window_show(pos_list,_filter=name):
-        window_manager.top(name)
+        c = libtk.window_create_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+        window_manager.new(None,name,wcb=c)
+        if libwin.split_window_show(pos_list,_filter=name):
+            window_manager.top(name)
 
 
-    #print(dir(cls))
-    #print(cls)
-    #sys.exit()
+        #print(dir(cls))
+        #print(cls)
+        #sys.exit()
     # =======================================================================
     name="SDL-MIDI"
     def sdl_config():

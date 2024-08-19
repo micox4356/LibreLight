@@ -134,12 +134,13 @@ def get_store_sdl_line():
     #print("-> def",inspect.currentframe().f_code.co_name,"-"*10)
     lines = winfo2(name="SDL-")
     lines.extend( winfo2(name="TK-"))
+    lines.extend( winfo2(name="EXEC-BTN"))
     out_lines=[]
     for line in lines:
         t=line[2].split()
         for k in t:
             k = k.replace(" ", "_")
-            if "SDL-" in k or "TK-" in k:
+            if "SDL-" in k or "TK-" in k or "EXEC-BTN" in k:
                 s=line[-2]
                 p=line[-1]
 
@@ -215,11 +216,11 @@ def startup_all_sdl():
                         cmd=cmd.format("fix.py")
                         #r=os.popen(cmd)
                         start_sub(cmd,"SDL-FIX",mute=1)
-                    elif line[1] == "TK-EXEC":
+                    elif line[1] == "EXEC-BTN":
                         cmd = "python3 /opt/LibreLight/Xdesk/tkgui/{}"
-                        cmd=cmd.format("EXEC.py")
+                        cmd=cmd.format("EXEC-BTN.py")
                         #r=os.popen(cmd)
-                        start_sub(cmd,"TK-EXEC",mute=1)
+                        start_sub(cmd,"EXEC-BTN",mute=1)
                 except json.decoder.JSONDecodeError as e:
                     cprint("ERR",e,color="red")
             time.sleep(0.3)

@@ -35,7 +35,7 @@ movewin.check_is_started(CAPTION,_file_path)
 print(store)
 W=500
 H=100
-POS=None
+POS=[20,20]
 print()
 print("title:",win_title)
 if store:

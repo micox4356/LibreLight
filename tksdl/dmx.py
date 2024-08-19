@@ -27,7 +27,7 @@ store = movewin.load_all_sdl(win_title)
 print(store)
 W=850
 H=460
-POS=None
+POS=[10,10]
 if store:
     W = store[-4]
     H = store[-3]

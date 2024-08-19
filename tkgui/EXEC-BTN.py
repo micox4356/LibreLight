@@ -55,7 +55,7 @@ sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 import tool.git as git
 #CAPTION += git.get_all()
 
-CAPTION = "TK-EXEC"
+CAPTION = "EXEC-BTN"
 title = CAPTION
 title += git.get_all()
 
@@ -138,7 +138,7 @@ def draw_exec(gui,xframe,EXEC):
 
 import tool.movewin as movewin
 #movewin.check_is_started(CAPTION,_file_path)
-movewin.check_is_started("EXEC","/opt/LibreLight/Xdesk/tkgui/EXEC.py")
+movewin.check_is_started("EXEC-BTN","/opt/LibreLight/Xdesk/tkgui/EXEC-BTN.py")
 
 _global_short_key = 1
 root = None
@@ -421,12 +421,12 @@ if geo:
 
 root = tk.Tk()
 
-win_title="TK-EXEC"
+win_title="EXEC-BTN"
 store = movewin.load_all_sdl(win_title)
 print(store)
 W=850
 H=460
-POS=None
+POS=[10,10]
 if store:
     W = store[-4]
     H = store[-3]
@@ -469,7 +469,7 @@ xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,f
 #draw.draw_exec(gui,xframe,EXEC)
 draw_exec(gui,xframe,EXEC)
 #xframe.pack()
-root.title(title)#"TK-EXEC")
+root.title(title) #"TK-EXEC")
 
 def serialize_event(event):
     data = {}

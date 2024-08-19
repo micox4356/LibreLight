@@ -1817,7 +1817,7 @@ if __run_main:
     data.append({"text":"FIXTURES"})
     data.append({"text":"FIX-LIST"})
     #data.append({"text":"EXEC-BTN","name":"EXEC-BTN"})
-    data.append({"text":"TK-EXEC","name":"EXEC-BTN"})
+    data.append({"text":"EXEC-BTN","name":"EXEC-BTN"})
     data.append({"text":"EXEC-WING"})
     data.append({"text":"---"})
     data.append({"text":"SETUP"})
@@ -2018,9 +2018,9 @@ if __run_main:
         window_manager.top(name)
 
     # =======================================================================
-    name="TK-EXEC"
+    name="EXEC-BTN" #"TK-EXEC"
     def sdl_config():
-        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkgui/EXEC.py " #&"
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkgui/EXEC-BTN.py " #&"
         print(cmd)
 
         def xyz123(cmd):

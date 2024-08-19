@@ -23,7 +23,7 @@ def Dcb(exec_nr): #DAILOG CONFIG CALLBACK
             global GLOBAL_old_btn_nr 
             if 1:#REFRESH:
                 btn_nr = exec_nr
-                time.sleep(0.8)
+                time.sleep(1.2)
                 print()
                 print("CFG CB REFRESH !?",btn_nr)
                 nr = btn_nr-1

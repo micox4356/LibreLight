@@ -1043,6 +1043,13 @@ class MASTER():
                 cprint(" master.button_refresh",self,e)
                 cprint("  ",elem)
 
+    def config_exec_update_text(self,nr):
+        if nr in self.elem_exec:
+            try:
+                self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
+            except: # _tkinter.TclError as e:
+                pass
+
     def dialog_cfg_return(self,nr):
         # buffer nr
         def _cb(data):
@@ -1058,15 +1065,12 @@ class MASTER():
                 if "Button" in  data and type(data["Button"]) is str:
                     txt = data["Button"]
                     EXEC.btn_cfg(nr,txt)
-
-                    if nr in self.elem_exec: #[nr].configure(text= EXEC.get_btn_txt(nr))
-                        self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
+                    self.config_exec_update_text(nr)
 
                 if "Label" in  data and type(data["Label"]) is str:
                     txt = data["Label"]
                     EXEC.label(nr,txt) 
-                    if nr in self.elem_exec:
-                        self.elem_exec[nr].configure(text= EXEC.get_btn_txt(nr))
+                    self.config_exec_update_text(nr)
 
                 if "Delay" in  data and type(data["Delay"]) is str:
                     txt = data["Delay"]

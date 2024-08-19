@@ -152,7 +152,7 @@ def JSCB(x,sock=None):
 
             
                 if OK:
-                    cprint(" remote-key:",msg ,color="green")
+                    cprint(" jsbc.remote-key:",msg ,color="green")
                     print()
                     if EXEC_REFRESH:
                         def xx():
@@ -174,7 +174,7 @@ def JSCB(x,sock=None):
                             GLOBAL_old_exec_nr = nr
                         thread.start_new_thread(xx,())
                 else:
-                    cprint(" remote-key:",msg ,color="red")
+                    cprint(" jsbc.remote-key:",msg ,color="red")
                     print()
     except Exception as e:
         cprint("exception JSCB:",e,color="red")

@@ -7,47 +7,55 @@ import tkinter as tk
 import traceback
 import _thread as thread
 
+
 import dialog
 DIALOG = dialog.Dialog()
 
 gui=None
 GLOBAL_old_btn_nr = -1
-def Dcb(exec_nr):
+def Dcb(exec_nr): #DAILOG CONFIG CALLBACK
     def _Dcb(*args):
-        global GLOBAL_old_btn_nr 
         print("Dcb:",args)
         msg=json.dumps([{"event":"EXEC-CFG","EXEC":exec_nr,"VALUE":255,"DATA":args[0]}]).encode("utf-8")
         cprint("SEND DIALOG.cb",msg,color="green")
         cmd_client.send(msg)
-        if 1:#REFRESH:
-            btn_nr = exec_nr
-            time.sleep(0.8)
-            print()
-            print("CFG CB REFRESH !?",btn_nr)
-            nr = btn_nr-1
-            b = gui.elem_exec[nr]
+        def _X_refresh():
+            global GLOBAL_old_btn_nr 
+            if 1:#REFRESH:
+                btn_nr = exec_nr
+                time.sleep(0.8)
+                print()
+                print("CFG CB REFRESH !?",btn_nr)
+                nr = btn_nr-1
+                b = gui.elem_exec[nr]
 
-            gui._refresh_exec_single(nr,b) #,METAS):
-            time.sleep(0.2)
-            nr2= GLOBAL_old_btn_nr
-            if nr2 >= 0 and nr2 != nr:
-                gui._refresh_exec_single(nr2,b) #,METAS):
-                print("CFG CB2 REFRESH ",nr,nr2)
-            if 1:
-                GLOBAL_old_btn_nr = nr
+                gui._refresh_exec_single(nr,b) #,METAS):
+                time.sleep(0.2)
+                nr2= GLOBAL_old_btn_nr
+                if nr2 >= 0 and nr2 != nr:
+                    gui._refresh_exec_single(nr2,b) #,METAS):
+                    print("CFG CB2 REFRESH ",nr,nr2)
+                if 1:
+                    GLOBAL_old_btn_nr = nr
+        thread.start_new_thread(_X_refresh,())
     return _Dcb
 
 DIALOG._cb = Dcb(-3)
 #d = dialog.Dialog()
 #d.ask_exec_config(str(nr+1),button=button,label=label,cfg=cfg)
 
-CAPTION = "TK-EXEC"
-title = CAPTION
 
 import __main__ as MAIN
 
 _file_path = "/opt/LibreLight/Xdesk/"
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
+
+import tool.git as git
+#CAPTION += git.get_all()
+
+CAPTION = "TK-EXEC"
+title = CAPTION
+title += git.get_all()
 
 INIT_OK = 1
 IS_GUI = 0
@@ -56,6 +64,7 @@ from lib.cprint import cprint
 import tkgui.draw as draw
 import lib.libtk as libtk
 import lib.zchat as chat
+
 
 import tool.movewin as movewin
 #movewin.check_is_started(CAPTION,_file_path)
@@ -278,12 +287,30 @@ class Gui(): # DUMMY
             if k in modes.modes:
                 REFRESH = 1
 
-        msg=json.dumps([{"event": "EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}]).encode("utf-8")
+        print(" ",[arg,args])
+        edata={}
+        if "event" in args:
+            edata =  serialize_event(args["event"])
+        print(" ",edata)
+        num = -1
+        MOUSE = ""
+        out={"event": "EXEC","EXEC":btn_nr+1,"VAL":v,"NR-KEY":btn_nr}
+        if "num" in edata:
+            num = edata["num"]
+            if num == 1:
+                out["MOUSE"]="LEFT"
+            if num == 3:
+                out["MOUSE"]="RIGHT"
+
+        msg=json.dumps([out]).encode("utf-8")
+
         if not _global_key_lock:
             cmd_client.send(msg)
         cprint("SEND GUI.EXEC_GO",msg,color="green")
 
-        if 1:#REFRESH:
+
+        def _X_refresh():
+            #if 1:#REFRESH:
             time.sleep(0.2)
             print()
             print("REC REFRESH !?",PREFIX)
@@ -299,6 +326,7 @@ class Gui(): # DUMMY
             #self._refresh_exec()
             if v:
                 self.old_btn_nr = nr
+        thread.start_new_thread(_X_refresh,())
 
 gui  = Gui()
  
@@ -370,7 +398,7 @@ except Exception as e:
 xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,foot=None)
 draw.draw_exec(gui,xframe,EXEC)
 #xframe.pack()
-root.title("TK-EXEC")
+root.title(title)#"TK-EXEC")
 
 def serialize_event(event):
     data = {}
@@ -439,6 +467,7 @@ def tk_event(event,data={}):
                 cprint("SEND tk_event",msg,color="green")
                 cmd_client.send(msg)
                 if MOD in ["RESTART"]:
+                    time.sleep(2)
                     exit()
                 ok = 1
 

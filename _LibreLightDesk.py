@@ -123,6 +123,15 @@ class Modes():
             return self.set(mode,value)
         elif mode in self.modes:
             return self.modes[mode]
+    def list(self,_filter="all"): # actvie
+        _modes = []
+        for m in self.modes:
+            v = self.val(m)
+            if _filter == "active" and v:
+                _modes.append(m)
+            if _filter == "all": 
+                _modes.append(m)
+        return _modes
     def info(self):
         for m in self.modes:
             print("modes",m,self.val(m))

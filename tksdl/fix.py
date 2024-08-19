@@ -19,6 +19,7 @@ SHIFT_FINE = 0
 sys.path.insert(0,"/opt/LibreLight/Xdesk/")
 import tool.movewin as movewin
 import tool.git as git
+#CAPTION += git.get_all()
 
 
 win_title =CAPTION.strip().split()[-1]

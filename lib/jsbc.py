@@ -137,9 +137,14 @@ def JSCB(x,sock=None):
                             if not OK:
                                 print("MIDI?",val)
                                 if val >= 0: #Press/Release
-                                    MAIN.master.exec_go(exec_nr-1,xfade=None,val=val)
+                                    if "MOUSE" in msg and msg["MOUSE"] == "RIGHT":
+                                        MAIN.master.exec_go(exec_nr-1,xfade=0,val=val)
+                                    else:
+                                        MAIN.master.exec_go(exec_nr-1,xfade=None,val=val)
                                     OK = 1
                                     #EXEC_REFRESH = 1
+
+                            msg["MODES"]=MAIN.modes.list("active")
 
                     except Exception as e:
                         print("EXEC ERR:",e)

@@ -4,6 +4,8 @@ import time
 import sys
 
 import tkinter as tk
+from tkinter import font
+
 import traceback
 import _thread as thread
 
@@ -61,10 +63,78 @@ INIT_OK = 1
 IS_GUI = 0
 from lib.cprint import cprint
 
-import tkgui.draw as draw
+
 import lib.libtk as libtk
 import lib.zchat as chat
 
+import lib.mytklib as mytklib
+import lib.tkevent as tkevent
+
+#import tkgui.draw as draw
+
+def draw_exec(gui,xframe,EXEC):
+    
+    i=0
+    c=0
+    r=0
+    root = xframe
+    
+    frame = tk.Frame(root,bg="black")
+    frame.pack(fill=tk.X, side=tk.TOP)
+
+    gui.elem_exec = {}
+    i=0
+    for k in EXEC.val_exec:
+        if i%(10*8)==0 or i ==0:
+            c=0
+            b = tk.Canvas(frame,bg="black", height=4,bd=0,width=6,highlightthickness=0) #,bd="black")
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            r+=1
+            c=0
+            b = tk.Button(frame,bg="lightblue", text="EXEC " )
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(frame,bg="lightblue", text="BANK " + str(int(i/(8*8))+1) )
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=1
+            b = tk.Button(frame,bg="lightblue", text="NAME"  )
+            b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            c+=7
+            if i == 0:
+                b = tk.Button(frame,bg="darkgrey", text="HELP",command=libtk.online_help("librelight:20-exec")) #"0&do=index"))
+                b.grid(row=r, column=c, sticky=tk.W+tk.E)
+            r+=1
+            c=0
+        i+=1
+        v=0
+        label = ""
+
+        sdata=EXEC.val_exec[k]
+        BTN="go"
+        if "CFG" in sdata:#["BUTTON"] = "GO"
+            if "BUTTON" in sdata["CFG"]:
+                BTN = sdata["CFG"]["BUTTON"]
+
+
+        txt=str(k+1)+":"+str(BTN)+":"+str(len(sdata)-1)+"\n"+label
+
+        b = mytklib.ExecButton(frame,text=txt)
+
+        b.bind("<Button>",       tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="EXEC").cb)
+        b.bind("<ButtonRelease>",tkevent.tk_event(fix=0,elem=b,attr=k,data=gui,mode="EXEC").cb)
+        
+        if k not in gui.elem_exec:
+            gui.elem_exec[k] = b
+        b.grid(row=r, column=c, sticky=tk.W+tk.E)
+
+        b.config(text="xx"+str(i))
+        c+=1
+        if c >=10:
+            c=0
+            r+=1
+    time.sleep(0.1)
+    gui._refresh_exec()
+    print("##################################")
 
 import tool.movewin as movewin
 #movewin.check_is_started(CAPTION,_file_path)
@@ -396,7 +466,8 @@ except Exception as e:
 
 #xframe=root
 xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,foot=None)
-draw.draw_exec(gui,xframe,EXEC)
+#draw.draw_exec(gui,xframe,EXEC)
+draw_exec(gui,xframe,EXEC)
 #xframe.pack()
 root.title(title)#"TK-EXEC")
 

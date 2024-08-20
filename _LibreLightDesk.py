@@ -463,16 +463,16 @@ class MC():
         ip = libconfig.load_remote_ip()
 
         print("IP:",ip)
-        input()
+        #input()
         while 1:
             send = 0
             #print("+")
             try:
                 #ip="10.10.10.13:0"
                 #ip="ltp-out:0"
-                #print(ip)
                 x=self.mc.get(ip)
-                
+                #print(ip,len(x))
+                   
                 if x:
                     #print(ip,x)
                     #val = x[501-1]
@@ -1831,6 +1831,7 @@ if __run_main:
     data.append({"text":"CONFIG"})
     data.append({"text":"SDL-MIDI"})
     data.append({"text":"CLOCK"})
+    data.append({"text":"XWING"})
     data.append({"text":"RAY-DMX"})
     data.append({"text":"SDL-DMX"})
     data.append({"text":"SDL-VPU"})
@@ -2021,6 +2022,31 @@ if __run_main:
     name="EXEC-BTN" #"TK-EXEC"
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkgui/EXEC-BTN.py " #&"
+        print(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+    # =======================================================================
+    # =======================================================================
+    name="XWING" #"TK-EXEC"
+    def sdl_config():
+        cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkgui/EXEC-XWING.py " #&"
         print(cmd)
 
         def xyz123(cmd):

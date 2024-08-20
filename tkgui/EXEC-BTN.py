@@ -65,6 +65,7 @@ from lib.cprint import cprint
 
 
 import lib.libtk as libtk
+import lib.libtk2 as libtk2
 import lib.zchat as chat
 
 import lib.mytklib as mytklib
@@ -360,7 +361,7 @@ class Gui(): # DUMMY
         print(" ",[arg,args])
         edata={}
         if "event" in args:
-            edata =  serialize_event(args["event"])
+            edata =  libtk2.serialize_event(args["event"])
         print(" ",edata)
         num = -1
         MOUSE = ""
@@ -402,14 +403,6 @@ gui  = Gui()
  
 
 
-#import memcache
-#mc = memcache.Client(['127.0.0.1:11211'], debug=0)
-#import time
-#while 1:
-#    x=mc.get("MODE")
-#    print(x)
-#    time.sleep(1)
-
 
 import lib.libwin as libwin
 name="EXEC"
@@ -434,26 +427,8 @@ if store:
 
 
 root.geometry('%dx%d+%d+%d' % (W, H, POS[0],POS[1]))
-
-#win_con = movewin.Control()
-#win_con.title = win_title
-#def asdf(event=None):
-#    time.sleep(3)
-#    win_con.winfo()
-#    if POS:
-#        #print(" REPOS ---")
-#        win_con.move(POS[0],POS[1])
-#thread.start_new_thread(asdf,())
-#print(POS,win_con.title)
-
-
-
-#root.withdraw() # do not draw
-#root.resizable(1,1)
 root.tk_setPalette(background='#bbb', foreground='black', activeBackground='#aaa', activeForeground="black")
-
 defaultFont = tk.font.nametofont("TkDefaultFont")
-#cprint(defaultFont)
 defaultFont.configure(family="FreeSans",
                        size=10,
                        weight="bold")
@@ -464,112 +439,15 @@ try:
 except Exception as e:
     print(" Exception GUIWindowContainer.__init__",e)
 
-#xframe=root
 xframe = libtk.ScrollFrame(root,width=820,height=400,bd=1,bg="black",head=None,foot=None)
-#draw.draw_exec(gui,xframe,EXEC)
 draw_exec(gui,xframe,EXEC)
-#xframe.pack()
 root.title(title) #"TK-EXEC")
 
-def serialize_event(event):
-    data = {}
-    for k in dir(event):
-        if k.startswith("_"):
-            continue
-        v = event.__getattribute__(k)
-        if v == '??':
-            continue
-        if type(v) not in [int,str,float]:
-            continue
-        data[k] = v
-
-    data["event"] = str(event).split()[0][1:]
-    if "state" in data:
-        del data["state"]
-    if "time" in data:
-        del data["time"]
-    if "serial" in data:
-        del data["serial"]
-    keys = list(data.keys())
-    keys.sort()
-    data2={}
-    for k in keys:
-        data2[k] = data[k] 
-    return data2
-
-Control_L = 0
-Alt_L = 0
-def tk_event(event,data={}):
-    #print("tk_event",event,data)
-    global Control_L,Alt_L
-    if _global_key_lock:
-        return
-    #print("   ",dir(event)) #.dict())
-    data =  serialize_event(event)
-
-    if 'keysym' in data:
-        keysym = data["keysym"]
-        if keysym == 'Control_L':  
-            if "Press" in data["event"]:
-                Control_L = 1
-            if "Release" in data["event"]:
-                Control_L = 0
-        if keysym == 'Alt_L':  
-            if "Press" in data["event"]:
-                Alt_L = 1
-            if "Release" in data["event"]:
-                Alt_L = 0
-
-        data["Alt_L"] = Alt_L
-        data["Control_L"] = Control_L
-        
-    print("tk_event",data)
-    ok=0
-
-    # CONTROL + KEY
-    key_code = {"s":"SAVE\nSHOW","c":"RESTART" }
-    if 'keysym' in data:
-        keysym = data["keysym"]
-
-        if keysym in key_code:
-            if "Press" in data['event'] and data["Control_L"]:
-                MOD = key_code[keysym]
-                msg=json.dumps([{"event":MOD}]).encode("utf-8")
-                cprint("SEND tk_event",msg,color="green")
-                cmd_client.send(msg)
-                if MOD in ["RESTART"]:
-                    time.sleep(2)
-                    exit()
-                ok = 1
-
-        if ok:
-            return
-
-    # NORMAL KEY
-    key_code = {"r":"REC","x":"REC-FX","e":"EDIT","c":"CFG-BTN"
-                ,"m":"MOVE","Delete":"DEL","End":"FX-OFF"
-                ,"Escape":"ESC","s":"SELECT","f":"FLASH"
-                ,"C":"COPY","d":"DEL"
-                }
-    if 'keysym' in data:
-        keysym = data["keysym"]
-
-        if keysym in key_code:
-            if "Press" in data['event']:
-                MOD = key_code[keysym]
-                msg=json.dumps([{"event":MOD}]).encode("utf-8")
-                cprint("SEND tk_event",msg,color="green")
-                cmd_client.send(msg)
-            ok = 1
-
-    if not ok:
-        libtk.tk_keyboard_callback(event,data=data)
-
-root.bind("<Button>",tk_event)#
-root.bind("<Key>",tk_event)#,self.callback)
-root.bind("<KeyRelease>",tk_event)#,self.callback)
-#root.bind("<FocusIn>",tk_event)#, on_focus(self.args["title"],"In").cb)
-#root.bind("<FocusOut>",tk_event)#, on_focus(self.args["title"],"Out").cb)
+root.bind("<Button>",libtk2.tk_event)#
+root.bind("<Key>",libtk2.tk_event)#,self.callback)
+root.bind("<KeyRelease>",libtk2.tk_event)#,self.callback)
+#root.bind("<FocusIn>",libtk2.tk_event)#, on_focus(self.args["title"],"In").cb)
+#root.bind("<FocusOut>",libtk2.tk_event)#, on_focus(self.args["title"],"Out").cb)
 
 import os
 

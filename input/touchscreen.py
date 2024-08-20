@@ -616,16 +616,16 @@ class Action():
     
 def ist_input(devpath):
     devpath = devpath.replace("'","")
-    cmd="udevadm info --query=all '{}' | grep ID_INPUT_".format(devpath)
-    print("is_input:",cmd)
+    cmd="udevadm info --query=all '{}' | grep ID_INPUT_TOUCHSCREEN".format(devpath)
+    #print("is_input:",cmd)
     r=os.popen(cmd)
     txt = r.readlines()
     ok = 0
     for l in txt:
         l=l.strip()
-        print(" ",l)
+        #print(" ",l)
         ok+=1
-    print()
+    #print()
     return ok
 
 

@@ -614,11 +614,24 @@ class Action():
             
             
     
+def ist_input(devpath):
+    devpath = devpath.replace("'","")
+    cmd="udevadm info --query=all '{}' | grep ID_INPUT_".format(devpath)
+    print("is_input:",cmd)
+    r=os.popen(cmd)
+    txt = r.readlines()
+    ok = 0
+    for l in txt:
+        l=l.strip()
+        print(" ",l)
+        ok+=1
+    print()
+    return ok
 
 
 def get_touch_list():
     cmd = 'echo "\n" | evtest 2>&1 | grep event'
-    print("cmd", [cmd])
+    print("get_touch_list", [cmd])
     r = os.popen(cmd)
     lines = r.readlines()
     out = []
@@ -629,7 +642,8 @@ def get_touch_list():
         if len(line) >= 2:
             path = line[0][:-1]
             name = line[1]
-            out.append([name,path])
+            if ist_input(path):
+                out.append([name,path])
     return out
 
 def touch_filter(name,lines):
@@ -684,7 +698,6 @@ if __name__ == "__main__":
 
     touch_list =  get_touch_list()
     touch_ok = []
-
     touchscreen_count = 0
 
     #TOUCH 1 a
@@ -710,6 +723,7 @@ if __name__ == "__main__":
     print("TOUCH 1",x)
     touch_ok.append(x)
 
+    print("--",x,name)
     if len(x):
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event24"
@@ -726,6 +740,7 @@ if __name__ == "__main__":
     x= touch_filter(name,touch_list)
     print("TOUCH 2",x)
     touch_ok.append(x)
+    print("--",x,name)
     if len(x):   
         disable_xinput_touch(name)
         #cmd="evtest /dev/input/event5"
@@ -737,6 +752,6 @@ if __name__ == "__main__":
 
     time.sleep(1)
     print()
-    print("touch_ok",touch_ok)
+    print("touch_ok",touch_ok,touchscreen_count)
     while 1:
         time.sleep(1)

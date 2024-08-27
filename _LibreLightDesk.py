@@ -457,7 +457,7 @@ class MC():
                 pass
 
     def _loop(self):
-        time.sleep(20)
+        time.sleep(6)
         cprint("++++++++++ start.memcachd read loop",self )
         
         ip = libconfig.load_remote_ip()

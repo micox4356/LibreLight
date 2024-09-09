@@ -802,11 +802,20 @@ while 1:
                         print("SPCIAL-KEY",msg)
                         cmd_client.send(msg)
 
-                if event['scancode'] in range(67,76+1) or  event['scancode'] in [95,96]:
+                def f1_bis_f12_alt(scancode,_type):
+                    if scancode in range(67,76+1) and _type in [2,3]:   # F1-F12 OLD
+                        return 1
+
+                def f1_bis_f12_neu(scancode,_type):
+                    if scancode in range(58,92+1) and _type in [768,769]:  # F1-F12 NEW
+                        return 1
+
+
+                if f1_bis_f12_alt(event['scancode'], event['type']) or f1_bis_f12_neu(event['scancode'], event['type']) or  event['scancode'] in [95,96]:
                     if event['type'] in [2,3,768,769]: # press
-                        if event['type'] in [2,768]:
+                        if event['type'] in [2,769]:
                             v=0
-                        if event['type'] in [3,769]:
+                        if event['type'] in [3,768]:
                             v=255
 
                         btn_nr = event['scancode']
@@ -815,8 +824,16 @@ while 1:
                         elif btn_nr == 96:
                             btn_nr = 12
                         else:
-                            btn_nr = event['scancode']-66
+                            if event['type'] in [768,769]:
+                                btn_nr = event['scancode']-57
+                            else:
+                                btn_nr = event['scancode']-66
                         btn_nr_raw = btn_nr
+                        if f1_bis_f12_alt(event['scancode'], event['type']):
+                            btn_nr_raw = str(btn_nr) +"-ALT"
+                        if f1_bis_f12_neu(event['scancode'], event['type']):
+                            btn_nr_raw = str(btn_nr) +"-NEU"
+
                         btn_nr += 81-1
                         msg=json.dumps([{"event":"EXEC","EXEC":btn_nr,"VAL":v,"F-KEY":btn_nr_raw}]).encode("utf-8")
                         print("SPCIAL-KEY",msg)

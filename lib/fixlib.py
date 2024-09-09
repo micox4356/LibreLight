@@ -82,6 +82,26 @@ def FIXTURE_CHECK_SDATA(ID,sdata):
     sdata["ATTRIBUT"]["_ACTIVE"]["FX2"] = {}
     sdata["ATTRIBUT"]["_ACTIVE"]["FX"] = ""
 
+    DEL = []
+    for ATTR in list(sdata["ATTRIBUT"].keys()):
+        if ATTR.startswith("_"):
+            continue
+
+        if ATTR.endswith(" FINE"):
+            ATTR2 = ATTR.replace(" FINE","-FINE")
+            ATTR2 = ATTR2.replace(" -","-")
+            ATTR2 = ATTR2.replace("  "," ")
+            ATTR2 = ATTR2.replace("  "," ")
+            ATTR2 = ATTR2.replace("  "," ")
+            if ATTR2 not in sdata["ATTRIBUT"]:
+                print("  CHECK_SDATA REPAIR",[ATTR,ATTR2])
+                sdata["ATTRIBUT"][ATTR2]  = sdata["ATTRIBUT"][ATTR] 
+                DEL.append(ATTR)
+    for d in DEL:
+        if d in sdata["ATTRIBUT"]:
+            print("  CHECK_SDATA DEL   ",[d],"!")
+            del sdata["ATTRIBUT"][d]
+
     if "DIM" not in sdata["ATTRIBUT"]:
         _tmp = None
         #print(sdata)

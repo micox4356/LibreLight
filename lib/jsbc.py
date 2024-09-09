@@ -42,6 +42,7 @@ def JSCB(x,sock=None):
                     except:
                         exec_nr = -2
                 if "VAL" in msg:
+                    val = msg["VAL"] # fix int MIDI
                     try:
                         val = int(msg["VAL"]) # fix int MIDI
                     except:pass

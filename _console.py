@@ -1285,7 +1285,6 @@ def JCB(data,sock=None): #json client input
     line=""
     for cmds in jdatas:
         for line in cmds: # run first
-            #print(line)
             if "FLASH" in line:
                 cprint("FLUSH",end=" ",color="CYAN")
                 if "VALUE" in line:
@@ -1313,11 +1312,8 @@ def JCB(data,sock=None): #json client input
         master_fx = MASTER_FX()
         if not cmds:
             continue
-
         try:
             out = _parse_cmds(cmds,clock=c,master_fx=master_fx)
-
-
             #cprint("-","{:0.04} sec.".format(time.time()-t_start),color="yellow")
             # ------- ---------------------------------------------------- 
 
@@ -1340,7 +1336,7 @@ def JCB(data,sock=None): #json client input
                 main.lock.acquire_lock()
                 for _id in out:
                     row = out[_id]
-                    #print(row)
+                    #print(" ",_id,[str(row)])
                     line_size += sys.getsizeof(row)
 
                     #print("_id",_id)

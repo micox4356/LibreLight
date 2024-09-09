@@ -267,10 +267,10 @@ class GUI_FixtureEditor():
 
         self.r=0
         self.c=0
-        self.pb=12
+        self.pb=10
         self.j = 0
 
-        for page_nr in range(12):
+        for page_nr in range(10):
             self.draw_bank(page_nr)
 
         self._event_redraw()
@@ -303,7 +303,7 @@ class GUI_FixtureEditor():
                     frameS = tk.Frame(self.frame,bg="#a0aadd",width=width,border=2)
                 self.c=0
 
-            e= libtk.ELEM_FADER(frameS,nr=j+1,cb=self._cb,fader_cb=self._fader_cb)
+            e= libtk.ELEM_FADER(frameS,nr=j+1,cb=self._cb,fader_cb=self._fader_cb,width=14)
             e.pack()
             #e.attr["bg"] = "red"
             self.fader_elem.append(e)
@@ -341,6 +341,13 @@ class GUI_FixtureEditor():
         #print(" FixtureEditor._cb")
         #print(" ",name,"_cb.args >>",args,arg[1:])
         self.count_ch()
+        elm,mode,name = arg    
+        #print("_cb",arg)
+        if mode == "set_attr":
+            #print(" ->")
+            if name.endswith(" FINE"):
+                name = name.replace(" FINE","-FINE")
+                elm.label["text"] = name
     
 
     def count_ch(self):
@@ -357,10 +364,13 @@ class GUI_FixtureEditor():
                 #print("count_ch:",i,txt)
                 if txt.startswith("EMPTY"):
                     elem.attr["bg"] = "#fa0"
-                    elem.attr["activebackground"] = "#fa0"
+                    elem.attr["activebackground"] = "#ff0"
+                elif txt.endswith("-FINE"):
+                    elem.attr["bg"] = "#0b0"
+                    elem.attr["activebackground"] = "#ff0"
                 else:
                     elem.attr["bg"] = "#0f0"
-                    elem.attr["activebackground"] = "#0fa"
+                    elem.attr["activebackground"] = "#ff0"
                 ch_s.append([i,txt])
                 j=i
             else:
@@ -522,6 +532,7 @@ class GUI_FixtureEditor():
             print("set_fixid",[_event,self])
         dialog._cb = _cb
         dialog.askstring("FIXTURE ID:","ID:",initialvalue=txt)
+
     def set_name(self,_event=None):
         txt = self.name["text"]
         def _cb(data):
@@ -619,11 +630,18 @@ class GUI_FixtureEditor():
                             except:
                                 n.append("-") 
                             
-                            a.append(at ) #+":"+ str(fixture["ATTRIBUT"][at]["NR"]))
+                            at2 = at
+                            if at2.endswith(" FINE"):
+                                at2 = at2.replace(" FINE","-FINE")
+                            while " -" in at2:
+                                at2 = at2.replace(" -","-")
+                            at2 = at2.replace("  "," ")
+                            a.append(at2 ) #+":"+ str(fixture["ATTRIBUT"][at]["NR"]))
 
                             if at.endswith("-FINE"):
                                 m.append("-")
-                            elif at in MAIN._FIX_FADE_ATTR: #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
+                            elif at in MAIN._FIX_FADE_ATTR: 
+                                #["PAN","TILT","DIM","RED","GREEN","BLUE","CYAN","YELLOW","MAGENTA","FOCUS","ZOOM","FROST"]:
                                 m.append("F")
                             else:
                                 m.append("S")

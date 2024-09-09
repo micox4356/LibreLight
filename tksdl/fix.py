@@ -565,6 +565,7 @@ while 1:
                             pygame.draw.rect(window,[58,58,58],[2,r,2000,25])
                     except:pass
                     bx.text = "ID:"+ k 
+
                     bx.text += " "+v["NAME"]
                     bx.font0 = bx_font0
                     bx.btn1.bg_on = [0,255,255]
@@ -572,6 +573,11 @@ while 1:
                     bx.pos  = [10+10,r,BTN_WIDTH,20]
 
                     if "ATTRIBUT" in v:
+                        try: # info
+                            if int(k) == 12001:
+                                #print("   ",k,k2,k2_ATTR)
+                                print("-",v["ATTRIBUT"].keys())
+                        except: pass
                         bcv_r = 0
                         bcv_g = 0
                         bcv_b = 0
@@ -611,6 +617,8 @@ while 1:
                         for k2 in ATTR:
                             k2_ATTR = ATTR[k2]
 
+
+
                             if is_hidden_attr(k2):
                                 continue
 
@@ -630,6 +638,7 @@ while 1:
                             if "VALUE2"in k2_ATTR:
                                 dmx_val = k2_ATTR["VALUE2"]
 
+
                             if k3 not in table_grid:
                                 bx = sdl_elm.Button(window,pos=[600,rr,60,20])
                                 bx.btn1.color_on = [255,255,0]
@@ -638,6 +647,7 @@ while 1:
                                     bx.ID = v["ID"]
                                 bx.ATTR = k2
                                 table_grid[k3] = bx
+
 
 
                             if "ACTIVE" in k2_ATTR:
@@ -675,8 +685,7 @@ while 1:
                             
 
                             table_grid_draw.append(k3) #table_grid[k3]
-                            if rr > 1000:
-                                break
+
                             acount +=1
                             if acount %block_wrap==0:
                                 r += r_buf

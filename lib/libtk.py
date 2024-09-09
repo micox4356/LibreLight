@@ -86,6 +86,10 @@ class ELEM_FADER():
         self.elem = []
         self._cb = cb
         self._fader_cb = fader_cb
+        self.width = 0
+        if "width" in args:
+            self.width = int(args["width"])
+
         width=11
         frameS = tk.Frame(self.frame,bg="#005",width=width)
         frameS.pack(fill=tk.Y, side=tk.LEFT)
@@ -111,7 +115,12 @@ class ELEM_FADER():
                 self._cb([self,"set_nr",txt])
         dialog._cb = _cb
         dialog.askstring("ATTR","set NR:",initialvalue=txt)
-
+    def _check_fine(self,txt):
+        if txt.endswith(" FINE"):
+            txt = txt.replace(" FINE","-FINE")
+        while " -" in txt:
+            txt = txt.replace(" -","-")
+        return txt
     def set_attr(self,_event=None):
         txt= self.attr["text"]
         def _cb(data):
@@ -119,8 +128,10 @@ class ELEM_FADER():
                 print("err443",self,"_cb",data)
                 return None
             txt = data["Value"]
+            txt = self._check_fine(txt)
             #print(self,"set_attr._cb()",txt)
             self._set_attr(txt)
+
             if self._cb:
                 self._cb([self,"set_attr",txt])
         dialog._cb = _cb
@@ -199,13 +210,13 @@ class ELEM_FADER():
         j=0
         self.font8 = ("FreeSans",8)
         frameS=self.frame
-
+        w = self.width 
         self.b = tk.Button(frameS,bg="#ffa",text="{}".format(self.nr), width=4,command=test_command,font=self.font8 )
         self.b.pack(fill=tk.BOTH, side=tk.TOP)
         self.label = self.b
         self.elem.append(self.b)
         
-        self.b = tk.Scale(frameS,bg="#ffa", width=28,from_=from_,to=to,command=self.fader_event)
+        self.b = tk.Scale(frameS,bg="#ffa", width=28+w,from_=from_,to=to,command=self.fader_event)
         self.elem_fader = self.b
         self.b.pack(fill=tk.Y, side=tk.TOP)
         if init is not None:

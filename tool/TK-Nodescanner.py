@@ -8,6 +8,7 @@ SPDX-URL: https://spdx.org/licenses/GPL-1.0.html
 (c) 2012 micha@librelight.de
 """
 
+import os
 import time
 import struct
 import sys
@@ -79,7 +80,7 @@ def clear_node():
     li_nodes.delete("0","end")
 
     
-def poll(delay=1):
+def poll(delay=1,ip=""):
     print("poll()")
     global old_tick
     clear()
@@ -87,14 +88,23 @@ def poll(delay=1):
     clear_entry_ip()
     clear_node()
     time.sleep(delay)
-    try:
-        nodescan.poll()
-    except Exception as e:
-        print("e",e)
-        MSG["text"] = e
-        MSG["bg"] = "red"
     time.sleep(0.5)
-    old_tick = 0
+    
+
+    if not ip:
+        ip = p_variable.get()
+
+    b_scan.insert("end", "ArtNetPoll -> "+str(ip)+"\n")
+    nodescan.ArtNet_poll(ip)    
+    #return 
+    #try:
+    #    nodescan.poll()
+    #except Exception as e:
+    #    print("e",e)
+    #    MSG["text"] = e
+    #    MSG["bg"] = "red"
+    #time.sleep(0.5)
+    #old_tick = 0
     
 def clear(event= None):
     print("clear()")
@@ -271,7 +281,7 @@ def send_mac(event=None):
         cur_ip +=[int(i)]
     print("SEND MAC:",cur_ip,new_mac)
     nodescan.send_node_cmd(cur_ip,cmd=new_mac)
-    #poll(1.5)
+    #poll(delay=1.5)
 
 def send_dmx_store(event=None):
     cmd = "CMD DMX STORE "
@@ -282,7 +292,7 @@ def send_dmx_store(event=None):
         cur_ip +=[int(i)]
     print("SEND:",cur_ip,cmd)
     nodescan.send_node_cmd(cur_ip,cmd)
-    poll(1.5)
+    poll(delay=1.5)
 
 def send_cmd(event=None):
     cmd = e_cmd.get() #"CMD DMX STORE "
@@ -323,8 +333,16 @@ def _send_cmd(event=None,cmd=""):
         cur_ip +=[int(i)]
     print("SEND:",cur_ip,cmd)
     nodescan.send_node_cmd(cur_ip,cmd)
-    #poll(1.5)
+    #poll(delay=1.5)
 
+def kill_librelight(event=None):
+    for i in ["CONSOLE","EDITOR","ASP"]:
+        cmd='screen -XS "{}" quit | echo ""'.format(i)
+        print(cmd)
+        os.system(cmd)
+
+    cmd="screen -ls"
+    os.system(cmd)
     
 def set_ip(event=None):
     print("SET NEW IP")
@@ -355,32 +373,32 @@ def set_ip(event=None):
     print("new",[cur_ip, new_ip, new_netmask])
     print()
     nodescan.set_ip4(cur_ip,new_ip, new_netmask)
-    poll(1.5)
+    poll(delay=1.5)
     
 def set_node_pin(evnet=None):
     cmd = "CMD DMX=PIN"
     ip = get_new_ip_str()
     print("ip",[ip])
     nodescan.send_node_cmd(ip,cmd=cmd)
-    poll(1.5)
+    poll(delay=1.5)
     
 def set_node_in(evnet=None):
     cmd="CMD DMX=IN"
     ip = get_new_ip_str()
     nodescan.send_node_cmd(ip,cmd=cmd)
-    poll(1.5)
+    poll(delay=1.5)
     
 def set_node_out(evnet=None):
     cmd="CMD DMX=OUT"
     ip = get_new_ip_str()
     nodescan.send_node_cmd(ip,cmd=cmd)
-    poll(1.5)
+    poll(delay=1.5)
 
 
     
 root = Tkinter.Tk()
 #root.geometry("900x700+100+100")
-root.geometry("900x400+100+100")
+root.geometry("700x600+100+100")
 root.title( title)
 fframe = Tkinter.Frame(root)
 fframe.pack(side="top",expand=0,fill="x")
@@ -388,14 +406,66 @@ cframe = Tkinter.Frame(root)
 cframe.pack(side="top",expand=1,fill="both")
 
 font1 = ("Helvetica", 8)
-font2 = ("Helvetica", 10)
-font3 = ("Helvetica", 16)
-font20 = font=("Helvetica", 20)
+font2 = ("Helvetica", 12) # 10
+font3 = ("Helvetica", 12) # 16
+font20 = font=("Helvetica", 12) # 22
+font120 = font=("Helvetica", 22) # 22
 
-b_scan = Tkinter.Button(fframe,text="ArtNetPoll",width=10,command=poll,font=font2)
+b_scan = Tkinter.Button(fframe,text="clear list",width=8,command=clear,font=font2)
 b_scan.pack(side="left",expand=0,fill="y")
-b_scan = Tkinter.Button(fframe,text="clear",width=10,command=clear,font=font2)
+
+b_scan = Tkinter.Button(fframe,text="ArtNetPoll ->",width=10,command=poll,font=font2)
 b_scan.pack(side="left",expand=0,fill="y")
+
+
+#POLL ['192.168.0.255', 6454] OK ;
+#POLL ['192.168.0.99', 6454] OK ;
+#POLL ['2.255.255.255', 6454] OK ;
+#POLL ['2.0.0.255', 6454] OK ;
+#POLL ['2.255.255.255', 6454] OK ;
+
+local_ips = []
+#local_ips.append("2.0.0.255")
+cmd='ip a | grep " inet " | cut -d " " -f 6 | sort -h'
+r=os.popen(cmd)
+print("cmd",cmd)
+txt=r.readlines()
+for ip in txt:
+    ip = ip.strip()
+    print([ip])
+    if ip.startswith("127."):
+        continue
+    if ip.count(".") != 3:
+        continue
+    
+    if ip.endswith("/24"):
+        ip = ip.split(".")
+        ip = ".".join(ip[:3])+".255"
+    elif ip.endswith("/8"):
+        ip = ip.split(".")
+        ip = ".".join(ip[0])+".255.255.255"
+    else:
+        continue
+    print("-",ip)
+    local_ips.append(ip)
+
+#local_ips.sort()
+
+option_list=local_ips
+p_variable = Tkinter.StringVar(root)
+p_variable.set(option_list[0]) # default value
+e_poll_new = Tkinter.OptionMenu(fframe, p_variable,*option_list)
+e_poll_new.configure(font=("Helvetica", 13))
+e_poll_new.configure(width=16)
+e_poll_new["bg"] = "#fff"
+#print(dir(e_poll_new))
+e_poll_new.option_add("end","") #', 'option_clear', 'option_get
+e_poll_new.option_add("end","215.0.0.0")
+e_poll_new.pack(side="left")
+#exit()
+
+b_scan = Tkinter.Button(fframe,text="KILL Librelight !",command=kill_librelight,width=14,font=font2,bg="red")
+b_scan.pack(side="left",expand=0)
 
 scrollbar = Tkinter.Scrollbar(cframe)
 scrollbar.pack(side=Tkinter.RIGHT, fill="y")
@@ -418,16 +488,34 @@ eframe1.pack(side="left",expand=0,fill="y")
 # ----------------------------------------------
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
-x=Tkinter.Label(line_frame,text="msg:",font=font3,width=6).pack(side="left",expand=0,fill="y")
+x=Tkinter.Label(line_frame,text=" ",font=font2,width=6)
+c= Tkinter.Label(line_frame,text=" ",font=font1,width=30,anchor="w")
+c.pack(side="left",expand=0,fill="y")
+# ----------------------------------------------
+
+# ----------------------------------------------
+line_frame = Tkinter.Frame(eframe)
+line_frame.pack(side="top",expand=0,fill="x")
+x=Tkinter.Label(line_frame,text="MSG:",font=font3,width=6)
+x.pack(side="left",expand=0,fill="y")
+x.configure(bg="darkgrey")
+
 MSG = Tkinter.Label(line_frame,text="xxx",font=font1,width=30,anchor="w")
 MSG.pack(side="left",expand=0,fill="y")
+MSG.configure(bg="darkgrey")
+
 #msg["bg"] = "lightgrey"
 #msg.pack(side="left")
 # ----------------------------------------------
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
+c= Tkinter.Label(line_frame,text=" ",font=font120,width=30,anchor="w")
+c.pack(side="left",expand=0,fill="y")
+# ----------------------------------------------
+line_frame = Tkinter.Frame(eframe)
+line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="OLD IP:",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_ip = Tkinter.Entry(line_frame,font=font20,width=13,state="disabled")
+e_ip = Tkinter.Entry(line_frame,font=font20,width=26,state="disabled")
 e_ip["bg"] = "lightgrey"
 e_ip.pack(side="left")
 #b_scan = Tkinter.Button(line_frame,width=14,font=font3)
@@ -438,7 +526,7 @@ line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 e_ip_label = Tkinter.Label(line_frame,text=" IP:",font=font3,width=6)
 e_ip_label.pack(side="left",expand=0,fill="y")
-e_ip_new = Tkinter.Entry(line_frame,font=font20,width=13)
+e_ip_new = Tkinter.Entry(line_frame,font=font20,width=26)
 e_ip_new.bind("<Return>", set_ip )
 e_ip_new.bind("<KP_Enter>", set_ip)
 #e_ip_new.bind("<Tab>", update_name)
@@ -452,10 +540,10 @@ line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 variable = Tkinter.StringVar(root)
 variable.set("255.0.0.0") # default value
-Tkinter.Label(line_frame,text="MASK",font=font3,width=6).pack(side="left",expand=0,fill="y")
+Tkinter.Label(line_frame,text="MASK:",font=font3,width=6).pack(side="left",expand=0,fill="y")
 e_mask_new = Tkinter.OptionMenu(line_frame, variable,"255.255.255.0","255.0.0.0") #,width=10)
-e_mask_new.configure(font=("Helvetica", 22))
-e_mask_new.configure(width=10)
+e_mask_new.configure(font=("Helvetica", 12))
+e_mask_new.configure(width=23)
 e_mask_new["bg"] = "#fff"
 #heigh=1,font=("Helvetica", 20)
 e_mask_new.pack(side="left")
@@ -469,7 +557,7 @@ b_scan.pack(side="left",expand=0)
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="MAC:",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_mac = Tkinter.Entry(line_frame,width=13,font=font20)
+e_mac = Tkinter.Entry(line_frame,width=23,font=font20)
 e_mac.pack(side="left")
 e_mac["bg"] = "lightgrey"
 
@@ -478,6 +566,12 @@ e_mac2.pack(side="left")
 e_mac2.bind("<Return>", send_mac )
 e_mac2.bind("<KP_Enter>", send_mac)
 Tkinter.Button(line_frame,text="SEND TO NODE",command=send_mac,width=14,font=font1).pack(side="left",expand=0)
+# ----------------------------------------------
+line_frame = Tkinter.Frame(eframe)
+line_frame.pack(side="top",expand=0,fill="x")
+c= Tkinter.Label(line_frame,text=" ",font=font120,width=30,anchor="w")
+c.pack(side="left",expand=0,fill="y")
+# ----------------------------------------------
 #-------------------------------------------- line
 
 
@@ -501,7 +595,7 @@ b_set_node_out.pack(side="left",expand=0)
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="CMD",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_cmd = Tkinter.Entry(line_frame,font=font3,width=16)
+e_cmd = Tkinter.Entry(line_frame,font=font3,width=26)
 e_cmd.bind("<Return>", send_cmd )
 e_cmd.pack(side="left")
 
@@ -516,7 +610,7 @@ e_lname.pack(side="left")
 line_frame = Tkinter.Frame(eframe)
 line_frame.pack(side="top",expand=0,fill="x")
 Tkinter.Label(line_frame,text="SName",font=font3,width=6).pack(side="left",expand=0,fill="y")
-e_sname = Tkinter.Entry(line_frame,font=font3,width=16)
+e_sname = Tkinter.Entry(line_frame,font=font3,width=26)
 e_sname.pack(side="left")
 #-------------------------------------------- line
 line_frame = Tkinter.Frame(eframe)
@@ -580,7 +674,7 @@ thread.start_new_thread(_scan, () )
 nodescan.bind_cmd_node()
 
 def read_cmd_buf():
-    b_scan.insert("end", "buf read\n" )
+    b_scan.insert("end", "log:\n" )
     while 1:
         if nodescan.node_cmd_buf_list:
             msg = str(nodescan.node_cmd_buf_list)

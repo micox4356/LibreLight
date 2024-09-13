@@ -336,13 +336,19 @@ def _send_cmd(event=None,cmd=""):
     #poll(delay=1.5)
 
 def kill_librelight(event=None):
-    for i in ["CONSOLE","EDITOR","ASP"]:
+    for i in ["CONSOLE.py","EDITOR.py","ASP"]:
         cmd='screen -XS "{}" quit | echo ""'.format(i)
         print(cmd)
         os.system(cmd)
 
     cmd="screen -ls"
     os.system(cmd)
+    time.sleep(1)
+    BASE_PATH = "/opt/LibreLight/Xdesk/"
+    cmd="_LibreLightDesk.py"
+    cmd="tool/TK-Nodescanner.py" #&"
+    arg = ""
+    os.execl("/usr/bin/python3", BASE_PATH, cmd,arg)
     
 def set_ip(event=None):
     print("SET NEW IP")
@@ -415,6 +421,7 @@ b_scan = Tkinter.Button(fframe,text="clear list",width=8,command=clear,font=font
 b_scan.pack(side="left",expand=0,fill="y")
 
 b_scan = Tkinter.Button(fframe,text="ArtNetPoll ->",width=10,command=poll,font=font2)
+b_scan.configure(bg="#0f0")
 b_scan.pack(side="left",expand=0,fill="y")
 
 

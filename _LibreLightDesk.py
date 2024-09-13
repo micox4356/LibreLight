@@ -1831,15 +1831,16 @@ if __run_main:
     data.append({"text":"CONFIG"})
     data.append({"text":"SDL-MIDI"})
     data.append({"text":"CLOCK"})
-    data.append({"text":"XWING"})
     data.append({"text":"RAY-DMX"})
     data.append({"text":"SDL-DMX"})
     data.append({"text":"SDL-VPU"})
     data.append({"text":"SDL-OSZI"})
+    data.append({"text":"Nodescanner","name":"NodeScan"})
     data.append({"text":"---"})
     data.append({"text":"---"})
     data.append({"text":"- DEMO -"})
     data.append({"text":"---"})
+    data.append({"text":"XWING"})
     #data.append({"text":"TK-EXEC"})
     #data.append({"text":"EXEC-BTN","name":"EXEC-BTN"})
     data.append({"text":"SDL-STAGE"})
@@ -2022,6 +2023,31 @@ if __run_main:
     name="EXEC-BTN" #"TK-EXEC"
     def sdl_config():
         cmd="/usr/bin/python3 /opt/LibreLight/Xdesk/tkgui/EXEC-BTN.py " #&"
+        print(cmd)
+
+        def xyz123(cmd):
+            os.system(cmd)
+        thread.start_new_thread(xyz123,(cmd,))
+        return [None,None,None]
+    args = {"title":name,"master":0,"width":W1,"height":H1,"left":L1,"top":TOP}
+    geo = libwin.split_window_position(pos_list,name)
+    if geo:
+        args.update(geo)
+
+    data = []
+    cls = sdl_config #: None #GUI_CONF
+    cb_ok = None
+
+    c = window_create_sdl_buffer(args=args,cls=cls,data=data,cb_ok=cb_ok,gui=master,scroll=1)
+    window_manager.new(None,name,wcb=c)
+    if libwin.split_window_show(pos_list,_filter=name):
+        window_manager.top(name)
+
+    # =======================================================================
+    # =======================================================================
+    name="Nodescanner" #"TK-EXEC"
+    def sdl_config():
+        cmd="nohup /usr/bin/python3 /opt/LibreLight/Xdesk/tool/TK-Nodescanner.py" #&"
         print(cmd)
 
         def xyz123(cmd):

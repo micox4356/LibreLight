@@ -396,6 +396,10 @@ while 1:
         
         #window.fill((2,2,2))
         window.fill((0,0,0))
+
+        fr = font15.render("FPS:"+str(fps_old) ,1, rgb) #(200,200,200))
+        window.blit(fr,(600,5))
+
         pygame.draw.rect(window,(0,0,0),[0,0,main_size[0],main_size[1]])
         
 
@@ -735,7 +739,7 @@ while 1:
             event = {'unicode': '', 'key': 0, 'mod': 0, 'scancode': 0, 'window': None,'type':'','button':''}
             event['type'] = raw_event.type
             event.update( raw_event.dict)
-            if event['button'] and event["type"] in [1025,1026]:
+            if event['button'] and event["type"] in [pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]:
                 event["type"] -= 1020
 
             if event["button"] or event['scancode']:
@@ -935,10 +939,10 @@ while 1:
 
             if "pos" in event:
                 if "button" in event:
-                    if event['type'] in [5,1025]:#press
+                    if event['type'] in [5,pygame.MOUSEBUTTONDOWN]:#press
                         mouse_down = 1
                         mouse_pos1 = [event['pos'][0],event['pos'][1]]
-                    if event['type'] in [6,1026]:#release
+                    if event['type'] in [6,pygame.MOUSEBUTTONUP]:#release
                         mouse_down = 0
 
                 mouse_pos2 = [event['pos'][0],event['pos'][1]]
@@ -949,7 +953,7 @@ while 1:
                 pass
 
             elif "button" in event:
-                if event['type'] in [6,1026]:
+                if event['type'] in [6,pygame.MOUSEBUTTONUP]:
                     if event["button"] == 1:
                         mouse_grab_active = 0
                         for mg in mouse_grab:

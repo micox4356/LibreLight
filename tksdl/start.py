@@ -204,10 +204,10 @@ while run:
 
         if "pos" in event.dict:
             if "button" in event.dict:
-                if event.type in [5,1025]:#press
+                if event.type in [5,pygame.MOUSEBUTTONDOWN]:#press
                     mouse_down = 1
                     mouse_pos1 = [event.pos[0],event.pos[1]]
-                if event.type in [6,1026]:#release
+                if event.type in [6,pygame.MOUSEBUTTONUP]:#release
                     mouse_down = 0
 
                 for btn in mouse_grab:

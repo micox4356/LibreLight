@@ -38,29 +38,38 @@ pkg="python3-opengl python3-pyglet python3-pil "
 apt install -y $pkg 
 #exit
 
+OPTION=""
+I=$(lsb_release -r | cut -f 2);
+echo $I
+if [ "x$I"=="x12" ]; then
+    OPTION="--break-system-packages"
+    echo "OK $OPTION"
+fi
 
 echo ""
 echo "-- update pip"
 su -- user <<EOF
 id
-pip install pip --upgrade --break-system-packages
+pip install pip --upgrade $OPTION
 EOF
+
+
 
 echo ""
 echo "-- python-pip pkg's"
 su -- user <<EOF
-pip install pyopengltk --break-system-packages
-pip install moderngl --break-system-packages
-pip install moderngl-window --break-system-packages
+pip install pyopengltk $OPTION
+pip install moderngl $OPTION
+pip install moderngl-window $OPTION
 echo ""
-pip install glfw --break-system-packages
-pip install glwindow --break-system-packages
-pip install glnext --break-system-packages
-#pip install glnext_compiler --break-system-packages
-pip install glcontext --break-system-packages
-pip install pyopengltk --break-system-packages
-pip install imutils --break-system-packages
-pip install raylib --break-system-packages
+pip install glfw $OPTION
+pip install glwindow $OPTION
+pip install glnext $OPTION
+#pip install glnext_compiler $OPTION
+pip install glcontext $OPTION
+pip install pyopengltk $OPTION
+pip install imutils $OPTION
+pip install raylib $OPTION
 EOF
 
 echo ""

@@ -40,7 +40,9 @@ apt install -y $pkg
 
 OPTION=""
 I=$(lsb_release -r | cut -f 2);
+echo ""
 echo "Debian release: $I"
+echo ""
 if [ "x$I" = "x12" ]; then
     OPTION="--break-system-packages"
     echo "OK $OPTION"

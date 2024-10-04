@@ -7,6 +7,7 @@ cd /opt/LibreLight/git/
 pwd
 ls -l
 rm -rf LibreLightASP
+rm -rf ASP
 #git clone https://github.com/micox4356/LibreLightASP.git
 git clone https://gogs.librelight.de/librelight/ASP.git
 #rsync -apv --delete /opt/LibreLight/git/LibreLightASP/ /opt/LibreLight/ASP/
@@ -16,6 +17,7 @@ ls -l
 
 cd /opt/LibreLight/git/
 rm -rf LibreLight
+rm -rf Xdesk
 pwd
 ls -l
 #git clone https://github.com/micox4356/LibreLight.git

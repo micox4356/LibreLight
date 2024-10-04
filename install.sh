@@ -41,7 +41,7 @@ apt install -y $pkg
 OPTION=""
 I=$(lsb_release -r | cut -f 2);
 echo $I
-if [ "x$I"=="x12" ]; then
+if [ "x$I" = "x12" ]; then
     OPTION="--break-system-packages"
     echo "OK $OPTION"
 fi

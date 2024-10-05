@@ -756,9 +756,69 @@ def _process_matrix(xfixtures,fx_x,fx_mod):
 
     return xfixtures
 
+def save_show_to_usb():
+    cprint("*** "*20,color="yellow")
+    cprint("+++ "*20,color="yellow")
+    cprint("*** "*20,color="yellow")
+    CMD = "df | grep /media/$USER"
+    CMD = "ls /media/$USER/"
+    r = os.popen(CMD)
+    usbs = r.readlines()
+    print("USB's:",usbs)
+    for usb in usbs:
+        usb = usb.strip()
+        print(usb)
+        _usbstick_path = "/media/user/"+str(usb)+"/LibreLight/show/" 
+        SHOW_DIR = libwin.showlib.SHOW_DIR 
+
+        try: 
+            cwd = os.getcwd()
+            print("cwd:",cwd)
+            cd = "/".join(_usbstick_path.split("/")[:4])
+            os.chdir(cd)
+            mkdir = "/".join(_usbstick_path.split("/")[4:])
+
+            libwin.showlib.SHOW_DIR  = _usbstick_path
+            movewin.showlib.SHOW_DIR = _usbstick_path
+
+            _show_name = showlib.current_show_name() 
+            _usbstick_path_name = _usbstick_path + str(_show_name) 
+            mkdir += str(_show_name)
+            CMD="mkdir -p '{}'".format(mkdir)
+            print("CMD:",cd,";",CMD)
+            os.system(CMD)
+
+            EXEC.base.show_path     = _usbstick_path_name
+            FIXTURES.base.show_path = _usbstick_path_name
+            movewin.SHOW_PATH       = _usbstick_path_name
+
+            a=EXEC.backup_exec()
+            b=FIXTURES.backup_patch()
+            c=libwin.save_window_position() 
+            d=movewin.store_all_sdl()
+        except FileNotFoundError as e:
+            cprint("EXC",e,color="red")
+        finally:
+            # reset 
+            os.chdir(cwd)
+            EXEC.base.show_path      = SHOW_DIR 
+            FIXTURES.base.show_path  = SHOW_DIR
+            libwin.showlib.SHOW_DIR  = SHOW_DIR 
+            movewin.SHOW_PATH = showlib.current_show_path() 
+            cprint("*** "*20,color="yellow")
+
+        print(cwd,os.getcwd())
+
+        cprint("--- "*20,color="yellow")
+        cprint("--- "*20,color="yellow")
+        cprint("--- "*20,color="yellow")
 
 
 def save_show(fpath=None,new=0):
+    
+    if 1:
+        save_show_to_usb()
+
     if fpath:
         a=EXEC.backup_exec(save_as=fpath,new=new)
         b=FIXTURES.backup_patch(save_as=fpath,new=new)

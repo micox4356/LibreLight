@@ -339,10 +339,17 @@ class GUI_FixtureEditor():
 
     def _cb(self,arg,name="<name>",**args):
         #print(" FixtureEditor._cb")
-        #print(" ",name,"_cb.args >>",args,arg[1:])
+        #print(" ",name,"_cb.args >>",args,arg)
         self.count_ch()
         elm,mode,name = arg    
         #print("_cb",arg)
+        if mode == "set_nr":
+            try:
+                int(name)
+            except Exception as e:
+                print(self,"_cb",e)
+                print(dir(elm),elm.elem_nr)
+                elm._set_nr("Number!") #"ERROR") #nr["text"] = "ERR"
         if mode == "set_attr":
             #print(" ->")
             if name.endswith(" FINE"):
@@ -426,7 +433,16 @@ class GUI_FixtureEditor():
                 continue
             if nr == "off":
                 nr = -1
-            nr = int(nr)
+            try:
+                nr = int(nr)
+            except ValueError as e:
+                _fader_nr = fader.label["text"].split()[0]
+                _msg  = " Channel "+str(_fader_nr)+"\n"
+                #_msg += " VAL = "+str(nr)+"\n"
+                _msg += "NR: Is not a Number !"
+                r=tkinter.messagebox.showwarning(message=_msg,title="Patch Error",parent=None)
+                return
+
             mode = fader.mode["text"]
             val = float(fader.elem_fader.get())
             if not attr:

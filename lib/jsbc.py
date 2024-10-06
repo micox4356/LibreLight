@@ -81,6 +81,18 @@ def JSCB(x,sock=None):
                     print("jsbc.RESTART")
                     MAIN.LOAD_SHOW_AND_RESTART("").cb(force=1)
                     OK = 1
+                elif "EXEC-LABEL" == msg["event"]:
+                    print("LABEL",msg)
+                    if 1:#val >= 1: # only Press
+                        if "DATA" in msg:
+                            sdata = msg["DATA"]
+                            print("EXEC-CFG",sdata)
+                            if sdata:
+                                MAIN.master.dialog_cfg_return(exec_nr-1)(sdata)
+                                #MAIN.EXEC.set_cfg(exec_nr-1,sdata)
+                                EXEC_REFRESH = 1
+                    msg["OK"] = "EXEC-LABEL"
+                    OK = 1
                 elif "EXEC-CFG" == msg["event"]:
                     print("EXEC-CFG",msg)
                     if 1:#val >= 1: # only Press

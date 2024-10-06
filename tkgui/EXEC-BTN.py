@@ -42,6 +42,38 @@ def Dcb(exec_nr): #DAILOG CONFIG CALLBACK
         thread.start_new_thread(_X_refresh,())
     return _Dcb
 
+def Dcb_label(exec_nr): #DAILOG CONFIG CALLBACK
+    def _Dcb(*args):
+        print("Dcb_label:",args)
+        if "Value" in args[0]:
+            DATA = {"Label":args[0]["Value"]}
+        #msg=json.dumps([{"event":"LABEL","EXEC":exec_nr,"VALUE":255,"DATA":args[0]}]).encode("utf-8")
+        msg=json.dumps([{"event":"EXEC-LABEL","EXEC":exec_nr,"VALUE":255,"DATA":DATA}]).encode("utf-8")
+        cprint("SEND DIALOG.cb",msg,color="green")
+        cmd_client.send(msg)
+        msg=json.dumps([{"event":"LABEL","EXEC":exec_nr,"VALUE":255,"DATA":{}}]).encode("utf-8")
+        cmd_client.send(msg)
+        def _X_refresh():
+            global GLOBAL_old_btn_nr 
+            if 1:#REFRESH:
+                btn_nr = exec_nr
+                time.sleep(1.2)
+                print()
+                print("CFG CB REFRESH !?",btn_nr)
+                nr = btn_nr-1
+                b = gui.elem_exec[nr]
+
+                gui._refresh_exec_single(nr,b) #,METAS):
+                time.sleep(0.2)
+                nr2= GLOBAL_old_btn_nr
+                if nr2 >= 0 and nr2 != nr:
+                    gui._refresh_exec_single(nr2,b) #,METAS):
+                    print("CFG CB2 REFRESH ",nr,nr2)
+                if 1:
+                    GLOBAL_old_btn_nr = nr
+        thread.start_new_thread(_X_refresh,())
+    return _Dcb
+
 DIALOG._cb = Dcb(-3)
 #d = dialog.Dialog()
 #d.ask_exec_config(str(nr+1),button=button,label=label,cfg=cfg)
@@ -295,18 +327,23 @@ class Gui(): # DUMMY
                 
             if  META["CFG"]["HAVE-VAL"]: 
                 _fg = "black"
-                _bg = "gold"
+                _bg = "yellow"
                 _ba = "#ffaa55"
                 if "SEL" in txt1:
                     #_bg = "blue"
                     #_fg = "blue"
+                    _bg = "gold"
                     _bg = "#77f"
                 elif "ON" in txt1:
+                    _bg = "gold"
                     _fg = "#040"
                     _fg = "black"
                 elif "GO" in txt1:
+                    _bg = "gold"
                     _fg = "#555"
                     _fg = "black"
+                elif "FL" in txt1:
+                    _bg = "gold"
 
             out["fx"] = ""
             if  META["CFG"]["HAVE-FX"] >= 1:
@@ -344,6 +381,23 @@ class Gui(): # DUMMY
                 button = cfg["BUTTON"]
                 DIALOG._cb = Dcb(btn_nr+1)
                 DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
+                #print("INFO",master.commands.elem)
+
+            return #STOP
+
+        if "LABEL" in modes.modes:
+            button = self.elem_exec[btn_nr]
+            label = str(btn_nr) #self.elem_meta[nr] = META
+            
+            if v:
+                META = self.elem_meta[btn_nr] 
+                print("META",META)
+                cfg = META["CFG"]
+                label = META["LABEL"]
+                button = cfg["BUTTON"]
+                DIALOG._cb = Dcb_label(btn_nr+1)
+                #DIALOG.ask_exec_config(str(btn_nr+1),button=button,label=label,cfg=cfg)
+                DIALOG.askstring("LABEL","LABEL EXE:"+str(btn_nr+1),initialvalue=label)
                 #print("INFO",master.commands.elem)
 
             return #STOP
@@ -387,16 +441,23 @@ class Gui(): # DUMMY
             print("REC REFRESH !?",PREFIX)
             nr = btn_nr
             b = self.elem_exec[nr]
-
+            
+            refresh_both = 0
+            if self.old_btn_nr >= 0 and self.old_btn_nr  != nr:
+                self.old_btn_nr = nr
+                refresh_both = 1
+                
+            time.sleep(0.4)
             self._refresh_exec_single(nr,b) #,METAS):
             time.sleep(0.4)
-            if self.old_btn_nr >= 0 and self.old_btn_nr  != nr:
+            if refresh_both:
                 self._refresh_exec_single(self.old_btn_nr,b) #,METAS):
-                print(" REFRESH EXEC ",nr,self.old_btn_nr)
-            #time.sleep(0.2)
-            #self._refresh_exec()
-            if v:
-                self.old_btn_nr = nr
+
+            time.sleep(2.)
+            self._refresh_exec_single(nr,b) #,METAS):
+            if refresh_both:
+                self._refresh_exec_single(self.old_btn_nr,b) #,METAS):
+
         thread.start_new_thread(_X_refresh,())
 
 gui  = Gui()

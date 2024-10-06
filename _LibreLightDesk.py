@@ -756,68 +756,102 @@ def _process_matrix(xfixtures,fx_x,fx_mod):
 
     return xfixtures
 
+def check_backup_path():
+    pass
+
+def save_show_to_backup():
+    pass
+
+def check_save_path(basepath="",show_name=""):
+    if basepath and show_name:
+        cwd = os.getcwd()
+        try:
+            print("cwd:",cwd)
+            cd = "/".join(basepath.split("/")[:-3])
+            os.chdir(cd)
+
+            mkdir = "/".join(basepath.split("/")[-3:])
+            mkdir += str(show_name)
+            CMD="mkdir -p '{}'".format(mkdir)
+            print("CMD:",cd,";",CMD)
+            os.system(CMD)
+
+        finally:
+            os.chdir(cwd)
+    return True
+
+def show_path_list():
+    print()
+    print("libwin  ", libwin.showlib.SHOW_DIR)
+    print("movewin ", movewin.SHOW_PATH) 
+    print("EXEC    ", EXEC.base.show_path)   
+    print("FIXTURES", FIXTURES.base.show_path)
+    print()
+
+def show_path_reset():
+    print("show_path_reset()")
+    name = showlib.current_show_name() 
+    SHOW_DIR  = showlib.BASE_PATH+"/show/"
+    show_path_set(SHOW_DIR,name)
+
+def show_path_set(path,name):
+    SHOW_PATH = path + str(name) 
+    SHOW_DIR = path
+
+    libwin.showlib.SHOW_DIR = SHOW_DIR
+    #movewin.showlib.SHOW_DIR = SHOW_DIR
+
+    movewin.SHOW_PATH       = SHOW_PATH
+    EXEC.base.show_path     = SHOW_PATH 
+    FIXTURES.base.show_path = SHOW_PATH
+
 def save_show_to_usb():
-    cprint("*** "*20,color="yellow")
-    cprint("+++ "*20,color="yellow")
     cprint("*** "*20,color="yellow")
     CMD = "df | grep /media/$USER"
     CMD = "ls /media/$USER/"
+    CMD = "mount  | grep /media/$USER | cut -d ' ' -f 3"
     r = os.popen(CMD)
     usbs = r.readlines()
     print("USB's:",usbs)
     for usb in usbs:
         usb = usb.strip()
         print(usb)
-        _usbstick_path = "/media/user/"+str(usb)+"/LibreLight/show/" 
+        
+        cwd = os.getcwd()
+
+        _show_name = showlib.current_show_name() 
+        #_usbstick_path = "/media/user/"+str(usb)+"/LibreLight/show/" 
+        _usbstick_path = ""+str(usb)+"/LibreLight/show/" 
         SHOW_DIR = libwin.showlib.SHOW_DIR 
+        
 
         try: 
-            cwd = os.getcwd()
-            print("cwd:",cwd)
-            cd = "/".join(_usbstick_path.split("/")[:4])
-            os.chdir(cd)
-            mkdir = "/".join(_usbstick_path.split("/")[4:])
+            if check_save_path(basepath=_usbstick_path,show_name=_show_name):
+                
+                #show_path_list()
+                show_path_set(path=_usbstick_path,name=_show_name)
 
-            libwin.showlib.SHOW_DIR  = _usbstick_path
-            movewin.showlib.SHOW_DIR = _usbstick_path
-
-            _show_name = showlib.current_show_name() 
-            _usbstick_path_name = _usbstick_path + str(_show_name) 
-            mkdir += str(_show_name)
-            CMD="mkdir -p '{}'".format(mkdir)
-            print("CMD:",cd,";",CMD)
-            os.system(CMD)
-
-            EXEC.base.show_path     = _usbstick_path_name
-            FIXTURES.base.show_path = _usbstick_path_name
-            movewin.SHOW_PATH       = _usbstick_path_name
-
-            a=EXEC.backup_exec()
-            b=FIXTURES.backup_patch()
-            c=libwin.save_window_position() 
-            d=movewin.store_all_sdl()
+                a=EXEC.backup_exec()
+                b=FIXTURES.backup_patch()
+                c=libwin.save_window_position() 
+                d=movewin.store_all_sdl()
         except FileNotFoundError as e:
             cprint("EXC",e,color="red")
         finally:
-            # reset 
-            os.chdir(cwd)
-            EXEC.base.show_path      = SHOW_DIR 
-            FIXTURES.base.show_path  = SHOW_DIR
-            libwin.showlib.SHOW_DIR  = SHOW_DIR 
-            movewin.SHOW_PATH = showlib.current_show_path() 
-            cprint("*** "*20,color="yellow")
+            show_path_reset()
+            print(SHOW_DIR,showlib.current_show_path())
+            cprint("   ","*** "*20,color="yellow")
 
-        print(cwd,os.getcwd())
+        if a and b and d: # and c
+            #show_path_list()
+            cprint("SAVE SHOW OK",[a,b,c,d],_usbstick_path,color="green")
 
-        cprint("--- "*20,color="yellow")
-        cprint("--- "*20,color="yellow")
         cprint("--- "*20,color="yellow")
 
 
 def save_show(fpath=None,new=0):
-    
-    if 1:
-        save_show_to_usb()
+                
+    # show_path_list()
 
     if fpath:
         a=EXEC.backup_exec(save_as=fpath,new=new)
@@ -833,7 +867,11 @@ def save_show(fpath=None,new=0):
         c=libwin.save_window_position() 
         d=movewin.store_all_sdl()
 
+    if 1:
+        save_show_to_usb()
+
     if a and b and d: # and c
+        #show_path_list()
         cprint("SAVE SHOW OK",[fpath,new],[a,b,c,d],color="green")
         print()
         print()
@@ -1113,6 +1151,7 @@ class MASTER():
                 cprint("err443",self,"_cb",data)
                 return None
             cprint("btn_cfg._cb()",data)
+            print( "dialog_cfg_retrun",data)
             if data:
 
                 if "Button" in  data and type(data["Button"]) is str:

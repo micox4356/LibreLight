@@ -14,9 +14,13 @@ git clone https://gogs.librelight.de/librelight/ASP.git
 rsync -apv --delete /opt/LibreLight/git/ASP/ /opt/LibreLight/ASP/
 pwd
 ls -l
+
+echo
 cd /opt/LibreLight/git/ASP
 git remote -v
+echo
 
+# -----------------------------------------------------
 cd /opt/LibreLight/git/
 rm -rf LibreLight
 rm -rf Xdesk
@@ -29,6 +33,9 @@ cd /opt/LibreLight/git/
 rsync -apv --delete /opt/LibreLight/git/Xdesk/ /opt/LibreLight/Xdesk/
 pwd
 ls -l
+
+echo
 cd /opt/LibreLight/git/ASP
 git remote -v
+echo
 read -p -t 1 

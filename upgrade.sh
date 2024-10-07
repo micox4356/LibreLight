@@ -10,6 +10,8 @@ rm -rf LibreLightASP
 rm -rf ASP
 #git clone https://github.com/micox4356/LibreLightASP.git
 git clone https://gogs.librelight.de/librelight/ASP.git
+git remote -v
+
 #rsync -apv --delete /opt/LibreLight/git/LibreLightASP/ /opt/LibreLight/ASP/
 rsync -apv --delete /opt/LibreLight/git/ASP/ /opt/LibreLight/ASP/
 pwd
@@ -22,6 +24,7 @@ pwd
 ls -l
 #git clone https://github.com/micox4356/LibreLight.git
 git clone https://gogs.librelight.de/librelight/Xdesk.git
+git remote -v
 #rsync -apv --delete /opt/LibreLight/git/LibreLight/ /opt/LibreLight/Xdesk/
 rsync -apv --delete /opt/LibreLight/git/Xdesk/ /opt/LibreLight/Xdesk/
 pwd
